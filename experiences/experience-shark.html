@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Shark in Lines — Living Art Museum</title>
-<meta name="description" content="A tiger shark drawn only in lines, in a three-bay tank: lines that lift into a body, slits that shimmer, tapered strokes, sonar rings. Run your finger through them; the living shark turns away, the dying one sinks, the kept one does not move. An experience from the Living Art Museum.">
+<meta name="description" content="A tiger shark drawn only in lines, kept in a three-bay tank with its eyes open. It moves only while you drag — a real scanimation film, vertical line engraving, loose tapered strokes, sonar. Hold your hand in front of its mouth. Leave it, and it rots. An experience from the Living Art Museum.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,27 +13,29 @@
 html[lang="ko"]{--serif:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;}
 /* ==========================================================================
    SHARK IN LINES — after Hirst's shark (1991).
-   No picture of a shark anywhere: only lines. A field of parallel lines lifts
-   where the body is, thickens, breaks into dashes as it dies, turns the green
-   of formaldehyde when it is kept. Four ways of drawing it — contour lines,
-   barrier slits, tapered strokes, sonar rings — and your finger runs through
-   them like through threads. The shark's outline is drawn here from scratch.
+   No photograph: a tiger shark painted here from scratch, then shown only
+   through lines — a vertical line engraving, a real scanimation film you
+   slide, loose tapered strokes, sonar rings. It is kept: eyes open, still.
+   It moves only while you move it.
    ========================================================================== */
 :root{
-  --ink:#f3f4f6; --ink-dim:rgba(243,244,246,.68); --ink-faint:rgba(243,244,246,.42);
-  --glass-a:rgba(255,255,255,.12); --glass-b:rgba(255,255,255,.05); --glass-line:rgba(255,255,255,.15);
-  --chip-on:rgba(255,255,255,.92); --chip-on-ink:#0b0c10; --accent:#2ec4b6;
+  --ink:#16171b; --ink-dim:rgba(22,23,27,.66); --ink-faint:rgba(22,23,27,.46);
+  --glass-a:rgba(255,255,255,.72); --glass-b:rgba(255,255,255,.5); --glass-line:rgba(0,0,0,.1);
+  --chip-on:#16171b; --chip-on-ink:#fff; --accent:#1b9aaa;
 }
-body.paper{ --ink:#16171b; --ink-dim:rgba(22,23,27,.66); --ink-faint:rgba(22,23,27,.45);
-  --glass-a:rgba(255,255,255,.72); --glass-b:rgba(255,255,255,.5); --glass-line:rgba(0,0,0,.1); --chip-on:#16171b; --chip-on-ink:#fff; }
+body.dark{ --ink:#f3f4f6; --ink-dim:rgba(243,244,246,.68); --ink-faint:rgba(243,244,246,.44);
+  --glass-a:rgba(255,255,255,.12); --glass-b:rgba(255,255,255,.05); --glass-line:rgba(255,255,255,.15); --chip-on:rgba(255,255,255,.92); --chip-on-ink:#0b0c10; }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;}
-body{background:#07080c;color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
+body{background:#eef0ec;color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px;}
 .glass{background:linear-gradient(180deg,var(--glass-a),var(--glass-b));backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
-  border:1px solid var(--glass-line);box-shadow:0 24px 60px -30px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.1);}
-#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair;}
+  border:1px solid var(--glass-line);box-shadow:0 24px 60px -30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.12);}
+#gl,#ov{position:fixed;inset:0;width:100%;height:100%;display:block;}
+#ov{pointer-events:none;}
+#gl{touch-action:none;cursor:grab;}
+#gl.dragging{cursor:grabbing;}
 
 .top{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:20px;right:20px;z-index:10;display:flex;align-items:center;gap:14px;pointer-events:none;}
 .top > *{pointer-events:auto;}
@@ -43,14 +45,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 .title p{font-size:11.5px;color:var(--ink-dim);margin-top:2px;}
 body.embedded .top{display:none;}
 
-/* the plaque, above the tank on the left */
-#plaque{position:fixed;z-index:6;font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#plaque b{color:var(--ink);font-weight:500;letter-spacing:.1em;}
-html[lang="ko"] #plaque{letter-spacing:.04em;}
-html[lang="ko"] #plaque b{letter-spacing:.02em;}
+.mono{position:fixed;z-index:6;font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mono b{color:var(--ink);font-weight:500;}
+#clock{text-align:right;}
+html[lang="ko"] .mono{letter-spacing:.03em;}
 
 #bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:12;display:flex;align-items:center;gap:4px;padding:6px;border-radius:20px;max-width:calc(100% - 20px);}
-.grp{display:flex;gap:2px;}
+.grp{display:flex;gap:2px;align-items:center;}
 .sep{width:1px;align-self:stretch;margin:6px 4px;background:var(--glass-line);}
 .chip{display:flex;align-items:center;gap:7px;padding:9px 12px;border-radius:14px;font-size:12.5px;color:var(--ink-dim);white-space:nowrap;transition:background .2s,color .2s;}
 .chip svg{width:18px;height:18px;flex:none;}
@@ -60,9 +61,19 @@ html[lang="ko"] #plaque b{letter-spacing:.02em;}
 .st i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.8;}
 #snd[aria-pressed="true"]{background:none;color:var(--ink-dim);}
 #snd[aria-pressed="false"] .on, #snd[aria-pressed="true"] .off{display:none;}
+.dens{display:flex;align-items:center;gap:6px;padding:0 8px;color:var(--ink-dim);}
+.dens svg{width:16px;height:16px;flex:none;}
+.dens input{-webkit-appearance:none;appearance:none;width:92px;height:22px;background:transparent;cursor:pointer;}
+.dens input::-webkit-slider-runnable-track{height:2px;background:var(--ink-faint);border-radius:2px;}
+.dens input::-moz-range-track{height:2px;background:var(--ink-faint);border-radius:2px;}
+.dens input::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--chip-on);margin-top:-7px;border:2px solid var(--glass-a);}
+.dens input::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--chip-on);border:2px solid var(--glass-a);}
 #hint{position:fixed;left:50%;top:var(--hint-y,90px);transform:translate(-50%,-50%);z-index:11;padding:9px 15px;border-radius:999px;font-size:12.5px;color:var(--ink);white-space:nowrap;pointer-events:none;transition:opacity .5s;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;}
 #hint.off{opacity:0;}
-#about{position:fixed;right:20px;top:calc(76px + env(safe-area-inset-top,0px));width:340px;max-height:calc(100% - 170px);overflow:auto;z-index:20;border-radius:22px;padding:20px 20px 18px;display:none;}
+#replace{position:fixed;left:50%;top:var(--rep-y,50%);transform:translate(-50%,-50%);z-index:13;padding:12px 18px;border-radius:999px;font-size:13px;font-weight:500;color:var(--ink);display:none;align-items:center;gap:8px;}
+#replace.on{display:flex;}
+#replace b{font-family:"JetBrains Mono",monospace;font-weight:500;color:var(--ink-dim);}
+#about{position:fixed;right:20px;top:calc(76px + env(safe-area-inset-top,0px));width:360px;max-height:calc(100% - 170px);overflow:auto;z-index:20;border-radius:22px;padding:20px 20px 18px;display:none;}
 body.about #about{display:block;}
 #about .tag{font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);}
 #about h2{font-family:var(--serif);font-size:20px;font-weight:600;line-height:1.25;margin-top:8px;padding-right:24px;}
@@ -73,30 +84,38 @@ body.about #about{display:block;}
 #about .x svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;}
 .ico{stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
 html[lang="ko"] #about .tag{letter-spacing:.04em;}
+#nogl{position:fixed;inset:0;display:none;place-items:center;text-align:center;padding:30px;font-size:14px;color:var(--ink-dim);}
 
 @media (max-width:760px){
   #bar{flex-wrap:wrap;justify-content:center;gap:2px;padding:5px;width:calc(100% - 16px);bottom:calc(10px + env(safe-area-inset-bottom,0px));}
   .sep{display:none;}
   .chip{padding:8px 9px;font-size:11.5px;gap:5px;} .chip .lb{display:none;} .st .lb{display:inline;}
+  .dens{padding:0 4px;} .dens input{width:74px;}
   #about{left:10px;right:10px;width:auto;top:calc(64px + env(safe-area-inset-top,0px));}
-  #plaque{font-size:9.5px;max-width:calc(100% - 24px);}
+  .mono{font-size:9.5px;}
   .title p{display:none;} .title h1{font-size:13px;}
+  #hint{white-space:normal;text-align:center;border-radius:18px;width:max-content;line-height:1.45;}
 }
 @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
 </style>
 </head>
 <body>
-<canvas id="cv"></canvas>
+<canvas id="gl"></canvas>
+<canvas id="ov"></canvas>
+<div id="nogl"></div>
 
 <header class="top">
   <a class="logo" href="#" onclick="return false">Living Art Museum</a>
   <div class="title"><h1 id="t-h"></h1><p id="t-p"></p></div>
 </header>
-<div id="plaque"></div>
+<div id="plaque" class="mono"></div>
+<div id="clock" class="mono"></div>
 <div id="hint" class="glass off"></div>
+<button id="replace" class="glass"></button>
 
 <nav id="bar" class="glass">
   <div class="grp" id="styles" role="group"></div>
+  <label class="dens" id="dens-l"><svg class="ico" viewBox="0 0 24 24"><path d="M5 4v16M8 4v16M11 4v16M14 4v16M17 4v16M20 4v16"/></svg><input type="range" id="dens" min="0" max="100" value="10"><svg class="ico" viewBox="0 0 24 24"><path d="M6 4v16M18 4v16"/></svg></label>
   <span class="sep"></span>
   <div class="grp" id="states" role="group"></div>
   <span class="sep"></span>
@@ -110,6 +129,7 @@ html[lang="ko"] #about .tag{letter-spacing:.04em;}
   <h2 id="ab-h"></h2>
   <p id="ab-p1"></p>
   <p id="ab-p2"></p>
+  <p id="ab-p3"></p>
   <h3 id="ab-h3"></h3>
   <ol id="ab-ol"></ol>
 </section>
@@ -125,21 +145,19 @@ const LANG = (() => {
   return l === "ko" ? "ko" : "en";
 })();
 document.documentElement.lang = LANG;
+if (LANG === "ko") document.title = "선으로 그린 상어 — Living Art Museum";
 const T = (o) => (o && (o[LANG] ?? o.en)) || "";
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t;
-const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const ease = (x) => 1 - Math.pow(1 - clamp(x, 0, 1), 3);
+const mix3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const hex = (h) => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
-const mix = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
-const rgba = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a ?? 1})`;
-if (LANG === "ko") document.title = "선으로 그린 상어 — Living Art Museum";
 
 /* ==========================================================================
-   1. THE SHARK — an outline drawn here (a tiger shark, side on, mouth a
-      little open), turned once into a soft "depth" field the lines read from
+   1. THE SHARK — a tiger shark painted here from scratch, side on: slate back,
+      dark tiger bars, a white belly with a wavy line, grey fins, five gill
+      slits, the open eye, a mouth with small teeth. u: tail 0 → nose 1.
    ========================================================================== */
-/* u runs tail (0) to nose (1); v is down (+) / up (−), in body lengths */
 const SHARK = [
   [1.00, .020], [.975, -.030], [.93, -.062], [.86, -.088], [.76, -.108], [.665, -.118],
   [.615, -.205], [.585, -.285], [.565, -.312], [.548, -.300], [.545, -.200], [.53, -.118],
@@ -151,416 +169,621 @@ const SHARK = [
   [.585, .102], [.665, .104], [.62, .190], [.575, .262], [.59, .272], [.64, .232], [.74, .112],
   [.82, .102], [.875, .090], [.94, .072], [.955, .068], [.90, .055], [.985, .040],
 ];
-const MU0 = -.04, MU1 = 1.04, MV = .36, MW = 540, MH = 360;
-let DEPTH = null, SOFT = null;
-function buildShark(){
-  const c = document.createElement("canvas"); c.width = MW; c.height = MH; const q = c.getContext("2d");
-  const P = (u, v) => [(u - MU0) / (MU1 - MU0) * MW, (v + MV) / (2 * MV) * MH];
-  q.fillStyle = "#fff"; q.beginPath();
-  /* smooth the outline: quadratic curves through the midpoints */
-  const pts = SHARK.map(([u, v]) => P(u, v)), n = pts.length, mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-  const m0 = mid(pts[n - 1], pts[0]); q.moveTo(m0[0], m0[1]);
+const MU0 = -.04, MU1 = 1.04, MV = .36, TW = 1024, TH = Math.round(TW * (2 * MV) / (MU1 - MU0)), EXTW = 512;
+const EYE = [.905, -.018], MOUTH = [.955, .05];
+const PX = (u, v) => [(u - MU0) / (MU1 - MU0) * TW, (v + MV) / (2 * MV) * TH];
+const SC = TW / (MU1 - MU0);              /* texture pixels per body length */
+let PIC = null, EXT = null;
+function bodyPath(q){
+  const pts = SHARK.map(([u, v]) => PX(u, v)), n = pts.length, mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  q.beginPath(); const m0 = mid(pts[n - 1], pts[0]); q.moveTo(m0[0], m0[1]);
   for (let i = 0; i < n; i++){ const a = pts[i], m = mid(a, pts[(i + 1) % n]); q.quadraticCurveTo(a[0], a[1], m[0], m[1]); }
-  q.closePath(); q.fill();
-  q.globalCompositeOperation = "destination-out";
-  const [ex, ey] = P(.905, -.018); q.beginPath(); q.arc(ex, ey, 4.2, 0, 7); q.fill();
-  q.lineWidth = 2.2; q.lineCap = "round";
-  for (let k = 0; k < 5; k++){ const [x0, y0] = P(.80 - k * .022, -.05 + k * .002), [x1, y1] = P(.79 - k * .022, .06); q.beginPath(); q.moveTo(x0, y0); q.lineTo(x1, y1); q.stroke(); }
-  const [m0x, m0y] = P(.985, .041), [m1x, m1y] = P(.905, .056); q.lineWidth = 3; q.beginPath(); q.moveTo(m0x, m0y); q.lineTo(m1x, m1y); q.stroke();
-  const a = q.getImageData(0, 0, MW, MH).data, hard = new Float32Array(MW * MH);
-  for (let i = 0; i < MW * MH; i++) hard[i] = a[i * 4 + 3] / 255;
-  /* a rounded body: blur the outline a few times (box blurs, no ctx.filter) and keep it inside */
-  const blur = (src, r, passes) => { const A = src.slice(), B = new Float32Array(src.length);
-    for (let p = 0; p < passes; p++){
-      for (let y = 0; y < MH; y++){ let s = 0; for (let x = -r; x <= r; x++) s += A[y * MW + clamp(x, 0, MW - 1)];
-        for (let x = 0; x < MW; x++){ B[y * MW + x] = s / (2 * r + 1); s += A[y * MW + clamp(x + r + 1, 0, MW - 1)] - A[y * MW + clamp(x - r, 0, MW - 1)]; } }
-      for (let x = 0; x < MW; x++){ let s = 0; for (let y = -r; y <= r; y++) s += B[clamp(y, 0, MH - 1) * MW + x];
-        for (let y = 0; y < MH; y++){ A[y * MW + x] = s / (2 * r + 1); s += B[clamp(y + r + 1, 0, MH - 1) * MW + x] - B[clamp(y - r, 0, MH - 1) * MW + x]; } } }
-    return A; };
-  const b1 = blur(hard, 9, 3), b2 = blur(hard, 2, 2), b3 = blur(hard, 16, 3);
-  DEPTH = new Float32Array(MW * MH);
-  SOFT = new Float32Array(MW * MH);       /* a rounder, wider hill, for lines that lift without cliffs */
-  for (let i = 0; i < MW * MH; i++){
-    DEPTH[i] = clamp(Math.pow(clamp(b1[i] * 1.6 - .05, 0, 1), .8) * .75 + b2[i] * .25, 0, 1) * smooth(.15, .6, b2[i]);
-    SOFT[i] = smooth(0, 1, clamp(b3[i] * 1.5, 0, 1)) * .7 + DEPTH[i] * .3; }
+  q.closePath();
 }
-function sampleD(u, v, F){
-  F = F || DEPTH;
-  const fx = (u - MU0) / (MU1 - MU0) * (MW - 1), fy = (v + MV) / (2 * MV) * (MH - 1);
-  if (fx < 0 || fy < 0 || fx >= MW - 1 || fy >= MH - 1) return 0;
-  const x = fx | 0, y = fy | 0, tx = fx - x, ty = fy - y, i = y * MW + x;
-  return lerp(lerp(F[i], F[i + 1], tx), lerp(F[i + MW], F[i + MW + 1], tx), ty);
+function buildPicture(){
+  const c = document.createElement("canvas"); c.width = TW; c.height = TH; const q = c.getContext("2d");
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  q.save(); bodyPath(q); q.clip();
+  /* countershading: dark slate back to grey flank */
+  const y = (v) => PX(0, v)[1];
+  const gr = q.createLinearGradient(0, y(-.32), 0, y(.2));
+  [[-.32, "#1f2b33"], [-.13, "#2f3e48"], [-.085, "#3b4b56"], [-.035, "#536370"], [.012, "#6f7f8a"], [.03, "#8d99a1"], [.2, "#a9b3b8"]]
+    .forEach(([v, col]) => gr.addColorStop(clamp((v + .32) / .52, 0, 1), col));
+  q.fillStyle = gr; q.fillRect(0, 0, TW, TH);
+  /* a soft light along the upper flank, where the light from above rolls off the body */
+  const hl = q.createLinearGradient(0, y(-.1), 0, y(0));
+  hl.addColorStop(0, "rgba(255,255,255,0)"); hl.addColorStop(.55, "rgba(220,232,238,.16)"); hl.addColorStop(1, "rgba(255,255,255,0)");
+  q.fillStyle = hl; q.fillRect(0, y(-.1), TW, y(0) - y(-.1));
+  /* tiger bars: dark, slanted, fading towards the belly; blotches towards the tail */
+  for (let u = .2; u < .84; u += .026 + rnd() * .01){
+    const w = (.006 + rnd() * .004) * (1.15 - u * .4), sl = .012 + rnd() * .01;
+    const g2 = q.createLinearGradient(0, y(-.13), 0, y(.03)); g2.addColorStop(0, "rgba(18,26,32,.62)"); g2.addColorStop(.7, "rgba(18,26,32,.42)"); g2.addColorStop(1, "rgba(18,26,32,0)");
+    q.fillStyle = g2; q.beginPath();
+    const a = PX(u, -.135), b = PX(u + w, -.135), cc = PX(u + w - sl, .03), d = PX(u - sl, .03);
+    q.moveTo(a[0], a[1]); q.lineTo(b[0], b[1]); q.lineTo(cc[0], cc[1]); q.lineTo(d[0], d[1]); q.fill();
+  }
+  for (let k = 0; k < 26; k++){ const u = .05 + rnd() * .2, v = -.06 + rnd() * .08, [x0, y0] = PX(u, v);
+    q.fillStyle = "rgba(18,26,32,.4)"; q.beginPath(); q.ellipse(x0, y0, (.004 + rnd() * .006) * SC, (.003 + rnd() * .004) * SC, rnd() * 3, 0, 7); q.fill(); }
+  /* the tail and the dorsal fins a little darker at their tips */
+  const tg = q.createLinearGradient(PX(.16, 0)[0], 0, PX(0, 0)[0], 0); tg.addColorStop(0, "rgba(14,20,25,0)"); tg.addColorStop(1, "rgba(14,20,25,.45)");
+  q.fillStyle = tg; q.fillRect(0, 0, PX(.16, 0)[0], TH);
+  /* the belly: a white underside with a wavy line, as on a real shark */
+  q.beginPath(); { const [sx, sy] = PX(-.05, .4); q.moveTo(sx, sy); }
+  for (let u = -.05; u <= 1.06; u += .01){
+    const v = .03 + .009 * Math.sin(u * 23) + .004 * Math.sin(u * 61) + (u > .8 ? (u - .8) * .045 : 0) - (u < .2 ? (.2 - u) * .02 : 0);
+    const [x0, y0] = PX(u, v); q.lineTo(x0, y0); }
+  { const [ex, ey] = PX(1.06, .4); q.lineTo(ex, ey); } q.closePath();
+  const bg = q.createLinearGradient(0, y(.03), 0, y(.12)); bg.addColorStop(0, "#dfe5e7"); bg.addColorStop(1, "#f6f7f5");
+  q.fillStyle = bg; q.fill();
+  /* the fins below: grey on top, darker at the leading edge */
+  const fin = (pts, col) => { q.fillStyle = col; q.beginPath(); pts.forEach(([u, v], i) => { const [x0, y0] = PX(u, v); i ? q.lineTo(x0, y0) : q.moveTo(x0, y0); }); q.closePath(); q.fill(); };
+  fin([[.70, .102], [.665, .106], [.62, .190], [.575, .262], [.59, .272], [.64, .232], [.74, .112]], "rgba(64,79,89,.86)");
+  fin([[.46, .093], [.435, .09], [.418, .135], [.43, .140], [.485, .098]], "rgba(84,98,107,.72)");
+  fin([[.27, .06], [.255, .056], [.236, .100], [.248, .104], [.29, .064]], "rgba(84,98,107,.72)");
+  fin([[.07, .0], [.055, .040], [.025, .135], [.012, .172], [.03, .168], [.085, .065], [.15, .02], [.15, .0]], "rgba(52,64,73,.88)");
+  /* gill slits */
+  q.strokeStyle = "rgba(20,28,34,.8)"; q.lineCap = "round";
+  for (let k = 0; k < 5; k++){ const a = PX(.802 - k * .02, -.048 + k * .003), m = PX(.79 - k * .02, .004), b = PX(.796 - k * .02, .056 - k * .002);
+    q.lineWidth = (.0045 - k * .0003) * SC; q.beginPath(); q.moveTo(a[0], a[1]); q.quadraticCurveTo(m[0], m[1], b[0], b[1]); q.stroke(); }
+  /* the mouth, a little open, with small teeth */
+  q.strokeStyle = "#141b20"; q.lineWidth = .006 * SC; q.beginPath();
+  { const a = PX(.988, .036), b = PX(.945, .05), cc = PX(.893, .061); q.moveTo(a[0], a[1]); q.quadraticCurveTo(b[0], b[1], cc[0], cc[1]); q.stroke(); }
+  q.fillStyle = "rgba(250,250,245,.9)";
+  for (let u = .9; u < .975; u += .009){ const v = .036 + (.988 - u) / .095 * .025, [x0, y0] = PX(u, v); q.beginPath(); q.moveTo(x0 - 2, y0 + 1); q.lineTo(x0 + 2, y0 + 1); q.lineTo(x0, y0 + 5); q.fill(); }
+  /* nostril and the open eye */
+  { const [nx, ny] = PX(.975, .006); q.fillStyle = "#141b20"; q.beginPath(); q.ellipse(nx, ny, 4, 2, -.2, 0, 7); q.fill(); }
+  { const [ex, ey] = PX(EYE[0], EYE[1]); q.fillStyle = "#06090b"; q.beginPath(); q.arc(ex, ey, .0105 * SC, 0, 7); q.fill();
+    q.strokeStyle = "rgba(190,205,212,.55)"; q.lineWidth = .0024 * SC; q.beginPath(); q.arc(ex, ey, .0118 * SC, 0, 7); q.stroke(); }
+  /* the skin: fine speckle */
+  for (let k = 0; k < 2600; k++){ const u = rnd(), v = -.14 + rnd() * .2, [x0, y0] = PX(u, v); q.fillStyle = rnd() < .5 ? "rgba(0,0,0,.08)" : "rgba(255,255,255,.06)"; q.fillRect(x0, y0, 2, 2); }
+  q.restore();
+  PIC = c;
+  /* per column of the body: where it starts and ends (for the drips) */
+  const a = q.getImageData(0, 0, TW, TH).data; EXT = new Uint8Array(EXTW * 4);
+  for (let i = 0; i < EXTW; i++){
+    const x = Math.round(i / (EXTW - 1) * (TW - 1)); let top = -1, bot = -1;
+    for (let yy = 0; yy < TH; yy++) if (a[(yy * TW + x) * 4 + 3] > 128){ top = yy; break; }
+    for (let yy = TH - 1; yy >= 0; yy--) if (a[(yy * TW + x) * 4 + 3] > 128){ bot = yy; break; }
+    const enc = (t, o) => { const hi = Math.floor(t * 255), lo = Math.floor((t * 255 - hi) * 255); EXT[i * 4 + o] = hi; EXT[i * 4 + o + 1] = lo; };
+    if (top < 0){ EXT[i * 4] = 255; EXT[i * 4 + 1] = 0; EXT[i * 4 + 2] = 0; EXT[i * 4 + 3] = 0; }
+    else { enc(top / (TH - 1), 0); enc(bot / (TH - 1), 2); }
+  }
 }
 
 /* ==========================================================================
-   2. STATE — the tank, the shark, and the three states of the work
+   2. WEBGL — every line is drawn by one shader, so even the densest
+      engraving stays crisp at any size
    ========================================================================== */
-const cv = $("cv"), g = cv.getContext("2d");
+const FRAG = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform vec2 uRes; uniform float uDPR;
+uniform vec4 uTank; uniform vec4 uSh; uniform vec4 uSh2; uniform vec2 uFocus;
+uniform float uStyle, uGap, uTime, uWaveT, uDecay, uDrip, uPing, uKept;
+uniform vec4 uPtr; uniform vec3 uRip[6]; uniform vec4 uFilm; uniform vec2 uSonar; uniform vec4 uGlint;
+uniform vec3 uBg, uRoom;
+uniform sampler2D uTex, uExt;
+const float MU0 = -.04, MU1 = 1.04, MV = .36, PI = 3.14159265;
+float hash(float n){ return fract(sin(mod(n, 997.) * 12.9898 + 1.7) * 43758.5453); }
+float sway(float u, float ph, float A){ float k = max(0., 1. - u); return A * sin(ph - (1. - u) * 5.2) * pow(k, 1.7) + A * .15 * sin(ph * .5 + 1.3) * (u - .5); }
+vec4 pic(vec2 p, float ph, float A){
+  if (abs(uSh.w) < .04) return vec4(0.);
+  vec2 z = uFocus + (p - uFocus) / uSh2.w;
+  vec2 d = z - uSh.xy; float c = cos(-uSh2.x), s = sin(-uSh2.x);
+  float rx = d.x * c - d.y * s, ry = d.x * s + d.y * c;
+  float u = .5 + rx / (uSh.z * uSh.w), v = ry / uSh.z - sway(u, ph, A);
+  vec2 t = vec2((u - MU0) / (MU1 - MU0), (v + MV) / (2. * MV));
+  if (t.x < 0. || t.x > 1. || t.y < 0. || t.y > 1.) return vec4(0.);
+  vec4 col = texture2D(uTex, t);
+  float g = 1. - smoothstep(uGlint.z * .55, uGlint.z, distance(p, uGlint.xy));
+  col.rgb = mix(col.rgb, vec3(1.), g * step(.5, col.a));
+  return col;
+}
+vec2 disp(vec2 p){
+  vec2 o = vec2(0.);
+  vec2 d = p - uPtr.xy; float R = max(30., uTank.w * .09);
+  float f = exp(-dot(d, d) / (R * R)) * uPtr.z;
+  o += d / (length(d) + .001) * f * R * .32;
+  for (int i = 0; i < 6; i++){
+    vec3 r = uRip[i];
+    if (r.z > 0. && r.z < 2.6){
+      vec2 q = p - r.xy; float dd = length(q), fr = r.z * 170.;
+      float w = sin((dd - fr) * .075) * exp(-abs(dd - fr) * .02) * (1. - r.z / 2.6) * 6.5;
+      o += q / (dd + .001) * w;
+    }
+  }
+  return o;
+}
+float lum(vec3 c){ return dot(c, vec3(.299, .587, .114)); }
+void main(){
+  vec2 p = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y) / uDPR;
+  if (p.x < uTank.x || p.x > uTank.x + uTank.z || p.y < uTank.y || p.y > uTank.y + uTank.w){ gl_FragColor = vec4(uRoom, 1.); return; }
+  vec3 col = uBg;
+  float gap = uGap, ph = uSh2.y, A = uSh2.z, dec = uDecay, L = uSh.z * uSh2.w;
+  if (uStyle < .5){
+    /* VERTICAL LINES — an engraving: each column samples the shark at its centre;
+       darker skin, wider line. Lines run on above and below the body. */
+    vec2 dp = disp(p);
+    float xr = p.x - dp.x, ci = floor((xr - uTank.x) / gap), xc = uTank.x + (ci + .5) * gap, h = hash(ci);
+    float sag = dec * h * h * L * .07;
+    vec2 sp = vec2(xc, p.y - dp.y * .3 - sag);
+    vec4 c = pic(sp, ph, A);
+    float edge = abs(pic(sp + vec2(0., 1.6), ph, A).a - pic(sp - vec2(0., 1.6), ph, A).a);
+    float dark = c.a * (1. - lum(c.rgb)) + edge * .7;
+    float wf = c.a > .03 ? mix(.16, .8, smoothstep(.03, .72, dark)) : 0.;
+    vec3 lc = min(c.rgb * .9, vec3(.6));
+    lc = mix(lc, vec3(.18, .22, .25), clamp(edge * 1.4, 0., 1.));
+    float al = 1.;
+    if (c.a < .5){
+      float xz = uFocus.x + (xc - uFocus.x) / uSh2.w;
+      float u = .5 + (xz - uSh.x) / cos(uSh2.x) / (uSh.z * uSh.w);
+      if (u > MU0 && u < MU1){
+        vec4 e = texture2D(uExt, vec2((u - MU0) / (MU1 - MU0), .5));
+        float tT = e.r + e.g / 255., tB = e.b + e.a / 255.;
+        if (tT < tB){
+          float sw = sway(u, ph, A), tilt = (u - .5) * uSh.z * uSh.w * sin(uSh2.x);
+          float yT = uSh.y + (tT * 2. * MV - MV + sw) * uSh.z + tilt, yB = uSh.y + (tB * 2. * MV - MV + sw) * uSh.z + tilt;
+          yT = uFocus.y + (yT - uFocus.y) * uSh2.w + sag; yB = uFocus.y + (yB - uFocus.y) * uSh2.w + sag;
+          float h2 = hash(ci + 31.), h3 = hash(ci + 77.), y = p.y - dp.y * .3;
+          float up = step(.42, h2) * h2 * h2 * L * .34 * uDrip * (1. - dec * .7);
+          float dn = step(.3, h3) * h3 * L * (.2 * uDrip + dec * .4);
+          vec3 dc = vec3(.2, .26, .3);
+          if (y < yT && y > yT - up){ wf = .22 + .12 * h2; lc = dc; }
+          if (y > yB && y < yB + dn){ wf = .18 + .14 * h3; lc = dc;
+            if (dec > .01){ float seg = fract((y - uTime * (24. + 70. * h3)) / (10. + 34. * h2)); if (seg < dec * .55) wf = 0.; } }
+        }
+      }
+    }
+    if (wf <= 0.){ wf = .07; lc = vec3(.45, .5, .52); al = .16 * (1. - dec * .5); }
+    if (hash(ci + 5.) < dec * .22 && c.a > .03) wf *= .3;
+    float cov = clamp((wf * gap * .5 - abs(xr - xc)) * uDPR + .5, 0., 1.);
+    lc = mix(lc, vec3(lum(lc)) * vec3(1.06, .94, .7), dec * .75);
+    col = mix(col, lc, cov * al);
+  } else if (uStyle < 1.5){
+    /* SLITS — a real scanimation: six frames of a swim, cut into columns and
+       woven together; a black film with one clear slit in six slides over them */
+    float w = gap, ci = floor((p.x - uTank.x) / w), hj = hash(ci);
+    float k = mod(ci, 6.);
+    k = mod(k + floor(hj * 6.) * step(1. - dec * .7, hash(ci + 9.)), 6.);
+    vec4 c = pic(vec2(p.x, p.y - dec * hj * hj * L * .07), k / 6. * 2. * PI, A);
+    vec3 base = mix(uBg, c.rgb * .36, c.a);
+    col = base;
+    float fy = uTank.y + uFilm.y;
+    if (p.y >= fy){
+      float m = mod(p.x - uTank.x - uFilm.x, 6. * w);
+      float open = clamp(min(m, w - m) * uDPR + .5, 0., 1.);
+      vec3 film = vec3(.065, .07, .08);
+      col = mix(film, base, open * .97);
+      col = mix(col, vec3(.8, .84, .86), (1. - smoothstep(0., 2.5, p.y - fy)) * .7);
+    }
+  } else if (uStyle < 2.5){
+    /* TAPER — loose, gestural strokes that lean with the water and swell into a body */
+    float ny = (p.y - uTank.y) / uTank.w, amp = gap * (.35 + .8 * (1. - uKept));
+    vec2 dp = disp(p);
+    float lean = sin(ny * 4.2 + p.x * .0045 - uWaveT * .55) * amp + sin(ny * 9. - p.x * .002 + uWaveT * .3) * amp * .25;
+    float xr = p.x - lean - dp.x, ci = floor((xr - uTank.x) / gap), xc = uTank.x + (ci + .5) * gap, h = hash(ci);
+    float leanC = sin(ny * 4.2 + xc * .0045 - uWaveT * .55) * amp + sin(ny * 9. - xc * .002 + uWaveT * .3) * amp * .25;
+    vec4 c = pic(vec2(xc + leanC, p.y - dec * h * h * L * .07), ph, A);
+    float dark = c.a * (1. - lum(c.rgb) * .7);
+    float prof = pow(sin(PI * clamp(ny, 0., 1.)), 1.4);
+    float brush = .7 + .55 * sin(p.y * .04 + ci * 1.7 + h * 6.);
+    float wf = min(.9, .04 + .1 * prof + dark * .95 * brush);
+    vec3 lc = mix(vec3(.17, .19, .21), min(c.rgb * .85, vec3(.55)), smoothstep(.05, .3, c.a));
+    lc = mix(lc, vec3(lum(lc)) * vec3(1.06, .94, .7), dec * .75);
+    float cov = clamp((wf * gap * .5 - abs(xr - xc)) * uDPR + .5, 0., 1.);
+    col = mix(col, lc, cov * (1. - dec * .3));
+  } else {
+    /* SONAR — rings from where you last touched; the body sends back a stronger echo */
+    vec2 q = p - disp(p);
+    float r = distance(q, uSonar), drift = uTime * 14. * (1. - uKept * .85);
+    float ri = floor((r - drift) / gap), rc = (ri + .5) * gap + drift;
+    vec4 c = pic(q, ph, A);
+    float echo = c.a * (.45 + .55 * (1. - lum(c.rgb)));
+    float wave = exp(-abs(r - uPing * 420.) * .035) * step(0., uPing) * max(0., 1. - uPing / 3.);
+    float wf = .1 + echo * .62 + wave * .25;
+    float cov = clamp((wf * gap * .5 - abs(r - rc)) * uDPR + .5, 0., 1.);
+    vec3 teal = vec3(.2, .82, .76);
+    vec3 lc = mix(teal * .42, mix(c.rgb * 1.2 + .22, teal, .3), c.a);
+    lc = mix(lc, vec3(lum(lc)) * vec3(1.1, .95, .65), dec * .7);
+    col = mix(col, lc, cov * (.55 + .45 * c.a + wave * .4));
+  }
+  gl_FragColor = vec4(col, 1.);
+}`;
+const VERT = `attribute vec2 aP; void main(){ gl_Position = vec4(aP, 0., 1.); }`;
+const glc = $("gl"), ovc = $("ov"), o2 = ovc.getContext("2d");
+const gl = glc.getContext("webgl", { antialias:false, alpha:false, premultipliedAlpha:false, preserveDrawingBuffer:true });
+let prog = null, U = {}, texPic = null, texExt = null;
+function initGL(){
+  if (!gl) return false;
+  const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)){ console.error(gl.getShaderInfoLog(s)); return null; } return s; };
+  const vs = sh(gl.VERTEX_SHADER, VERT), fs = sh(gl.FRAGMENT_SHADER, FRAG); if (!vs || !fs) return false;
+  prog = gl.createProgram(); gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)){ console.error(gl.getProgramInfoLog(prog)); return false; }
+  gl.useProgram(prog);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, "aP"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  ["uRes", "uDPR", "uTank", "uSh", "uSh2", "uFocus", "uStyle", "uGap", "uTime", "uWaveT", "uDecay", "uDrip", "uPing", "uKept", "uPtr", "uRip", "uFilm", "uSonar", "uGlint", "uBg", "uRoom", "uTex", "uExt"]
+    .forEach(n => U[n] = gl.getUniformLocation(prog, n));
+  const mk = (unit, src, w, h, filter) => { const t = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    if (w) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, src); else gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
+    return t; };
+  texPic = mk(0, PIC, 0, 0, gl.LINEAR); texExt = mk(1, EXT, EXTW, 1, gl.NEAREST);
+  gl.uniform1i(U.uTex, 0); gl.uniform1i(U.uExt, 1);
+  return true;
+}
+
+/* ==========================================================================
+   3. STATE — the tank, the shark, the film, and the three states of the work
+   ========================================================================== */
 let W = 0, H = 0, DPR = 1, small = false;
 const tank = { x:0, y:0, w:0, h:0 };
-const SH = { x:0, y:0, len:100, ang:0, sx:1, dir:1, turning:false, phase:0, A:.05, tilt:0, vy:0, flee:0 };
+const SH = { x:0, y:0, len:100, ang:0, sx:1, dir:1, turning:false, phase:.6, A:.03, tilt:0, vy:0, flee:0, life:0, against:0 };
 const STYLES = ["lines", "slits", "taper", "rings"];
-let style = "lines", state = "alive";
-const MIXS = { alive:1, sink:0, kept:0 };       /* eased weights of the three states */
-let decay = 0;                                   /* how far the dying has gone, 0..1 */
-let t = 0;
-const ptr = { x:-999, y:-999, in:false, down:false, energy:0, sonar:null };
-const vib = new Map();                            /* line index -> { a: how hard it still rings, x: where it was struck } */
+const STYLE_BASE = { lines:5.2, slits:5, taper:10, rings:8 };       /* base spacing, px */
+const STYLE_DENS = { lines:.1, slits:.25, taper:.62, rings:.55 };   /* each style's own feel: dense … loose */
+let style = "lines", state = "kept", dens = .1;
+const MIXS = { alive:0, kept:1, decay:0 };
+let decay = 0, t = 0, waveT = 0;
+const film = { x:0, y:0 };
+const ptr = { x:-999, y:-999, in:false, down:false, energy:0, sx:0, sy:0, moved:0, t0:0, mode:"", anchorX:-999, anchorY:-999, still:0 };
+const rip = [];                       /* water rings: {x, y, age} */
+let ping = -1, sonar = null;
+const lunge = { t:-1, cool:0, fx:0, fy:0, hold:0, done:false };
+let started = performance.now();
+const gapPx = () => STYLE_BASE[style] * lerp(.62, 2.5, dens) * (small ? .7 : 1);
+const isDark = () => style === "rings";
 
 function layout(){
   DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; small = W <= 760;
-  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  glc.width = Math.round(W * DPR); glc.height = Math.round(H * DPR); ovc.width = glc.width; ovc.height = glc.height;
+  if (gl) gl.viewport(0, 0, glc.width, glc.height);
   const embedded = document.body.classList.contains("embedded");
   const barTop = $("bar").getBoundingClientRect().top || (H - 72);
-  const topM = small ? (embedded ? 84 : 92) : (embedded ? 92 : 96), botM = (H - barTop) + (small ? 62 : 58);
+  const topM = small ? (embedded ? 98 : 104) : (embedded ? 96 : 100), botM = (H - barTop) + (small ? 62 : 58);
   const availW = W - (small ? 24 : 80), availH = H - topM - botM;
   const asp = clamp(availW / availH, small ? .85 : 1.6, 2.6);
   let w = availW, h = w / asp; if (h > availH){ h = availH; w = h * asp; }
   tank.w = Math.round(w); tank.h = Math.round(h); tank.x = Math.round((W - w) / 2); tank.y = Math.round(topM + (availH - h) / 2);
-  SH.len = Math.min(tank.w * (small ? .8 : .58), tank.h * 2.1);
-  if (!SH.x){ SH.x = tank.x + tank.w * .45; SH.y = tank.y + tank.h * .48; }
-  SH.x = clamp(SH.x, tank.x, tank.x + tank.w); SH.y = clamp(SH.y, tank.y, tank.y + tank.h);
-  const pl = $("plaque"); pl.style.left = tank.x + "px"; pl.style.top = (tank.y - 26) + "px";
+  SH.len = Math.min(tank.w * (small ? .82 : .6), tank.h * 2.1);
+  if (!SH.x){ SH.x = tank.x + tank.w * .5; SH.y = tank.y + tank.h * .5; }
+  clampShark();
+  const pl = $("plaque"), ck = $("clock");
+  if (small){ pl.style.left = ck.style.left = tank.x + "px"; pl.style.right = ck.style.right = "auto"; pl.style.top = (tank.y - 42) + "px"; ck.style.top = (tank.y - 24) + "px"; ck.style.textAlign = "left"; }
+  else { pl.style.left = tank.x + "px"; pl.style.top = ck.style.top = (tank.y - 26) + "px"; ck.style.left = "auto"; ck.style.right = (W - tank.x - tank.w) + "px"; ck.style.textAlign = "right"; }
+  pl.style.maxWidth = ck.style.maxWidth = (small ? tank.w : tank.w / 2 - 10) + "px";
   document.documentElement.style.setProperty("--hint-y", (barTop - 28) + "px");
+  document.documentElement.style.setProperty("--rep-y", (tank.y + tank.h * .2) + "px");
+}
+function clampShark(){
+  const mx = Math.min(tank.w * .5, SH.len * .42), my = Math.min(tank.h * .5, SH.len * .16);
+  SH.x = clamp(SH.x, tank.x + mx, tank.x + tank.w - mx); SH.y = clamp(SH.y, tank.y + my, tank.y + tank.h - my);
 }
 
-/* the shark's depth at a point on the screen; remembers where on the body it was (for the stripes) */
-let lastU = 0, lastV = 0, lastSoft = 0;
-function sway(u){ return SH.A * Math.sin(SH.phase - (1 - u) * 5.2) * Math.pow(1 - u, 1.7) + SH.A * .15 * Math.sin(SH.phase * .5 + 1.3) * (u - .5); }
-function depthAt(px, py, soft){
-  lastSoft = 0;
-  if (Math.abs(SH.sx) < .04) return 0;
-  const dx = px - SH.x, dy = py - SH.y, c = Math.cos(-SH.tilt), s = Math.sin(-SH.tilt), rx = dx * c - dy * s, ry = dx * s + dy * c;
-  const u = .5 + rx / (SH.len * SH.sx), v0 = ry / SH.len;
-  if (u < MU0 || u > MU1 || v0 < -MV || v0 > MV) return 0;
-  const v = v0 - sway(u); lastU = u; lastV = v; lastSoft = soft ? sampleD(u, v, SOFT) : 0;
-  return sampleD(u, v);
+/* the shark's pose as the shader sees it (the scanimation hangs it, centred, still) */
+function pose(){
+  if (style === "slits") return { x:tank.x + tank.w * .5, y:tank.y + tank.h * .5, len:Math.min(tank.w * (small ? .86 : .64), tank.h * 2.2), sx:1, tilt:0, A:.08 * (1 - decay * .5), phase:0 };
+  return { x:SH.x, y:SH.y, len:SH.len, sx:SH.sx, tilt:SH.tilt, A:SH.A, phase:SH.phase };
 }
-/* tiger stripes across the back — gaps in the lines, not paint */
-const stripe = () => (lastV < .015 && lastU > .2 && lastU < .86 && Math.sin(lastU * 74 + Math.sin(lastV * 30) * 1.4) > .62) ? 1 : 0;
+function swayJS(u, P){ const k = Math.max(0, 1 - u); return P.A * Math.sin(P.phase - (1 - u) * 5.2) * Math.pow(k, 1.7) + P.A * .15 * Math.sin(P.phase * .5 + 1.3) * (u - .5); }
+function toScreen(u, v, P, zoom, fx, fy){
+  const rx = (u - .5) * P.len * P.sx, ry = (v + swayJS(u, P)) * P.len, c = Math.cos(P.tilt), s = Math.sin(P.tilt);
+  const x = P.x + rx * c - ry * s, y = P.y + rx * s + ry * c;
+  return [fx + (x - fx) * zoom, fy + (y - fy) * zoom];
+}
 
 /* ==========================================================================
-   3. COLOUR — vivid when alive, ash when dying, formaldehyde green when kept
+   4. COLOUR — the water of the tank: clear, formaldehyde green, rotting
    ========================================================================== */
-const PAL_DARK = ["#ff4d6d", "#ffd23f", "#3a86ff", "#06d6a0", "#ffffff", "#ff8c42", "#b388ff"].map(hex);
-const KEPT_DARK = ["#2ec4b6", "#7fded3", "#1b9aaa", "#c9f2ec", "#5ad8c6"].map(hex);
-const ASH = hex("#7c818b");
-const BG = { lines:hex("#07080c"), rings:hex("#050607"), slits:hex("#ecebe6"), taper:hex("#f3eee4") };
-const INKP = { slits:hex("#14151a"), taper:hex("#14151a") };
-const KEPT_PAPER = hex("#0d5c57");
-const isPaper = () => style === "slits" || style === "taper";
-function lineCol(i){
-  const d = MIXS.sink, k = MIXS.kept;
-  if (isPaper()){ const base = INKP[style]; return mix(mix(base, mix(base, ASH, .55), d), KEPT_PAPER, k); }
-  const live = PAL_DARK[((i % 7) + 7) % 7], kept = KEPT_DARK[((i % 5) + 5) % 5];
-  return mix(mix(live, mix(live, ASH, .75 * (.4 + .6 * decay)), d), kept, k);
-}
-function bgCol(){ const b = BG[style]; return isPaper() ? mix(b, hex("#dcefeb"), MIXS.kept * .8) : mix(b, hex("#021b1a"), MIXS.kept); }
+const BGS = { paper:{ alive:[.962, .962, .948], kept:[.905, .94, .918], decay:[.918, .892, .815] },
+              dark:{ alive:[.024, .05, .07], kept:[.014, .068, .058], decay:[.062, .055, .035] } };
+function bgNow(){ const P = BGS[isDark() ? "dark" : "paper"]; let c = [0, 0, 0];
+  for (const k of ["alive", "kept", "decay"]) c = c.map((v, i) => v + P[k][i] * MIXS[k]); return c; }
 
 /* ==========================================================================
-   4. DRAWING — four ways to make a shark out of lines
-   ========================================================================== */
-function touch(x, y){            /* how far a line here is pushed away by the finger */
-  if (!ptr.in || ptr.energy < .02) return 0;
-  const dx = x - ptr.x, dy = y - ptr.y, R = Math.max(34, tank.h * .11);
-  return Math.exp(-(dx * dx + dy * dy) / (R * R)) * ptr.energy;
-}
-const water = () => (1 - MIXS.kept) * (1 - .6 * MIXS.sink);
-const dashFor = (w) => { const k = decay * MIXS.sink; if (k < .05) return []; return [Math.max(1.5, 9 - k * 7), 1 + k * 9 * (w || 1)]; };
-const ring = (i, along, spread) => { const v = vib.get(i); if (!v) return 0; return v.a * Math.exp(-Math.pow((along - v.x) / spread, 2)); };
-
-/* (1) contour lines, lifted into a body — each line hides the ones behind it */
-const linesN = () => Math.max(26, Math.round(tank.h / (small ? 7 : 8.5)));
-function drawLines(){
-  const N = linesN(), gap = tank.h / N, relief = gap * 3.4, step = small ? 4 : 3.5, wv = water(), bg = bgCol();
-  for (let i = 0; i <= N; i++){
-    const y0 = tank.y + (i + .2) * gap, col = lineCol(i), pts = [], thick = [];
-    for (let x = tank.x; x <= tank.x + tank.w + .1; x += step){
-      const yw = y0 + Math.sin(x * .011 + t * .9 + i * .37) * 1.6 * wv;
-      const d = depthAt(x, yw, true), st = d > .25 ? stripe() : 0;
-      const yy = yw - lastSoft * relief + (yw < ptr.y ? -1 : 1) * touch(x, yw) * gap * 2.2 + ring(i, x, tank.w * .3) * Math.sin(x * .09 - t * 38) * 5;
-      pts.push(x, yy); thick.push(d > .04 ? (st ? -1 : d) : 0);
-    }
-    /* hide what is behind: fill under the line with the water */
-    g.fillStyle = rgba(bg); g.beginPath(); g.moveTo(pts[0], pts[1]);
-    for (let k = 2; k < pts.length; k += 2) g.lineTo(pts[k], pts[k + 1]);
-    g.lineTo(tank.x + tank.w, tank.y + tank.h + 2); g.lineTo(tank.x, tank.y + tank.h + 2); g.closePath(); g.fill();
-    g.strokeStyle = rgba(col, .55 + .45 * (1 - MIXS.sink * decay * .6)); g.lineWidth = 1; g.setLineDash(dashFor(1));
-    g.beginPath(); g.moveTo(pts[0], pts[1]); for (let k = 2; k < pts.length; k += 2) g.lineTo(pts[k], pts[k + 1]); g.stroke();
-    /* the body: thicker, brighter strokes where the line rides over the shark */
-    g.setLineDash(dashFor(2)); g.strokeStyle = rgba(mix(col, [255, 255, 255], .25 * MIXS.alive), 1);
-    let run = false;
-    for (let k = 0, j = 0; k < pts.length; k += 2, j++){ const th = thick[j];
-      if (th > 0){ if (!run){ g.beginPath(); g.moveTo(pts[k], pts[k + 1]); run = true; g.lineWidth = 1.4 + th * 2.6; } else g.lineTo(pts[k], pts[k + 1]); }
-      else if (run){ g.stroke(); run = false; } }
-    if (run) g.stroke();
-    g.setLineDash([]);
-  }
-}
-/* (2) barrier slits: a grid of vertical lines that only thickens where the body is —
-   the slits slide against each other as it swims, like a scanimation */
-const slitGap = () => small ? 5 : 6;
-function drawSlits(){
-  const gap = slitGap(), step = 3, ph = SH.phase;
-  for (let x = tank.x + 2, i = 0; x < tank.x + tank.w - 1; x += gap, i++){
-    const col = lineCol(i), jig = Math.sin(ph + i * 1.7) * gap * .35 * MIXS.alive;
-    g.strokeStyle = rgba(col, .28); g.lineWidth = .8; g.setLineDash(dashFor(1));
-    g.beginPath(); g.moveTo(x, tank.y); g.lineTo(x, tank.y + tank.h); g.stroke();
-    g.strokeStyle = rgba(col, 1); g.setLineDash(dashFor(2));
-    let run = false;
-    for (let y = tank.y; y <= tank.y + tank.h; y += step){
-      const xx = x + (x < ptr.x ? -1 : 1) * touch(x, y) * gap * 2.4 + ring(i, y, tank.h * .3) * Math.sin(y * .12 - t * 40) * 3;
-      const d = depthAt(xx + jig, y), st = d > .25 ? stripe() : 0, on = d > .06 && !st;
-      if (on){ if (!run){ g.beginPath(); g.moveTo(xx, y); run = true; g.lineWidth = Math.min(gap - 1, 1.2 + d * (gap - 1.2)); } else g.lineTo(xx, y); }
-      else if (run){ g.stroke(); run = false; } }
-    if (run) g.stroke();
-  }
-  g.setLineDash([]);
-}
-/* (3) tapered strokes: vertical lines, pointed at both ends, that lean with a slow
-   wave through the water and swell into a body where the shark is */
-const taperGap = () => small ? 8 : 10;
-let waveT = 0;
-function drawTaper(){
-  const gap = taperGap(), step = 4, wv = water(), amp = gap * (.5 + 1.1 * wv);
-  for (let x = tank.x + gap / 2, i = 0; x < tank.x + tank.w; x += gap, i++){
-    const col = lineCol(i), L = [], R = [];
-    for (let y = tank.y; y <= tank.y + tank.h + .1; y += step){
-      const ny = (y - tank.y) / tank.h;
-      const lean = Math.sin(ny * 4.2 + x * .0045 - waveT * .55) * amp + Math.sin(ny * 9 - x * .002 + waveT * .3) * amp * .25;
-      const xx = x + lean + (x < ptr.x ? -1 : 1) * touch(x, y) * gap * 2 + ring(i, y, tank.h * .3) * Math.sin(y * .1 - t * 36) * 3;
-      const d = depthAt(xx, y), st = d > .25 ? stripe() : 0;
-      const hw = Math.min(gap * .5 - .6, .25 + .75 * Math.pow(Math.sin(Math.PI * ny), 1.4) + d * gap * .42 * (st ? .3 : 1));
-      L.push(xx - hw, y); R.push(xx + hw, y);
-    }
-    g.fillStyle = rgba(col, 1 - .35 * MIXS.sink * decay); g.beginPath(); g.moveTo(L[0], L[1]);
-    for (let k = 2; k < L.length; k += 2) g.lineTo(L[k], L[k + 1]);
-    for (let k = R.length - 2; k >= 0; k -= 2) g.lineTo(R[k], R[k + 1]);
-    g.closePath(); g.fill();
-  }
-}
-/* (4) sonar: rings spread from where you last touched, and swell where they meet a body */
-const sonarO = () => ptr.sonar || { x:tank.x + tank.w * .08, y:tank.y + tank.h * .9 };
-const ringGap = () => small ? 8 : 9;
-function drawRings(){
-  const o = sonarO(), step = ringGap();
-  const far = Math.hypot(Math.max(o.x - tank.x, tank.x + tank.w - o.x), Math.max(o.y - tank.y, tank.y + tank.h - o.y));
-  const drift = (t * 14 * (1 - MIXS.kept * .9)) % step, base = Math.floor(t * 14 * (1 - MIXS.kept * .9) / step);
-  for (let r = drift + 4, i = 0; r < far; r += step, i++){
-    const li = i - base, col = lineCol(li), da = Math.max(.008, 4 / r), pts = [], thick = [];
-    for (let a = -Math.PI; a <= Math.PI + da; a += da){
-      const rr = r + ring(i, a * r, 160) * Math.sin(a * 30 - t * 30) * 2.5;
-      const x = o.x + Math.cos(a) * rr, y = o.y + Math.sin(a) * rr;
-      if (x < tank.x - 2 || x > tank.x + tank.w + 2 || y < tank.y - 2 || y > tank.y + tank.h + 2){ pts.push(NaN, NaN); thick.push(0); continue; }
-      const push = touch(x, y), px = x + Math.cos(a) * push * step * 1.6, py = y + Math.sin(a) * push * step * 1.6;
-      const d = depthAt(px, py), st = d > .25 ? stripe() : 0; pts.push(px, py); thick.push(d > .05 && !st ? d : 0);
-    }
-    g.strokeStyle = rgba(col, .32 + .2 * MIXS.alive); g.lineWidth = .9; g.setLineDash(dashFor(1));
-    let open = false; g.beginPath();
-    for (let k = 0; k < pts.length; k += 2){ if (isNaN(pts[k])){ open = false; continue; } if (!open){ g.moveTo(pts[k], pts[k + 1]); open = true; } else g.lineTo(pts[k], pts[k + 1]); }
-    g.stroke();
-    g.strokeStyle = rgba(col, 1); g.setLineDash(dashFor(2)); let run = false;
-    for (let k = 0, j = 0; k < pts.length; k += 2, j++){ const th = thick[j];
-      if (th > 0){ if (!run){ g.beginPath(); g.moveTo(pts[k], pts[k + 1]); run = true; g.lineWidth = 1.2 + th * 4; } else g.lineTo(pts[k], pts[k + 1]); }
-      else if (run){ g.stroke(); run = false; } }
-    if (run) g.stroke();
-  }
-  g.setLineDash([]);
-  /* the source of the ping */
-  g.strokeStyle = rgba(lineCol(0), .9); g.lineWidth = 1.4; g.beginPath(); g.arc(o.x, o.y, 3.5, 0, 7); g.stroke();
-}
-/* the vitrine: three bays of white steel, drawn as lines too */
-function drawTank(){
-  const paper = isPaper(), x = tank.x, y = tank.y, w = tank.w, h = tank.h;
-  g.strokeStyle = paper ? "rgba(42,44,51,.9)" : "rgba(236,240,242,.92)";
-  g.lineWidth = small ? 3 : 4; g.strokeRect(x - 2, y - 2, w + 4, h + 4);
-  if (!small){ g.lineWidth = 3; [1, 2].forEach(k => { const xx = x + w * k / 3; g.beginPath(); g.moveTo(xx, y - 2); g.lineTo(xx, y + h + 2); g.stroke(); }); }
-  /* the plinth, as a few horizontal lines fading away */
-  for (let k = 0; k <= 3; k++){
-    g.lineWidth = 1; g.strokeStyle = paper ? `rgba(0,0,0,${.25 - k * .05})` : `rgba(255,255,255,${.35 - k * .08})`;
-    g.beginPath(); g.moveTo(x - 10 - k * 6, y + h + 12 + k * 5); g.lineTo(x + w + 10 + k * 6, y + h + 12 + k * 5); g.stroke(); }
-}
-
-/* ==========================================================================
-   5. MOTION — alive it swims and turns away from you; dying it slows, rolls
-      and sinks; kept it hangs in the middle and never moves again
+   5. MOTION — kept: still, until you drag; alive: it swims and turns away;
+      decay: it stiffens, sinks and comes apart
    ========================================================================== */
 function turnStep(dt, speed, toDir){
   if (SH.turning){ SH.ang += dt * speed; if (SH.ang >= Math.PI){ SH.ang = 0; SH.dir = toDir ?? -SH.dir; SH.turning = false; } }
   SH.sx = SH.dir * (SH.turning ? Math.cos(SH.ang) : 1);
 }
+let lastLifeHint = 0, hadLife = false, lungeHintT = 0;
 function step(dt){
-  t += dt; waveT += dt * (1 - MIXS.kept) * (1 - .5 * MIXS.sink);
-  for (const k of ["alive", "sink", "kept"]){ const goal = state === k ? 1 : 0; MIXS[k] += (goal - MIXS[k]) * Math.min(1, dt * 2.4); }
-  if (state === "sink") decay = Math.min(1, decay + dt / 9); else if (state === "alive") decay = Math.max(0, decay - dt * .6);
-  ptr.energy *= Math.exp(-dt * 2.2);
-  vib.forEach((v, k) => { v.a *= Math.exp(-dt * 3.2); if (v.a < .02) vib.delete(k); });
+  t += dt;
+  for (const k of ["alive", "kept", "decay"]){ const goal = state === k ? 1 : 0; MIXS[k] += (goal - MIXS[k]) * Math.min(1, dt * 2.2); }
+  waveT += dt * (1 - MIXS.kept * .8) * (1 - .6 * MIXS.decay);
+  if (state === "decay"){ const was = decay; decay = Math.min(1, decay + dt / 15); if (was < 1 && decay >= 1) showReplace(true); }
+  else decay = Math.max(0, decay - dt * .9);
+  ptr.energy *= Math.exp(-dt * 2.4);
+  for (const r of rip) r.age += dt;
+  while (rip.length && rip[0].age > 2.6) rip.shift();
+  if (ping >= 0) ping += dt;
+  if (!ptr.down) SH.life *= Math.exp(-dt * .9);
+  /* the film moves by itself only when the shark is alive */
+  const cyc = gapPx() * 6;
+  if (state === "alive") film.x += dt * cyc * 1.15;
+  if (state === "decay") film.x += dt * cyc * .5 * (1 - decay) * (Math.sin(t * 7) > -.2 ? 1 : 0);
   const L = tank, cx = L.x + L.w / 2, cy = L.y + L.h / 2;
-  if (state === "alive"){
-    SH.A = lerp(SH.A, .055 + SH.flee * .03, dt * 2);
-    const spd = (L.w * (small ? .04 : .07)) * (1 + SH.flee * 1.6);
+  if (state === "kept"){
+    SH.A = lerp(SH.A, .012 + .075 * SH.life, dt * 3);
+    if (SH.life < .08 && !ptr.down){ SH.x = lerp(SH.x, cx, dt * .25); SH.y = lerp(SH.y, cy, dt * .3); SH.tilt = lerp(SH.tilt, 0, dt * .8); }
+    if (!SH.turning && SH.life < .03 && SH.dir < 0 && Math.abs(SH.x - cx) < 6) SH.turning = true;
+    turnStep(dt, 2.6, SH.life < .03 ? 1 : undefined);
+    if (hadLife && SH.life < .05 && t - lastLifeHint > 25){ lastLifeHint = t; hint(T({ en:"Let go and it stops. What moved was you.", ko:"손을 떼면 멈춰요. 살아 있던 건 당신의 움직임이었어요" }), true); }
+  } else if (state === "alive"){
+    SH.A = lerp(SH.A, .06 + SH.flee * .03, dt * 2);
+    const spd = L.w * (small ? .04 : .07) * (1 + SH.flee * 1.5 + SH.life);
     if (!SH.turning){
       SH.x += SH.dir * spd * dt;
-      const head = SH.x + SH.dir * SH.len * .5, margin = L.w * .04;
-      /* a finger just in front of its nose: it turns away */
-      const ahead = ptr.in && ptr.energy > .15 && Math.sign(ptr.x - SH.x) === SH.dir && Math.abs(ptr.x - head) < SH.len * .45 && Math.abs(ptr.y - SH.y) < SH.len * .3;
+      const head = SH.x + SH.dir * SH.len * .5, margin = L.w * .03;
+      const ahead = ptr.in && ptr.energy > .15 && Math.sign(ptr.x - SH.x) === SH.dir && Math.abs(ptr.x - head) < SH.len * .4 && Math.abs(ptr.y - SH.y) < SH.len * .3;
       if (ahead) SH.flee = 1;
-      if ((SH.dir > 0 && head > L.x + L.w - margin) || (SH.dir < 0 && head < L.x + margin) || ahead){ SH.turning = true; if (ahead) AUD.swish(); }
+      if ((SH.dir > 0 && head > L.x + L.w - margin) || (SH.dir < 0 && head < L.x + margin) || ahead){ SH.turning = true; if (ahead) AUD.swish(.8); }
     }
     turnStep(dt, 2.1 * (1 + SH.flee * .6));
     SH.flee = Math.max(0, SH.flee - dt * .5);
-    SH.phase += dt * (5.5 + SH.flee * 5);
+    SH.phase += dt * (5.5 + SH.flee * 5 + SH.life * 4);
     SH.y = lerp(SH.y, cy + Math.sin(t * .45) * L.h * .08, dt * 1.2);
     SH.tilt = lerp(SH.tilt, Math.sin(t * .45 + 1.2) * .05 * SH.dir, dt * 2);
-  } else if (state === "sink"){
-    SH.A = lerp(SH.A, 0, dt * .5); SH.phase += dt * 2 * (1 - decay);
-    turnStep(dt, 1.2);
-    SH.vy = lerp(SH.vy, L.h * .05, dt * .4);
-    const floor = L.y + L.h - SH.len * .11;
-    SH.y = Math.min(floor, SH.y + SH.vy * dt);
-    SH.x = clamp(SH.x + SH.dir * L.w * .01 * (1 - decay) * dt, L.x + SH.len * .45, L.x + L.w - SH.len * .45);
-    SH.tilt = lerp(SH.tilt, .16 * SH.dir, dt * .35);
   } else {
-    /* kept: drawn back to the middle of the tank, facing right, as it was hung */
-    SH.A = lerp(SH.A, 0, dt * 3); SH.x = lerp(SH.x, cx - L.w * .02, dt * 1.5); SH.y = lerp(SH.y, cy, dt * 1.5); SH.tilt = lerp(SH.tilt, 0, dt * 2); SH.vy = 0;
-    if (SH.dir < 0 && !SH.turning) SH.turning = true;
-    turnStep(dt, 2.5, 1);
+    SH.A = lerp(SH.A, .02, dt * .4); SH.phase += dt * 1.2 * (1 - decay);
+    turnStep(dt, 1.2);
+    SH.vy = lerp(SH.vy, L.h * .045, dt * .35);
+    SH.y = Math.min(L.y + L.h - SH.len * .2, SH.y + SH.vy * dt);
+    SH.tilt = lerp(SH.tilt, .14 * SH.dir, dt * .3);
   }
+  clampShark();
+  /* hold still in front of its mouth: it comes at you */
+  const P = pose(), zNow = zoomNow();
+  const [mx, my] = toScreen(MOUTH[0], MOUTH[1], P, zNow, lunge.fx, lunge.fy);
+  const near = ptr.in && Math.hypot(ptr.x - mx, ptr.y - my) < Math.max(40, P.len * .14) && Math.abs(P.sx) > .6;
+  if (Math.hypot(ptr.x - ptr.anchorX, ptr.y - ptr.anchorY) > 12){ ptr.anchorX = ptr.x; ptr.anchorY = ptr.y; ptr.still = 0; } else ptr.still += dt;
+  lunge.cool = Math.max(0, lunge.cool - dt);
+  if (near && ptr.still > .25 && lunge.t < 0 && lunge.cool <= 0 && state !== "decay") lunge.hold += dt; else lunge.hold = Math.max(0, lunge.hold - dt * 2);
+  if (lunge.hold > 1.15){ lunge.t = 0; lunge.hold = 0; lunge.cool = 6; lunge.fx = mx; lunge.fy = my; AUD.lunge(); }
+  if (lunge.t >= 0){ lunge.t += dt; if (lunge.t > 2.4){ lunge.t = -1; lunge.done = true;
+    hint(state === "kept" ? T({ en:"…it is a dead shark. Did your body flinch anyway?", ko:"…죽은 상어예요. 그런데도 몸이 움찔했나요?" }) : T({ en:"Up close, the fear is real — the death is not yours to see", ko:"가까이서 느낀 공포는 진짜예요 — 하지만 죽음은 끝내 당신 것이 아니에요" })); } }
+  if (!lunge.done && t > 16 && t - lungeHintT > 30 && state !== "decay"){ lungeHintT = t; hint(T({ en:"Hold your hand still in front of its mouth", ko:"상어 입 앞에 손을 가만히 대 보세요" }), true); }
 }
+function zoomNow(){ const l = lunge.t; if (l < 0) return 1; if (l < .16) return 1 + .8 * ease(l / .16); if (l < .7) return 1.8; return 1 + .8 * (1 - ease((l - .7) / 1.6)); }
+
+/* ==========================================================================
+   6. RENDER
+   ========================================================================== */
 function render(){
-  g.setTransform(DPR, 0, 0, DPR, 0, 0);
-  g.fillStyle = rgba(bgCol()); g.fillRect(0, 0, W, H);
-  g.fillStyle = isPaper() ? "rgba(0,0,0,.035)" : "rgba(255,255,255,.025)"; g.fillRect(0, tank.y + tank.h + 14, W, H);
-  g.save(); g.beginPath(); g.rect(tank.x, tank.y, tank.w, tank.h); g.clip();
-  g.lineCap = "round"; g.lineJoin = "round";
-  if (style === "lines") drawLines(); else if (style === "slits") drawSlits(); else if (style === "taper") drawTaper(); else drawRings();
-  g.restore();
-  drawTank();
+  const bg = bgNow(), dark = isDark(), room = dark ? bg.map(v => v * .7) : bg.map(v => v * .955);
+  const P = pose(), zoom = zoomNow();
+  let shx = 0, shy = 0; if (lunge.t >= 0 && lunge.t < .55){ const a = (1 - lunge.t / .55) * 7; shx = (Math.random() - .5) * a; shy = (Math.random() - .5) * a; }
+  if (gl && prog){
+    gl.uniform2f(U.uRes, glc.width, glc.height); gl.uniform1f(U.uDPR, DPR);
+    gl.uniform4f(U.uTank, tank.x, tank.y, tank.w, tank.h);
+    gl.uniform4f(U.uSh, P.x + shx, P.y + shy, P.len, P.sx);
+    gl.uniform4f(U.uSh2, P.tilt, P.phase, P.A, zoom);
+    gl.uniform2f(U.uFocus, lunge.fx, lunge.fy);
+    gl.uniform1f(U.uStyle, STYLES.indexOf(style)); gl.uniform1f(U.uGap, gapPx());
+    gl.uniform1f(U.uTime, t); gl.uniform1f(U.uWaveT, waveT); gl.uniform1f(U.uDecay, decay); gl.uniform1f(U.uDrip, 1);
+    gl.uniform1f(U.uPing, ping); gl.uniform1f(U.uKept, MIXS.kept);
+    gl.uniform4f(U.uPtr, ptr.x, ptr.y, ptr.in ? ptr.energy : 0, 0);
+    const r = new Float32Array(18); rip.slice(-6).forEach((q, i) => { r[i * 3] = q.x; r[i * 3 + 1] = q.y; r[i * 3 + 2] = q.age; }); gl.uniform3fv(U.uRip, r);
+    gl.uniform4f(U.uFilm, film.x, film.y, 0, 0);
+    const so = sonar || { x:tank.x + tank.w * .08, y:tank.y + tank.h * .88 }; gl.uniform2f(U.uSonar, so.x, so.y);
+    /* the open eye keeps a glint that turns toward you */
+    const [ex, ey] = toScreen(EYE[0], EYE[1], P, zoom, lunge.fx, lunge.fy), er = .0105 * P.len * zoom;
+    let dx = .35, dy = -.6; if (ptr.in){ const d = Math.hypot(ptr.x - ex, ptr.y - ey) || 1; dx = (ptr.x - ex) / d; dy = (ptr.y - ey) / d; }
+    gl.uniform4f(U.uGlint, ex + shx + dx * er * .45, ey + shy + dy * er * .45, Math.max(1.6, er * .42), 0);
+    gl.uniform3f(U.uBg, bg[0], bg[1], bg[2]); gl.uniform3f(U.uRoom, room[0], room[1], room[2]);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+  document.body.style.background = `rgb(${room.map(v => v * 255 | 0).join(",")})`;
+  /* the vitrine and the film tab, as lines on top */
+  o2.setTransform(DPR, 0, 0, DPR, 0, 0); o2.clearRect(0, 0, W, H);
+  const x = tank.x, y = tank.y, w = tank.w, h = tank.h;
+  o2.strokeStyle = dark ? "rgba(236,240,242,.92)" : "rgba(38,41,48,.92)";
+  o2.lineWidth = small ? 3 : 4; o2.strokeRect(x - 2, y - 2, w + 4, h + 4);
+  if (!small){ o2.lineWidth = 3; [1, 2].forEach(k => { const xx = Math.round(x + w * k / 3); o2.beginPath(); o2.moveTo(xx, y - 2); o2.lineTo(xx, y + h + 2); o2.stroke(); }); }
+  for (let k = 0; k <= 3; k++){ o2.lineWidth = 1; o2.strokeStyle = dark ? `rgba(255,255,255,${.32 - k * .07})` : `rgba(0,0,0,${.24 - k * .05})`;
+    o2.beginPath(); o2.moveTo(x - 10 - k * 6, y + h + 12 + k * 5); o2.lineTo(x + w + 10 + k * 6, y + h + 12 + k * 5); o2.stroke(); }
+  if (style === "slits"){
+    /* the film's pull tab, hanging just inside its top edge */
+    const tx = x + w / 2, ty = y + film.y + 24;
+    o2.fillStyle = "rgba(246,247,245,.94)"; o2.beginPath(); o2.roundRect ? o2.roundRect(tx - 46, ty - 20, 92, 22, 11) : o2.rect(tx - 46, ty - 20, 92, 22); o2.fill();
+    o2.strokeStyle = "#16181b"; o2.lineWidth = 1.6; o2.lineCap = "round"; o2.lineJoin = "round";
+    o2.beginPath(); o2.moveTo(tx - 30, ty - 9); o2.lineTo(tx - 12, ty - 9); o2.moveTo(tx - 24, ty - 14); o2.lineTo(tx - 30, ty - 9); o2.lineTo(tx - 24, ty - 4);
+    o2.moveTo(tx + 12, ty - 9); o2.lineTo(tx + 30, ty - 9); o2.moveTo(tx + 24, ty - 14); o2.lineTo(tx + 30, ty - 9); o2.lineTo(tx + 24, ty - 4);
+    o2.moveTo(tx - 3, ty - 14); o2.lineTo(tx - 3, ty - 4); o2.moveTo(tx + 3, ty - 14); o2.lineTo(tx + 3, ty - 4); o2.stroke();
+  }
+  if (style === "rings"){ const so = sonar || { x:x + w * .08, y:y + h * .88 }; o2.strokeStyle = "rgba(120,240,225,.9)"; o2.lineWidth = 1.4; o2.beginPath(); o2.arc(so.x, so.y, 4, 0, 7); o2.stroke(); }
 }
 let last = performance.now();
-function frame(now){ requestAnimationFrame(frame); const dt = Math.min(.05, (now - last) / 1000); last = now; step(reduce ? dt * .5 : dt); render(); }
+function frame(now){ requestAnimationFrame(frame); const dt = Math.min(.05, (now - last) / 1000); last = now; step(reduce ? dt * .6 : dt); render(); }
 
 /* ==========================================================================
-   6. HANDS — run a finger through the lines: they part, and ring
+   7. HANDS — drag to lend it life; in the scanimation you slide the film
    ========================================================================== */
-const SCALE = [0, 2, 4, 7, 9];
-function lineIndexAt(x, y){
-  if (style === "lines") return Math.round((y - tank.y) / (tank.h / linesN()) - .2);
-  if (style === "slits") return Math.round((x - tank.x - 2) / slitGap());
-  if (style === "taper") return Math.round((x - tank.x - taperGap() / 2) / taperGap());
-  const o = sonarO(); return Math.round((Math.hypot(x - o.x, y - o.y) - 4) / ringGap());
-}
-function alongAt(x, y){
-  if (style === "lines") return x;
-  if (style === "slits" || style === "taper") return y;
-  const o = sonarO(); return Math.atan2(y - o.y, x - o.x) * Math.hypot(x - o.x, y - o.y);
-}
-function pluckBetween(ax, ay, bx, by){
-  const a = lineIndexAt(ax, ay), b = lineIndexAt(bx, by); if (a === b) return;
-  const n = Math.min(Math.abs(b - a), 6), s = Math.sign(b - a), at = alongAt(bx, by);
-  for (let k = 1; k <= n; k++){ const i = a + s * k; vib.set(i, { a:1, x:at }); AUD.pluck(i); }
-}
 const inTank = (x, y) => x >= tank.x && x <= tank.x + tank.w && y >= tank.y && y <= tank.y + tank.h;
-cv.addEventListener("pointerdown", e => {
+let ripT = 0;
+function addRipple(x, y){ rip.push({ x, y, age:0 }); if (rip.length > 6) rip.shift(); }
+function lend(dx, dy){
+  const sp = Math.abs(dx) + Math.abs(dy) * .3;
+  if (state === "decay"){ SH.phase += sp * .004; if (sp > 3 && Math.random() < .03) hint(T({ en:"It does not come back", ko:"다시 돌아오지 않아요" }), true); return; }
+  SH.life = Math.min(1, SH.life + sp / 150); hadLife = true;
+  SH.phase += sp * .045 * Math.sign(dx || 1) * SH.dir * (state === "kept" ? 1 : .4);
+  if (state === "kept"){
+    if (!SH.turning && dx && Math.sign(dx) === -SH.dir){ SH.against += Math.abs(dx); if (SH.against > 70){ SH.turning = true; SH.against = 0; AUD.swish(.6); } }
+    else if (dx) SH.against = Math.max(0, SH.against - Math.abs(dx));
+    SH.x += dx * .45; SH.y += dy * .3; SH.tilt = clamp(SH.tilt + dy * .002 * SH.dir, -.2, .2); clampShark();
+  } else SH.flee = Math.min(1, SH.flee + sp / 400);
+}
+glc.addEventListener("pointerdown", e => {
   AUD.unlock(); hideHint();
-  ptr.x = e.clientX; ptr.y = e.clientY; ptr.in = inTank(ptr.x, ptr.y); ptr.down = true; ptr.energy = 1;
-  try { cv.setPointerCapture(e.pointerId); } catch (_){}
-  if (style === "rings" && ptr.in){ ptr.sonar = { x:ptr.x, y:ptr.y }; AUD.ping(); }
+  const x = e.clientX, y = e.clientY;
+  ptr.x = ptr.sx = x; ptr.y = ptr.sy = y; ptr.in = inTank(x, y); ptr.down = true; ptr.energy = 1; ptr.moved = 0; ptr.t0 = performance.now();
+  ptr.mode = (style === "slits" && Math.abs(y - (tank.y + film.y + 14)) < 24 && Math.abs(x - (tank.x + tank.w / 2)) < 70) ? "lift" : "drag";
+  glc.classList.add("dragging");
+  try { glc.setPointerCapture(e.pointerId); } catch (_){}
+  if (ptr.in) addRipple(x, y);
 });
-cv.addEventListener("pointermove", e => {
-  const x = e.clientX, y = e.clientY, was = ptr.in && ptr.x > -900; ptr.in = inTank(x, y);
-  if (ptr.in && (ptr.down || e.pointerType === "mouse")){
-    ptr.energy = Math.min(1, ptr.energy + Math.hypot(x - ptr.x, y - ptr.y) / 60);
-    if (was) pluckBetween(ptr.x, ptr.y, x, y);
-  }
-  ptr.x = x; ptr.y = y;
+glc.addEventListener("pointermove", e => {
+  const x = e.clientX, y = e.clientY, dx = x - ptr.x, dy = y - ptr.y;
+  ptr.in = inTank(x, y) || ptr.down;
+  if (ptr.down){
+    ptr.moved += Math.hypot(dx, dy);
+    if (style === "slits"){
+      if (ptr.mode === "lift"){ film.y = clamp(film.y + dy, 0, tank.h); if (film.y > tank.h * .3 && !liftHinted){ liftHinted = true; hint(T({ en:"Under the film: six pictures woven into stripes. Slide it back down", ko:"필름 아래엔 여섯 장의 그림이 띠로 엮여 있어요. 다시 내려 보세요" })); } }
+      else { film.x += dx; if (Math.abs(dx) > .5) SH.life = Math.min(1, SH.life + Math.abs(dx) / 150); }
+    } else lend(dx, dy);
+    ptr.energy = Math.min(1, ptr.energy + Math.hypot(dx, dy) / 70);
+    const now = performance.now();
+    if (now - ripT > 110 && Math.hypot(dx, dy) > 2 && inTank(x, y)){ ripT = now; addRipple(x, y); if (Math.random() < .35) AUD.bubble(); }
+    AUD.drag(Math.hypot(dx, dy) / Math.max(1, (e.timeStamp - (ptr.ts || e.timeStamp)) || 16) * 16);
+  } else if (e.pointerType === "mouse" && ptr.in){ ptr.energy = Math.min(1, ptr.energy + Math.hypot(dx, dy) / 90); }
+  ptr.ts = e.timeStamp; ptr.x = x; ptr.y = y;
 });
-const up = () => { ptr.down = false; };
-cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
-cv.addEventListener("pointerleave", () => { ptr.in = false; });
+let liftHinted = false;
+function up(){
+  if (!ptr.down) return; ptr.down = false; glc.classList.remove("dragging"); AUD.drag(0);
+  const quick = ptr.moved < 7 && performance.now() - ptr.t0 < 350;
+  if (quick && inTank(ptr.x, ptr.y)){
+    if (style === "rings"){ sonar = { x:ptr.x, y:ptr.y }; ping = 0; AUD.ping(); }
+    else AUD.bubble(); }
+  if (style === "slits" && ptr.mode === "lift" && film.y < tank.h * .12) film.y = 0;
+  if (!ptr.in || e_isTouch) ptr.in = false;
+}
+let e_isTouch = false;
+glc.addEventListener("pointerup", e => { e_isTouch = e.pointerType !== "mouse"; up(); });
+glc.addEventListener("pointercancel", () => { e_isTouch = true; up(); });
+glc.addEventListener("pointerleave", () => { if (!ptr.down) ptr.in = false; });
 
 /* ==========================================================================
-   7. SOUND — water, and the lines as strings
+   8. SOUND — the sea: deep water, swells overhead, bubbles, sonar
    ========================================================================== */
 const AUD = (() => {
-  let ctx = null, master = null, nb = null, on = true, borrowed = false, amb = null, plucks = 0, plT = 0;
+  let ctx = null, master = null, white = null, brown = null, on = true, borrowed = false, amb = null, swish = null, bubT = 0;
   function ensure(){ if (ctx) return ctx; const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
     try { const host = window.parent !== window && window.parent.__lamAudio && window.parent.__lamAudio(); if (host && host.state === "running"){ ctx = host; borrowed = true; } } catch (_){}
     if (!ctx){ try { ctx = new AC(); } catch (_){ return null; } }
-    master = ctx.createGain(); master.gain.value = on ? .8 : 0; master.connect(ctx.destination);
-    nb = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate); const d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return ctx; }
+    master = ctx.createGain(); master.gain.value = on ? .85 : 0; master.connect(ctx.destination);
+    const n = ctx.sampleRate * 4; white = ctx.createBuffer(1, n, ctx.sampleRate); brown = ctx.createBuffer(1, n, ctx.sampleRate);
+    const w = white.getChannelData(0), b = brown.getChannelData(0); let lastB = 0;
+    for (let i = 0; i < n; i++){ w[i] = Math.random() * 2 - 1; lastB = (lastB + .02 * w[i]) / 1.02; b[i] = lastB * 3.5; }
+    return ctx; }
   const ok = () => on && ensure() && ctx.state === "running";
-  function startAmb(){ if (amb || !ensure()) return;
-    const s = ctx.createBufferSource(); s.buffer = nb; s.loop = true; const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 420; f.Q.value = .4;
-    const g2 = ctx.createGain(); g2.gain.value = 0; s.connect(f); f.connect(g2); g2.connect(master);
-    const o = ctx.createOscillator(); o.frequency.value = 55; const og = ctx.createGain(); og.gain.value = 0; o.connect(og); og.connect(master);
-    const lfo = ctx.createOscillator(); lfo.frequency.value = .13; const lg = ctx.createGain(); lg.gain.value = 120; lfo.connect(lg); lg.connect(f.frequency);
-    s.start(); o.start(); lfo.start(); amb = { g:g2, f, og, src:[s, o, lfo] }; mood(); }
+  const src = (buf, loop) => { const s = ctx.createBufferSource(); s.buffer = buf; s.loop = !!loop; return s; };
+  function startAmb(){ if (amb || !ensure() || ctx.state !== "running") return;
+    /* deep water: brown noise, low, breathing slowly */
+    const d = src(brown, true), df = ctx.createBiquadFilter(); df.type = "lowpass"; df.frequency.value = 300; const dg = ctx.createGain(); dg.gain.value = 0;
+    d.connect(df); df.connect(dg); dg.connect(master);
+    const lfo = ctx.createOscillator(); lfo.frequency.value = .07; const lg = ctx.createGain(); lg.gain.value = .035; lfo.connect(lg); lg.connect(dg.gain);
+    /* the surface far above: slow swells of wash */
+    const s = src(white, true), sf = ctx.createBiquadFilter(); sf.type = "bandpass"; sf.frequency.value = 650; sf.Q.value = .5; const sg = ctx.createGain(); sg.gain.value = 0;
+    s.connect(sf); sf.connect(sg); sg.connect(master);
+    /* the drag: water moved by a hand */
+    const w = src(white, true), wf = ctx.createBiquadFilter(); wf.type = "bandpass"; wf.frequency.value = 380; wf.Q.value = .8; const wg = ctx.createGain(); wg.gain.value = 0;
+    w.connect(wf); wf.connect(wg); wg.connect(master); swish = { g:wg, f:wf };
+    d.start(); s.start(); w.start(); lfo.start();
+    amb = { dg, df, sg, sf, src:[d, s, w, lfo], next:ctx.currentTime + 1 };
+    mood(); tick(); }
   function mood(){ if (!amb) return; const tt = ctx.currentTime;
-    amb.g.gain.setTargetAtTime(state === "alive" ? .07 : state === "sink" ? .045 : .012, tt, .8);
-    amb.f.frequency.setTargetAtTime(state === "alive" ? 420 : state === "sink" ? 230 : 160, tt, .8);
-    amb.og.gain.setTargetAtTime(state === "kept" ? .02 : .006, tt, 1); }
-  function noise(tt, dur, f, q, gg, type){ const s = ctx.createBufferSource(); s.buffer = nb; const fl = ctx.createBiquadFilter(); fl.type = type || "bandpass"; fl.frequency.value = f; fl.Q.value = q;
-    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(gg, tt + .02); a.gain.exponentialRampToValueAtTime(.0001, tt + dur); s.connect(fl); fl.connect(a); a.connect(master); s.start(tt, Math.random()); s.stop(tt + dur + .05); }
+    amb.dg.gain.setTargetAtTime(state === "alive" ? .11 : state === "kept" ? .085 : .07, tt, .8);
+    amb.df.frequency.setTargetAtTime(state === "alive" ? 420 : state === "kept" ? 250 : 170, tt, .8); }
+  function tick(){ if (!amb) return;
+    const tt = ctx.currentTime;
+    if (tt > amb.next - .1){ /* a swell passing overhead */
+      const k = state === "alive" ? 1 : state === "kept" ? .45 : .25, g = amb.sg.gain;
+      g.cancelScheduledValues(tt); g.setValueAtTime(g.value, tt); g.linearRampToValueAtTime(.045 * k, tt + 2.6); g.linearRampToValueAtTime(.002, tt + 6.4);
+      amb.sf.frequency.setValueAtTime(520, tt); amb.sf.frequency.linearRampToValueAtTime(820, tt + 2.6); amb.sf.frequency.linearRampToValueAtTime(480, tt + 6.4);
+      amb.next = tt + 6.5 + Math.random() * 3.5; }
+    bubT -= .25; if (bubT <= 0 && on){ const rate = state === "alive" ? 1.4 : state === "kept" ? 4 : 9; bubT = rate * (.4 + Math.random());
+      if (state !== "decay" || Math.random() < .3){ bubble(.5 + Math.random() * .5); if (Math.random() < .4) setTimeout(() => bubble(.4), 80 + Math.random() * 120); } }
+    setTimeout(tick, 250); }
+  function bubble(k){ if (!ok()) return; k = k ?? 1; const tt = ctx.currentTime, f0 = 280 + Math.random() * 600, d = .04 + Math.random() * .06;
+    const o = ctx.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(f0, tt); o.frequency.exponentialRampToValueAtTime(f0 * (2.2 + Math.random()), tt + d);
+    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(.03 * k, tt + .006); a.gain.exponentialRampToValueAtTime(.0001, tt + d + .02);
+    o.connect(a); a.connect(master); o.start(tt); o.stop(tt + d + .05); }
+  function noise(buf, tt, dur, f, q, gg, type){ const s = src(buf), fl = ctx.createBiquadFilter(); fl.type = type || "bandpass"; fl.frequency.value = f; fl.Q.value = q;
+    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(gg, tt + Math.min(.08, dur * .2)); a.gain.exponentialRampToValueAtTime(.0001, tt + dur); s.connect(fl); fl.connect(a); a.connect(master); s.start(tt, Math.random() * 2); s.stop(tt + dur + .05); }
   return {
     unlock(){ if (ensure()){ if (ctx.state !== "running") ctx.resume().then(startAmb).catch(() => {}); else startAmb(); } },
-    get on(){ return on; }, set on(v){ on = v; if (master) master.gain.setTargetAtTime(v ? .8 : 0, ctx.currentTime, .05); },
-    mood,
-    stop(){ if (!ctx) return; if (amb) amb.src.forEach(n => { try { n.stop(); } catch (_){} }); try { master.disconnect(); } catch (_){} if (!borrowed) try { ctx.close(); } catch (_){} },
-    /* a line plucked: a soft string, pitched by which line, dulled as the shark dies */
-    pluck(i){ if (!ok()) return; const now = performance.now(); if (now - plT > 1000){ plT = now; plucks = 0; } if (++plucks > 26) return;
-      const tt = ctx.currentTime, deg = SCALE[((i % 5) + 5) % 5], oct = Math.floor((((i % 15) + 15) % 15) / 5), base = state === "kept" ? 220 : state === "sink" ? 185 : 262;
-      const f = base * Math.pow(2, (deg + oct * 12) / 12);
-      const o = ctx.createOscillator(); o.type = "triangle"; o.frequency.value = f; const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = state === "alive" ? 3200 : 1200;
-      const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(state === "kept" ? .03 : .055, tt + .006); a.gain.exponentialRampToValueAtTime(.0001, tt + (state === "alive" ? .9 : .45));
-      o.connect(lp); lp.connect(a); a.connect(master); o.start(tt); o.stop(tt + 1); },
-    ping(){ if (!ok()) return; const tt = ctx.currentTime; const o = ctx.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(1320, tt); o.frequency.exponentialRampToValueAtTime(1180, tt + 1.2);
-      const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(.07, tt + .01); a.gain.exponentialRampToValueAtTime(.0001, tt + 1.4); o.connect(a); a.connect(master); o.start(tt); o.stop(tt + 1.5); },
-    swish(){ if (!ok()) return; noise(ctx.currentTime, .5, 500, .7, .06); },
-    sink(){ if (!ok()) return; const tt = ctx.currentTime; noise(tt, 1.8, 260, .6, .07, "lowpass"); const o = ctx.createOscillator(); o.frequency.setValueAtTime(140, tt); o.frequency.exponentialRampToValueAtTime(45, tt + 2);
-      const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(.06, tt + .1); a.gain.exponentialRampToValueAtTime(.0001, tt + 2.2); o.connect(a); a.connect(master); o.start(tt); o.stop(tt + 2.3); },
-    seal(){ if (!ok()) return; const tt = ctx.currentTime; noise(tt, .06, 2400, 3, .1); noise(tt + .04, .9, 600, .5, .04, "lowpass"); },
-    ui(){ if (!ok()) return; noise(ctx.currentTime, .02, 3000, 3, .04); },
+    get on(){ return on; }, set on(v){ on = v; if (master) master.gain.setTargetAtTime(v ? .85 : 0, ctx.currentTime, .05); },
+    mood, bubble,
+    stop(){ if (!ctx) return; if (amb) amb.src.forEach(n => { try { n.stop(); } catch (_){} }); amb = null; try { master.disconnect(); } catch (_){} if (!borrowed) try { ctx.close(); } catch (_){} },
+    drag(sp){ if (!swish || !ctx) return; const tt = ctx.currentTime; sp = clamp(sp || 0, 0, 60);
+      swish.g.gain.setTargetAtTime(on ? Math.min(.11, sp * .0028) : 0, tt, .06); swish.f.frequency.setTargetAtTime(260 + sp * 14, tt, .08); },
+    swish(k){ if (!ok()) return; noise(white, ctx.currentTime, .7, 420, .7, .07 * (k || 1)); },
+    ping(){ if (!ok()) return; const tt = ctx.currentTime;
+      const dl = ctx.createDelay(1); dl.delayTime.value = .38; const fb = ctx.createGain(); fb.gain.value = .32; dl.connect(fb); fb.connect(dl); dl.connect(master);
+      const o = ctx.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(1180, tt); o.frequency.exponentialRampToValueAtTime(1100, tt + 1.4);
+      const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(.08, tt + .01); a.gain.exponentialRampToValueAtTime(.0001, tt + 1.5);
+      o.connect(a); a.connect(master); a.connect(dl); o.start(tt); o.stop(tt + 1.6); setTimeout(() => { try { dl.disconnect(); } catch (_){} }, 3500); },
+    lunge(){ if (!ok()) return; const tt = ctx.currentTime;
+      noise(white, tt, .9, 300, .5, .14, "lowpass");
+      const o = ctx.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(72, tt); o.frequency.exponentialRampToValueAtTime(34, tt + .6);
+      const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(.32, tt + .02); a.gain.exponentialRampToValueAtTime(.0001, tt + .8);
+      o.connect(a); a.connect(master); o.start(tt); o.stop(tt + .9); for (let i = 0; i < 6; i++) setTimeout(() => bubble(.8), 200 + i * 70); },
+    /* the deep groan of something sinking — the sea's low voice */
+    sink(){ if (!ok()) return; const tt = ctx.currentTime; noise(brown, tt, 3, 220, .5, .12, "lowpass");
+      [0, 7].forEach((det, i) => { const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.setValueAtTime(78 + det, tt); o.frequency.linearRampToValueAtTime(64 + det, tt + 1.4); o.frequency.linearRampToValueAtTime(49 + det, tt + 3.6);
+        const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 240; const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(.05, tt + 1); a.gain.exponentialRampToValueAtTime(.0001, tt + 4);
+        o.connect(lp); lp.connect(a); a.connect(master); o.start(tt + i * .15); o.stop(tt + 4.2); }); },
+    seal(){ if (!ok()) return; const tt = ctx.currentTime; noise(brown, tt, 1.6, 180, .5, .1, "lowpass"); bubble(.6); },
+    splash(){ if (!ok()) return; const tt = ctx.currentTime; noise(white, tt, 1.2, 1100, .5, .12); noise(brown, tt, 1.6, 300, .5, .12, "lowpass"); for (let i = 0; i < 12; i++) setTimeout(() => bubble(.9), 60 + i * 55); },
+    ui(){ bubble(.5); },
   };
 })();
 
 /* ==========================================================================
-   8. UI
+   9. UI
    ========================================================================== */
 const STYLE_UI = {
-  lines:{ en:"Lines", ko:"선", ic:'<path d="M3 7c4 0 5-2 9-2s5 2 9 2M3 12c4 0 5-3 9-3s5 3 9 3M3 17h18"/>' },
-  slits:{ en:"Slits", ko:"슬릿", ic:'<path d="M5 4v16M9 4v16M13 4v16M17 4v16M21 4v16"/><path d="M9 9v6M13 8v8" stroke-width="3.4"/>' },
-  taper:{ en:"Taper", ko:"테이퍼", ic:'<path d="M5 3l1 18M10 3l1.5 18M15 3l1 18M20 3l.5 18"/><path d="M10 8l1.8 4-1.4 4" stroke-width="2.6"/>' },
+  lines:{ en:"Lines", ko:"세로선", ic:'<path d="M5 3v18M9 3v18M13 3v18M17 3v18M21 3v18"/><path d="M9 9v6M13 7v9M17 9v5" stroke-width="3.2"/>' },
+  slits:{ en:"Scanimation", ko:"스캐니메이션", ic:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 4v16M13 4v16M18 4v16" stroke-width="3"/>' },
+  taper:{ en:"Taper", ko:"테이퍼", ic:'<path d="M5 3c1 6-1 12 1 18M11 3c1 6-1 12 1 18M17 3c1 6-1 12 1 18"/>' },
   rings:{ en:"Sonar", ko:"소나", ic:'<circle cx="5" cy="19" r="4"/><circle cx="5" cy="19" r="9"/><circle cx="5" cy="19" r="14"/>' },
 };
-const STATE_UI = { alive:{ en:"Alive", ko:"살아 있음" }, sink:{ en:"Dying", ko:"가라앉음" }, kept:{ en:"Kept", ko:"박제" } };
-function setStyle(s){ if (!STYLE_UI[s]) return; style = s; vib.clear();
+const STATE_UI = { kept:{ en:"Kept", ko:"박제" }, alive:{ en:"Alive", ko:"살아 있음" }, decay:{ en:"Decay", ko:"부패" } };
+function setStyle(s, quiet){ if (!STYLE_UI[s]) return; style = s; dens = STYLE_DENS[s]; $("dens").value = Math.round(dens * 100);
   document.querySelectorAll("#styles .chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.s === s)));
-  document.body.classList.toggle("paper", isPaper()); siteLight(isPaper()); AUD.ui();
-  if (s === "rings") hint(T({ en:"Tap the tank to send out a ping", ko:"수조를 눌러 음파를 보내 보세요" }), true);
-  else if (s === "slits") hint(T({ en:"The slits slip past each other as it swims — a scanimation", ko:"헤엄칠 때마다 슬릿이 어긋나요 — 스캐니메이션처럼" }), true);
-  else if (s === "taper") hint(T({ en:"Strokes swell where the body is", ko:"몸이 있는 곳에서 선이 부풀어요" }), true);
-  else hint(T({ en:"Run your finger through the lines", ko:"선 사이로 손가락을 지나가 보세요" }), true); }
-function setState(s){ if (s === state || !STATE_UI[s]) return; state = s; document.querySelectorAll("#states .chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.s === s)));
-  if (s === "sink"){ SH.vy = 0; AUD.sink(); hint(T({ en:"It slows, rolls and sinks — the lines go grey and break", ko:"느려지고, 기울고, 가라앉아요 — 선이 잿빛으로 끊어져요" }), true); }
-  if (s === "kept"){ decay = 0; AUD.seal(); hint(T({ en:"Kept in formaldehyde — only you move now", ko:"포름알데히드 속에 박제됐어요 — 이제 움직이는 건 당신뿐" }), true); }
-  if (s === "alive"){ SH.vy = 0; hint(T({ en:"Alive again — come near its nose and it turns away", ko:"다시 살아났어요 — 코앞에 다가가면 몸을 돌려요" }), true); }
+  document.body.classList.toggle("dark", isDark()); siteLight(!isDark()); if (!quiet) AUD.ui();
+  if (quiet) return;
+  if (s === "slits") hint(T({ en:"Drag the film sideways — the shark moves only while you do", ko:"필름을 옆으로 드래그하세요 — 당신이 움직일 때만 상어가 움직여요" }));
+  else if (s === "rings") hint(T({ en:"Tap the tank to send out a ping", ko:"수조를 눌러 음파를 보내 보세요" }), true);
+  else if (s === "taper") hint(T({ en:"Loose strokes — slide the spacing to tighten them", ko:"느슨한 선이에요 — 간격 슬라이더로 촘촘하게 바꿀 수 있어요" }), true);
+  else hint(T({ en:"Dense lines, real colours — drag to lend it life", ko:"촘촘한 세로선, 실제 상어 색 — 드래그해서 숨을 불어넣어 보세요" }), true); }
+function setState(s){ if (s === state || !STATE_UI[s]) return; state = s; showReplace(false);
+  document.querySelectorAll("#states .chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.s === s)));
+  if (s === "decay"){ SH.vy = 0; AUD.sink(); hint(T({ en:"The 1991 shark began to rot — the lines sag, drip and fall away", ko:"1991년의 상어는 썩기 시작했어요 — 선이 처지고, 흘러내리고, 떨어져 나가요" })); }
+  if (s === "kept"){ SH.vy = 0; AUD.seal(); hint(T({ en:"Kept in formaldehyde, eyes open. Drag to make it move", ko:"눈을 뜬 채 포름알데히드 속에 박제됐어요. 드래그하면 움직여요" }), true); }
+  if (s === "alive"){ SH.vy = 0; hint(T({ en:"Imagined alive — come near its nose and it turns away", ko:"살아 있다고 상상해 보세요 — 코앞에 다가가면 몸을 돌려요" }), true); }
   AUD.mood(); plaque(); }
-/* the museum's logo is white on dark water and dark on paper */
+function showReplace(on){ $("replace").classList.toggle("on", on); }
+$("replace").onclick = () => { AUD.unlock(); AUD.splash(); state = "decay"; setState("kept"); decay = 0; SH.x = tank.x + tank.w / 2; SH.y = tank.y + tank.h / 2; SH.tilt = 0; SH.dir = 1; SH.turning = false; SH.sx = 1;
+  hint(T({ en:"Same tank, another shark. Is it still the same work?", ko:"같은 수조, 다른 상어. 이것은 여전히 같은 작품일까요?" })); };
 function siteLight(on){ try { if (window.parent !== window){ const ex = window.parent.document.getElementById("s-exp"); if (ex) ex.classList.toggle("light", on); } } catch (_){} }
 function plaque(){ $("plaque").innerHTML = `<b>${T({ en:"Tiger shark, glass, steel, formaldehyde", ko:"뱀상어 · 유리 · 강철 · 포름알데히드" })}</b> · ${T(STATE_UI[state])}`; }
+function clock(){ const yrs = new Date().getFullYear() - 1991, s = Math.floor((performance.now() - started) / 1000), mm = String(Math.floor(s / 60)).padStart(2, "0"), ss = String(s % 60).padStart(2, "0");
+  $("clock").innerHTML = T({ en:`Eyes open since 1991 · ${yrs} years · <b>you: ${mm}:${ss}</b>`, ko:`1991년부터 ${yrs}년째 눈을 뜬 채 · <b>당신은 ${mm}:${ss}째</b>` }); }
 let hintT = 0, hintAt = 0;
-function hint(s, brief){ const h = $("hint"); h.textContent = s; h.classList.remove("off"); hintAt = performance.now(); clearTimeout(hintT); hintT = setTimeout(() => h.classList.add("off"), brief ? 3400 : 6500); }
+function hint(s, brief){ const h = $("hint"); h.textContent = s; h.classList.remove("off"); hintAt = performance.now(); clearTimeout(hintT); hintT = setTimeout(() => h.classList.add("off"), brief ? 3600 : 6500); }
 function hideHint(){ if (performance.now() - hintAt > 1800) $("hint").classList.add("off"); }
 function buildUI(){
   STYLES.forEach(s => { const b = document.createElement("button"); b.className = "chip"; b.dataset.s = s; b.setAttribute("aria-pressed", String(s === style));
     b.innerHTML = `<svg class="ico" viewBox="0 0 24 24">${STYLE_UI[s].ic}</svg><span class="lb">${T(STYLE_UI[s])}</span>`; b.title = T(STYLE_UI[s]); b.setAttribute("aria-label", T(STYLE_UI[s]));
     b.onclick = () => { AUD.unlock(); setStyle(s); }; $("styles").appendChild(b); });
-  ["alive", "sink", "kept"].forEach(s => { const b = document.createElement("button"); b.className = "chip st"; b.dataset.s = s; b.setAttribute("aria-pressed", String(s === state));
+  ["kept", "alive", "decay"].forEach(s => { const b = document.createElement("button"); b.className = "chip st"; b.dataset.s = s; b.setAttribute("aria-pressed", String(s === state));
     b.innerHTML = `<i></i><span class="lb">${T(STATE_UI[s])}</span>`; b.onclick = () => { AUD.unlock(); setState(s); }; $("states").appendChild(b); });
   $("styles").setAttribute("aria-label", T({ en:"How it is drawn", ko:"그리는 방식" }));
   $("states").setAttribute("aria-label", T({ en:"State of the shark", ko:"상어의 상태" }));
+  $("dens").setAttribute("aria-label", T({ en:"Line spacing: dense to loose", ko:"선 간격: 촘촘 ↔ 느슨" }));
+  $("dens-l").title = T({ en:"Dense ↔ loose", ko:"촘촘 ↔ 느슨" });
+  $("replace").innerHTML = `<b>2006</b> ${T({ en:"Put in a new shark", ko:"새 상어로 교체하기" })}`;
 }
+$("dens").addEventListener("input", e => { dens = e.target.value / 100; });
 $("snd").onclick = () => { AUD.unlock(); AUD.on = !AUD.on; $("snd").setAttribute("aria-pressed", String(AUD.on)); };
 $("info").onclick = () => document.body.classList.toggle("about");
 $("about-x").onclick = () => document.body.classList.remove("about");
@@ -569,31 +792,37 @@ $("about-x").setAttribute("aria-label", T({ en:"Close", ko:"닫기" }));
 $("t-h").textContent = T({ en:"The Physical Impossibility of Death in the Mind of Someone Living", ko:"살아 있는 자의 마음속에 있는 죽음의 물리적 불가능성" });
 $("t-p").textContent = T({ en:"Damien Hirst · 1991 · drawn only in lines", ko:"데미안 허스트 · 1991 · 선으로만 그린 상어" });
 $("ab-tag").textContent = T({ en:"Damien Hirst · 1991", ko:"데미안 허스트 · 1991" });
-$("ab-h").textContent = T({ en:"A shark you can't quite see die", ko:"죽는 모습을 끝내 볼 수 없는 상어" });
-$("ab-p1").textContent = T({ en:"Hirst hung a 4.3-metre tiger shark in a three-part tank of formaldehyde — close enough to feel it could still bite. It began to rot, and in 2006 it was replaced with another shark. Is the work the idea, or the animal?",
-  ko:"허스트는 4.3m 뱀상어를 세 칸짜리 포름알데히드 수조에 띄웠어요. 아직도 물 것처럼 가까이. 상어는 썩기 시작했고 2006년 다른 상어로 교체됐어요. 작품은 생각일까요, 그 동물일까요?" });
-$("ab-p2").textContent = T({ en:"Here there is no shark at all — only lines that lift, thicken and break where a body would be. The outline is drawn from scratch; no photograph of the work is used in the tank.",
-  ko:"여기엔 상어가 없어요. 몸이 있을 자리에서 선이 솟고, 굵어지고, 끊어질 뿐이에요. 윤곽은 새로 그렸고, 수조 안에 작품 사진은 쓰지 않았어요." });
+$("ab-h").textContent = T({ en:"The one death you cannot picture", ko:"끝내 그려 볼 수 없는 단 하나의 죽음" });
+$("ab-p1").textContent = T({ en:"The title names a contradiction: the living cannot truly experience, or fully imagine, their own death. Death stays abstract — an idea. Hirst put a 4.3-metre tiger shark in a three-part tank of formaldehyde, eyes open, as if still alive, so that the idea stands in front of you with a body: fragile flesh, pain, the death no one escapes.",
+  ko:"제목은 하나의 모순을 말해요. 살아 있는 사람은 자기 자신의 죽음만큼은 실제로 경험하거나 마음속에 온전히 그려낼 수 없다는 것. 그래서 죽음은 언제나 추상적이고 개념적인 대상일 뿐이에요. 허스트는 4.3m 뱀상어를 눈을 뜬 채, 살아 있는 듯 포름알데히드 수조에 띄워 그 개념을 몸을 가진 채 관람객 앞에 세웠어요 — 연약한 육체, 고통, 피할 수 없는 죽음." });
+$("ab-p2").textContent = T({ en:"Here the shark is kept: still, eyes open. It moves only while you drag — the life you see is yours, lent to it. The scanimation makes this literal: a still picture that moves only while a film slides over it. Hold your hand in front of its mouth and watch what your own body does.",
+  ko:"여기서 상어는 박제돼 있어요. 눈을 뜬 채 멈춰 있고, 당신이 드래그할 때만 움직여요 — 보이는 생명은 당신이 빌려준 것이에요. 스캐니메이션은 이걸 그대로 보여 줘요. 필름이 지나갈 때만 움직이는 정지된 그림. 상어 입 앞에 손을 가만히 대고, 당신의 몸이 어떻게 반응하는지 보세요." });
+$("ab-p3").textContent = T({ en:"The 1991 shark rotted and in 2006 was replaced. Leave it to decay, then put in a new one: is it still the same work? The outline and colours are drawn from scratch; no photograph of the work is used.",
+  ko:"1991년의 상어는 썩었고 2006년에 교체됐어요. 부패시킨 뒤 새 상어로 바꿔 보세요. 그래도 같은 작품일까요? 윤곽과 색은 새로 그렸고, 작품 사진은 쓰지 않았어요." });
 $("ab-h3").textContent = T({ en:"Try", ko:"해 보기" });
-[{ en:"Run your finger through the lines — they part, and ring like strings.", ko:"선 사이로 손가락을 지나가 보세요. 선이 갈라지며 현처럼 울려요." },
- { en:"Four ways to draw it: lines, slits (scanimation), tapered strokes, sonar.", ko:"네 가지 방식: 선, 슬릿(스캐니메이션), 테이퍼, 소나." },
- { en:"Alive, it turns away from you; dying, it greys and sinks; kept, it never moves again.", ko:"살아 있으면 당신을 피하고, 죽어 가면 잿빛으로 가라앉고, 박제되면 다시는 움직이지 않아요." }]
+[{ en:"Drag across the tank: it swims while you drag, and stiffens when you let go.", ko:"수조를 드래그하세요. 드래그하는 동안만 헤엄치고, 손을 떼면 굳어요." },
+ { en:"Scanimation: slide the black film; lift its tab to see the woven picture underneath.", ko:"스캐니메이션: 검은 필름을 밀어 보세요. 손잡이를 내리면 아래에 엮인 그림이 보여요." },
+ { en:"Spacing slider: dense, detailed lines ↔ loose, gestural ones.", ko:"간격 슬라이더: 촘촘하고 사실적인 선 ↔ 느슨하고 감각적인 선." },
+ { en:"Hold still in front of its mouth. Watch its eye — it follows you.", ko:"입 앞에 가만히 손을 대 보세요. 눈을 보세요 — 당신을 따라와요." },
+ { en:"Decay, then replace it (2006). The clock above counts its years and your minutes.", ko:"부패시킨 뒤 교체해 보세요(2006). 위의 시계는 상어의 햇수와 당신의 시간을 세요." }]
  .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); $("ab-ol").appendChild(li); });
 
 /* ==========================================================================
-   9. START
+   10. START
    ========================================================================== */
-buildShark(); buildUI(); layout(); plaque(); siteLight(false);
+buildPicture(); buildUI(); setStyle("lines", true); layout(); plaque(); clock(); setInterval(clock, 1000);
+if (!initGL()){ $("nogl").style.display = "grid"; $("nogl").textContent = T({ en:"This room needs WebGL, which this browser has turned off.", ko:"이 전시실은 WebGL이 필요한데, 이 브라우저에서 꺼져 있어요." }); }
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
 window.addEventListener("resize", layout);
 ["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
 window.addEventListener("pagehide", () => AUD.stop());
 window.addEventListener("keydown", e => { const k = e.key; if (k >= "1" && k <= "4") setStyle(STYLES[+k - 1]);
-  if (k === "a") setState("alive"); if (k === "s") setState("sink"); if (k === "k") setState("kept"); if (k === "Escape") document.body.classList.remove("about"); });
+  if (k === "k") setState("kept"); if (k === "a") setState("alive"); if (k === "d") setState("decay"); if (k === "Escape") document.body.classList.remove("about"); });
 AUD.unlock(); setTimeout(() => AUD.unlock(), 150);
-hint(T({ en:"Run your finger through the lines", ko:"선 사이로 손가락을 지나가 보세요" }));
+hint(T({ en:"Kept, eyes open. Drag across the tank to lend it life", ko:"눈을 뜬 채 박제된 상어예요. 수조를 드래그해 숨을 불어넣어 보세요" }));
 requestAnimationFrame(frame);
-window.__shark = { setStyle, setState, SH, tank, ptr, vib, get style(){ return style; }, get state(){ return state; },
+window.__shark = { setStyle, setState, SH, tank, ptr, film, lunge, lend, get style(){ return style; }, get state(){ return state; }, get decay(){ return decay; },
+  setDens:(v) => { dens = v; $("dens").value = Math.round(v * 100); }, pose, zoomNow,
   step:(n, dt) => { for (let i = 0; i < n; i++) step(dt || 1 / 60); render(); } };
 </script>
 </body>
