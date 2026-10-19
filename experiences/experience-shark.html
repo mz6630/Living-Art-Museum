@@ -157,22 +157,39 @@ const mix3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], 
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ==========================================================================
-   1. THE SHARK — a tiger shark painted here from scratch, side on, kept
-      simple: slate back, a few soft tiger bars, a white belly, one dorsal fin,
-      pectoral fin and tail, three gill slits, the open eye, the mouth.
-      u: tail 0 → nose 1.
+   1. THE SHARK — a tiger shark drawn here from scratch, side on: long and
+      slender, a short blunt snout, a hooked first dorsal fin, long sickle
+      pectoral fins, a small second dorsal, pelvic and anal fin, and a tall
+      upper tail lobe. Grey-blue back, rows of tiger bars, a white belly.
+      Drawn on a 497-unit sketch (nose at x=0, centre line at y=183) and
+      turned into body units: u runs tail 0 → nose 1, v down.
    ========================================================================== */
+const SK = 497, SY = 183;
+const sk = ([x, y]) => [1 - x / SK, (y - SY) / SK];
 const SHARK = [
-  [1.00, .020], [.975, -.030], [.93, -.062], [.86, -.088], [.76, -.108], [.665, -.118],
-  [.615, -.205], [.585, -.285], [.565, -.312], [.548, -.300], [.545, -.200], [.53, -.118],
-  [.43, -.098], [.33, -.076], [.21, -.052], [.145, -.036], [.11, -.058], [.06, -.150], [.025, -.262], [.008, -.300], [.002, -.288], [.03, -.150], [.062, -.020],
-  [.055, .040], [.025, .135], [.012, .172], [.03, .168], [.085, .065], [.14, .033],
-  [.24, .05], [.38, .075], [.5, .094], [.585, .102], [.665, .104], [.62, .190], [.575, .262], [.59, .272], [.64, .232], [.74, .112],
-  [.82, .102], [.875, .090], [.94, .070], [.985, .040],
-];
-const MU0 = -.04, MU1 = 1.04, MV = .36, TW = 1024, TH = Math.round(TW * (2 * MV) / (MU1 - MU0)), EXTW = 512;
-const EYE = [.905, -.018], MOUTH = [.955, .05];
+  /* snout and back */
+  [0, 180], [3, 173], [14, 166], [40, 160], [80, 153], [120, 149], [150, 147],
+  /* first dorsal fin: leading edge up, hooked tip, trailing edge back down */
+  [170, 136], [188, 124], [203, 115], [210, 113], [212, 118], [210, 128], [211, 139], [218, 148], [230, 152],
+  /* back to the second dorsal */
+  [270, 157], [318, 164], [328, 163], [340, 157], [347, 158], [350, 166], [362, 172],
+  /* caudal peduncle and the long upper tail lobe */
+  [380, 177], [410, 173], [445, 165], [475, 157], [497, 150], [495, 157], [480, 174], [466, 190],
+  /* lower tail lobe */
+  [468, 200], [455, 216], [440, 233], [433, 230], [428, 214], [418, 202], [396, 197],
+  /* under the tail: the anal fin */
+  [372, 198], [358, 201], [350, 212], [344, 213], [338, 205], [326, 205],
+  /* the pelvic fin */
+  [302, 208], [297, 219], [290, 221], [284, 213], [272, 212],
+  /* belly, then the long pectoral fin */
+  [228, 213], [180, 213], [150, 211], [154, 236], [151, 262], [148, 271], [143, 270], [132, 244], [116, 216], [104, 208],
+  /* under the head, the jaw */
+  [70, 203], [40, 196], [18, 189], [5, 184],
+].map(sk);
+const MU0 = -.04, MU1 = 1.04, MV = .26, TW = 1024, TH = Math.round(TW * (2 * MV) / (MU1 - MU0)), EXTW = 512;
+const EYE = sk([33, 176]), MOUTH = sk([30, 192]);
 const PX = (u, v) => [(u - MU0) / (MU1 - MU0) * TW, (v + MV) / (2 * MV) * TH];
+const PS = (x, y) => PX(1 - x / SK, (y - SY) / SK);       /* sketch units straight to texture pixels */
 const SC = TW / (MU1 - MU0);              /* texture pixels per body length */
 let PIC = null, EXT = null;
 function bodyPath(q){
@@ -183,51 +200,54 @@ function bodyPath(q){
 }
 function buildPicture(){
   const c = document.createElement("canvas"); c.width = TW; c.height = TH; const q = c.getContext("2d");
-  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   q.save(); bodyPath(q); q.clip();
-  /* countershading: dark slate back to grey flank */
-  const y = (v) => PX(0, v)[1];
-  const gr = q.createLinearGradient(0, y(-.32), 0, y(.2));
-  [[-.32, "#1f2b33"], [-.13, "#2f3e48"], [-.085, "#3b4b56"], [-.035, "#536370"], [.012, "#6f7f8a"], [.03, "#8d99a1"], [.2, "#a9b3b8"]]
-    .forEach(([v, col]) => gr.addColorStop(clamp((v + .32) / .52, 0, 1), col));
+  /* countershading: a grey-blue back fading to a pale flank */
+  const yy = (y) => PS(0, y)[1];
+  const gr = q.createLinearGradient(0, yy(110), 0, yy(215));
+  [[110, "#34424c"], [146, "#475660"], [165, "#5e6d77"], [180, "#7a8892"], [192, "#95a1a8"], [215, "#b4bdc1"]]
+    .forEach(([y, col]) => gr.addColorStop((y - 110) / 105, col));
   q.fillStyle = gr; q.fillRect(0, 0, TW, TH);
-  /* a soft light along the upper flank, where the light from above rolls off the body */
-  const hl = q.createLinearGradient(0, y(-.1), 0, y(0));
-  hl.addColorStop(0, "rgba(255,255,255,0)"); hl.addColorStop(.55, "rgba(220,232,238,.16)"); hl.addColorStop(1, "rgba(255,255,255,0)");
-  q.fillStyle = hl; q.fillRect(0, y(-.1), TW, y(0) - y(-.1));
-  /* a few tiger bars: soft, slanted, fading towards the belly */
-  for (let u = .24; u < .8; u += .05 + rnd() * .012){
-    const w = (.006 + rnd() * .004) * (1.15 - u * .4), sl = .012 + rnd() * .01;
-    const g2 = q.createLinearGradient(0, y(-.13), 0, y(.03)); g2.addColorStop(0, "rgba(18,26,32,.42)"); g2.addColorStop(.7, "rgba(18,26,32,.24)"); g2.addColorStop(1, "rgba(18,26,32,0)");
+  /* light rolling off the upper flank */
+  const hl = q.createLinearGradient(0, yy(150), 0, yy(185));
+  hl.addColorStop(0, "rgba(255,255,255,0)"); hl.addColorStop(.6, "rgba(215,228,235,.14)"); hl.addColorStop(1, "rgba(255,255,255,0)");
+  q.fillStyle = hl; q.fillRect(0, yy(150), TW, yy(185) - yy(150));
+  /* tiger bars: short, close, upright, from behind the gills to the tail */
+  for (let x = 118; x < 405; x += 7.5 + rnd() * 3){
+    const top = 149 + Math.max(0, x - 150) * .075, bot = 186 + rnd() * 6 - Math.max(0, x - 330) * .08, w = 1.6 + rnd() * 1.6, sl = 2 + rnd() * 2.5;
+    const a = .2 + .22 * clamp((x - 118) / 200, 0, 1);
+    const g2 = q.createLinearGradient(0, yy(top), 0, yy(bot)); g2.addColorStop(0, `rgba(22,30,36,${a})`); g2.addColorStop(.75, `rgba(22,30,36,${a * .6})`); g2.addColorStop(1, "rgba(22,30,36,0)");
     q.fillStyle = g2; q.beginPath();
-    const a = PX(u, -.135), b = PX(u + w, -.135), cc = PX(u + w - sl, .03), d = PX(u - sl, .03);
-    q.moveTo(a[0], a[1]); q.lineTo(b[0], b[1]); q.lineTo(cc[0], cc[1]); q.lineTo(d[0], d[1]); q.fill();
+    const p1 = PS(x, top), p2 = PS(x + w, top), p3 = PS(x + w - sl, bot), p4 = PS(x - sl, bot);
+    q.moveTo(p1[0], p1[1]); q.lineTo(p2[0], p2[1]); q.lineTo(p3[0], p3[1]); q.lineTo(p4[0], p4[1]); q.fill();
   }
-  /* the tail and the dorsal fins a little darker at their tips */
-  const tg = q.createLinearGradient(PX(.16, 0)[0], 0, PX(0, 0)[0], 0); tg.addColorStop(0, "rgba(14,20,25,0)"); tg.addColorStop(1, "rgba(14,20,25,.45)");
-  q.fillStyle = tg; q.fillRect(0, 0, PX(.16, 0)[0], TH);
-  /* the belly: a white underside with a wavy line, as on a real shark */
-  q.beginPath(); { const [sx, sy] = PX(-.05, .4); q.moveTo(sx, sy); }
-  for (let u = -.05; u <= 1.06; u += .01){
-    const v = .03 + .006 * Math.sin(u * 14) + (u > .8 ? (u - .8) * .045 : 0) - (u < .2 ? (.2 - u) * .02 : 0);
-    const [x0, y0] = PX(u, v); q.lineTo(x0, y0); }
-  { const [ex, ey] = PX(1.06, .4); q.lineTo(ex, ey); } q.closePath();
-  const bg = q.createLinearGradient(0, y(.03), 0, y(.12)); bg.addColorStop(0, "#dfe5e7"); bg.addColorStop(1, "#f6f7f5");
+  /* the tail a little darker towards its tips */
+  const tg = q.createLinearGradient(PS(380, 0)[0], 0, PS(497, 0)[0], 0); tg.addColorStop(0, "rgba(20,28,34,0)"); tg.addColorStop(1, "rgba(20,28,34,.35)");
+  q.fillStyle = tg; q.fillRect(PS(380, 0)[0], 0, TW, TH);
+  /* the belly: white below a soft line that rises toward the jaw */
+  const bl = [[-10, 185], [40, 190], [120, 199], [260, 202], [340, 198], [400, 194], [510, 190]];
+  const belly = (x) => { for (let i = 1; i < bl.length; i++) if (x <= bl[i][0]){ const [x0, y0] = bl[i - 1], [x1, y1] = bl[i]; return y0 + (y1 - y0) * (x - x0) / (x1 - x0); } return 190; };
+  q.beginPath(); { const [a, b] = PS(-10, 260); q.moveTo(a, b); }
+  for (let x = -10; x <= 510; x += 4){ const [a, b] = PS(x, belly(x) + Math.sin(x * .09) * .8); q.lineTo(a, b); }
+  { const [a, b] = PS(510, 260); q.lineTo(a, b); } q.closePath();
+  const bg = q.createLinearGradient(0, yy(192), 0, yy(214)); bg.addColorStop(0, "#dde3e6"); bg.addColorStop(1, "#f5f6f4");
   q.fillStyle = bg; q.fill();
-  /* the fins below: grey on top, darker at the leading edge */
-  const fin = (pts, col) => { q.fillStyle = col; q.beginPath(); pts.forEach(([u, v], i) => { const [x0, y0] = PX(u, v); i ? q.lineTo(x0, y0) : q.moveTo(x0, y0); }); q.closePath(); q.fill(); };
-  fin([[.70, .102], [.665, .106], [.62, .190], [.575, .262], [.59, .272], [.64, .232], [.74, .112]], "rgba(64,79,89,.86)");
-  fin([[.065, .03], [.055, .040], [.025, .135], [.012, .172], [.03, .168], [.085, .065], [.14, .036]], "rgba(52,64,73,.88)");
-  /* gill slits */
-  q.strokeStyle = "rgba(20,28,34,.8)"; q.lineCap = "round";
-  for (let k = 0; k < 3; k++){ const a = PX(.802 - k * .02, -.048 + k * .003), m = PX(.79 - k * .02, .004), b = PX(.796 - k * .02, .056 - k * .002);
-    q.lineWidth = (.0045 - k * .0003) * SC; q.beginPath(); q.moveTo(a[0], a[1]); q.quadraticCurveTo(m[0], m[1], b[0], b[1]); q.stroke(); }
-  /* the mouth */
-  q.strokeStyle = "#141b20"; q.lineWidth = .006 * SC; q.beginPath();
-  { const a = PX(.988, .036), b = PX(.945, .05), cc = PX(.893, .061); q.moveTo(a[0], a[1]); q.quadraticCurveTo(b[0], b[1], cc[0], cc[1]); q.stroke(); }
+  /* the fins below: grey, a touch darker than the back */
+  const fin = (pts, col) => { q.fillStyle = col; q.beginPath(); pts.forEach(([x, y], i) => { const [a, b] = PS(x, y); i ? q.lineTo(a, b) : q.moveTo(a, b); }); q.closePath(); q.fill(); };
+  fin([[146, 207], [150, 211], [154, 236], [151, 262], [148, 271], [143, 270], [132, 244], [116, 216], [106, 206]], "rgba(88,102,112,.92)");
+  fin([[304, 205], [302, 208], [297, 219], [290, 221], [284, 213], [274, 209]], "rgba(110,122,130,.85)");
+  fin([[360, 199], [358, 201], [350, 212], [344, 213], [338, 205], [328, 203]], "rgba(110,122,130,.85)");
+  fin([[400, 195], [418, 202], [428, 214], [433, 230], [440, 233], [455, 216], [468, 200], [450, 194]], "rgba(96,110,119,.9)");
+  /* five gill slits */
+  q.strokeStyle = "rgba(30,38,44,.55)"; q.lineCap = "round";
+  for (let k = 0; k < 5; k++){ const x = 88 + k * 5.2, a = PS(x, 168 + k * .6), m = PS(x - 1.6, 180), b = PS(x - .4, 192 - k * .4);
+    q.lineWidth = .0032 * SC; q.beginPath(); q.moveTo(a[0], a[1]); q.quadraticCurveTo(m[0], m[1], b[0], b[1]); q.stroke(); }
+  /* the mouth, a line under the blunt snout */
+  q.strokeStyle = "rgba(24,30,36,.85)"; q.lineWidth = .0045 * SC; q.beginPath();
+  { const a = PS(12, 189), b = PS(32, 194), cc = PS(58, 193); q.moveTo(a[0], a[1]); q.quadraticCurveTo(b[0], b[1], cc[0], cc[1]); q.stroke(); }
   /* the open eye */
-  { const [ex, ey] = PX(EYE[0], EYE[1]); q.fillStyle = "#06090b"; q.beginPath(); q.arc(ex, ey, .0105 * SC, 0, 7); q.fill();
-    q.strokeStyle = "rgba(190,205,212,.55)"; q.lineWidth = .0024 * SC; q.beginPath(); q.arc(ex, ey, .0118 * SC, 0, 7); q.stroke(); }
+  { const [ex, ey] = PX(EYE[0], EYE[1]); q.fillStyle = "#06090b"; q.beginPath(); q.arc(ex, ey, .0075 * SC, 0, 7); q.fill();
+    q.strokeStyle = "rgba(200,212,218,.6)"; q.lineWidth = .002 * SC; q.beginPath(); q.arc(ex, ey, .0088 * SC, 0, 7); q.stroke(); }
   q.restore();
   PIC = c;
   /* per column of the body: where it starts and ends (for the drips) */
@@ -259,7 +279,7 @@ uniform vec4 uPtr; uniform vec3 uRip[6]; uniform vec4 uFilm; uniform vec2 uSonar
 uniform vec3 uBg, uRoom;
 uniform sampler2D uTex, uExt, uCam;
 uniform float uCamOn; uniform vec2 uCamS, uCamLv;
-const float MU0 = -.04, MU1 = 1.04, MV = .36, PI = 3.14159265;
+const float MU0 = -.04, MU1 = 1.04, MV = .26, PI = 3.14159265;
 float hash(float n){ return fract(sin(mod(n, 997.) * 12.9898 + 1.7) * 43758.5453); }
 float sway(float u, float ph, float A){ float k = max(0., 1. - u); return A * sin(ph - (1. - u) * 5.2) * pow(k, 1.7) + A * .15 * sin(ph * .5 + 1.3) * (u - .5); }
 vec4 picX(vec2 p, float ph, float A, vec3 fr){
@@ -568,7 +588,7 @@ function layout(){
   const asp = clamp(availW / availH, small ? .85 : 1.6, 2.6);
   let w = availW, h = w / asp; if (h > availH){ h = availH; w = h * asp; }
   tank.w = Math.round(w); tank.h = Math.round(h); tank.x = Math.round((W - w) / 2); tank.y = Math.round(topM + (availH - h) / 2);
-  SH.len = Math.min(tank.w * (small ? .82 : .6), tank.h * 2.1);
+  SH.len = Math.min(tank.w * (small ? .9 : .7), tank.h * 2.6);
   if (!SH.x){ SH.x = tank.x + tank.w * .5; SH.y = tank.y + tank.h * .5; }
   clampShark();
   const pl = $("plaque"), ck = $("clock");
@@ -585,7 +605,7 @@ function clampShark(){
 
 /* the shark's pose as the shader sees it (the scanimation hangs it, centred, still) */
 function pose(){
-  if (style === "slits") return { x:tank.x + tank.w * .5, y:tank.y + tank.h * .5, len:Math.min(tank.w * (small ? .86 : .64), tank.h * 2.2), sx:1, tilt:0, A:.08 * (1 - decay * .5), phase:0 };
+  if (style === "slits") return { x:tank.x + tank.w * .5, y:tank.y + tank.h * .5, len:Math.min(tank.w * (small ? .92 : .72), tank.h * 2.6), sx:1, tilt:0, A:.08 * (1 - decay * .5), phase:0 };
   return { x:SH.x, y:SH.y, len:SH.len, sx:SH.sx, tilt:SH.tilt, A:SH.A, phase:SH.phase };
 }
 function swayJS(u, P){ const k = Math.max(0, 1 - u); return P.A * Math.sin(P.phase - (1 - u) * 5.2) * Math.pow(k, 1.7) + P.A * .15 * Math.sin(P.phase * .5 + 1.3) * (u - .5); }
@@ -693,7 +713,7 @@ function render(){
     gl.uniform4f(U.uFilm, film.x, film.y, 0, 0);
     const so = sonar || { x:tank.x + tank.w * .08, y:tank.y + tank.h * .88 }; gl.uniform2f(U.uSonar, so.x, so.y);
     /* the open eye keeps a glint that turns toward you */
-    const [ex, ey] = toScreen(EYE[0], EYE[1], P, zoom, lunge.fx, lunge.fy), er = .0105 * P.len * zoom;
+    const [ex, ey] = toScreen(EYE[0], EYE[1], P, zoom, lunge.fx, lunge.fy), er = .0075 * P.len * zoom;
     let dx = .35, dy = -.6; if (ptr.in){ const d = Math.hypot(ptr.x - ex, ptr.y - ey) || 1; dx = (ptr.x - ex) / d; dy = (ptr.y - ey) / d; }
     gl.uniform4f(U.uGlint, ex + shx + dx * er * .45, ey + shy + dy * er * .45, Math.max(1.6, er * .42), 0);
     gl.uniform3f(U.uBg, bg[0], bg[1], bg[2]); gl.uniform3f(U.uRoom, room[0], room[1], room[2]);
