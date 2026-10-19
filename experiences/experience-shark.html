@@ -183,25 +183,34 @@ const SHARK = [
   [302, 208], [297, 219], [290, 221], [284, 213], [272, 212],
   /* belly, then the long pectoral fin */
   [228, 213], [180, 213], [150, 211], [154, 236], [151, 262], [148, 271], [143, 270], [132, 244], [116, 216], [104, 208],
-  /* under the head, the jaw */
-  [70, 203], [40, 196], [18, 189], [5, 184],
-].map(sk);
+  /* behind the corner of the mouth (the lower jaw is added by jawOutline) */
+  [70, 204],
+];
+/* the jaw hinges at the corner of the mouth; it hangs a little open, and gapes when it lunges */
+const JAW_C = [60, 196], JAW_REST = .12, JAW_WIDE = .52;
+const JAW_UNDER = [[45, 204], [22, 203], [8, 200], [5, 197]];          /* underside, back to front */
+const JAW_INNER = [[7, 196], [12, 196.5], [24, 197], [40, 197], [56, 196.5]];  /* its upper edge, front to back */
+const UPPER_EDGE = [[6, 189], [16, 192], [30, 194.2], [46, 195.5], [60, 196]];  /* under the snout, front to back */
+const turnJaw = (a) => ([x, y]) => { const dx = x - JAW_C[0], dy = y - JAW_C[1], c = Math.cos(-a), s_ = Math.sin(-a); return [JAW_C[0] + dx * c - dy * s_, JAW_C[1] + dx * s_ + dy * c]; };
+const along = (pts, x) => { for (let i = 1; i < pts.length; i++) if (x <= pts[i][0]){ const [x0, y0] = pts[i - 1], [x1, y1] = pts[i]; return y0 + (y1 - y0) * (x - x0) / (x1 - x0); } return pts[pts.length - 1][1]; };
+function jawOutline(a){ return SHARK.concat(JAW_UNDER.map(turnJaw(a)), [[2, 188]]).map(sk); }
 const MU0 = -.04, MU1 = 1.04, MV = .26, TW = 1024, TH = Math.round(TW * (2 * MV) / (MU1 - MU0)), EXTW = 512;
-const EYE = sk([33, 176]), MOUTH = sk([30, 192]);
+const EYE = sk([33, 176]), MOUTH = sk([30, 196]);
 const PX = (u, v) => [(u - MU0) / (MU1 - MU0) * TW, (v + MV) / (2 * MV) * TH];
 const PS = (x, y) => PX(1 - x / SK, (y - SY) / SK);       /* sketch units straight to texture pixels */
 const SC = TW / (MU1 - MU0);              /* texture pixels per body length */
-let PIC = null, EXT = null;
-function bodyPath(q){
-  const pts = SHARK.map(([u, v]) => PX(u, v)), n = pts.length, mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+let PIC = null, PIC2 = null, EXT = null;
+function bodyPath(q, outline){
+  const pts = outline.map(([u, v]) => PX(u, v)), n = pts.length, mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
   q.beginPath(); const m0 = mid(pts[n - 1], pts[0]); q.moveTo(m0[0], m0[1]);
   for (let i = 0; i < n; i++){ const a = pts[i], m = mid(a, pts[(i + 1) % n]); q.quadraticCurveTo(a[0], a[1], m[0], m[1]); }
   q.closePath();
 }
-function buildPicture(){
+function buildPictures(){ PIC2 = paintShark(JAW_WIDE); PIC = paintShark(JAW_REST, true); }
+function paintShark(jaw, keepExtents){
   const c = document.createElement("canvas"); c.width = TW; c.height = TH; const q = c.getContext("2d");
   let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  q.save(); bodyPath(q); q.clip();
+  q.save(); bodyPath(q, jawOutline(jaw)); q.clip();
   /* countershading: a grey-blue back fading to a pale flank */
   const yy = (y) => PS(0, y)[1];
   const gr = q.createLinearGradient(0, yy(110), 0, yy(215));
@@ -242,14 +251,28 @@ function buildPicture(){
   q.strokeStyle = "rgba(30,38,44,.55)"; q.lineCap = "round";
   for (let k = 0; k < 5; k++){ const x = 88 + k * 5.2, a = PS(x, 168 + k * .6), m = PS(x - 1.6, 180), b = PS(x - .4, 192 - k * .4);
     q.lineWidth = .0032 * SC; q.beginPath(); q.moveTo(a[0], a[1]); q.quadraticCurveTo(m[0], m[1], b[0], b[1]); q.stroke(); }
-  /* the mouth, a line under the blunt snout */
-  q.strokeStyle = "rgba(24,30,36,.85)"; q.lineWidth = .0045 * SC; q.beginPath();
-  { const a = PS(12, 189), b = PS(32, 194), cc = PS(58, 193); q.moveTo(a[0], a[1]); q.quadraticCurveTo(b[0], b[1], cc[0], cc[1]); q.stroke(); }
+  /* the mouth: open under the blunt snout, a dark gullet and two rows of teeth */
+  { const turn = turnJaw(jaw), inner = JAW_INNER.map(turn), poly = UPPER_EDGE.slice().reverse().concat(inner);
+    const lo = Math.max(...inner.map(p => p[1]));
+    const mg = q.createLinearGradient(0, PS(0, 188)[1], 0, PS(0, lo)[1]); mg.addColorStop(0, "#1c1416"); mg.addColorStop(1, "#4a2a30");
+    q.fillStyle = mg; q.beginPath(); poly.forEach(([x, y], i) => { const [a, b] = PS(x, y); i ? q.lineTo(a, b) : q.moveTo(a, b); }); q.closePath(); q.fill();
+    q.fillStyle = "#f1eee4";
+    /* upper teeth: small, pointed, raked back */
+    for (let x = 9; x < 55; x += 3.3){ const y0 = along(UPPER_EDGE, x), h = 2.4 + (x < 40 ? .8 : 0);
+      const a = PS(x - 1.3, y0 - .3), b = PS(x + 1.3, y0 - .3), cc = PS(x + .7, y0 + h); q.beginPath(); q.moveTo(a[0], a[1]); q.lineTo(b[0], b[1]); q.lineTo(cc[0], cc[1]); q.fill(); }
+    /* lower teeth, on the hinged jaw */
+    for (let x = 9; x < 54; x += 3.5){ const y0 = along(JAW_INNER, x), h = 2.1;
+      const pts = [[x - 1.2, y0 + .3], [x + 1.2, y0 + .3], [x + .5, y0 - h]].map(turn);
+      q.beginPath(); pts.forEach(([px, py], i) => { const [a, b] = PS(px, py); i ? q.lineTo(a, b) : q.moveTo(a, b); }); q.fill(); }
+    /* the lips */
+    q.strokeStyle = "rgba(24,30,36,.7)"; q.lineWidth = .0028 * SC; q.lineCap = "round";
+    q.beginPath(); UPPER_EDGE.forEach(([x, y], i) => { const [a, b] = PS(x, y - .4); i ? q.lineTo(a, b) : q.moveTo(a, b); }); q.stroke();
+    q.beginPath(); inner.forEach(([x, y], i) => { const [a, b] = PS(x, y + .5); i ? q.lineTo(a, b) : q.moveTo(a, b); }); q.stroke(); }
   /* the open eye */
   { const [ex, ey] = PX(EYE[0], EYE[1]); q.fillStyle = "#06090b"; q.beginPath(); q.arc(ex, ey, .0075 * SC, 0, 7); q.fill();
     q.strokeStyle = "rgba(200,212,218,.6)"; q.lineWidth = .002 * SC; q.beginPath(); q.arc(ex, ey, .0088 * SC, 0, 7); q.stroke(); }
   q.restore();
-  PIC = c;
+  if (!keepExtents) return c;
   /* per column of the body: where it starts and ends (for the drips) */
   const a = q.getImageData(0, 0, TW, TH).data; EXT = new Uint8Array(EXTW * 4);
   for (let i = 0; i < EXTW; i++){
@@ -260,6 +283,7 @@ function buildPicture(){
     if (top < 0){ EXT[i * 4] = 255; EXT[i * 4 + 1] = 0; EXT[i * 4 + 2] = 0; EXT[i * 4 + 3] = 0; }
     else { enc(top / (TH - 1), 0); enc(bot / (TH - 1), 2); }
   }
+  return c;
 }
 
 /* ==========================================================================
@@ -277,7 +301,8 @@ uniform vec4 uTank; uniform vec4 uSh; uniform vec4 uSh2; uniform vec2 uFocus;
 uniform float uStyle, uGap, uTime, uWaveT, uDecay, uDrip, uPing, uKept;
 uniform vec4 uPtr; uniform vec3 uRip[6]; uniform vec4 uFilm; uniform vec2 uSonar; uniform vec4 uGlint;
 uniform vec3 uBg, uRoom;
-uniform sampler2D uTex, uExt, uCam;
+uniform sampler2D uTex, uTex2, uExt, uCam;
+uniform float uGape;
 uniform float uCamOn; uniform vec2 uCamS, uCamLv;
 const float MU0 = -.04, MU1 = 1.04, MV = .26, PI = 3.14159265;
 float hash(float n){ return fract(sin(mod(n, 997.) * 12.9898 + 1.7) * 43758.5453); }
@@ -290,7 +315,7 @@ vec4 picX(vec2 p, float ph, float A, vec3 fr){
   float u = .5 + rx / (uSh.z * uSh.w), v = ry / uSh.z - sway(u, ph, A);
   vec2 t = vec2((u - MU0) / (MU1 - MU0), (v + MV) / (2. * MV));
   if (t.x < 0. || t.x > 1. || t.y < 0. || t.y > 1.) return vec4(0.);
-  vec4 col = texture2D(uTex, t);
+  vec4 col = uGape > .001 ? mix(texture2D(uTex, t), texture2D(uTex2, t), uGape) : texture2D(uTex, t);
   float g = 1. - smoothstep(uGlint.z * .55, uGlint.z, distance(p, uGlint.xy));
   col.rgb = mix(col.rgb, vec3(1.), g * step(.5, col.a));
   return col;
@@ -431,7 +456,7 @@ function initGL(){
   gl.useProgram(prog);
   const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
   const loc = gl.getAttribLocation(prog, "aP"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-  ["uRes", "uDPR", "uTank", "uSh", "uSh2", "uFocus", "uStyle", "uGap", "uTime", "uWaveT", "uDecay", "uDrip", "uPing", "uKept", "uPtr", "uRip", "uFilm", "uSonar", "uGlint", "uBg", "uRoom", "uTex", "uExt", "uCam", "uCamOn", "uCamS", "uCamLv"]
+  ["uRes", "uDPR", "uTank", "uSh", "uSh2", "uFocus", "uStyle", "uGap", "uTime", "uWaveT", "uDecay", "uDrip", "uPing", "uKept", "uPtr", "uRip", "uFilm", "uSonar", "uGlint", "uBg", "uRoom", "uTex", "uTex2", "uGape", "uExt", "uCam", "uCamOn", "uCamS", "uCamLv"]
     .forEach(n => U[n] = gl.getUniformLocation(prog, n));
   const mk = (unit, src, w, h, filter) => { const t = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -439,8 +464,8 @@ function initGL(){
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
     if (w) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, src); else gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
     return t; };
-  texPic = mk(0, PIC, 0, 0, gl.LINEAR); texExt = mk(1, EXT, EXTW, 1, gl.NEAREST); texCam = mk(2, MIR.cv, 0, 0, gl.LINEAR);
-  gl.uniform1i(U.uTex, 0); gl.uniform1i(U.uExt, 1); gl.uniform1i(U.uCam, 2);
+  texPic = mk(0, PIC, 0, 0, gl.LINEAR); texExt = mk(1, EXT, EXTW, 1, gl.NEAREST); texCam = mk(2, MIR.cv, 0, 0, gl.LINEAR); mk(3, PIC2, 0, 0, gl.LINEAR);
+  gl.uniform1i(U.uTex, 0); gl.uniform1i(U.uExt, 1); gl.uniform1i(U.uCam, 2); gl.uniform1i(U.uTex2, 3);
   return true;
 }
 
@@ -690,6 +715,7 @@ function step(dt){
     hint(state === "kept" ? T({ en:"…it is a dead shark. Did your body flinch anyway?", ko:"…죽은 상어예요. 그런데도 몸이 움찔했나요?" }) : T({ en:"Up close, the fear is real — the death is not yours to see", ko:"가까이서 느낀 공포는 진짜예요 — 하지만 죽음은 끝내 당신 것이 아니에요" })); } }
   if (!lunge.done && t > 16 && t - lungeHintT > 30 && state !== "decay"){ lungeHintT = t; hint(T({ en:"Hold your hand still in front of its mouth", ko:"상어 입 앞에 손을 가만히 대 보세요" }), true); }
 }
+function gapeNow(){ const l = lunge.t; if (l < 0) return 0; if (l < .12) return ease(l / .12); if (l < .9) return 1; return 1 - ease((l - .9) / .7); }
 function zoomNow(){ const l = lunge.t; if (l < 0) return 1; if (l < .16) return 1 + .8 * ease(l / .16); if (l < .7) return 1.8; return 1 + .8 * (1 - ease((l - .7) / 1.6)); }
 
 /* ==========================================================================
@@ -707,7 +733,7 @@ function render(){
     gl.uniform2f(U.uFocus, lunge.fx, lunge.fy);
     gl.uniform1f(U.uStyle, STYLES.indexOf(style)); gl.uniform1f(U.uGap, gapPx());
     gl.uniform1f(U.uTime, t); gl.uniform1f(U.uWaveT, waveT); gl.uniform1f(U.uDecay, decay); gl.uniform1f(U.uDrip, 1);
-    gl.uniform1f(U.uPing, ping); gl.uniform1f(U.uKept, MIXS.kept);
+    gl.uniform1f(U.uPing, ping); gl.uniform1f(U.uKept, MIXS.kept); gl.uniform1f(U.uGape, gapeNow());
     gl.uniform4f(U.uPtr, ptr.x, ptr.y, ptr.in ? ptr.energy : 0, 0);
     const r = new Float32Array(18); rip.slice(-6).forEach((q, i) => { r[i * 3] = q.x; r[i * 3 + 1] = q.y; r[i * 3 + 2] = q.age; }); gl.uniform3fv(U.uRip, r);
     gl.uniform4f(U.uFilm, film.x, film.y, 0, 0);
@@ -986,7 +1012,7 @@ $("ab-h3").textContent = T({ en:"Try", ko:"해 보기" });
 /* ==========================================================================
    10. START
    ========================================================================== */
-buildPicture(); buildUI(); setStyle("lines", true); layout(); plaque(); clock(); setInterval(clock, 1000); gazeOpen();
+buildPictures(); buildUI(); setStyle("lines", true); layout(); plaque(); clock(); setInterval(clock, 1000); gazeOpen();
 document.addEventListener("visibilitychange", () => { gazeTick(); if (document.hidden) gazeSave(true); });
 window.addEventListener("pagehide", () => { gazeTick(); gazeSave(true); mirrorOff(); });
 if (!initGL()){ $("nogl").style.display = "grid"; $("nogl").textContent = T({ en:"This room needs WebGL, which this browser has turned off.", ko:"이 전시실은 WebGL이 필요한데, 이 브라우저에서 꺼져 있어요." }); }
@@ -999,7 +1025,7 @@ window.addEventListener("keydown", e => { const k = e.key; if (k >= "1" && k <= 
 AUD.unlock(); setTimeout(() => AUD.unlock(), 150);
 hint(T({ en:"Kept, eyes open. Drag across the tank to lend it life", ko:"눈을 뜬 채 박제된 상어예요. 수조를 드래그해 숨을 불어넣어 보세요" }));
 requestAnimationFrame(frame);
-window.__shark = { setStyle, setState, SH, tank, ptr, film, lunge, lend, HEART, GAZE, MIR, mirrorOn, mirrorOff, gazeAll, get style(){ return style; }, get state(){ return state; }, get decay(){ return decay; },
+window.__shark = { gapeNow, setStyle, setState, SH, tank, ptr, film, lunge, lend, HEART, GAZE, MIR, mirrorOn, mirrorOff, gazeAll, get style(){ return style; }, get state(){ return state; }, get decay(){ return decay; },
   setDens:(v) => { dens = v; $("dens").value = Math.round(v * 100); }, pose, zoomNow,
   step:(n, dt) => { for (let i = 0; i < n; i++) step(dt || 1 / 60); render(); } };
 </script>
