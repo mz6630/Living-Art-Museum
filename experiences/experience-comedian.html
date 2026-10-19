@@ -1,0 +1,2394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Comedian — Living Art Museum</title>
+<meta name="description" content="A certificate, a roll of tape, and any fruit or vegetable you can name. An experience from the Living Art Museum.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--serif:Fraunces,"Noto Serif KR",Georgia,serif;}
+html[lang="ko"]{--serif:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;}   /* in Korean every heading is the same gothic */
+/* ==========================================================================
+   COMEDIAN — the work is the instruction
+   Open the crate, read what you actually own, then tape something to the wall.
+   ========================================================================== */
+:root{
+  --ink:#f3f2ef; --ink-dim:rgba(243,242,239,.62); --ink-faint:rgba(243,242,239,.36);
+  --line:rgba(255,255,255,.11); --accent:#f0c46a; --ease:cubic-bezier(.22,.68,.24,1);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{background:#0b0b0d;color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,sans-serif;overflow:hidden;
+  -webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+button,input{font:inherit;color:inherit;}
+button{background:none;border:0;cursor:pointer;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px;}
+.serif{font-family:var(--serif);}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;}
+
+/* ---------- the gallery wall ---------- */
+#room{position:fixed;inset:0;overflow:hidden;touch-action:none;
+  background:
+    radial-gradient(120% 80% at 50% -8%, #26242200 0%, rgba(0,0,0,0) 60%),
+    radial-gradient(70% 55% at 50% 34%, #2a2724 0%, #1b1a18 48%, #111011 78%, #0b0b0d 100%);}
+#wall{position:absolute;left:0;right:0;top:0;height:74%;
+  background:linear-gradient(180deg,#e9e6df 0%, #e4e0d8 55%, #d9d5cc 100%);
+  box-shadow:inset 0 -40px 60px -40px rgba(0,0,0,.35), inset 0 60px 90px -60px rgba(255,255,255,.7);}
+#wall::after{content:"";position:absolute;inset:0;opacity:.5;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.16'/></svg>");}
+#floor{position:absolute;left:0;right:0;top:74%;bottom:0;
+  background:linear-gradient(180deg,#3a352f 0%, #26231f 40%, #15140f 100%);}
+#floor::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:rgba(0,0,0,.35);}
+.spot{position:absolute;left:50%;top:-22%;width:76%;height:120%;transform:translateX(-50%);pointer-events:none;
+  background:radial-gradient(ellipse at 50% 20%, rgba(255,246,228,.5), rgba(255,246,228,0) 62%);mix-blend-mode:screen;}
+.grain{position:absolute;inset:-50%;opacity:.35;pointer-events:none;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='120' height='120' filter='url(%23n)' opacity='.4'/></svg>");
+  animation:grain 1.1s steps(3) infinite;}
+@keyframes grain{0%{transform:translate(0,0)}33%{transform:translate(-2%,1%)}66%{transform:translate(1%,-2%)}100%{transform:translate(0,0)}}
+
+/* ---------- glass ---------- */
+.glass{background:linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.02));
+  backdrop-filter:blur(26px) saturate(165%);-webkit-backdrop-filter:blur(26px) saturate(165%);
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 16px 36px -30px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.14);}
+.glass.light{background:linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,.5));
+  border-color:rgba(0,0,0,.08);color:#1b1a18;
+  box-shadow:0 22px 44px -32px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.9);}
+
+.views{display:flex;gap:2px;padding:4px;border-radius:999px;
+  background:linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.45));
+  backdrop-filter:blur(22px) saturate(165%);-webkit-backdrop-filter:blur(22px) saturate(165%);
+  border:1px solid rgba(0,0,0,.08);}
+.views a{padding:8px 15px;border-radius:999px;font-size:12.5px;text-decoration:none;color:rgba(27,26,24,.6);}
+.views a:hover{color:#1b1a18;background:rgba(255,255,255,.6);}
+body.embedded .views{display:none;}
+@media (max-width:900px){ .views a{padding:7px 11px;font-size:11.5px;} }
+.top{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:20px;right:20px;z-index:20;
+  display:flex;align-items:center;gap:14px;pointer-events:none;}
+.top > *{pointer-events:auto;}
+body.embedded .top{display:none;}
+.logo{font-family:Inter,"Noto Sans KR",system-ui,sans-serif;font-size:19px;font-weight:600;letter-spacing:-.018em;line-height:1;
+  white-space:nowrap;display:flex;align-items:center;text-decoration:none;color:#1b1a18;}
+.title{margin-left:auto;text-align:right;color:#1b1a18;}
+.title h1{font-family:var(--serif);font-size:17px;font-weight:600;}
+.title p{font-size:11.5px;opacity:.6;margin-top:2px;}
+
+/* ---------- the crate ---------- */
+#crate{touch-action:none;position:absolute;left:50%;bottom:6%;perspective:900px;perspective-origin:50% 20%;width:min(420px,58vw);aspect-ratio:1.45/1;transform:translateX(-50%);
+  transition:transform .8s var(--ease), opacity .8s;}
+.crate-body{position:absolute;inset:0;border-radius:6px;
+  background:linear-gradient(170deg,#c79a63 0%, #b4854f 42%, #96683a 100%);
+  box-shadow:0 36px 50px -30px rgba(0,0,0,.8), inset 0 2px 0 rgba(255,255,255,.25), inset 0 -16px 30px rgba(0,0,0,.25);}
+.crate-body::after{content:"";position:absolute;inset:0;border-radius:6px;opacity:.5;mix-blend-mode:multiply;
+  background:repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 2px, transparent 2px 7px);}
+.crate-flapL,.crate-flapR{position:absolute;top:0;height:46%;width:50%;
+  background:linear-gradient(180deg,#cfa36a,#b9894f);transform-origin:50% 0;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.18);transition:transform .9s var(--ease);}
+.crate-flapL{left:0;border-right:1px solid rgba(0,0,0,.12);}
+.crate-flapR{right:0;}
+#crate.open .crate-flapL{transform:rotateX(-108deg);}
+#crate.open .crate-flapR{transform:rotateX(-108deg);}
+.crate-stamp{position:absolute;left:8%;bottom:12%;font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:11px;
+  letter-spacing:.18em;color:rgba(60,38,16,.72);transform:rotate(-2deg);}
+.crate-stamp b{display:block;font-size:13px;letter-spacing:.22em;}
+.crate-hint{position:absolute;left:50%;top:-34px;transform:translateX(-50%);white-space:nowrap;
+  font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#1b1a18;opacity:.6;}
+
+/* tape, the one graphic that does all the work */
+.tape{position:absolute;height:54px;transform-origin:0 50%;pointer-events:none;z-index:20;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.42) 0 14%, rgba(255,255,255,.08) 15% 40%, rgba(0,0,0,.08) 72% 100%),
+    linear-gradient(90deg, rgba(190,190,186,.92), rgba(214,214,210,.86) 35%, rgba(176,176,172,.9));
+  box-shadow:0 10px 18px -12px rgba(0,0,0,.65), inset 0 0 0 1px rgba(255,255,255,.22);
+  -webkit-mask:linear-gradient(90deg, transparent 0, #000 7px, #000 calc(100% - 7px), transparent 100%);}
+.tape::before,.tape::after{content:"";position:absolute;top:0;bottom:0;width:12px;
+  background:repeating-linear-gradient(135deg, rgba(255,255,255,.5) 0 3px, rgba(255,255,255,0) 3px 6px);opacity:.55;}
+.tape::before{left:0;} .tape::after{right:0;}
+.tape.crate{left:50%;top:44%;width:76%;transform:translate(-50%,-50%);height:46px;}
+.tape.peeling{transition:transform .5s var(--ease), opacity .5s;opacity:0;}
+
+/* ---------- papers ---------- */
+.paper{position:absolute;z-index:12;background:#faf7f0;color:#1b1a18;border-radius:3px;
+  box-shadow:0 34px 60px -30px rgba(0,0,0,.75), 0 2px 0 rgba(0,0,0,.06);
+  padding:26px 28px;transform-origin:50% 100%;opacity:0;transition:opacity .7s var(--ease), transform .9s var(--ease);}
+.paper.in{opacity:1;}
+.paper h3{font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:.01em;}
+.paper .k{font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:#8b8578;}
+.paper p{font-size:12.5px;line-height:1.75;margin-top:10px;color:#3b382f;}
+.paper ol{margin:10px 0 0 16px;font-size:12.5px;line-height:1.85;color:#3b382f;}
+.paper .sign{margin-top:16px;display:flex;justify-content:space-between;align-items:flex-end;
+  font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:9.5px;color:#8b8578;}
+#cert{left:16%;top:16%;width:min(330px,30vw);transform:rotate(-3deg) translateY(30px);}
+#cert.in{transform:rotate(-3deg) translateY(0);}
+#instr{right:16%;top:20%;width:min(330px,30vw);transform:rotate(2.4deg) translateY(30px);}
+#instr.in{transform:rotate(2.4deg) translateY(0);}
+.paper .close{position:absolute;right:10px;top:8px;font-size:10.5px;color:#8b8578;}
+
+/* ---------- the object ---------- */
+.thing{position:absolute;z-index:14;width:250px;height:250px;transform:translate(-50%,-50%);
+  cursor:grab;filter:drop-shadow(0 26px 26px rgba(0,0,0,.55));}
+.thing.dragging{cursor:grabbing;z-index:16;}
+.thing.taped{cursor:pointer;}
+.thing canvas{width:100%;height:100%;display:block;}
+.thing .kill{position:absolute;right:4px;top:4px;width:24px;height:24px;border-radius:50%;
+  display:grid;place-items:center;font-size:13px;line-height:1;opacity:0;transition:opacity .2s, background .2s;
+  background:rgba(20,18,16,.55);color:#fff;backdrop-filter:blur(8px);}
+.thing:hover .kill{opacity:1;}
+.thing .kill:hover{background:#c0392b;}
+.thing.loading{cursor:progress;filter:none;}
+.thing canvas{transition:transform .6s var(--ease);}
+.maker button:disabled{opacity:.6;cursor:progress;}
+.thing .label{position:absolute;left:50%;bottom:-26px;transform:translateX(-50%);white-space:nowrap;
+  font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#1b1a18;opacity:.55;}
+
+/* ---------- panels ---------- */
+.maker{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  z-index:20;width:min(640px,92vw);border-radius:20px;padding:16px 18px;display:flex;gap:10px;align-items:center;}
+.maker[hidden]{display:none;}
+.maker input{flex:1;min-width:0;padding:12px 14px;border-radius:12px;border:1px solid rgba(0,0,0,.12);
+  background:rgba(255,255,255,.75);color:#1b1a18;font-size:14px;}
+.maker input::placeholder{color:rgba(27,26,24,.42);}
+.maker button{padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;background:var(--accent);color:#2a1d05;}
+.maker button.ghost{background:rgba(255,255,255,.55);color:rgba(27,26,24,.7);font-weight:400;border:1px solid rgba(0,0,0,.1);}
+.maker .hint{position:absolute;left:50%;top:-38px;transform:translateX(-50%);width:max-content;max-width:100%;text-align:center;
+  font-size:11.5px;color:rgba(27,26,24,.72);padding:5px 13px;border-radius:999px;
+  background:linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.58));border:1px solid rgba(0,0,0,.07);
+  backdrop-filter:blur(14px) saturate(160%);-webkit-backdrop-filter:blur(14px) saturate(160%);
+  box-shadow:0 10px 22px -16px rgba(0,0,0,.5);}
+
+.toolbar{position:fixed;right:20px;top:50%;transform:translateY(-50%);z-index:20;width:208px;
+  border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:14px;}
+.toolbar h2{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(27,26,24,.45);}
+.toolbar .step{display:flex;gap:10px;font-size:12px;color:rgba(27,26,24,.7);line-height:1.5;}
+.toolbar .step b{color:#1b1a18;font-weight:600;}
+.toolbar .step.done{opacity:.45;}
+.toolbar .step i{font-family:"JetBrains Mono","Noto Sans KR",monospace;font-style:normal;color:#9a7322;}
+.toolbar button{padding:10px;border-radius:12px;font-size:12.5px;border:1px solid rgba(0,0,0,.12);color:rgba(27,26,24,.75);background:rgba(255,255,255,.5);}
+.toolbar button[aria-pressed="true"]{background:var(--accent);color:#2a1d05;border-color:transparent;font-weight:600;}
+
+.toast{position:fixed;left:50%;bottom:calc(134px + env(safe-area-inset-bottom,0px));transform:translate(-50%,10px);
+  z-index:30;padding:11px 17px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;
+  transition:opacity .3s,transform .3s;}
+.toast.in{opacity:1;transform:translate(-50%,0);}
+
+@media (max-width:900px){
+  .top{left:14px;right:14px;} .title p{display:none;}
+  .toolbar{right:12px;left:12px;top:auto;bottom:calc(104px + env(safe-area-inset-bottom,0px));width:auto;
+    transform:none;flex-direction:row;flex-wrap:wrap;gap:10px;padding:12px;}
+  .toolbar .block{flex:1 1 140px;}
+  #cert,#instr{width:min(270px,44vw);}
+  .thing{width:150px;height:150px;}
+  .maker{width:94vw;padding:12px;}
+}
+/* phones: the installation steps shrink to the one you are on */
+@media (max-width:600px){
+  .logo{font-size:15.5px;}
+  .top{gap:10px;} .top .title{display:none;}
+  .views{padding:3px;margin-left:auto;} .views a{padding:6px 10px;font-size:10.5px;}
+  .toolbar{top:calc(56px + env(safe-area-inset-top,0px));bottom:auto;left:10px;right:10px;width:auto;transform:none;
+    flex-direction:row;flex-wrap:wrap;align-items:center;gap:7px 6px;padding:9px 10px;border-radius:16px;}
+  .toolbar .block{flex:0 0 auto;}
+  .toolbar .block:first-child{flex:1 1 100%;}
+  .toolbar h2{display:none;}
+  .toolbar .step{font-size:11px;gap:8px;line-height:1.45;}
+  .toolbar .step.done{display:none;}
+  .toolbar .block:first-child .step:not(.done) ~ .step{display:none;}
+  .toolbar .block:nth-child(2){display:flex;gap:5px;}
+  .toolbar .block:nth-child(2) button{margin-top:0 !important;}
+  .toolbar button{padding:6px 9px;font-size:10.5px;border-radius:9px;}
+  .paper{padding:14px 15px;}
+  .paper h3{font-size:15px;}
+  .paper p, .paper ol{font-size:10.5px;line-height:1.6;margin-top:7px;}
+  .paper .k{font-size:8px;letter-spacing:.18em;}
+  .paper .sign{font-size:8px;margin-top:10px;}
+  .paper .close{font-size:9.5px;}
+  #cert{left:4%;top:calc(150px + env(safe-area-inset-top,0px));width:45vw;}
+  #instr{right:4%;top:calc(176px + env(safe-area-inset-top,0px));width:45vw;}
+  #crate{bottom:11%;width:min(240px,60vw);}
+  .crate-stamp{font-size:8.5px;letter-spacing:.1em;} .crate-stamp b{font-size:11px;letter-spacing:.16em;}
+  .maker{left:10px;right:10px;width:auto;transform:none;bottom:calc(12px + env(safe-area-inset-bottom,0px));padding:8px;gap:6px;border-radius:16px;}
+  .maker input{padding:10px 11px;font-size:13px;}
+  .maker button{padding:10px 12px;font-size:12px;}
+  .maker .hint{top:-30px;font-size:10px;padding:4px 10px;}
+  .thing{width:130px;height:130px;}
+  .toast{top:calc(150px + env(safe-area-inset-top,0px));bottom:auto;font-size:12px;padding:9px 14px;max-width:92vw;text-align:center;border-radius:14px;}
+}
+html[lang="ko"] body{word-break:keep-all;}
+html[lang="ko"] .toolbar h2, html[lang="ko"] .paper .k, html[lang="ko"] .crate-hint{letter-spacing:.06em;}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important;animation:none !important;} }
+</style>
+</head>
+<body>
+
+<div id="room">
+  <div id="wall"><div class="spot"></div></div>
+  <div id="floor"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- the crate -->
+  <div id="crate">
+    <div class="crate-body"></div>
+    <div class="crate-flapL"></div>
+    <div class="crate-flapR"></div>
+    <div class="tape crate" id="crate-tape"></div>
+    <div class="crate-stamp mono"><b>COMEDIAN</b>ED. 1/3 · FRAGILE · THIS WAY UP</div>
+    <div class="crate-hint mono" id="crate-hint">Drag along the tape to open</div>
+  </div>
+
+  <!-- what is actually inside -->
+  <article class="paper" id="cert">
+    <button class="close" data-close="cert">Put down</button>
+    <div class="k">Certificate of authenticity</div>
+    <h3>Comedian</h3>
+    <p>This certificate, and not the fruit, is the work. The holder may install it anywhere,
+       as often as they like, provided the instructions overleaf are followed.</p>
+    <p>Materials are perishable and are meant to be replaced.</p>
+    <div class="sign"><span>ED. 1/3</span><span>M. CATTELAN · 2019</span></div>
+  </article>
+
+  <article class="paper" id="instr">
+    <button class="close" data-close="instr">Put down</button>
+    <div class="k">Installation instructions</div>
+    <h3>How to install</h3>
+    <ol>
+      <li>Choose a fruit or a vegetable. Any one will do.</li>
+      <li>Place it on a clean wall at eye level.</li>
+      <li>Fix it with one strip of silver tape, at a slight angle.</li>
+      <li>Replace it whenever it spoils.</li>
+    </ol>
+    <div class="sign"><span>ONE STRIP ONLY</span><span>NO. 2 OF 2</span></div>
+  </article>
+
+  <!-- the thing you name -->
+</div>
+
+<header class="top">
+  <a class="logo" href="https://claude.ai/artifact/VKnXjTpP7PtFE1dUEE9tcz">Living Art Museum</a>
+    <nav class="views" aria-label="Main view">
+      <a href="https://claude.ai/artifact/VKnXjTpP7PtFE1dUEE9tcz?view=space">3D</a>
+      <a href="https://claude.ai/artifact/VKnXjTpP7PtFE1dUEE9tcz?view=card">Card</a>
+      <a href="https://claude.ai/artifact/VKnXjTpP7PtFE1dUEE9tcz?view=display">Display</a>
+    </nav>
+  <div class="title">
+    <h1 class="serif">Comedian</h1>
+    <p>Maurizio Cattelan · 2019 · banana, duct tape</p>
+  </div>
+</header>
+
+<aside class="toolbar glass light" id="toolbar">
+  <div class="block">
+    <h2>Installation</h2>
+    <div class="step" id="st1"><i>01</i><span data-ko="<b>상자를 여세요.</b> 테이프를 따라 드래그하세요."><b>Open the crate.</b> Drag along the tape.</span></div>
+    <div class="step" id="st2"><i>02</i><span data-ko="<b>과일이나 채소 이름을 적으세요.</b> 그대로 그려 드립니다."><b>Name a fruit or vegetable.</b> It will be painted for you.</span></div>
+    <div class="step" id="st3"><i>03</i><span data-ko="<b>벽에 올리고</b> 비스듬히 테이프로 붙이세요."><b>Put it on the wall</b> and tape it, at an angle.</span></div>
+    <div class="step"><i>04</i><span data-ko="<b>붙인 작품을 클릭</b>하면 떼어집니다. <b>×</b>는 치우기."><b>Click a taped work</b> to peel it. <b>×</b> takes it away.</span></div>
+  </div>
+  <div class="block">
+    <h2>Tape</h2>
+    <button id="t-tape" aria-pressed="false">Take the tape</button>
+    <button id="t-peel" style="margin-top:8px">Peel everything</button>
+    <button id="t-clear" style="margin-top:8px">Clear the wall</button>
+  </div>
+  <div class="block">
+    <button id="t-sound" aria-pressed="true">Sound on</button>
+  </div>
+</aside>
+
+<div class="maker glass light" id="maker" hidden>
+  <span class="hint mono" id="maker-hint">Type a fruit or vegetable — a tangerine, a carrot, a banana</span>
+  <input id="word" maxlength="28" placeholder="Which fruit or vegetable goes on the wall?" aria-label="Fruit or vegetable">
+  <button id="make">Paint it</button>
+  <button id="again" class="ghost" hidden>Another</button>
+</div>
+
+<div class="toast glass light" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let tt; function toast(m){ const t = $("toast"); t.textContent = L(m); t.classList.add("in"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("in"), 2600); }
+/* ---- language: English unless the museum (or ?lang=ko) asks for Korean ---- */
+const LANG = (() => {
+  let l = (document.documentElement.lang || "en").slice(0, 2);
+  try { const q = new URLSearchParams(location.search).get("lang"); if (q) l = q; } catch (_){}
+  return l === "ko" ? "ko" : "en";
+})();
+const KO = {
+ "@title": "코미디언 — Living Art Museum",
+ "3D": "3D",
+ "Card": "카드",
+ "Display": "전시",
+ "Main view": "메인 보기",
+ "ED. 1/3 · FRAGILE · THIS WAY UP": "ED. 1/3 · 취급 주의 · 이쪽이 위",
+ "Drag along the tape to open": "테이프를 따라 드래그해 여세요",
+ "Put down": "내려놓기",
+ "Certificate of authenticity": "진품 보증서",
+ "Comedian": "코미디언",
+ "This certificate, and not the fruit, is the work. The holder may install it anywhere, as often as they like, provided the instructions overleaf are followed.": "과일이 아니라 이 보증서가 작품입니다. 소유자는 뒷면의 지침을 따르는 한, 어디에든 몇 번이든 설치할 수 있습니다.",
+ "Materials are perishable and are meant to be replaced.": "재료는 상하기 마련이며, 교체하도록 되어 있습니다.",
+ "Installation instructions": "설치 지침",
+ "How to install": "설치 방법",
+ "Choose a fruit or a vegetable. Any one will do.": "과일이나 채소를 하나 고르세요. 무엇이든 괜찮습니다.",
+ "Place it on a clean wall at eye level.": "깨끗한 벽, 눈높이에 두세요.",
+ "Fix it with one strip of silver tape, at a slight angle.": "은색 테이프 한 줄로, 살짝 비스듬히 고정하세요.",
+ "Replace it whenever it spoils.": "상하면 언제든 교체하세요.",
+ "ONE STRIP ONLY": "테이프는 한 줄만",
+ "NO. 2 OF 2": "2쪽 중 2쪽",
+ "Maurizio Cattelan · 2019 · banana, duct tape": "마우리치오 카텔란 · 2019 · 바나나, 덕트 테이프",
+ "Installation": "설치",
+ "Tape": "테이프",
+ "Take the tape": "테이프 들기",
+ "Tape in hand": "테이프를 든 상태",
+ "Peel everything": "모두 떼기",
+ "Clear the wall": "벽 비우기",
+ "Sound on": "소리 켬",
+ "Sound off": "소리 끔",
+ "Type a fruit or vegetable — a tangerine, a carrot, a banana": "과일이나 채소를 적어 보세요 — 귤, 당근, 바나나",
+ "Which fruit or vegetable goes on the wall?": "벽에 어떤 과일이나 채소를 붙일까요?",
+ "Fruit or vegetable": "과일 또는 채소",
+ "Paint it": "그리기",
+ "Another": "하나 더",
+ "Painting…": "그리는 중…",
+ "Take it away": "치우기",
+ "Only the certificate and the instructions. The fruit is up to you.": "들어 있는 건 보증서와 지침뿐. 과일은 당신이 정하세요.",
+ "Name a fruit or a vegetable.": "과일이나 채소 이름을 적어 보세요.",
+ "Now take the tape and drag a strip across it.": "이제 테이프를 들고 그 위로 한 줄 그어 보세요.",
+ "Drag a strip across what you painted. Put the tape down to move or peel things.": "그린 것 위로 테이프를 한 줄 그으세요. 옮기거나 떼려면 테이프를 내려놓으세요.",
+ "Tape back on the shelf — you can move things again.": "테이프를 선반에 돌려놓았습니다 — 다시 옮길 수 있어요.",
+ "Taped. That is the whole work — and it is yours to repeat.": "붙였습니다. 이것이 작품의 전부이고, 얼마든지 반복할 수 있습니다.",
+ "A strip on the bare wall. Drag it across your fruit or vegetable.": "빈 벽에 테이프가 붙었습니다. 과일이나 채소 위로 그어 보세요.",
+ "Put a fruit or vegetable on the wall first.": "먼저 과일이나 채소를 벽에 올려 두세요.",
+ "Nothing is taped. Click a taped one to peel just that one.": "붙은 것이 없습니다. 붙인 것을 클릭하면 그것만 뗄 수 있어요.",
+ "Nothing to clear.": "치울 것이 없습니다.",
+ "The wall is bare again.": "벽이 다시 비었습니다."
+};
+const L = (s) => (LANG === "ko" && KO[s] !== undefined) ? KO[s] : s;
+(function localise(){
+  if (LANG !== "ko") return;
+  document.documentElement.lang = "ko";
+  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT,
+    { acceptNode:n => /^(SCRIPT|STYLE)$/.test(n.parentNode.nodeName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  const hits = [];
+  while (walk.nextNode()){
+    const n = walk.currentNode, k = n.nodeValue.replace(/\s+/g, " ").trim();
+    if (k && KO[k] !== undefined) hits.push([n, KO[k]]);
+  }
+  hits.forEach(([n, v]) => { const m = n.nodeValue.match(/^(\s*)[\s\S]*?(\s*)$/); n.nodeValue = m[1] + v + m[2]; });
+  document.querySelectorAll("[title],[aria-label],[placeholder]").forEach(el => ["title", "aria-label", "placeholder"].forEach(a => {
+    const v = el.getAttribute(a); if (v && KO[v] !== undefined) el.setAttribute(a, KO[v]);
+  }));
+  document.querySelectorAll("[data-ko]").forEach(el => { el.innerHTML = el.dataset.ko; });
+  if (KO["@title"]) document.title = KO["@title"];
+})();
+
+/* ==========================================================================
+   sound — tape, cardboard, a soft thud
+   ========================================================================== */
+const SFX = (() => {
+  let ac = null, on = true;
+  let bus = null;
+  const ensure = () => { if (ac) return true; const A = window.AudioContext || window.webkitAudioContext; if (!A) return false; ac = new A();
+    bus = ac.createGain(); bus.gain.value = 1.5;                       /* a little louder overall, kept from clipping */
+    const comp = ac.createDynamicsCompressor(); comp.threshold.value = -12; comp.ratio.value = 3; comp.knee.value = 10;
+    bus.connect(comp); comp.connect(ac.destination); return true; };
+  function noise(sec){
+    if (!ensure()) return null;
+    const n = Math.floor(ac.sampleRate * sec), buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const src = ac.createBufferSource(); src.buffer = buf; return src;
+  }
+  function env(node, t0, a, d, peak){
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(peak, t0 + a);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + a + d);
+    node.connect(g); g.connect(bus); return g;
+  }
+  return {
+    unlock(){ if (ensure() && ac.state === "suspended") ac.resume(); },
+    setOn(v){ on = v; },
+    /* adhesive pulling away: thousands of tiny snaps, not a smooth hiss */
+    rip(len){
+      if (!on || !ensure()) return;
+      const t = ac.currentTime, dur = Math.max(.2, len);
+      const n = Math.floor(ac.sampleRate * dur), buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
+      let grain = 0, amp = 0;
+      for (let i = 0; i < n; i++){
+        const u = i / n;
+        if (grain <= 0){                                   /* a new snap of glue */
+          grain = 3 + Math.random() * (10 + 60 * (1 - u));  /* faster at the start */
+          amp = (0.35 + Math.random() * 0.65);
+        }
+        grain--;
+        const body = (Math.random() * 2 - 1) * amp;
+        d[i] = body * (0.35 + 0.65 * Math.sin(Math.PI * u)) * (1 - u * 0.25);
+      }
+      const src = ac.createBufferSource(); src.buffer = buf;
+      const bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.Q.value = 0.8;
+      bp.frequency.setValueAtTime(1500, t);
+      bp.frequency.exponentialRampToValueAtTime(3200, t + dur * .55);
+      bp.frequency.exponentialRampToValueAtTime(1100, t + dur);
+      const hp = ac.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 420;
+      src.connect(bp); bp.connect(hp); env(hp, t, .012, dur, .3); src.start(t); src.stop(t + dur + .05);
+    },
+    /* a strip pressed down: a dull slap, then the glue settling */
+    press(){
+      if (!on || !ensure()) return;
+      const t = ac.currentTime;
+      const n = noise(.09);
+      if (n){ const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1400;
+        n.connect(lp); env(lp, t, .003, .09, .22); n.start(t); }
+      const o = ac.createOscillator(); o.type = "sine";
+      o.frequency.setValueAtTime(190, t); o.frequency.exponentialRampToValueAtTime(70, t + .1);
+      env(o, t, .003, .11, .14); o.start(t); o.stop(t + .16);
+      const tick = noise(.22);
+      if (tick){ const bp2 = ac.createBiquadFilter(); bp2.type = "bandpass"; bp2.frequency.value = 2600; bp2.Q.value = 2.2;
+        tick.connect(bp2); env(bp2, t + .05, .01, .2, .07); tick.start(t + .05); }
+    },
+    /* cardboard flaps */
+    carton(){
+      if (!on || !ensure()) return;
+      const t = ac.currentTime, n = noise(.4);
+      if (!n) return;
+      const lp = ac.createBiquadFilter(); lp.type = "lowpass";
+      lp.frequency.setValueAtTime(900, t); lp.frequency.exponentialRampToValueAtTime(260, t + .4);
+      n.connect(lp); env(lp, t, .01, .42, .2); n.start(t);
+      const o = ac.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(90, t);
+      o.frequency.exponentialRampToValueAtTime(48, t + .3);
+      env(o, t, .01, .3, .12); o.start(t); o.stop(t + .4);
+    },
+    /* something hitting the floor */
+    thud(){
+      if (!on || !ensure()) return;
+      const t = ac.currentTime;
+      const o = ac.createOscillator(); o.type = "sine";
+      o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(44, t + .18);
+      env(o, t, .004, .22, .22); o.start(t); o.stop(t + .3);
+      const n = noise(.12);
+      if (n){ const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 700;
+        n.connect(lp); env(lp, t, .004, .12, .1); n.start(t); }
+    },
+    /* a small chime when the object appears */
+    made(){
+      if (!on || !ensure()) return;
+      const t = ac.currentTime;
+      [523.25, 659.25, 783.99].forEach((f, i) => {
+        const o = ac.createOscillator(); o.type = "triangle"; o.frequency.value = f;
+        env(o, t + i * .06, .005, .5, .07); o.start(t + i * .06); o.stop(t + i * .06 + .6);
+      });
+    },
+  };
+})();
+window.addEventListener("pointerdown", () => SFX.unlock(), { capture:true, once:true });
+
+/* ==========================================================================
+   1. the crate: drag along the tape to open it
+   ========================================================================== */
+let opened = false;
+const crateTape = $("crate-tape");
+let ripFrom = null, ripLen = 0;
+$("crate").addEventListener("pointerdown", e => {
+  if (opened) return;
+  SFX.unlock();
+  ripFrom = { x:e.clientX, y:e.clientY }; ripLen = 0;
+  $("crate").setPointerCapture(e.pointerId);
+});
+$("crate").addEventListener("pointermove", e => {
+  if (opened || !ripFrom) return;
+  ripLen += Math.abs(e.clientX - ripFrom.x);
+  ripFrom = { x:e.clientX, y:e.clientY };
+  const need = Math.min(210, $("crate").offsetWidth * 0.6);    /* a phone's crate is smaller: so is the pull */
+  crateTape.style.opacity = String(Math.max(0, 1 - ripLen / (need + 10)));
+  crateTape.style.transform = `translate(-50%,-50%) rotate(${-ripLen * 0.02}deg) translateY(${-ripLen * 0.1}px)`;
+  if (ripLen > 40 && !crateTape.dataset.sound){ crateTape.dataset.sound = "1"; SFX.rip(.7); }
+  if (ripLen > need) openCrate();
+});
+["pointerup","pointercancel"].forEach(ev => $("crate").addEventListener(ev, () => { ripFrom = null; }));
+
+async function openCrate(){
+  if (opened) return; opened = true;
+  crateTape.style.opacity = "0";
+  $("crate-hint").style.opacity = "0";
+  $("crate").classList.add("open");
+  SFX.carton();
+  await wait(620);
+  $("cert").classList.add("in");
+  await wait(260);
+  $("instr").classList.add("in");
+  step(1);
+  await wait(1400);
+  $("maker").hidden = false;
+  requestAnimationFrame(() => $("word").focus());
+  toast("Only the certificate and the instructions. The fruit is up to you.");
+}
+function wait(ms){ return new Promise(r => setTimeout(r, reduce ? Math.min(ms, 60) : ms)); }
+document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => {
+  const el = $(b.dataset.close);
+  el.style.transition = "opacity .5s, transform .6s";
+  el.style.opacity = "0"; el.style.transform += " translateY(26px) scale(.97)";
+  setTimeout(() => el.style.display = "none", 520);
+});
+function step(n){
+  [1,2,3].forEach(i => $("st" + i).classList.toggle("done", i <= n));
+}
+
+/* ==========================================================================
+   2. paint whatever fruit or vegetable is named — a 2D still life, by hand
+   ========================================================================== */
+const things = [];                 /* every fruit you have named so far */
+let busy = false;
+
+/* ==========================================================================
+   PRODUCE — fruit and vegetables, painted in 2D
+   Every piece is painted from a short description: a body with light on it
+   (a soft key from the upper left, a bounce from below right), its skin,
+   and the parts that make it itself — a stem, a leaf, a calyx, a crown.
+   ========================================================================== */
+const PRODUCE = (() => {
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const rgb = (h) => { h = String(h).replace("#", ""); if (h.length === 3) h = h.split("").map(c => c + c).join(""); const n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+const css = (c, a = 1) => `rgba(${Math.round(clamp(c[0], 0, 255))},${Math.round(clamp(c[1], 0, 255))},${Math.round(clamp(c[2], 0, 255))},${a})`;
+const lit = (c, t) => mix(c, [255, 252, 244], t), drk = (c, t) => mix(c, [0, 0, 0], t);
+const shd = (c) => mix(drk(c, 0.6), [42, 26, 52], 0.2);          /* shadows run a little cool and deep */
+const cap = (t, c) => { const u = clamp(t / c, 0, 1); return Math.sqrt(1 - (1 - u) * (1 - u)); };
+function rng(seed){ let s = (seed >>> 0) || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
+const L2 = [-0.62, -0.78];                                       /* the light: from the upper left */
+
+/* a smooth closed (or open) path through points */
+function smooth(pts, closed = true){
+  const p = new Path2D(), n = pts.length;
+  p.moveTo(pts[0][0], pts[0][1]);
+  const last = closed ? n : n - 1;
+  for (let i = 0; i < last; i++){
+    const p0 = pts[closed ? (i - 1 + n) % n : Math.max(0, i - 1)], p1 = pts[i], p2 = pts[closed ? (i + 1) % n : i + 1],
+          p3 = pts[closed ? (i + 2) % n : Math.min(n - 1, i + 2)];
+    p.bezierCurveTo(p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6, p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6, p2[0], p2[1]);
+  }
+  if (closed) p.closePath();
+  return p;
+}
+function radialGlow(g, x, y, r, c, a){
+  const gr = g.createRadialGradient(x, y, 0, x, y, r);
+  gr.addColorStop(0, css(c, a)); gr.addColorStop(1, css(c, 0));
+  g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
+}
+function ellipseGlow(g, x, y, rx, ry, ang, c, a){
+  g.save(); g.translate(x, y); g.rotate(ang); g.scale(1, ry / rx); radialGlow(g, 0, 0, rx, c, a); g.restore();
+}
+
+/* ---- light on a rounded body: base, terminator, bounce, rim, shine ---- */
+function shadeRound(g, path, B, base, o = {}){
+  const { cx, cy, rx, ry } = B, R = Math.max(rx, ry);
+  g.save(); g.clip(path);
+  const gr = g.createRadialGradient(cx - rx * 0.36, cy - ry * 0.42, R * 0.02, cx - rx * 0.08, cy - ry * 0.1, R * 1.22);
+  gr.addColorStop(0, css(lit(base, o.hiK ?? 0.28)));
+  gr.addColorStop(0.3, css(base));
+  gr.addColorStop(0.74, css(drk(base, 0.3)));
+  gr.addColorStop(1, css(shd(base)));
+  g.fillStyle = gr; g.fillRect(cx - R * 1.6, cy - R * 1.6, R * 3.2, R * 3.2);
+  g.restore();
+}
+function finishRound(g, path, B, base, gloss = 0.5, o = {}){
+  const { cx, cy, rx, ry } = B, R = Math.max(rx, ry), m = Math.min(rx, ry);
+  g.save(); g.clip(path);
+  /* the side away from the light */
+  let gr = g.createLinearGradient(cx - rx * 0.7, cy - ry * 0.8, cx + rx * 0.85, cy + ry * 0.95);
+  gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(0.58, "rgba(0,0,0,0)"); gr.addColorStop(1, css(shd(base), 0.55));
+  g.fillStyle = gr; g.fillRect(cx - R * 1.6, cy - R * 1.6, R * 3.2, R * 3.2);
+  /* the edge turns away from us */
+  gr = g.createRadialGradient(cx - rx * 0.1, cy - ry * 0.12, m * 0.6, cx, cy, R * 1.05);
+  gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(1, css(shd(base), 0.32));
+  g.fillStyle = gr; g.fillRect(cx - R * 1.6, cy - R * 1.6, R * 3.2, R * 3.2);
+  /* light bounced back from the wall, low on the right */
+  g.lineWidth = m * 0.16;
+  gr = g.createLinearGradient(cx - rx * 0.4, cy - ry * 0.4, cx + rx, cy + ry);
+  gr.addColorStop(0, css(lit(base, 0.3), 0)); gr.addColorStop(0.7, css(lit(base, 0.3), 0)); gr.addColorStop(1, css(lit(base, 0.35), o.bounce ?? 0.42));
+  g.strokeStyle = gr; g.stroke(path);
+  /* shine: a broad sheen and a small hot spot */
+  if (gloss > 0){
+    ellipseGlow(g, cx - rx * 0.36, cy - ry * 0.4, m * 0.62, m * 0.44, -0.6, [255, 255, 255], 0.2 * gloss);
+    ellipseGlow(g, cx - rx * 0.42, cy - ry * 0.47, m * 0.2, m * 0.12, -0.7, [255, 255, 255], 0.85 * gloss);
+    if (gloss > 0.55) ellipseGlow(g, cx + rx * 0.42, cy + ry * 0.44, m * 0.14, m * 0.06, -0.7, [255, 255, 255], 0.22 * gloss);   /* a window of light on the far side */
+  }
+  g.restore();
+}
+
+/* ---- skins ---- */
+function skin(g, path, B, kind, base, o, R){
+  if (!kind || kind === "smooth" || kind === "wax") return;
+  const { cx, cy, rx, ry } = B, area = rx * ry;
+  g.save(); g.clip(path);
+  const inEl = (x, y) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < 1.05;
+  if (kind === "dimple"){                                   /* citrus: a skin of tiny pits */
+    const n = Math.floor(area / 9);
+    for (let i = 0; i < n; i++){
+      const x = cx + (R() * 2 - 1) * rx, y = cy + (R() * 2 - 1) * ry; if (!inEl(x, y)) continue;
+      const rr = 0.9 + R() * 1.4;
+      g.fillStyle = css(drk(base, 0.35), 0.16); g.beginPath(); g.arc(x + 0.5, y + 0.6, rr, 0, TAU); g.fill();
+      g.fillStyle = css(lit(base, 0.4), 0.14); g.beginPath(); g.arc(x - 0.6, y - 0.7, rr * 0.7, 0, TAU); g.fill();
+    }
+  }
+  if (kind === "speckle" || kind === "lenticel"){           /* pear, Korean pear, apple: pale or russet dots */
+    const n = Math.floor(area / (kind === "speckle" ? 70 : 140)), c = o.texC ? rgb(o.texC) : lit(base, 0.45);
+    for (let i = 0; i < n; i++){
+      const x = cx + (R() * 2 - 1) * rx, y = cy + (R() * 2 - 1) * ry; if (!inEl(x, y)) continue;
+      g.fillStyle = css(c, 0.25 + R() * 0.35); g.beginPath(); g.ellipse(x, y, 0.8 + R() * 1.6, 0.6 + R() * 1.1, R() * 3, 0, TAU); g.fill();
+    }
+  }
+  if (kind === "fuzz"){                                      /* peach, kiwi: a soft down that catches the light at the edge */
+    const n = Math.floor(area / 3), c = o.texC ? rgb(o.texC) : lit(base, 0.5);
+    g.lineWidth = 0.7;
+    for (let i = 0; i < n; i++){
+      const x = cx + (R() * 2 - 1) * rx, y = cy + (R() * 2 - 1) * ry; if (!inEl(x, y)) continue;
+      const a = R() * TAU, l = 1.5 + R() * 2.5;
+      g.strokeStyle = css(R() < 0.5 ? c : drk(base, 0.3), 0.12);
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke();
+    }
+    g.lineWidth = Math.min(rx, ry) * 0.1; g.strokeStyle = css(lit(base, 0.55), 0.18); g.stroke(path);
+  }
+  if (kind === "bloom"){                                     /* plum, grape, blueberry: a dusty white bloom */
+    radialGlow(g, cx - rx * 0.1, cy - ry * 0.15, Math.max(rx, ry) * 1.1, [230, 232, 245], 0.22);
+    const n = Math.floor(area / 6);
+    for (let i = 0; i < n; i++){
+      const x = cx + (R() * 2 - 1) * rx, y = cy + (R() * 2 - 1) * ry; if (!inEl(x, y)) continue;
+      g.fillStyle = css([235, 236, 248], 0.08 + R() * 0.08); g.fillRect(x, y, 1.4, 1.4);
+    }
+  }
+  if (kind === "net"){                                       /* melon: a raised pale netting */
+    const pts = []; const n = Math.floor(area / 110);
+    for (let i = 0; i < n; i++){ const x = cx + (R() * 2 - 1) * rx, y = cy + (R() * 2 - 1) * ry; if (inEl(x, y)) pts.push([x, y]); }
+    const c = o.texC ? rgb(o.texC) : [222, 214, 180];
+    for (const p of pts){
+      const near = pts.map(q => [q, Math.hypot(q[0] - p[0], q[1] - p[1])]).filter(e => e[1] > 0).sort((a, b) => a[1] - b[1]).slice(0, 3);
+      for (const [q] of near){
+        const mx = (p[0] + q[0]) / 2 + (R() - 0.5) * 6, my = (p[1] + q[1]) / 2 + (R() - 0.5) * 6;
+        g.lineCap = "round";
+        g.strokeStyle = css(drk(c, 0.45), 0.3); g.lineWidth = 2.6;
+        g.beginPath(); g.moveTo(p[0] + 0.8, p[1] + 1); g.quadraticCurveTo(mx + 0.8, my + 1, q[0] + 0.8, q[1] + 1); g.stroke();
+        g.strokeStyle = css(c, 0.8); g.lineWidth = 1.5;
+        g.beginPath(); g.moveTo(p[0], p[1]); g.quadraticCurveTo(mx, my, q[0], q[1]); g.stroke();
+      }
+    }
+  }
+  if (kind === "stripe" || kind === "groove"){              /* watermelon's dark zigzag bands; chamoe's pale grooves */
+    const c = rgb(o.texC || (kind === "stripe" ? "#1f4a22" : "#f6f0d0"));
+    const n = o.stripes || (kind === "stripe" ? 9 : 10);
+    for (let k = 0; k < n; k++){
+      const ph = (k / n) * Math.PI - Math.PI / 2 + 0.12;     /* around the front half */
+      const sx = Math.sin(ph); if (Math.abs(sx) > 0.98) continue;
+      const left = [], right = [];
+      const bw = kind === "stripe" ? rx * 0.075 * Math.cos(ph) : rx * 0.022 * Math.cos(ph);
+      for (let j = 0; j <= 40; j++){
+        const v = -1 + 2 * j / 40, yy = cy + v * ry * 0.995, wv = Math.sqrt(Math.max(0, 1 - v * v));
+        const zig = kind === "stripe" ? Math.sin(j * 1.9 + k * 2.1) * rx * 0.03 * wv : 0;
+        const x = cx + sx * rx * wv + zig;
+        left.push([x - bw * wv * (0.8 + 0.4 * R()), yy]); right.push([x + bw * wv * (0.8 + 0.4 * R()), yy]);
+      }
+      const p = new Path2D(); p.moveTo(left[0][0], left[0][1]); left.forEach(q => p.lineTo(q[0], q[1])); right.reverse().forEach(q => p.lineTo(q[0], q[1])); p.closePath();
+      g.fillStyle = css(c, kind === "stripe" ? 0.9 : 0.75); g.fill(p);
+    }
+  }
+  if (kind === "eyes"){                                      /* potato: shallow eyes and earthy freckles */
+    const n = Math.floor(area / 1400) + 5;
+    for (let i = 0; i < n; i++){
+      const x = cx + (R() * 2 - 1) * rx * 0.85, y = cy + (R() * 2 - 1) * ry * 0.85; if (!inEl(x, y)) continue;
+      g.fillStyle = css(drk(base, 0.45), 0.55); g.beginPath(); g.ellipse(x, y, 3 + R() * 3, 1.4 + R(), R() * 3, 0, TAU); g.fill();
+      g.strokeStyle = css(lit(base, 0.35), 0.5); g.lineWidth = 1; g.beginPath(); g.ellipse(x - 1, y - 1.2, 4.5, 2.2, 0.2, Math.PI, TAU); g.stroke();
+    }
+    const m = Math.floor(area / 40);
+    for (let i = 0; i < m; i++){
+      const x = cx + (R() * 2 - 1) * rx, y = cy + (R() * 2 - 1) * ry; if (!inEl(x, y)) continue;
+      g.fillStyle = css(drk(base, 0.3), 0.18 + R() * 0.2); g.beginPath(); g.arc(x, y, 0.6 + R() * 1.6, 0, TAU); g.fill();
+    }
+  }
+  if (kind === "bumpy" || kind === "pebble"){               /* lychee, citron, avocado: a pebbled skin */
+    const step = kind === "bumpy" ? 9 : 6;
+    for (let y = cy - ry; y < cy + ry; y += step * 0.86){
+      for (let x = cx - rx + ((y / step) % 2) * step / 2; x < cx + rx; x += step){
+        if (!inEl(x, y)) continue;
+        const r0 = step * (0.36 + R() * 0.14);
+        g.fillStyle = css(drk(base, 0.35), 0.28); g.beginPath(); g.arc(x + 1, y + 1.2, r0, 0, TAU); g.fill();
+        g.fillStyle = css(lit(base, 0.3), 0.22); g.beginPath(); g.arc(x - 0.8, y - 1, r0 * 0.6, 0, TAU); g.fill();
+      }
+    }
+  }
+  if (kind === "spiky"){                                     /* durian, jackfruit: rows of little pyramids */
+    const step = o.spikeStep || 15, tc = o.texC ? rgb(o.texC) : drk(base, 0.25);
+    for (let y = cy - ry; y < cy + ry + step; y += step * 0.86){
+      const row = Math.round((y - cy) / (step * 0.86));
+      for (let x = cx - rx + (row % 2 ? step / 2 : 0); x < cx + rx + step; x += step){
+        if (!inEl(x, y)) continue;
+        const nx = (x - cx) / rx, ny = (y - cy) / ry, f = Math.sqrt(Math.max(0, 1 - nx * nx - ny * ny));
+        const h = step * 0.55 * (0.45 + 0.55 * f), px = x + nx * step * 0.25 * (1 - f), py = y + ny * step * 0.25 * (1 - f) - h * 0.1;
+        const q = [[x - step * 0.5, y], [x, y - step * 0.5], [x + step * 0.5, y], [x, y + step * 0.5]];
+        const face = (a, b, col, al) => { g.fillStyle = css(col, al); g.beginPath(); g.moveTo(px, py); g.lineTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.closePath(); g.fill(); };
+        face(q[0], q[1], lit(tc, 0.45), 0.55); face(q[1], q[2], lit(tc, 0.15), 0.45);
+        face(q[2], q[3], shd(tc), 0.55); face(q[3], q[0], drk(tc, 0.3), 0.5);
+        g.fillStyle = css(lit(tc, 0.6), 0.6); g.beginPath(); g.arc(px - 0.6, py - 0.6, 1.1, 0, TAU); g.fill();
+      }
+    }
+  }
+  if (kind === "hairy"){                                     /* rambutan: soft hooked hairs, green at the tips */
+    const n = Math.floor(area / 46), tip = rgb(o.texC || "#6a9a2a");
+    g.lineCap = "round";
+    for (let i = 0; i < n; i++){
+      const x = cx + (R() * 2 - 1) * rx, y = cy + (R() * 2 - 1) * ry; if (!inEl(x, y)) continue;
+      const a = Math.atan2(y - cy, x - cx) + (R() - 0.5) * 1.2, l = 9 + R() * 10, hook = (R() - 0.5) * 8;
+      const ex = x + Math.cos(a) * l, ey = y + Math.sin(a) * l;
+      const gr = g.createLinearGradient(x, y, ex, ey);
+      gr.addColorStop(0, css(drk(base, 0.1), 0.85)); gr.addColorStop(0.65, css(lit(base, 0.15), 0.85)); gr.addColorStop(1, css(tip, 0.95));
+      g.strokeStyle = gr; g.lineWidth = 1.6 + R() * 1.2;
+      g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo((x + ex) / 2 - Math.sin(a) * hook, (y + ey) / 2 + Math.cos(a) * hook, ex, ey); g.stroke();
+    }
+  }
+  if (kind === "fiber"){                                     /* coconut husk */
+    const n = Math.floor(area / 4);
+    for (let i = 0; i < n; i++){
+      const x = cx + (R() * 2 - 1) * rx, y = cy + (R() * 2 - 1) * ry; if (!inEl(x, y)) continue;
+      const a = Math.atan2(y - cy, x - cx) + Math.PI / 2 + (R() - 0.5) * 0.6, l = 4 + R() * 8;
+      g.strokeStyle = css(R() < 0.5 ? lit(base, 0.35) : drk(base, 0.4), 0.3); g.lineWidth = 0.8 + R();
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke();
+    }
+  }
+  if (kind === "wrinkle"){                                    /* passion fruit, an old pumpkin */
+    const n = Math.floor(area / 500);
+    g.lineCap = "round";
+    for (let i = 0; i < n; i++){
+      let x = cx + (R() * 2 - 1) * rx, y = cy + (R() * 2 - 1) * ry; if (!inEl(x, y)) continue;
+      g.strokeStyle = css(drk(base, 0.4), 0.3); g.lineWidth = 1 + R();
+      g.beginPath(); g.moveTo(x, y);
+      for (let k = 0; k < 4; k++){ x += (R() - 0.5) * 16; y += (R() - 0.5) * 16; g.lineTo(x, y); }
+      g.stroke();
+    }
+  }
+  g.restore();
+}
+
+/* ---- parts ---- */
+function stemPart(g, x, y, ang, len, w, col, o = {}){
+  const c = rgb(col || "#6b4a2b"), bend = o.bend ?? 0.25;
+  const dx = Math.cos(ang), dy = Math.sin(ang), nx = -dy, ny = dx;
+  const tx = x + dx * len + nx * len * bend, ty = y + dy * len + ny * len * bend;
+  const mx = x + dx * len * 0.5 + nx * len * bend * 0.75, my = y + dy * len * 0.5 + ny * len * bend * 0.75;
+  const wt = w * (o.tipW ?? 0.65);
+  const p = new Path2D();
+  p.moveTo(x - nx * w, y - ny * w);
+  p.quadraticCurveTo(mx - nx * (w + wt) / 2, my - ny * (w + wt) / 2, tx - nx * wt, ty - ny * wt);
+  p.lineTo(tx + nx * wt, ty + ny * wt);
+  p.quadraticCurveTo(mx + nx * (w + wt) / 2, my + ny * (w + wt) / 2, x + nx * w, y + ny * w);
+  p.closePath();
+  const gr = g.createLinearGradient(x - nx * w, y - ny * w, x + nx * w, y + ny * w);
+  gr.addColorStop(0, css(lit(c, 0.25))); gr.addColorStop(0.45, css(c)); gr.addColorStop(1, css(drk(c, 0.45)));
+  g.fillStyle = gr; g.fill(p);
+  g.fillStyle = css(lit(c, o.cutLit ?? 0.45)); g.beginPath(); g.ellipse(tx, ty, wt, wt * 0.55, ang + Math.PI / 2, 0, TAU); g.fill();   /* the cut end */
+}
+function leafShape(g, x, y, ang, len, wid, c, o = {}){
+  g.save(); g.translate(x, y); g.rotate(ang);
+  const curl = o.curl ?? 0.12;
+  const p = new Path2D();
+  if (o.serrate){
+    const pts = [];
+    for (let i = 0; i <= 24; i++){ const t = i / 24, w = Math.sin(Math.PI * Math.pow(t, 0.8)) * wid * (1 + (i % 2 ? 0.07 : -0.05)); pts.push([t * len, -w + curl * len * Math.sin(Math.PI * t)]); }
+    for (let i = 24; i >= 0; i--){ const t = i / 24, w = Math.sin(Math.PI * Math.pow(t, 0.8)) * wid * (1 + (i % 2 ? 0.07 : -0.05)); pts.push([t * len, w + curl * len * Math.sin(Math.PI * t)]); }
+    p.moveTo(0, 0); pts.forEach(q => p.lineTo(q[0], q[1])); p.closePath();
+  } else {
+    p.moveTo(0, 0);
+    p.bezierCurveTo(len * 0.25, -wid * 1.3 + curl * len, len * 0.7, -wid * 1.0 + curl * len, len, curl * len * 0.4);
+    p.bezierCurveTo(len * 0.7, wid * 1.0 + curl * len, len * 0.25, wid * 1.2 + curl * len, 0, 0);
+    p.closePath();
+  }
+  const gr = g.createLinearGradient(0, -wid, 0, wid);
+  gr.addColorStop(0, css(lit(c, 0.22))); gr.addColorStop(0.5, css(c)); gr.addColorStop(1, css(drk(c, 0.38)));
+  g.fillStyle = gr; g.fill(p);
+  if (o.tip){
+    g.save(); g.clip(p);
+    const tg = g.createLinearGradient(len * 0.45, 0, len, 0); tg.addColorStop(0, css(o.tip, 0)); tg.addColorStop(1, css(o.tip, 0.95));
+    g.fillStyle = tg; g.fillRect(0, -wid * 2, len * 1.1, wid * 4); g.restore();
+  }
+  if (o.vein !== false){
+    g.strokeStyle = css(lit(c, 0.45), 0.85); g.lineWidth = Math.max(1, wid * 0.08); g.lineCap = "round";
+    g.beginPath(); g.moveTo(len * 0.02, 0); g.quadraticCurveTo(len * 0.5, curl * len * 0.9, len * 0.94, curl * len * 0.42); g.stroke();
+    g.lineWidth = Math.max(0.6, wid * 0.035); g.strokeStyle = css(lit(c, 0.3), 0.55);
+    for (let i = 1; i <= 5; i++){
+      const t = i / 6.2, bx = t * len, by = curl * len * Math.sin(Math.PI * t) * 0.9;
+      [-1, 1].forEach(sg => { g.beginPath(); g.moveTo(bx, by); g.quadraticCurveTo(bx + len * 0.08, by + sg * wid * 0.45, bx + len * 0.16, by + sg * wid * 0.8 * Math.sin(Math.PI * (t + 0.08))); g.stroke(); });
+    }
+  }
+  if (!o.flat) ellipseGlow(g, len * 0.35, -wid * 0.35 + curl * len * 0.5, len * 0.25, wid * 0.35, 0, [255, 255, 255], 0.22);
+  g.restore();
+}
+function calyxStar(g, x, y, n, len, col, o = {}){
+  const c = rgb(col || "#3f7a2c"), R = o.R || Math.random;
+  for (let i = 0; i < n; i++){
+    const a = -Math.PI / 2 + (i / n) * TAU + (R() - 0.5) * 0.3;
+    const sq = o.squash ?? 0.45;                             /* seen from a little above: the sepals lie flat */
+    g.save(); g.translate(x, y); g.scale(1, sq);
+    leafShape(g, 0, 0, a, len * (0.75 + R() * 0.4), len * (o.wide ?? 0.18), c, { vein:false, curl:(R() - 0.5) * 0.4, flat:true });
+    g.restore();
+  }
+  g.fillStyle = css(drk(c, 0.2)); g.beginPath(); g.ellipse(x, y, len * 0.14, len * 0.08, 0, 0, TAU); g.fill();
+}
+
+/* ==========================================================================
+   FAMILIES
+   ========================================================================== */
+/* a round body, shaped by a radius around it */
+function roundOutline(B, s){
+  const { cx, cy, rx, ry } = B, pts = [], N = s.spikes ? Math.max(180, s.spikes * 9) : 180;
+  for (let i = 0; i < N; i++){
+    const th = (i / N) * TAU;                                 /* 0 to the right, π/2 down (screen) */
+    const c = Math.cos(th), si = Math.sin(th);
+    let r = 1 / Math.sqrt((c / rx) ** 2 + (si / ry) ** 2);
+    const dTop = Math.atan2(Math.sin(th + Math.PI / 2), Math.cos(th + Math.PI / 2));   /* distance from the top */
+    const dBot = Math.atan2(Math.sin(th - Math.PI / 2), Math.cos(th - Math.PI / 2));
+    if (s.dip) r -= s.dip * ry * Math.exp(-((dTop / 0.42) ** 2));
+    if (s.bot) r -= s.bot * ry * Math.exp(-((dBot / 0.45) ** 2));
+    if (s.knob) r += s.knob * ry * Math.exp(-((dTop / 0.3) ** 2));
+    if (s.point){ const d0 = Math.atan2(si, c), d1 = Math.atan2(-si, -c); r += s.point * rx * (Math.exp(-((d0 / 0.22) ** 2)) + Math.exp(-((d1 / 0.22) ** 2))); }
+    if (s.beak){ const d = Math.atan2(Math.sin(th - s.beakA), Math.cos(th - s.beakA)); r += s.beak * rx * Math.exp(-((d / 0.35) ** 2)); }
+    if (s.lobes) r *= 1 - (s.lobeD || 0.05) * (1 - Math.abs(Math.cos(s.lobes * th / 2)) ** 0.6) * (0.4 + 0.6 * Math.abs(c));
+    if (s.lump) r *= 1 + s.lump * (Math.sin(th * 3 + 1.3) * 0.5 + Math.sin(th * 5 + 0.2) * 0.35 + Math.sin(th * 2 + 2.1) * 0.4);
+    if (s.spikes){ const u = ((th * s.spikes / TAU) % 1 + 1) % 1; r *= 1 + (s.spikeH || 0.04) * Math.pow(1 - Math.abs(u - 0.5) * 2, 2.2); }
+    pts.push([cx + c * r, cy + si * r]);
+  }
+  return pts;
+}
+function paintRound(g, s, R, S){
+  const sz = S * 0.33 * (s.size || 1), rx = sz * (s.w || 1), ry = sz * (s.h || 0.95);
+  const cx = S / 2, cy = S * 0.54 + (s.dy || 0) * S;
+  const B = { cx, cy, rx, ry };
+  const base = rgb(s.c), path = smooth(roundOutline(B, s));
+  /* what sits behind the body: the far sepals, the roots */
+  if (s.top === "onion") onionRoots(g, cx, cy + ry * 0.94, rx, s, R);
+  shadeRound(g, path, B, base, s);
+  g.save(); g.clip(path);
+  if (s.c2){                                                  /* a second colour: a blush, a ripe cheek, a green shoulder */
+    const c2 = rgb(s.c2), a = s.blushA ?? -2.3, d = s.blushD ?? 0.35;
+    const bx = cx + Math.cos(a) * rx * d, by = cy + Math.sin(a) * ry * d;
+    const n = 7;
+    for (let i = 0; i < n; i++){
+      const jx = bx + (R() - 0.5) * rx * 0.7, jy = by + (R() - 0.5) * ry * 0.7;
+      radialGlow(g, jx, jy, Math.max(rx, ry) * (s.blush ?? 0.7) * (0.6 + R() * 0.5), c2, 0.5);
+    }
+    if (s.streak){                                            /* apple streaks */
+      g.lineCap = "round";
+      for (let i = 0; i < 46; i++){
+        const ph = (R() * 2 - 1) * 1.25, sx = Math.sin(ph);
+        g.strokeStyle = css(R() < 0.5 ? c2 : drk(c2, 0.2), 0.16 + R() * 0.16); g.lineWidth = 1.2 + R() * 2.6;
+        g.beginPath();
+        for (let j = 0; j <= 12; j++){ const v = -0.95 + 1.9 * j / 12, wv = Math.sqrt(1 - v * v); const x = cx + sx * rx * wv, y = cy + v * ry; j ? g.lineTo(x, y) : g.moveTo(x, y); }
+        g.stroke();
+      }
+    }
+  }
+  if (s.ribs){                                                /* pumpkin and pepper: grooves running top to bottom */
+    for (let k = 1; k < s.ribs; k++){
+      const ph = (k / s.ribs) * Math.PI - Math.PI / 2, sx = Math.sin(ph);
+      const pts = [];
+      for (let j = 0; j <= 30; j++){ const v = -0.98 + 1.96 * j / 30, wv = Math.sqrt(Math.max(0, 1 - v * v)); pts.push([cx + sx * rx * wv * 1.0, cy + v * ry]); }
+      const p = smooth(pts, false);
+      g.lineCap = "round";
+      g.strokeStyle = css(drk(base, 0.42), 0.55 * Math.cos(ph) + 0.1); g.lineWidth = rx * 0.05 * Math.cos(ph) + 1; g.stroke(p);
+      g.save(); g.translate(-rx * 0.025, 0); g.strokeStyle = css(lit(base, 0.35), 0.35 * Math.cos(ph)); g.lineWidth = rx * 0.025 * Math.cos(ph) + 0.5; g.stroke(p); g.restore();
+    }
+  }
+  g.restore();
+  skin(g, path, B, s.tex, base, s, R);
+  if (s.crease){                                               /* the seam of a peach, an apricot, a plum */
+    g.save(); g.clip(path);
+    const p = new Path2D(); p.moveTo(cx - rx * 0.02, cy - ry * 0.86);
+    p.bezierCurveTo(cx + rx * 0.32, cy - ry * 0.5, cx + rx * 0.4, cy + ry * 0.2, cx + rx * 0.16, cy + ry * 0.95);
+    g.strokeStyle = css(shd(base), 0.4); g.lineWidth = rx * 0.07; g.stroke(p);
+    g.strokeStyle = css(lit(base, 0.3), 0.3); g.lineWidth = rx * 0.025; g.translate(-rx * 0.04, 0); g.stroke(p);
+    g.restore();
+  }
+  if (s.top === "onion" || s.top === "garlic") onionSkin(g, path, B, base, s, R);
+  finishRound(g, path, B, base, s.gloss ?? 0.4, s);
+  if (s.tex === "dragon") dragonFlaps(g, B, base, R);
+  if (s.tex === "hairy"){                                     /* hairs standing out past the edge */
+    const tip = rgb(s.texC || "#6a9a2a"); g.lineCap = "round";
+    for (let i = 0; i < 150; i++){
+      const th = R() * TAU, r0 = 1 / Math.sqrt((Math.cos(th) / rx) ** 2 + (Math.sin(th) / ry) ** 2) * 0.97;
+      const x = cx + Math.cos(th) * r0, y = cy + Math.sin(th) * r0, a = th + (R() - 0.5) * 0.9, l = rx * (0.08 + R() * 0.07), hook = (R() - 0.5) * 10;
+      const ex = x + Math.cos(a) * l, ey = y + Math.sin(a) * l, lightK = 0.5 - 0.5 * Math.cos(th + 2.3);
+      const gr = g.createLinearGradient(x, y, ex, ey);
+      gr.addColorStop(0, css(drk(base, 0.15 + 0.3 * (1 - lightK)), 0.95)); gr.addColorStop(1, css(mix(tip, drk(tip, 0.4), 1 - lightK), 0.95));
+      g.strokeStyle = gr; g.lineWidth = 1.8 + R() * 1.4;
+      g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo((x + ex) / 2 - Math.sin(a) * hook, (y + ey) / 2 + Math.cos(a) * hook, ex, ey); g.stroke();
+    }
+  }
+  /* the top */
+  const tx = cx + (s.topX || 0) * rx, ty = cy - ry + (s.dip || 0) * ry * 0.92 + (s.knob ? -s.knob * ry * 0.9 : 0);
+  if (s.navel){ g.fillStyle = css(drk(base, 0.3), 0.6); g.beginPath(); g.arc(tx, ty + ry * 0.08, rx * 0.04, 0, TAU); g.fill(); }
+  if (s.top === "star") calyxStar(g, tx, ty + ry * 0.02, s.sepals || 6, rx * (s.sepalL || 0.42), s.topC || "#3e7d2a", { R, squash:0.4 });
+  if (s.top === "crown") persimmonCrown(g, tx, ty + ry * 0.02, rx, s.topC || "#4f5a2a", R);
+  if (s.top === "pom") pomCrown(g, tx, ty, rx, base);
+  if (s.top === "onion" || s.top === "garlic") onionNeck(g, tx, ty + ry * 0.06, rx, base, s);
+  if (s.top === "radish") radishTop(g, tx, ty + ry * 0.05, rx, s.topC || "#3f8a33", R);
+  if (s.top === "eyes"){                                       /* coconut's three eyes */
+    [[-0.12, 0.2], [0.12, 0.2], [0, 0.34]].forEach(([u, v]) => { g.fillStyle = css(drk(base, 0.6), 0.85); g.beginPath(); g.ellipse(cx + u * rx, cy - ry + v * ry, rx * 0.05, ry * 0.035, 0, 0, TAU); g.fill(); });
+  }
+  if (s.stem){
+    const lenK = { short:0.24, long:0.5, thick:0.3, tiny:0.12 }[s.stem] || 0.24, wK = { thick:0.09, tiny:0.025 }[s.stem] || 0.035;
+    if (s.stem === "thick") pumpkinStem(g, tx, ty + ry * 0.04, rx, s.stemC);
+    else stemPart(g, tx, ty + ry * 0.08, -Math.PI / 2 + (s.stemA ?? 0.25), rx * lenK, rx * wK, s.stemC || "#6b4a2b", { bend:0.3 });
+  }
+  if (s.leaf){
+    for (let i = 0; i < s.leaf; i++){
+      const a = -Math.PI / 2 + (i ? -1.15 : 0.65) + (s.leafA || 0);
+      leafShape(g, tx + rx * 0.03, ty + ry * 0.02, a, rx * (s.leafL || 0.7), rx * (s.leafW || 0.2), rgb(s.leafC || "#4a8a35"), { curl:i ? -0.12 : 0.14 });
+    }
+  }
+}
+/* dragon fruit: soft flaps of skin, pink at the root and green at the tip, lying along the fruit */
+function dragonFlaps(g, B, base, R){
+  const { cx, cy, rx, ry } = B, flaps = [];
+  for (let row = 0; row < 5; row++){
+    const v = -0.72 + row * 0.34, n = row % 2 ? 3 : 4;
+    for (let k = 0; k < n; k++){
+      const u = -0.95 + 1.9 * (k + (row % 2 ? 0.5 : 0)) / (n - (row % 2 ? 0 : 1) || 1);
+      if (Math.abs(u) > 1) continue;
+      const wv = Math.sqrt(Math.max(0, 1 - v * v)), x = cx + Math.sin(u * 1.35) * rx * wv * 0.98, y = cy + v * ry * 0.98;
+      const f = Math.cos(u * 1.35), out = Math.atan2((y - cy) / ry, (x - cx) / rx);
+      const ang = -Math.PI / 2 + (out + Math.PI / 2) * (0.35 + 0.55 * (1 - f));
+      flaps.push([x, y, ang, f, row]);
+    }
+  }
+  flaps.sort((p, q) => p[3] - q[3]).forEach(([x, y, ang, f]) => {
+    const L = rx * (0.44 + R() * 0.08) * (0.55 + 0.45 * f), W = L * 0.4;
+    leafShape(g, x, y, ang + (R() - 0.5) * 0.25, L, W, lit(base, 0.12), { tip:rgb("#a8c83a"), vein:false, curl:(R() - 0.5) * 0.2 });
+  });
+}
+function pumpkinStem(g, x, y, rx, col){
+  const c = rgb(col || "#6f7a3a");
+  const p = new Path2D();
+  p.moveTo(x - rx * 0.12, y + rx * 0.02);
+  p.bezierCurveTo(x - rx * 0.1, y - rx * 0.16, x - rx * 0.05, y - rx * 0.3, x + rx * 0.06, y - rx * 0.36);
+  p.lineTo(x + rx * 0.14, y - rx * 0.3);
+  p.bezierCurveTo(x + rx * 0.06, y - rx * 0.22, x + rx * 0.08, y - rx * 0.1, x + rx * 0.12, y + rx * 0.02);
+  p.closePath();
+  const gr = g.createLinearGradient(x - rx * 0.12, 0, x + rx * 0.14, 0);
+  gr.addColorStop(0, css(lit(c, 0.25))); gr.addColorStop(0.5, css(c)); gr.addColorStop(1, css(drk(c, 0.5)));
+  g.fillStyle = gr; g.fill(p);
+  g.strokeStyle = css(drk(c, 0.4), 0.5); g.lineWidth = 1.2;
+  for (let i = -2; i <= 2; i++){ g.beginPath(); g.moveTo(x + i * rx * 0.04, y); g.quadraticCurveTo(x + i * rx * 0.03, y - rx * 0.2, x + rx * 0.08 + i * rx * 0.015, y - rx * 0.33); g.stroke(); }
+  g.fillStyle = css(lit(c, 0.4)); g.beginPath(); g.ellipse(x + rx * 0.1, y - rx * 0.33, rx * 0.045, rx * 0.025, 0.6, 0, TAU); g.fill();
+}
+function persimmonCrown(g, x, y, rx, col, R){
+  const c = rgb(col);
+  for (let i = 0; i < 4; i++){
+    const a = i * Math.PI / 2 + 0.4;
+    g.save(); g.translate(x, y); g.scale(1, 0.42); g.rotate(a);
+    const p = new Path2D(); p.moveTo(0, 0);
+    p.bezierCurveTo(rx * 0.2, -rx * 0.22, rx * 0.42, -rx * 0.12, rx * 0.44, 0); p.bezierCurveTo(rx * 0.42, rx * 0.14, rx * 0.2, rx * 0.2, 0, 0);
+    const gr = g.createLinearGradient(0, -rx * 0.2, 0, rx * 0.2); gr.addColorStop(0, css(lit(c, 0.25))); gr.addColorStop(1, css(drk(c, 0.4)));
+    g.fillStyle = gr; g.fill(p); g.strokeStyle = css(drk(c, 0.5), 0.6); g.lineWidth = 1.5; g.stroke(p);
+    g.restore();
+  }
+  stemPart(g, x, y, -Math.PI / 2 + 0.2, rx * 0.12, rx * 0.04, "#5b4428", { bend:0.1 });
+}
+function pomCrown(g, x, y, rx, base){
+  const c = drk(base, 0.25);
+  const p = new Path2D(); const w = rx * 0.2, h = rx * 0.24;
+  p.moveTo(x - w * 0.8, y + h * 0.3); p.lineTo(x - w, y - h * 0.6); p.lineTo(x - w * 0.5, y - h * 0.15); p.lineTo(x - w * 0.2, y - h); p.lineTo(x, y - h * 0.25);
+  p.lineTo(x + w * 0.25, y - h); p.lineTo(x + w * 0.5, y - h * 0.15); p.lineTo(x + w, y - h * 0.6); p.lineTo(x + w * 0.8, y + h * 0.3); p.closePath();
+  const gr = g.createLinearGradient(x - w, 0, x + w, 0); gr.addColorStop(0, css(lit(c, 0.2))); gr.addColorStop(1, css(drk(c, 0.45)));
+  g.fillStyle = gr; g.fill(p);
+  g.fillStyle = css(drk(c, 0.6), 0.8); g.beginPath(); g.ellipse(x, y - h * 0.2, w * 0.45, h * 0.15, 0, 0, TAU); g.fill();
+}
+function onionSkin(g, path, B, base, s, R){
+  const { cx, cy, rx, ry } = B;
+  g.save(); g.clip(path);
+  const n = s.top === "garlic" ? 7 : 11;
+  for (let k = 0; k < n; k++){
+    const ph = (k / (n - 1)) * Math.PI * 0.9 - Math.PI * 0.45, sx = Math.sin(ph);
+    const pts = [];
+    for (let j = 0; j <= 24; j++){ const v = -1 + 2 * j / 24, wv = Math.sqrt(Math.max(0, 1 - v * v)); pts.push([cx + sx * rx * wv, cy + v * ry]); }
+    const p = smooth(pts, false);
+    if (s.top === "garlic"){ g.strokeStyle = css(drk(base, 0.25), 0.45); g.lineWidth = 2.2; g.stroke(p);
+      g.save(); g.translate(-2, 0); g.strokeStyle = css(lit(base, 0.5), 0.5); g.lineWidth = 1.4; g.stroke(p); g.restore(); }
+    else { g.strokeStyle = css(R() < 0.5 ? drk(base, 0.3) : lit(base, 0.3), 0.3); g.lineWidth = 1 + R() * 1.4; g.stroke(p); }
+  }
+  if (s.c3){                                                  /* purple streaks on garlic, red onion's flush */
+    for (let i = 0; i < 12; i++){
+      const ph = (R() * 2 - 1) * 1.2, sx = Math.sin(ph), pts = [];
+      for (let j = 0; j <= 10; j++){ const v = -0.2 + 1.1 * j / 10, wv = Math.sqrt(Math.max(0, 1 - v * v)); pts.push([cx + sx * rx * wv, cy + v * ry]); }
+      g.strokeStyle = css(rgb(s.c3), 0.25); g.lineWidth = 2 + R() * 3; g.stroke(smooth(pts, false));
+    }
+  }
+  g.restore();
+}
+function onionNeck(g, x, y, rx, base, s){
+  const c = s.top === "garlic" ? lit(base, 0.1) : drk(base, 0.08);
+  const p = new Path2D();
+  const h = rx * (s.top === "garlic" ? 0.42 : 0.5);
+  p.moveTo(x - rx * 0.16, y + rx * 0.04);
+  p.bezierCurveTo(x - rx * 0.08, y - h * 0.4, x - rx * 0.04, y - h * 0.8, x + rx * 0.04, y - h);
+  p.lineTo(x + rx * 0.08, y - h * 0.95);
+  p.bezierCurveTo(x + rx * 0.05, y - h * 0.7, x + rx * 0.08, y - h * 0.4, x + rx * 0.16, y + rx * 0.04);
+  p.closePath();
+  const gr = g.createLinearGradient(x - rx * 0.16, 0, x + rx * 0.16, 0);
+  gr.addColorStop(0, css(lit(c, 0.3))); gr.addColorStop(0.5, css(c)); gr.addColorStop(1, css(drk(c, 0.4)));
+  g.fillStyle = gr; g.fill(p);
+  g.strokeStyle = css(drk(c, 0.35), 0.5); g.lineWidth = 1;
+  for (let i = -1; i <= 1; i++){ g.beginPath(); g.moveTo(x + i * rx * 0.06, y); g.quadraticCurveTo(x + i * rx * 0.03, y - h * 0.6, x + rx * 0.05, y - h * 0.95); g.stroke(); }
+}
+function onionRoots(g, x, y, rx, s, R){
+  g.lineCap = "round";
+  const c = rgb(s.rootC || "#cdb48a");
+  for (let i = 0; i < 26; i++){
+    const a = Math.PI / 2 + (R() - 0.5) * 1.6, l = rx * (0.1 + R() * 0.16);
+    g.strokeStyle = css(R() < 0.5 ? c : drk(c, 0.25), 0.9); g.lineWidth = 1 + R() * 1.2;
+    g.beginPath(); g.moveTo(x + (R() - 0.5) * rx * 0.2, y - 4); g.quadraticCurveTo(x + Math.cos(a) * l * 0.5 + (R() - 0.5) * 8, y + Math.sin(a) * l * 0.5, x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke();
+  }
+}
+function radishTop(g, x, y, rx, col, R){
+  const c = rgb(col);
+  [[-0.9, 0.95], [-0.35, 1.15], [0.25, 1.05], [0.8, 0.9]].forEach(([a, l], i) => {
+    const ang = -Math.PI / 2 + a * 0.6;
+    const ex = x + Math.cos(ang) * rx * l * 0.55, ey = y + Math.sin(ang) * rx * l * 0.55;
+    g.strokeStyle = css(lit(c, 0.25)); g.lineWidth = rx * 0.035; g.lineCap = "round";
+    g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + Math.cos(ang) * rx * 0.2, y + Math.sin(ang) * rx * 0.35, ex, ey); g.stroke();
+    leafShape(g, ex, ey, ang + (i % 2 ? 0.15 : -0.15), rx * l * 0.75, rx * 0.22, mix(c, [60, 120, 40], R() * 0.3), { serrate:true, curl:(R() - 0.5) * 0.3 });
+  });
+}
+
+/* ---- a long body, built along a centre line and shaded across it, like a cylinder ---- */
+function longGeom(s, S){
+  const R0 = S * 0.36, L = R0 * (s.len || 1.6), W = R0 * (s.wid || 0.26);
+  const cx = S / 2 + (s.dx || 0) * S, cy = S / 2 + (s.dy || 0) * S, rot = s.rot ?? 0.5, bend = s.bend || 0;
+  const cr = Math.cos(rot), sr = Math.sin(rot);
+  const T = 90, C = [], N = [];
+  for (let i = 0; i <= T; i++){
+    const t = i / T, lx = bend * L * 4 * t * (1 - t) * 0.5, ly = -L / 2 + L * t;
+    C.push([cx + lx * cr - ly * sr, cy + lx * sr + ly * cr]);
+  }
+  for (let i = 0; i <= T; i++){
+    const a = C[Math.max(0, i - 1)], b = C[Math.min(T, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
+    N.push([-dy / l, dx / l]);
+  }
+  const prof = PROFILES[s.prof || "cuke"];
+  const Wd = [];
+  for (let i = 0; i <= T; i++) Wd.push(W * Math.max(0, prof(i / T, s)));
+  return { C, N, Wd, T, L, W, R0 };
+}
+const PROFILES = {
+  carrot: (t) => cap(t, 0.05) * Math.pow(1 - t, 0.85) * (1 - 0.06 * t),
+  cuke:   (t) => cap(t, 0.13) * cap(1 - t, 0.13),
+  zuke:   (t) => cap(t, 0.1) * cap(1 - t, 0.14) * (0.82 + 0.18 * t),
+  egg:    (t) => cap(t, 0.06) * cap(1 - t, 0.22) * (0.42 + 0.58 * sstep(0.02, 0.62, t)),
+  chili:  (t) => cap(t, 0.12) * Math.pow(1 - t, 0.75),
+  daikon: (t) => cap(t, 0.07) * (1 - 0.9 * Math.pow(t, 3.2)),
+  spud:   (t, s) => Math.pow(Math.sin(Math.PI * t), 0.55) * (1 + 0.08 * Math.sin(t * 9 + (s.seed || 0))),
+  pod:    (t, s) => cap(t, 0.08) * cap(1 - t, 0.16) * (1 - 0.15 * t) * (1 + (s.peas ? 0.12 * Math.abs(Math.sin(clamp((t - 0.1) / 0.8, 0, 1) * Math.PI * s.peas)) : 0)),
+  okra:   (t) => cap(t, 0.06) * Math.pow(1 - t, 0.7),
+  thin:   (t) => cap(t, 0.04) * (1 - 0.55 * t),
+  banana: (t) => (t < 0.1 ? 0.28 + 0.72 * sstep(0, 0.1, t) * 0.6 : 0.45 + 0.55 * Math.pow(Math.sin(Math.PI * clamp((t - 0.06) / 0.94, 0, 1)), 0.5)) * cap(1 - t, 0.04),
+  cob:    (t) => cap(t, 0.12) * cap(1 - t, 0.08) * (1 - 0.18 * t),
+};
+function longPath(G){
+  const { C, N, Wd, T } = G, pts = [];
+  for (let i = 0; i <= T; i++) pts.push([C[i][0] + N[i][0] * Wd[i], C[i][1] + N[i][1] * Wd[i]]);
+  for (let i = T; i >= 0; i--) pts.push([C[i][0] - N[i][0] * Wd[i], C[i][1] - N[i][1] * Wd[i]]);
+  const p = new Path2D(); p.moveTo(pts[0][0], pts[0][1]); pts.forEach(q => p.lineTo(q[0], q[1])); p.closePath();
+  return p;
+}
+/* shade across the width: which side faces the light depends on how the piece lies */
+function shadeLong(g, G, colAt, o = {}){
+  const { C, N, Wd, T } = G, K = 44;
+  for (let k = 0; k < K; k++){
+    const s0 = -1 + 2 * k / K, s1 = -1 + 2 * (k + 1) / K, sm = (s0 + s1) / 2;
+    for (let i = 0; i < T; i++){
+      const side = N[i][0] * L2[0] + N[i][1] * L2[1];          /* > 0: the +s side faces the light */
+      const a = Math.asin(clamp(sm, -1, 1)), la = side > 0 ? 0.85 : -0.85;
+      let b = Math.cos(a - la);
+      if (o.facets){ const q = Math.round(a / (Math.PI / o.facets)) * (Math.PI / o.facets); b = 0.55 * Math.cos(q - la) + 0.45 * b; }
+      b = clamp(b, -0.4, 1);
+      const t = (i + 0.5) / T, base = colAt(t, sm);
+      const c = b > 0 ? mix(drk(base, 0.25), lit(base, 0.22), b) : mix(drk(base, 0.25), shd(base), -b / 0.4);
+      const p = new Path2D();
+      const A = (s, j) => [C[j][0] + N[j][0] * Wd[j] * s, C[j][1] + N[j][1] * Wd[j] * s];
+      const q0 = A(s0, i), q1 = A(s0, i + 1), q2 = A(s1, i + 1), q3 = A(s1, i);
+      p.moveTo(q0[0], q0[1]); p.lineTo(q1[0], q1[1]); p.lineTo(q2[0], q2[1]); p.lineTo(q3[0], q3[1]); p.closePath();
+      g.fillStyle = css(c); g.fill(p); g.strokeStyle = css(c); g.lineWidth = 0.8; g.stroke(p);
+    }
+  }
+}
+function lineAlong(G, s, t0, t1){
+  const { C, N, Wd, T } = G, pts = [];
+  for (let i = Math.round(t0 * T); i <= Math.round(t1 * T); i++) pts.push([C[i][0] + N[i][0] * Wd[i] * s, C[i][1] + N[i][1] * Wd[i] * s]);
+  return pts;
+}
+function strokePts(g, pts, w, c){ if (pts.length < 2) return; g.lineWidth = w; g.strokeStyle = c; g.lineCap = "round"; g.lineJoin = "round"; g.stroke(smooth(pts, false)); }
+function lightSide(G, i){ const N = G.N[i]; return (N[0] * L2[0] + N[1] * L2[1]) > 0 ? 1 : -1; }
+
+function paintLong(g, s, R, S){
+  const G = longGeom(s, S), base = rgb(s.c), path = longPath(G);
+  const c2 = s.c2 ? rgb(s.c2) : null;
+  const colAt = s.colAt || ((t, sm) => c2 ? mix(base, c2, sstep(s.c2From ?? 0.6, s.c2To ?? 1, s.c2Rev ? 1 - t : t)) : base);
+  if (s.top === "fronds") carrotFronds(g, G, s, R);
+  if (s.top === "daikonLeaves") daikonLeaves(g, G, s, R);
+  if (s.top === "roots") tailRoots(g, G, s, R, 0);
+  g.save(); g.clip(path);
+  shadeLong(g, G, colAt, s);
+  const ls = lightSide(G, Math.round(G.T / 2));
+  if (s.tex === "rings"){                                     /* carrot: fine rings and root hairs */
+    for (let i = 0; i < 26; i++){
+      const t = 0.08 + R() * 0.85, j = Math.round(t * G.T), w = G.Wd[j], C = G.C[j], N = G.N[j];
+      const sp = (R() * 0.8 + 0.2) * (R() < 0.5 ? -1 : 1), len = 0.3 + R() * 0.5;
+      const a = [C[0] + N[0] * w * clamp(sp - len, -1, 1), C[1] + N[1] * w * clamp(sp - len, -1, 1)], b = [C[0] + N[0] * w * clamp(sp + len, -1, 1), C[1] + N[1] * w * clamp(sp + len, -1, 1)];
+      const dir = [G.C[Math.min(G.T, j + 1)][0] - C[0], G.C[Math.min(G.T, j + 1)][1] - C[1]];
+      g.strokeStyle = css(drk(colAt(t, 0), 0.35), 0.45); g.lineWidth = 1.2;
+      g.beginPath(); g.moveTo(a[0], a[1]); g.quadraticCurveTo((a[0] + b[0]) / 2 + dir[0] * 1.5, (a[1] + b[1]) / 2 + dir[1] * 1.5, b[0], b[1]); g.stroke();
+    }
+  }
+  if (s.tex === "bumps"){                                     /* cucumber: little warts in rows */
+    for (let i = 0; i < 60; i++){
+      const t = 0.08 + R() * 0.84, j = Math.round(t * G.T), sp = (R() * 1.8 - 0.9), w = G.Wd[j];
+      const x = G.C[j][0] + G.N[j][0] * w * sp, y = G.C[j][1] + G.N[j][1] * w * sp, r = w * 0.07 * (1 - Math.abs(sp) * 0.5);
+      g.fillStyle = css(drk(base, 0.4), 0.4); g.beginPath(); g.arc(x + 1, y + 1, r * 1.2, 0, TAU); g.fill();
+      g.fillStyle = css(lit(base, 0.45), 0.55); g.beginPath(); g.arc(x - 0.5, y - 0.6, r * 0.75, 0, TAU); g.fill();
+    }
+    for (let k = -2; k <= 2; k++) strokePts(g, lineAlong(G, k * 0.38 + 0.05, 0.06, 0.94), 2.2, css(lit(base, 0.3), 0.18));
+  }
+  if (s.tex === "ridge"){                                     /* okra, zucchini: ridges along the length */
+    for (let k = -3; k <= 3; k++){ const sp = k * 0.28; strokePts(g, lineAlong(G, sp, 0.04, 0.97), 1.8, css(drk(base, 0.35), 0.35)); strokePts(g, lineAlong(G, sp - 0.06, 0.04, 0.97), 1.2, css(lit(base, 0.35), 0.3)); }
+  }
+  if (s.tex === "speck"){                                     /* zucchini's pale flecks, burdock's bark */
+    for (let i = 0; i < 160; i++){
+      const t = R(), j = Math.round(t * G.T), sp = R() * 2 - 1, w = G.Wd[j];
+      g.fillStyle = css(s.texC ? rgb(s.texC) : lit(base, 0.5), 0.35 * R()); g.beginPath(); g.ellipse(G.C[j][0] + G.N[j][0] * w * sp, G.C[j][1] + G.N[j][1] * w * sp, 1 + R() * 2.5, 0.8 + R(), Math.atan2(G.N[j][1], G.N[j][0]) + Math.PI / 2, 0, TAU); g.fill();
+    }
+  }
+  if (s.tex === "lumpy"){                                     /* sweet potato: knots and root scars */
+    for (let i = 0; i < 18; i++){
+      const t = 0.1 + R() * 0.8, j = Math.round(t * G.T), sp = R() * 1.6 - 0.8, w = G.Wd[j];
+      const x = G.C[j][0] + G.N[j][0] * w * sp, y = G.C[j][1] + G.N[j][1] * w * sp;
+      g.fillStyle = css(drk(base, 0.4), 0.45); g.beginPath(); g.ellipse(x, y, 2.5 + R() * 2, 1.4, R() * 3, 0, TAU); g.fill();
+    }
+    for (let i = 0; i < 10; i++){ const t = 0.1 + R() * 0.8; strokePts(g, lineAlong(G, R() * 1.4 - 0.7, t, Math.min(0.98, t + 0.08 + R() * 0.1)), 1.2, css(drk(base, 0.35), 0.35)); }
+  }
+  if (s.tex === "pod"){                                       /* pea pod: the peas pressing through, and the seam */
+    const n = s.peas || 6;
+    for (let k = 0; k < n; k++){
+      const t = 0.14 + 0.72 * (k + 0.5) / n, j = Math.round(t * G.T), w = G.Wd[j];
+      const x = G.C[j][0] - G.N[j][0] * w * 0.12 * ls, y = G.C[j][1] - G.N[j][1] * w * 0.12 * ls;
+      radialGlow(g, x + w * 0.12, y + w * 0.16, w * 0.85, drk(base, 0.4), 0.45);
+      radialGlow(g, x - w * 0.18, y - w * 0.2, w * 0.62, lit(base, 0.45), 0.6);
+    }
+    strokePts(g, lineAlong(G, 0.82 * ls, 0.03, 0.96), 2, css(drk(base, 0.3), 0.6));
+  }
+  if (s.tex === "facet"){                                     /* banana: the ridges between its faces */
+    for (let k = -2; k <= 2; k++) strokePts(g, lineAlong(G, k * 0.4, 0.1, 0.92), 1.4, css(lit(base, 0.25), 0.4));
+  }
+  if (s.spots){                                               /* sugar spots */
+    for (let i = 0; i < s.spots; i++){
+      const t = 0.12 + R() * 0.8, j = Math.round(t * G.T), sp = R() * 1.8 - 0.9, w = G.Wd[j];
+      g.fillStyle = css([92, 58, 26], 0.25 + R() * 0.45); g.beginPath(); g.arc(G.C[j][0] + G.N[j][0] * w * sp, G.C[j][1] + G.N[j][1] * w * sp, 0.8 + R() * 2.4, 0, TAU); g.fill();
+    }
+  }
+  /* shine runs along the lit side */
+  if ((s.gloss ?? 0.4) > 0){
+    const gl = s.gloss ?? 0.4;
+    strokePts(g, lineAlong(G, 0.52 * ls, 0.14, 0.82), G.W * 0.16, css([255, 255, 255], 0.13 * gl));
+    strokePts(g, lineAlong(G, 0.5 * ls, 0.24, 0.6), G.W * 0.06, css([255, 255, 255], 0.55 * gl));
+    strokePts(g, lineAlong(G, -0.86 * ls, 0.2, 0.86), G.W * 0.08, css(lit(base, 0.35), 0.25));        /* bounce on the shadow edge */
+  }
+  g.restore();
+  /* ends */
+  const tip = G.C[G.T], top = G.C[0], up = Math.atan2(G.C[0][1] - G.C[3][1], G.C[0][0] - G.C[3][0]);
+  if (s.top === "stem") stemPart(g, top[0], top[1], up, G.W * 0.55, G.W * 0.16, s.stemC || "#6c7a3a", { bend:0.2, cutLit:0.35 });
+  if (s.top === "calyx") eggplantCap(g, G, s, R);
+  if (s.top === "chiliCap") chiliCap(g, G, s);
+  if (s.top === "bananaStem"){ const w = G.Wd[2]; stemPart(g, top[0], top[1], up, G.W * 0.55, w * 0.9, s.stemC || "#7d8b3c", { bend:0.05, tipW:0.85, cutLit:0.2 }); }
+  if (s.tipC){ const w = Math.max(3, G.Wd[G.T - 3] * 0.9); g.fillStyle = css(rgb(s.tipC)); g.beginPath(); g.arc(tip[0], tip[1], w, 0, TAU); g.fill(); }
+  if (s.tail) tailRoots(g, G, s, R, 1);
+}
+function carrotFronds(g, G, s, R){
+  const top = G.C[0], up = Math.atan2(G.C[0][1] - G.C[4][1], G.C[0][0] - G.C[4][0]), c = rgb(s.topC || "#4c8b2f");
+  for (let k = 0; k < 6; k++){
+    const a = up + (k - 2.5) * 0.24 + (R() - 0.5) * 0.12, l = G.L * (0.32 + R() * 0.14);
+    const ex = top[0] + Math.cos(a) * l, ey = top[1] + Math.sin(a) * l;
+    g.strokeStyle = css(lit(c, 0.15)); g.lineWidth = 3.2; g.lineCap = "round";
+    g.beginPath(); g.moveTo(top[0], top[1]); g.quadraticCurveTo(top[0] + Math.cos(a) * l * 0.5 + (R() - 0.5) * 12, top[1] + Math.sin(a) * l * 0.5, ex, ey); g.stroke();
+    for (let j = 0; j < 9; j++){
+      const t = 0.35 + j * 0.075, px = top[0] + Math.cos(a) * l * t, py = top[1] + Math.sin(a) * l * t;
+      [-1, 1].forEach(sg => leafShape(g, px, py, a + sg * (0.9 - t * 0.4), l * 0.16 * (1.2 - t * 0.6), l * 0.035, mix(c, [90, 150, 50], R() * 0.4), { vein:false, serrate:true, curl:0.2 * sg, flat:true }));
+    }
+  }
+}
+function daikonLeaves(g, G, s, R){
+  const top = G.C[0], up = Math.atan2(G.C[0][1] - G.C[4][1], G.C[0][0] - G.C[4][0]), c = rgb(s.topC || "#3f7f2c");
+  for (let k = 0; k < 5; k++){
+    const a = up + (k - 2) * 0.32, l = G.L * (0.42 + R() * 0.12);
+    g.strokeStyle = css(lit(c, 0.35)); g.lineWidth = G.W * 0.09; g.lineCap = "round";
+    g.beginPath(); g.moveTo(top[0], top[1]); g.lineTo(top[0] + Math.cos(a) * l * 0.35, top[1] + Math.sin(a) * l * 0.35); g.stroke();
+    leafShape(g, top[0] + Math.cos(a) * l * 0.3, top[1] + Math.sin(a) * l * 0.3, a, l * 0.75, G.W * 0.42, mix(c, [70, 130, 50], R() * 0.3), { serrate:true, curl:(R() - 0.5) * 0.3 });
+  }
+}
+function tailRoots(g, G, s, R, at){
+  const i = at ? G.T : 0, p = G.C[i], dir = at ? Math.atan2(G.C[G.T][1] - G.C[G.T - 3][1], G.C[G.T][0] - G.C[G.T - 3][0]) : Math.atan2(G.C[0][1] - G.C[3][1], G.C[0][0] - G.C[3][0]);
+  const c = rgb(s.rootC || "#c9b48c");
+  g.lineCap = "round";
+  for (let k = 0; k < (at ? 3 : 18); k++){
+    const a = dir + (R() - 0.5) * (at ? 0.4 : 1.4), l = G.W * (at ? 0.9 + R() * 0.6 : 0.4 + R() * 0.5);
+    g.strokeStyle = css(R() < 0.5 ? c : drk(c, 0.2), 0.9); g.lineWidth = at ? 1.6 : 1 + R();
+    g.beginPath(); g.moveTo(p[0], p[1]); g.quadraticCurveTo(p[0] + Math.cos(a) * l * 0.5 + (R() - 0.5) * 6, p[1] + Math.sin(a) * l * 0.5 + (R() - 0.5) * 6, p[0] + Math.cos(a) * l, p[1] + Math.sin(a) * l); g.stroke();
+  }
+}
+function eggplantCap(g, G, s, R){
+  const c = rgb(s.topC || "#4b5d2c"), top = G.C[0], up = Math.atan2(G.C[0][1] - G.C[4][1], G.C[0][0] - G.C[4][0]);
+  const n = 5;
+  for (let k = 0; k < n; k++){
+    const side = (k - (n - 1) / 2) / ((n - 1) / 2);
+    const j = Math.round(G.T * (0.2 + 0.08 * (1 - Math.abs(side)) + R() * 0.04));
+    const tgt = [G.C[j][0] + G.N[j][0] * G.Wd[j] * side * 0.9, G.C[j][1] + G.N[j][1] * G.Wd[j] * side * 0.9];
+    const p0 = [top[0] + G.N[0][0] * G.Wd[4] * side * 0.8, top[1] + G.N[0][1] * G.Wd[4] * side * 0.8];
+    const a = Math.atan2(tgt[1] - p0[1], tgt[0] - p0[0]), l = Math.hypot(tgt[0] - p0[0], tgt[1] - p0[1]);
+    leafShape(g, p0[0], p0[1], a, l * 1.08, G.W * 0.2, mix(c, [70, 80, 40], R() * 0.3), { vein:false, curl:side * 0.1, flat:false });
+  }
+  stemPart(g, top[0], top[1], up, G.W * 0.75, G.W * 0.13, s.stemC || "#5d6b33", { bend:0.25, cutLit:0.35 });
+}
+function chiliCap(g, G, s){
+  const top = G.C[0], up = Math.atan2(G.C[0][1] - G.C[4][1], G.C[0][0] - G.C[4][0]), c = rgb(s.topC || "#3f7a2a");
+  g.fillStyle = css(c); g.beginPath(); g.ellipse(top[0], top[1], G.Wd[6] * 1.05, G.Wd[6] * 0.42, up + Math.PI / 2, 0, TAU); g.fill();
+  stemPart(g, top[0], top[1], up, G.W * 1.3, G.W * 0.16, s.stemC || "#4a8030", { bend:0.5, cutLit:0.3 });
+}
+
+/* ---- banana: faceted, curved, with a stem and a dark tip; one or a hand of three ---- */
+function paintBanana(g, s, R, S){
+  const one = (o) => paintLong(g, { ...s, prof:"banana", tex:"facet", facets:5, top:"bananaStem", tipC:s.tipC || "#4a3a22", ...o }, R, S);
+  if ((s.n || 1) === 1){ one({}); return; }
+  one({ rot:(s.rot ?? 0.5) - 0.32, dx:-0.06, dy:0.02, len:(s.len || 1.6) * 0.96 });
+  one({ rot:(s.rot ?? 0.5) + 0.3, dx:0.06, dy:-0.01, len:(s.len || 1.6) * 0.98 });
+  one({});
+}
+
+/* ---- pear-shaped: pear, avocado, fig, papaya, quince ---- */
+function paintPear(g, s, R, S){
+  /* the tangent hull of two circles (a small one above, a big one below), pulled in at the waist */
+  const sz = S * 0.33 * (s.size || 1), W = sz * (s.w || 0.95), cx = S / 2;
+  const rb = W, rt = W * (s.neck ?? 0.5); let H = Math.max(W * (s.h || 2.0), 2 * rb + rt * 0.4);
+  const top = S * 0.54 - H * 0.52 + (s.dy || 0) * S, yb = top + H - rb, yt = top + rt, d = yb - yt;
+  const sf = Math.min(0.95, (rb - rt) / d), cf = Math.sqrt(1 - sf * sf), cave = s.cave ?? 0.35;
+  const circ = (y, c, r) => { const q = r * r - (y - c) * (y - c); return q > 0 ? Math.sqrt(q) : 0; };
+  const y0 = yt - rt * sf, y1 = yb - rb * sf;
+  const L = [], Rr = [], N = 120;
+  for (let i = 0; i <= N; i++){
+    const y = top + (i / N) * H, a = circ(y, yt, rt), b = circ(y, yb, rb), m = Math.max(a, b);
+    let w = m;
+    if (y > y0 && y < y1){
+      const hull = (rt + sf * (y - yt)) / cf, t = (y - y0) / (y1 - y0), dip = Math.sin(Math.PI * t);
+      w = Math.max(m, hull - cave * dip * (hull - m) * 1.0);
+    }
+    if (i === 0 || i === N) w = 0;
+    const lean = (s.lean || 0) * Math.sin(Math.PI * (1 - i / N)) * W * 0.3;
+    Rr.push([cx + lean + w, y]); L.push([cx + lean - w, y]);
+  }
+  const path = smooth(Rr.concat(L.reverse()));
+  const base = rgb(s.c), B = { cx:cx - W * 0.08, cy:top + H * 0.6, rx:W * 1.02, ry:H * 0.52 };
+  g.save(); g.clip(path);
+  shadeRound(g, path, B, base, s);
+  if (s.c2){
+    const lg = g.createLinearGradient(0, top, 0, top + H * 0.75);
+    const c2 = rgb(s.c2); lg.addColorStop(0, css(c2, 0.6)); lg.addColorStop(0.45, css(c2, 0.3)); lg.addColorStop(1, css(c2, 0));
+    g.globalCompositeOperation = "source-atop"; g.fillStyle = lg; g.fillRect(0, 0, S, S);
+    g.globalCompositeOperation = "source-over";
+  }
+  if (s.blushC) radialGlow(g, B.cx + B.rx * 0.35, yb - rb * 0.1, rb * 0.8, rgb(s.blushC), 0.45);
+  g.restore();
+  skin(g, path, { cx, cy:top + H * 0.5, rx:W * 1.1, ry:H * 0.55 }, s.tex, base, s, R);
+  finishRound(g, path, B, base, s.gloss ?? 0.35, s);
+  if (s.stem !== "none") stemPart(g, cx + (s.lean || 0) * W * 0.3, top + 3, -Math.PI / 2 + 0.35, W * (s.stemL || 0.34), W * 0.045, s.stemC || "#5d4126", { bend:0.35 });
+  if (s.leaf) leafShape(g, cx + W * 0.05, top + 4, -Math.PI / 2 + 0.95, W * 0.75, W * 0.2, rgb(s.leafC || "#4d8a36"), { curl:0.15 });
+}
+
+/* ---- strawberry ---- */
+function paintStrawberry(g, s, R, S){
+  const sz = S * 0.33 * (s.size || 1), W = sz * 1.0, H = sz * 1.75, cx = S / 2, top = S * 0.5 - H * 0.42;
+  const prof = (v) => cap(v, 0.34) * Math.pow(1 - v, 0.6) * 1.1 * (1 + 0.03 * Math.sin(v * 11));
+  const Rr = [], L = [];
+  for (let i = 0; i <= 80; i++){ const v = i / 80, w = W * prof(v), dent = v < 0.06 ? 0 : 0; Rr.push([cx + w, top + v * H + dent]); L.push([cx - w * 0.97, top + v * H]); }
+  const path = smooth(Rr.concat(L.reverse()));
+  const base = rgb(s.c || "#d8262a"), B = { cx:cx - W * 0.05, cy:top + H * 0.38, rx:W, ry:H * 0.52 };
+  shadeRound(g, path, B, base, { hiK:0.3 });
+  g.save(); g.clip(path);
+  radialGlow(g, cx, top + H * 0.02, W * 0.7, rgb("#f2e6a0"), 0.3);            /* the paler shoulders under the calyx */
+  for (let r = 0; r < 15; r++){
+    const v = 0.07 + r * 0.06, w = W * prof(v), n = Math.max(2, Math.round(8.5 * w / W));
+    for (let k = 0; k < n; k++){
+      const u = -0.94 + 1.88 * (k + (r % 2 ? 0.5 : 0) + 0.25) / n; if (Math.abs(u) > 0.96) continue;
+      const f = Math.sqrt(1 - u * u), x = cx + u * w, y = top + v * H + f * 3;
+      g.fillStyle = css(shd(base), 0.5); g.beginPath(); g.ellipse(x, y + 0.6, 4.4 * f + 0.8, 5, u * 0.7, 0, TAU); g.fill();
+      g.fillStyle = css(lit(base, 0.3), 0.35); g.beginPath(); g.ellipse(x + 1.2, y + 2.2, 3.2 * f + 0.5, 2.2, u * 0.7, 0, Math.PI); g.fill();
+      g.fillStyle = css(rgb("#f4d860")); g.beginPath(); g.ellipse(x, y - 0.6, 1.7 * f + 0.4, 2.6, u * 0.7, 0, TAU); g.fill();
+      g.fillStyle = css([255, 255, 230], 0.8); g.beginPath(); g.arc(x - 0.5, y - 1.6, 0.7, 0, TAU); g.fill();
+    }
+  }
+  g.restore();
+  finishRound(g, path, B, base, 0.8);
+  calyxStar(g, cx, top + H * 0.035, 9, W * 0.6, s.topC || "#3e8a2a", { R, squash:0.36, wide:0.22 });
+  stemPart(g, cx, top + H * 0.02, -Math.PI / 2 + 0.25, W * 0.34, W * 0.05, "#5c8a33", { bend:0.3 });
+}
+
+/* ---- many small rounds: grapes, cherries, blueberries, a raspberry ---- */
+function ball(g, x, y, r, base, o = {}){
+  const path = new Path2D(); path.arc(x, y, r, 0, TAU);
+  const B = { cx:x, cy:y, rx:r, ry:r };
+  shadeRound(g, path, B, base, o);
+  if (o.tex) skin(g, path, B, o.tex, base, o, o.R);
+  finishRound(g, path, B, base, o.gloss ?? 0.6, o);
+}
+function paintCluster(g, s, R, S){
+  const base = rgb(s.c), cx = S / 2, cy = S * 0.52;
+  if (s.kind === "grapes"){
+    const r = S * 0.062, rows = [4, 5, 4, 4, 3, 2, 1], balls = [];
+    let y = cy - S * 0.2;
+    rows.forEach((n, ri) => {
+      for (let k = 0; k < n; k++) balls.push([cx + (k - (n - 1) / 2) * r * 1.62 + (R() - 0.5) * r * 0.3 + Math.sin(ri) * r * 0.2, y + (R() - 0.5) * r * 0.3, r * (0.92 + R() * 0.16), ri]);
+      y += r * 1.42;
+    });
+    /* the stalk and its branches, then a leaf behind */
+    leafShape(g, cx + r * 0.6, cy - S * 0.26, -0.5, S * 0.3, S * 0.1, rgb(s.leafC || "#4e8b35"), { serrate:true, curl:0.1 });
+    const st = rgb("#6d5a34");
+    g.strokeStyle = css(st); g.lineWidth = 5; g.lineCap = "round";
+    g.beginPath(); g.moveTo(cx - r * 0.2, cy - S * 0.24); g.quadraticCurveTo(cx - r * 0.6, cy - S * 0.31, cx - r * 0.1, cy - S * 0.37); g.stroke();
+    balls.sort((a, b) => a[1] - b[1]).forEach(([x, y2, rr, ri]) => ball(g, x, y2, rr, mix(base, drk(base, 0.25), R() * 0.5), { tex:s.tex || "bloom", gloss:s.gloss ?? 0.5, R, hiK:0.32 }));
+    return;
+  }
+  if (s.kind === "cherries"){
+    const r = S * 0.13, a = [cx - r * 0.95, cy + r * 0.55], b = [cx + r * 0.85, cy + r * 0.8], tp = [cx + r * 0.25, cy - r * 2.0];
+    leafShape(g, tp[0], tp[1], -0.25, S * 0.28, S * 0.075, rgb("#4f8d36"), { curl:0.12 });
+    [a, b].forEach(p => { g.strokeStyle = css(rgb("#6f7e34")); g.lineWidth = 4; g.lineCap = "round"; g.beginPath(); g.moveTo(p[0] + 2, p[1] - r * 0.85); g.quadraticCurveTo((p[0] + tp[0]) / 2 - 18, (p[1] + tp[1]) / 2, tp[0], tp[1]); g.stroke(); });
+    [a, b].forEach((p, i) => {
+      const path = new Path2D(), rr = r * (i ? 0.96 : 1.02);
+      path.moveTo(p[0], p[1] - rr * 0.82);
+      path.bezierCurveTo(p[0] + rr * 0.5, p[1] - rr * 1.05, p[0] + rr * 1.05, p[1] - rr * 0.6, p[0] + rr * 1.0, p[1] + rr * 0.05);
+      path.bezierCurveTo(p[0] + rr * 0.95, p[1] + rr * 0.85, p[0] + rr * 0.35, p[1] + rr * 1.0, p[0], p[1] + rr * 0.98);
+      path.bezierCurveTo(p[0] - rr * 0.35, p[1] + rr * 1.0, p[0] - rr * 0.95, p[1] + rr * 0.85, p[0] - rr * 1.0, p[1] + rr * 0.05);
+      path.bezierCurveTo(p[0] - rr * 1.05, p[1] - rr * 0.6, p[0] - rr * 0.5, p[1] - rr * 1.05, p[0], p[1] - rr * 0.82);
+      const B = { cx:p[0], cy:p[1], rx:rr, ry:rr };
+      shadeRound(g, path, B, base, { hiK:0.3 }); finishRound(g, path, B, base, 0.9);
+    });
+    return;
+  }
+  if (s.kind === "blueberries"){
+    const r = S * 0.1, at = [[-1.2, 0.5], [0.05, 0.62], [1.25, 0.45], [-0.6, -0.45], [0.7, -0.4], [0.05, -1.25]];
+    at.sort((p, q) => p[1] - q[1]).forEach(([u, v], i) => {
+      const x = cx + u * r * 1.05, y = cy + v * r * 0.95, rr = r * (0.92 + R() * 0.14);
+      ball(g, x, y, rr, mix(base, rgb("#2a3a7a"), R() * 0.3), { tex:"bloom", gloss:0.25, R });
+      const cx2 = x + rr * 0.05, cy2 = y - rr * 0.55;
+      g.fillStyle = css(rgb("#1d2347"), 0.9);
+      g.beginPath(); for (let k = 0; k < 5; k++){ const a = k / 5 * TAU; g.lineTo(cx2 + Math.cos(a) * rr * 0.2, cy2 + Math.sin(a) * rr * 0.1); g.lineTo(cx2 + Math.cos(a + 0.6) * rr * 0.08, cy2 + Math.sin(a + 0.6) * rr * 0.04); } g.closePath(); g.fill();
+    });
+    return;
+  }
+  if (s.kind === "raspberry"){
+    const r0 = S * 0.27, small = S * 0.046, out = [];
+    for (let row = 0; row < 8; row++){
+      const v = -0.84 + row * 0.235, w = Math.sqrt(Math.max(0, 1 - v * v)) * (v > 0 ? 1 - v * 0.3 : 1), n = Math.max(2, Math.round(9 * w));
+      for (let k = 0; k < n; k++){ const u = -0.88 + 1.76 * (k + (row % 2 ? 0.5 : 0)) / n; if (Math.abs(u) > 0.92) continue; out.push([cx + u * r0 * w * 1.08, cy + v * r0 * 0.98, small * (0.8 + 0.35 * Math.sqrt(1 - u * u))]); }
+    }
+    const dome = new Path2D(); dome.ellipse(cx, cy, r0 * 1.06, r0 * 0.98, 0, 0, TAU);
+    shadeRound(g, dome, { cx, cy, rx:r0, ry:r0 }, drk(base, 0.35), {});
+    out.sort((a, b) => b[2] - a[2]).forEach(([x, y, rr]) => ball(g, x, y, rr, mix(base, drk(base, 0.2), R() * 0.5), { gloss:0.75, hiK:0.3 }));
+    calyxStar(g, cx, cy - r0 * 1.05, 6, r0 * 0.4, "#5b7f34", { R, squash:0.35 });
+    return;
+  }
+}
+
+/* ---- leafy: a cabbage head, napa cabbage, bok choy, a single leaf ---- */
+function paintLeafy(g, s, R, S){
+  const cx = S / 2, cy = S * 0.55, base = rgb(s.c), c2 = rgb(s.c2 || "#e8efc8");
+  if (s.kind === "head"){
+    const r = S * 0.32;
+    const core = new Path2D(); core.arc(cx, cy, r * 0.96, 0, TAU);
+    const B = { cx, cy, rx:r, ry:r * 0.96 };
+    shadeRound(g, core, B, lit(base, 0.12), { hiK:0.35 });
+    /* wrapping leaves, back to front */
+    const leaves = s.loose ? 7 : 5;
+    for (let i = 0; i < leaves; i++){
+      const a = (i / leaves) * TAU + R() * 0.5, sp = 0.55 + R() * 0.35;
+      const p = new Path2D(), x0 = cx + Math.cos(a) * r * 0.1, y0 = cy + r * 0.85;
+      const ex = cx + Math.cos(a) * r * 1.02, ey = cy + Math.sin(a) * r * 0.98 - r * 0.15;
+      const pts = [];
+      for (let k = 0; k <= 30; k++){
+        const t = k / 30, ang = a - sp + 2 * sp * t, wv = s.loose ? 1 + 0.022 * Math.sin(k * 1.3) : 1 + 0.015 * Math.sin(k * 1.1);
+        pts.push([cx + Math.cos(ang) * r * 1.02 * wv, cy + Math.sin(ang) * r * 0.98 * wv - r * 0.08]);
+      }
+      p.moveTo(x0, y0); pts.forEach(q => p.lineTo(q[0], q[1])); p.closePath();
+      const lc = mix(base, c2, 0.15 + R() * 0.25);
+      const gr = g.createRadialGradient(cx - r * 0.3, cy - r * 0.35, r * 0.1, cx, cy, r * 1.15);
+      gr.addColorStop(0, css(lit(lc, 0.3))); gr.addColorStop(0.55, css(lc)); gr.addColorStop(1, css(drk(lc, 0.4)));
+      g.fillStyle = gr; g.fill(p);
+      g.strokeStyle = css(drk(lc, 0.3), 0.5); g.lineWidth = 1.4; g.stroke(p);
+      /* veins fanning from the base */
+      g.save(); g.clip(p);
+      for (let k = 0; k < 7; k++){
+        const t = (k + 0.5) / 7, ang = a - sp + 2 * sp * t;
+        g.strokeStyle = css(c2, 0.55); g.lineWidth = k === 3 ? 4 : 1.6;
+        g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo(cx + Math.cos(ang) * r * 0.45, cy + Math.sin(ang) * r * 0.45, cx + Math.cos(ang) * r * 1.0, cy + Math.sin(ang) * r * 0.96 - r * 0.08); g.stroke();
+      }
+      g.restore();
+    }
+    finishRound(g, core, B, base, 0.25);
+    return;
+  }
+  if (s.kind === "napa"){                                     /* napa cabbage: a tall head, white ribs below, crinkled green above */
+    const H = S * 0.8, W = S * 0.21, top = cy - H * 0.5;
+    const leafPts = (off, wk, lift, seed) => {
+      const a = [], b = [];
+      for (let k = 0; k <= 50; k++){
+        const v = k / 50, w = W * wk * (0.62 + 0.38 * Math.sin(Math.PI * clamp(v * 0.85 + 0.12, 0, 1))) * (v > 0.92 ? cap(1 - v, 0.08) * 0.4 + 0.6 : 1);
+        const crinkle = v < 0.45 ? (Math.sin(k * 2.7 + seed) * 0.07 + Math.sin(k * 5.3 + seed) * 0.04) * W : 0;
+        a.push([cx + off + w + crinkle, top - lift + v * (H + lift)]); b.push([cx + off - w - crinkle * 0.8, top - lift + v * (H + lift)]);
+      }
+      /* a ruffled crown */
+      const crown = [];
+      for (let k = 0; k <= 16; k++){ const u = -1 + 2 * k / 16; crown.push([cx + off + u * W * wk * 0.66, top - lift - W * 0.18 * Math.sqrt(1 - u * u) + Math.sin(k * 2.3 + seed) * W * 0.05]); }
+      return a.concat([]).reverse().concat(crown.slice().reverse()).reverse().length ? [...b.slice().reverse(), ...crown, ...a] : [];
+    };
+    const drawLeaf = (off, wk, lift, seed, shadeK) => {
+      const p = smooth(leafPts(off, wk, lift, seed));
+      const gr = g.createLinearGradient(0, top - lift - W * 0.2, 0, top + H);
+      gr.addColorStop(0, css(lit(base, 0.08))); gr.addColorStop(0.32, css(mix(base, c2, 0.35))); gr.addColorStop(0.55, css(c2)); gr.addColorStop(1, css(drk(c2, 0.06)));
+      g.fillStyle = gr; g.fill(p);
+      g.save(); g.clip(p);
+      const sh = g.createLinearGradient(cx + off - W * wk, 0, cx + off + W * wk, 0);
+      sh.addColorStop(0, `rgba(255,255,255,${0.2 * shadeK})`); sh.addColorStop(0.45, "rgba(0,0,0,0)"); sh.addColorStop(1, `rgba(20,30,10,${0.32 * shadeK})`);
+      g.fillStyle = sh; g.fillRect(0, 0, S, S);
+      for (let k = 0; k < 14; k++){                           /* the crinkle of the green */
+        const yy = top - lift + (H + lift) * (0.02 + k * 0.03), xx = cx + off + (R() - 0.5) * W * wk;
+        radialGlow(g, xx, yy, W * 0.16, R() < 0.5 ? drk(base, 0.3) : lit(base, 0.35), 0.3);
+      }
+      /* the broad white midrib */
+      const mr = g.createLinearGradient(0, top + H * 0.25, 0, top + H);
+      mr.addColorStop(0, "rgba(255,255,250,0)"); mr.addColorStop(0.35, "rgba(255,255,250,.7)"); mr.addColorStop(1, "rgba(255,255,250,.9)");
+      g.fillStyle = mr; g.beginPath(); g.moveTo(cx + off - W * 0.22 * wk, top + H); g.quadraticCurveTo(cx + off - W * 0.12 * wk, top + H * 0.45, cx + off, top + H * 0.22);
+      g.quadraticCurveTo(cx + off + W * 0.12 * wk, top + H * 0.45, cx + off + W * 0.22 * wk, top + H); g.closePath(); g.fill();
+      g.strokeStyle = css(drk(c2, 0.15), 0.4); g.lineWidth = 1;
+      for (let k = -2; k <= 2; k++){ g.beginPath(); g.moveTo(cx + off + k * W * 0.08 * wk, top + H); g.quadraticCurveTo(cx + off + k * W * 0.05 * wk, top + H * 0.5, cx + off + k * W * 0.03, top + H * 0.3); g.stroke(); }
+      g.restore();
+      g.strokeStyle = css(drk(base, 0.35), 0.4); g.lineWidth = 1.2; g.stroke(p);
+    };
+    drawLeaf(-W * 0.55, 0.85, 0, 1, 0.8); drawLeaf(W * 0.55, 0.85, 0, 2, 0.9); drawLeaf(0, 1.05, W * 0.12, 3, 1);
+    return;
+  }
+  if (s.kind === "bokchoy"){
+    const H = S * 0.74, base2 = c2, bot = cy + H * 0.45;
+    for (let i = 0; i < 5; i++){
+      const a = -Math.PI / 2 + (i - 2) * 0.24, len = H * (0.88 + R() * 0.12);
+      const bx = cx + (i - 2) * 6, by = bot;
+      const ex = bx + Math.cos(a) * len, ey = by + Math.sin(a) * len;
+      /* the spoon-shaped stalk */
+      stemPart(g, bx, by, a, len * 0.55, S * 0.045, "#e5efcf", { bend:0.02, tipW:0.85, cutLit:0.1 });
+      leafShape(g, bx + Math.cos(a) * len * 0.38, by + Math.sin(a) * len * 0.38, a, len * 0.65, S * 0.11, mix(base, [40, 90, 40], R() * 0.3), { curl:(i - 2) * 0.05 });
+    }
+    return;
+  }
+  if (s.kind === "leaf"){                                     /* lettuce, perilla, kale: one leaf, front on */
+    const len = S * 0.78, wid = S * (s.leafW || 0.26);
+    g.save(); g.translate(cx, cy + S * 0.36); g.rotate(-Math.PI / 2 + (s.rot || 0.12));
+    const pts1 = [], pts2 = [];
+    for (let k = 0; k <= 60; k++){
+      const t = k / 60, w = wid * Math.pow(Math.sin(Math.PI * Math.pow(t, s.shapeP || 0.75)), 0.9);
+      const fr = s.frill ? 1 + s.frill * Math.sin(k * 3.1) * t : 1 + (s.serrate ? (k % 2 ? 0.05 : -0.03) : 0);
+      pts1.push([t * len, -w * fr]); pts2.push([t * len, w * (s.frill ? 1 + s.frill * Math.sin(k * 2.7 + 1) * t : fr)]);
+    }
+    const p = smooth(pts1.concat(pts2.reverse()));
+    const gr = g.createLinearGradient(0, -wid, len * 0.3, wid);
+    gr.addColorStop(0, css(lit(base, 0.25))); gr.addColorStop(0.5, css(base)); gr.addColorStop(1, css(drk(base, 0.35)));
+    g.fillStyle = gr; g.fill(p);
+    g.save(); g.clip(p);
+    if (s.edgeC){ g.lineWidth = wid * 0.2; g.strokeStyle = css(rgb(s.edgeC), 0.78); g.stroke(p); g.lineWidth = wid * 0.42; g.strokeStyle = css(rgb(s.edgeC), 0.18); g.stroke(p); }
+    if (s.crinkle){ for (let i = 0; i < 70; i++){ const x = R() * len, y = (R() * 2 - 1) * wid; radialGlow(g, x, y, wid * 0.12, R() < 0.5 ? lit(base, 0.3) : drk(base, 0.3), 0.25); } }
+    g.strokeStyle = css(lit(base, 0.5), 0.9); g.lineWidth = wid * 0.07; g.lineCap = "round";
+    g.beginPath(); g.moveTo(-len * 0.1, 0); g.lineTo(len * 0.95, 0); g.stroke();
+    g.lineWidth = wid * 0.022; g.strokeStyle = css(lit(base, 0.38), 0.7);
+    for (let i = 1; i <= 8; i++){ const t = i / 9.5; [-1, 1].forEach(sg => { g.beginPath(); g.moveTo(t * len, 0); g.quadraticCurveTo(t * len + len * 0.07, sg * wid * 0.4, t * len + len * 0.16, sg * wid * 0.92 * Math.sin(Math.PI * Math.min(1, t + 0.1))); g.stroke(); }); }
+    ellipseGlow(g, len * 0.4, -wid * 0.3, len * 0.3, wid * 0.4, 0, [255, 255, 255], 0.16);
+    g.restore();
+    g.strokeStyle = css(drk(base, 0.4), 0.4); g.lineWidth = 1.2; g.stroke(p);
+    g.strokeStyle = css(lit(base, 0.4)); g.lineWidth = wid * 0.09; g.beginPath(); g.moveTo(-len * 0.14, 0); g.lineTo(0, 0); g.stroke();   /* the stalk */
+    g.restore();
+    return;
+  }
+  if (s.kind === "spinach"){
+    const bot = [cx, cy + S * 0.36];
+    for (let i = 0; i < 6; i++){
+      const a = -Math.PI / 2 + (i - 2.5) * 0.28 + (R() - 0.5) * 0.1, l = S * (0.5 + R() * 0.16);
+      g.strokeStyle = css(rgb("#9cc46a")); g.lineWidth = 4; g.lineCap = "round";
+      const mx = bot[0] + Math.cos(a) * l * 0.4, my = bot[1] + Math.sin(a) * l * 0.4;
+      g.beginPath(); g.moveTo(bot[0], bot[1]); g.lineTo(mx, my); g.stroke();
+      leafShape(g, mx, my, a, l * 0.68, S * 0.085, mix(base, [30, 80, 30], R() * 0.35), { curl:(i - 2.5) * 0.05 });
+    }
+    g.fillStyle = css(rgb("#d86a8a")); g.beginPath(); g.ellipse(bot[0], bot[1] + 6, 10, 14, 0, 0, TAU); g.fill();   /* the pink root */
+    tailRoots(g, { C:[[bot[0], bot[1] + 18], [bot[0], bot[1] + 10], [bot[0], bot[1] + 4], [bot[0], bot[1]]], T:3, W:S * 0.08 }, { rootC:"#d8c6a0" }, R, 0);
+  }
+}
+
+/* ---- broccoli and cauliflower ---- */
+function paintBroccoli(g, s, R, S){
+  const cx = S / 2, cy = S * 0.5, base = rgb(s.c), stalk = rgb(s.c2 || "#9cbf6a");
+  if (s.white){                                               /* cauliflower's leaves wrap round its curd */
+    [-0.95, -0.4, 0.4, 0.95].forEach((a, i) => leafShape(g, cx, cy + S * 0.28, -Math.PI / 2 + a * 1.05, S * 0.44, S * 0.11, rgb("#5f8f4a"), { curl:(i < 2 ? -1 : 1) * 0.08 }));
+  } else {
+    const p = new Path2D(); p.moveTo(cx - S * 0.07, cy + S * 0.38); p.lineTo(cx - S * 0.05, cy + S * 0.05); p.lineTo(cx - S * 0.16, cy - S * 0.04); p.lineTo(cx + S * 0.16, cy - S * 0.04);
+    p.lineTo(cx + S * 0.05, cy + S * 0.05); p.lineTo(cx + S * 0.07, cy + S * 0.38); p.closePath();
+    const gr = g.createLinearGradient(cx - S * 0.08, 0, cx + S * 0.08, 0); gr.addColorStop(0, css(lit(stalk, 0.25))); gr.addColorStop(0.5, css(stalk)); gr.addColorStop(1, css(drk(stalk, 0.35)));
+    g.fillStyle = gr; g.fill(p);
+    g.fillStyle = css(lit(stalk, 0.4)); g.beginPath(); g.ellipse(cx, cy + S * 0.38, S * 0.07, S * 0.025, 0, 0, TAU); g.fill();
+  }
+  const blobs = s.white ? [[-0.2, 0.06, 0.15], [0.2, 0.06, 0.15], [-0.11, -0.07, 0.16], [0.11, -0.07, 0.16], [0, 0.04, 0.18], [-0.27, 0.13, 0.1], [0.27, 0.13, 0.1]]
+                        : [[-0.18, -0.08, 0.13], [0.18, -0.08, 0.13], [-0.08, -0.2, 0.13], [0.1, -0.2, 0.13], [0, -0.06, 0.14], [-0.24, 0.04, 0.1], [0.24, 0.04, 0.1]];
+  if (s.white){ const dm = new Path2D(); dm.ellipse(cx, cy + S * 0.03, S * 0.34, S * 0.22, 0, 0, TAU); shadeRound(g, dm, { cx, cy:cy + S * 0.03, rx:S * 0.34, ry:S * 0.22 }, drk(base, 0.15), {}); }
+  blobs.forEach(([u, v, rr]) => {
+    const bx = cx + u * S, by = cy + v * S, r = rr * S;
+    const p = new Path2D(); p.arc(bx, by, r, 0, TAU);
+    shadeRound(g, p, { cx:bx, cy:by, rx:r, ry:r }, base, { hiK:0.2 });
+    g.save(); g.clip(p);
+    const step = s.white ? 7 : 6;
+    for (let y = by - r; y < by + r; y += step * 0.85) for (let x = bx - r + ((y / step) % 2) * step / 2; x < bx + r; x += step){
+      if ((x - bx) ** 2 + (y - by) ** 2 > r * r) continue;
+      const d = ((x - bx) - (y - by) * 0.5) / r;
+      g.fillStyle = css(drk(base, 0.4), 0.35); g.beginPath(); g.arc(x + 1, y + 1, step * 0.42, 0, TAU); g.fill();
+      g.fillStyle = css(lit(base, clamp(0.2 - d * 0.25, 0, 0.45)), 0.55); g.beginPath(); g.arc(x - 0.6, y - 0.6, step * 0.3, 0, TAU); g.fill();
+    }
+    g.restore();
+    finishRound(g, p, { cx:bx, cy:by, rx:r, ry:r }, base, 0.12);
+  });
+}
+
+/* ---- corn on the cob ---- */
+function paintCorn(g, s, R, S){
+  const G = longGeom({ len:1.75, wid:0.27, rot:s.rot ?? 0.45, prof:"cob" }, S), base = rgb(s.c || "#f2c53d"), husk = rgb("#88a84a");
+  /* husks behind */
+  [-1, 1].forEach(sd => {
+    const i0 = Math.round(G.T * 0.98), p0 = G.C[i0], n = G.N[i0];
+    const tip = G.C[Math.round(G.T * 0.25)];
+    const p = new Path2D(), off = G.W * 1.9 * sd;
+    p.moveTo(p0[0], p0[1]);
+    p.quadraticCurveTo(p0[0] + n[0] * off, p0[1] + n[1] * off, tip[0] + n[0] * off * 0.9, tip[1] + n[1] * off * 0.9);
+    p.quadraticCurveTo(p0[0] + n[0] * off * 0.2, p0[1] + n[1] * off * 0.2, p0[0], p0[1]);
+    const gr = g.createLinearGradient(p0[0], p0[1], tip[0], tip[1]); gr.addColorStop(0, css(drk(husk, 0.2))); gr.addColorStop(1, css(lit(husk, 0.35)));
+    g.fillStyle = gr; g.fill(p); g.strokeStyle = css(drk(husk, 0.35), 0.5); g.lineWidth = 1.2; g.stroke(p);
+  });
+  const path = longPath(G);
+  g.save(); g.clip(path);
+  shadeLong(g, G, () => base);
+  /* kernels: rows round the cob, foreshortened towards its sides */
+  const rows = 9, alongN = 22;
+  for (let rI = 0; rI < rows; rI++){
+    const sm = -0.94 + 1.88 * (rI + 0.5) / rows;
+    for (let k = 0; k < alongN; k++){
+      const t = 0.05 + 0.9 * (k + (rI % 2 ? 0.5 : 0)) / alongN, j = Math.round(t * G.T), w = G.Wd[j];
+      const x = G.C[j][0] + G.N[j][0] * w * sm, y = G.C[j][1] + G.N[j][1] * w * sm;
+      const f = Math.sqrt(1 - sm * sm), kw = (w * 2 / rows) * 0.5 * f, kl = (G.L / alongN) * 0.48;
+      const ang = Math.atan2(G.N[j][1], G.N[j][0]);
+      const side = lightSide(G, j), b = clamp(Math.cos(Math.asin(sm) - side * 0.85), 0, 1);
+      const kc = mix(drk(base, 0.35), lit(base, 0.2), b);
+      g.save(); g.translate(x, y); g.rotate(ang);
+      g.fillStyle = css(drk(kc, 0.35)); g.beginPath(); g.ellipse(0.6, 0.6, kw * 1.02, kl * 1.02, 0, 0, TAU); g.fill();
+      g.fillStyle = css(kc); g.beginPath(); g.ellipse(0, 0, kw * 0.92, kl * 0.92, 0, 0, TAU); g.fill();
+      g.fillStyle = css([255, 255, 240], 0.45 * b); g.beginPath(); g.ellipse(-kw * 0.3 * side, -kl * 0.2, kw * 0.32, kl * 0.3, 0, 0, TAU); g.fill();
+      g.restore();
+    }
+  }
+  g.restore();
+  /* silk at the tip */
+  const top = G.C[0], up = Math.atan2(G.C[0][1] - G.C[4][1], G.C[0][0] - G.C[4][0]);
+  for (let k = 0; k < 18; k++){
+    const a = up + (R() - 0.5) * 0.9, l = G.W * (0.4 + R() * 0.7);
+    g.strokeStyle = css(R() < 0.5 ? rgb("#d9b77a") : rgb("#a8743e"), 0.8); g.lineWidth = 1;
+    g.beginPath(); g.moveTo(top[0], top[1]); g.quadraticCurveTo(top[0] + Math.cos(a) * l * 0.5 + (R() - 0.5) * 10, top[1] + Math.sin(a) * l * 0.5, top[0] + Math.cos(a) * l, top[1] + Math.sin(a) * l); g.stroke();
+  }
+}
+
+/* ---- pineapple ---- */
+function paintPineapple(g, s, R, S){
+  const cx = S / 2, cy = S * 0.64, rx = S * 0.2, ry = S * 0.27;
+  /* the crown first */
+  const crownC = rgb("#4f8a52");
+  for (let k = 0; k < 15; k++){
+    const a = -Math.PI / 2 + (k - 7) * 0.13 + (R() - 0.5) * 0.05, l = S * (0.2 + (1 - Math.abs(k - 7) / 7) * 0.16 + R() * 0.04);
+    leafShape(g, cx + (k - 7) * 2, cy - ry * 0.92, a, l, S * 0.02, mix(crownC, rgb("#7bae68"), R() * 0.5), { vein:false, curl:(k - 7) * 0.012, flat:true });
+  }
+  const B = { cx, cy, rx, ry }, path = smooth(roundOutline(B, {})), base = rgb("#e0a83a");
+  shadeRound(g, path, B, base, {});
+  g.save(); g.clip(path);
+  const gr = g.createLinearGradient(0, cy - ry, 0, cy + ry); gr.addColorStop(0, css(rgb("#9cab3c"), 0.55)); gr.addColorStop(0.5, "rgba(0,0,0,0)"); gr.addColorStop(1, css(rgb("#b4652a"), 0.35));
+  g.fillStyle = gr; g.fillRect(0, 0, S, S);
+  /* the diamond eyes */
+  const nU = 7, nV = 9;
+  for (let j = 0; j < nV; j++){
+    for (let i = 0; i < nU; i++){
+      const u = -1 + 2 * (i + (j % 2 ? 0.5 : 0)) / nU, v = -0.95 + 1.9 * j / (nV - 1);
+      const wv = Math.sqrt(Math.max(0, 1 - v * v)), x = cx + Math.sin(u * 1.3) * rx * wv, y = cy + v * ry, f = Math.cos(u * 1.3);
+      if (f < 0.1) continue;
+      const ew = rx * 0.16 * f, eh = ry * 0.11;
+      g.beginPath(); g.moveTo(x, y - eh); g.lineTo(x + ew, y); g.lineTo(x, y + eh); g.lineTo(x - ew, y); g.closePath();
+      g.fillStyle = css(lit(base, 0.12), 0.45); g.fill();
+      g.strokeStyle = css(drk(base, 0.55), 0.7); g.lineWidth = 1.6; g.stroke();
+      g.fillStyle = css(rgb("#6b4a1e"), 0.85); g.beginPath(); g.ellipse(x, y + eh * 0.15, ew * 0.22, eh * 0.18, 0, 0, TAU); g.fill();
+      g.strokeStyle = css(rgb("#4f7a3a"), 0.8); g.lineWidth = 1.2; g.beginPath(); g.moveTo(x, y + eh * 0.1); g.lineTo(x + ew * 0.2, y - eh * 0.6); g.stroke();
+    }
+  }
+  g.restore();
+  finishRound(g, path, B, base, 0.15);
+}
+
+/* ---- bell pepper ---- */
+function paintPepper(g, s, R, S){
+  const sz = S * 0.31, B = { cx:S / 2, cy:S * 0.56, rx:sz * 1.0, ry:sz * 1.02 }, base = rgb(s.c || "#d8261c");
+  const sh = { dip:0.16, bot:0.12, lobes:4, lobeD:0.07 };
+  const path = smooth(roundOutline(B, sh));
+  shadeRound(g, path, B, base, { hiK:0.4 });
+  g.save(); g.clip(path);
+  [-0.38, 0.38].forEach(k => {                               /* the folds between its lobes */
+    const pts = []; for (let j = 0; j <= 20; j++){ const v = -0.82 + 1.75 * j / 20, wv = Math.sqrt(Math.max(0, 1 - v * v)); pts.push([B.cx + k * B.rx * wv * 1.05, B.cy + v * B.ry]); }
+    const p = smooth(pts, false);
+    g.strokeStyle = css(shd(base), 0.5); g.lineWidth = B.rx * 0.09; g.stroke(p);
+    g.save(); g.translate(-B.rx * 0.07, 0); g.strokeStyle = css(lit(base, 0.35), 0.35); g.lineWidth = B.rx * 0.04; g.stroke(p); g.restore();
+  });
+  g.restore();
+  finishRound(g, path, B, base, 0.95);
+  const tx = B.cx, ty = B.cy - B.ry * 0.82;
+  g.fillStyle = css(rgb("#3d6e2a")); g.beginPath(); g.ellipse(tx, ty, B.rx * 0.3, B.rx * 0.1, 0, 0, TAU); g.fill();
+  pumpkinStem(g, tx, ty, B.rx * 0.85, "#4f7f30");
+}
+
+/* ---- mushrooms ---- */
+function paintMushroom(g, s, R, S){
+  const cx = S / 2, base = rgb(s.c || "#8a5a36"), stemC = rgb(s.c2 || "#efe6d2");
+  const capW = S * 0.34, capH = S * (s.flat ? 0.17 : 0.24), capY = S * 0.44;
+  /* the stem */
+  const sp = new Path2D(); sp.moveTo(cx - S * 0.07, capY); sp.bezierCurveTo(cx - S * 0.08, capY + S * 0.18, cx - S * 0.1, capY + S * 0.3, cx - S * 0.085, capY + S * 0.36);
+  sp.lineTo(cx + S * 0.085, capY + S * 0.36); sp.bezierCurveTo(cx + S * 0.1, capY + S * 0.3, cx + S * 0.08, capY + S * 0.18, cx + S * 0.07, capY); sp.closePath();
+  const gr = g.createLinearGradient(cx - S * 0.1, 0, cx + S * 0.1, 0); gr.addColorStop(0, css(lit(stemC, 0.3))); gr.addColorStop(0.45, css(stemC)); gr.addColorStop(1, css(drk(stemC, 0.35)));
+  g.fillStyle = gr; g.fill(sp);
+  g.fillStyle = css(drk(stemC, 0.1)); g.beginPath(); g.ellipse(cx, capY + S * 0.36, S * 0.085, S * 0.025, 0, 0, TAU); g.fill();
+  /* gills under the rim */
+  g.fillStyle = css(drk(stemC, 0.25)); g.beginPath(); g.ellipse(cx, capY + 2, capW * 0.92, capH * 0.22, 0, 0, TAU); g.fill();
+  /* the cap */
+  const cp = new Path2D(); cp.moveTo(cx - capW, capY);
+  cp.bezierCurveTo(cx - capW, capY - capH * 1.25, cx + capW, capY - capH * 1.25, cx + capW, capY);
+  cp.bezierCurveTo(cx + capW * 0.6, capY + capH * 0.18, cx - capW * 0.6, capY + capH * 0.18, cx - capW, capY); cp.closePath();
+  const B = { cx, cy:capY - capH * 0.45, rx:capW, ry:capH * 0.9 };
+  shadeRound(g, cp, B, base, { hiK:0.3 });
+  if (s.cracks){                                              /* shiitake: pale cracks across the brown */
+    g.save(); g.clip(cp);
+    for (let i = 0; i < 26; i++){
+      let x = cx + (R() * 2 - 1) * capW * 0.8, y = capY - capH * (0.2 + R() * 0.8);
+      g.strokeStyle = css(rgb("#efe1c4"), 0.55); g.lineWidth = 1 + R() * 1.4; g.beginPath(); g.moveTo(x, y);
+      for (let k = 0; k < 3; k++){ x += (R() - 0.5) * 22; y += (R() - 0.5) * 10; g.lineTo(x, y); }
+      g.stroke();
+    }
+    g.restore();
+  }
+  finishRound(g, cp, B, base, s.gloss ?? 0.2);
+}
+
+/* ---- long bundles: green onion, leek, asparagus, celery, green beans ---- */
+function paintBundle(g, s, R, S){
+  const n = s.n || 3, base = rgb(s.c), c2 = rgb(s.c2 || "#f2f4e4");
+  for (let k = 0; k < n; k++){
+    const rot = (s.rot ?? 0.55) + (k - (n - 1) / 2) * (s.spread ?? 0.06), dx = (k - (n - 1) / 2) * (s.gap ?? 0.035);
+    const spec = { prof:s.prof || "thin", len:(s.len || 1.9) * (1 - 0.04 * Math.abs(k - 1)), wid:s.wid || 0.08, rot, dx, dy:(s.dy || 0), c:s.c, c2:s.c2, c2From:s.c2From ?? 0.55, c2To:s.c2To ?? 0.8, c2Rev:s.c2Rev,
+                   gloss:s.gloss ?? 0.3, tex:s.tex, tail:s.tail, rootC:s.rootC, seed:k };
+    paintLong(g, spec, R, S);
+    if (s.tips){                                              /* asparagus: scaly tips and little bracts */
+      const G = longGeom(spec, S), p = G.C[0];
+      for (let i = 0; i < 9; i++){ const j = Math.round(G.T * (0.02 + i * 0.02)), w = G.Wd[Math.max(j, 4)] * 1.05;
+        [-1, 1].forEach(sg => leafShape(g, G.C[j][0] + G.N[j][0] * w * sg * 0.6, G.C[j][1] + G.N[j][1] * w * sg * 0.6, Math.atan2(G.C[0][1] - G.C[6][1], G.C[0][0] - G.C[6][0]) + sg * 0.3, w * 1.1, w * 0.3, mix(base, rgb("#7a4a8a"), 0.35), { vein:false, flat:true })); }
+      for (let i = 0; i < 4; i++){ const j = Math.round(G.T * (0.3 + i * 0.16)), w = G.Wd[j];
+        leafShape(g, G.C[j][0] + G.N[j][0] * w * 0.8, G.C[j][1] + G.N[j][1] * w * 0.8, Math.atan2(G.C[0][1] - G.C[6][1], G.C[0][0] - G.C[6][0]) + 0.35, w * 1.5, w * 0.3, drk(base, 0.1), { vein:false, flat:true }); }
+    }
+    if (s.heads){                                             /* bean sprouts' seed heads, enoki's tiny caps */
+      const G = longGeom(spec, S), p = G.C[1], up = Math.atan2(G.C[0][1] - G.C[6][1], G.C[0][0] - G.C[6][0]);
+      const hc = rgb(s.headC || "#ecd64a"), a = G.W * (s.headW || 1.6), b = G.W * (s.headL || 1.1);
+      g.save(); g.translate(p[0] + Math.cos(up) * b * 0.4, p[1] + Math.sin(up) * b * 0.4); g.rotate(up);
+      const hp = new Path2D(); hp.ellipse(0, 0, b, a, 0, 0, TAU);
+      const gr = g.createRadialGradient(-b * 0.2, -a * 0.45, a * 0.1, 0, 0, Math.max(a, b) * 1.1);
+      gr.addColorStop(0, css(lit(hc, 0.4))); gr.addColorStop(0.55, css(hc)); gr.addColorStop(1, css(shd(hc)));
+      g.fillStyle = gr; g.fill(hp);
+      if (s.headSplit){ g.strokeStyle = css(drk(hc, 0.35), 0.6); g.lineWidth = 1; g.beginPath(); g.moveTo(-b * 0.9, 0); g.lineTo(b * 0.9, 0); g.stroke(); }
+      g.restore();
+    }
+    if (s.split){                                             /* green onion: the leaves part at the top */
+      const G = longGeom(spec, S), p = G.C[Math.round(G.T * 0.05)];
+      const up = Math.atan2(G.C[0][1] - G.C[6][1], G.C[0][0] - G.C[6][0]);
+      leafShape(g, p[0], p[1], up - 0.25 - k * 0.05, G.L * 0.32, G.W * 0.5, drk(s.c2 && s.c2Rev ? c2 : base, 0.05), { vein:false, curl:-0.08 });
+    }
+  }
+}
+
+/* ---- ginger: knobs on knobs ---- */
+function paintGinger(g, s, R, S){
+  const base = rgb(s.c || "#c9a26a"), cx = S / 2, cy = S * 0.56;
+  const knobs = [[0, 0, 0.17, 0.12, 0], [-0.17, -0.05, 0.11, 0.08, -0.5], [0.18, -0.07, 0.12, 0.08, 0.4], [-0.08, -0.16, 0.08, 0.06, -1.1], [0.27, 0.06, 0.08, 0.06, 0.9], [-0.28, 0.05, 0.08, 0.06, -0.3]];
+  knobs.forEach(([u, v, a, b, ang]) => {
+    const x = cx + u * S, y = cy + v * S, rx = a * S, ry = b * S;
+    g.save(); g.translate(x, y); g.rotate(ang);
+    const p = new Path2D(); p.ellipse(0, 0, rx, ry, 0, 0, TAU);
+    const B = { cx:0, cy:0, rx, ry };
+    shadeRound(g, p, B, base, {});
+    g.save(); g.clip(p);
+    for (let i = -3; i <= 3; i++){ g.strokeStyle = css(drk(base, 0.35), 0.4); g.lineWidth = 1.2; g.beginPath(); g.ellipse(i * rx * 0.28, 0, rx * 0.06, ry * 0.98, 0, 0, TAU); g.stroke(); }
+    g.restore();
+    finishRound(g, p, B, base, 0.15);
+    g.fillStyle = css(rgb("#efd88a"), 0.9); g.beginPath(); g.ellipse(rx * 0.92, 0, rx * 0.1, ry * 0.5, 0, 0, TAU); g.fill();   /* a cut end */
+    g.restore();
+  });
+}
+
+/* ---- lotus root: a length of it, and its cut face full of holes ---- */
+function paintLotus(g, s, R, S){
+  const base = rgb(s.c || "#d9c3a0");
+  paintLong(g, { prof:"cuke", len:1.25, wid:0.36, rot:1.25, c:s.c || "#d9c3a0", gloss:0.2, tex:"speck", texC:"#8a6a44", dy:0.02 }, R, S);
+  const G = longGeom({ prof:"cuke", len:1.25, wid:0.36, rot:1.25, dy:0.02 }, S), end = G.C[Math.round(G.T * 0.04)], n = G.N[Math.round(G.T * 0.04)];
+  const ang = Math.atan2(n[1], n[0]), rx = G.W * 0.98, ry = G.W * 0.45;
+  g.save(); g.translate(end[0], end[1]); g.rotate(ang);
+  g.fillStyle = css(rgb("#efe2c8")); g.beginPath(); g.ellipse(0, 0, rx, ry, 0, 0, TAU); g.fill();
+  g.strokeStyle = css(drk(base, 0.3)); g.lineWidth = 2; g.stroke();
+  [[0, 0, 0.16], [-0.5, 0.1, 0.13], [0.5, 0.1, 0.13], [-0.3, -0.45, 0.12], [0.3, -0.45, 0.12], [-0.3, 0.55, 0.11], [0.3, 0.55, 0.11], [-0.72, -0.2, 0.08], [0.72, -0.2, 0.08]].forEach(([u, v, r]) => {
+    g.fillStyle = css(rgb("#6a5236")); g.beginPath(); g.ellipse(u * rx * 0.85, v * ry * 0.85, r * rx, r * rx * 0.42, 0, 0, TAU); g.fill();
+  });
+  g.restore();
+}
+
+/* ==========================================================================
+   THE SHELF — every fruit and vegetable it knows, with its names
+   ========================================================================== */
+const P = {};
+const add = (key, en, ko, spec) => { P[key] = { key, en:en[0], ko:ko[0], names:[...en, ...ko], spec }; };
+/* fruit */
+add("apple", ["apple", "red apple"], ["사과", "빨간 사과", "부사", "홍로", "홍옥", "시나노골드", "부사사과"], { f:"round", c:"#c8352b", c2:"#e8c255", blushA:-0.6, blushD:0.75, blush:0.45, streak:true, w:1.0, h:0.92, dip:0.12, bot:0.06, tex:"lenticel", texC:"#f2d58a", gloss:0.75, stem:"short", leaf:1 });
+add("green apple", ["green apple", "granny smith"], ["풋사과", "청사과", "아오리"], { f:"round", c:"#8fbf3a", c2:"#d8d86a", blushD:0.2, w:1.0, h:0.93, dip:0.12, bot:0.06, tex:"lenticel", texC:"#e8f0b0", gloss:0.75, stem:"short", leaf:1 });
+add("pear", ["asian pear", "korean pear", "nashi"], ["배", "신고배", "나주배"], { f:"round", c:"#c8a052", c2:"#ddb867", w:1.0, h:0.94, dip:0.06, bot:0.05, tex:"speckle", texC:"#f4e2b0", gloss:0.3, stem:"long", stemA:0.15 });
+add("western pear", ["pear", "western pear", "bartlett pear"], ["서양배"], { f:"pear", neck:0.47, h:2.75, cave:0.5, c:"#b8c23a", c2:"#d9cf55", blushC:"#d77a3a", tex:"lenticel", texC:"#6f7a2a", gloss:0.35, leaf:true });
+add("orange", ["orange", "navel orange"], ["오렌지"], { f:"round", c:"#f08a1c", w:1, h:0.97, tex:"dimple", gloss:0.45, navel:true });
+add("tangerine", ["tangerine", "mandarin", "clementine", "satsuma"], ["귤", "감귤", "밀감", "천혜향", "레드향", "황금향", "청귤", "하귤"], { f:"round", c:"#f3851e", w:1.06, h:0.86, dip:0.04, bot:0.03, tex:"dimple", gloss:0.5, stem:"tiny", leaf:2, leafL:0.62, leafW:0.2, leafC:"#2f6e2c" });
+add("hallabong", ["hallabong", "dekopon", "sumo citrus"], ["한라봉"], { f:"round", c:"#f2901d", w:1, h:0.94, knob:0.2, tex:"dimple", gloss:0.45, stem:"tiny", leaf:1, leafC:"#2f6e2c" });
+add("grapefruit", ["grapefruit"], ["자몽"], { f:"round", c:"#f2a33a", c2:"#e8603e", blush:0.6, w:1.04, h:0.98, tex:"dimple", gloss:0.45, navel:true, size:1.08 });
+add("lemon", ["lemon"], ["레몬"], { f:"round", c:"#f4d62c", w:1.08, h:0.78, point:0.16, tex:"dimple", gloss:0.55 });
+add("lime", ["lime"], ["라임"], { f:"round", c:"#6fae2c", c2:"#a8c845", w:1.02, h:0.86, point:0.08, tex:"dimple", gloss:0.55, size:0.9 });
+add("citron", ["yuja", "yuzu", "citron"], ["유자"], { f:"round", c:"#efc21e", w:1.04, h:0.9, dip:0.05, tex:"bumpy", gloss:0.3, stem:"tiny", leaf:1, leafC:"#2f6e2c", size:0.9 });
+add("peach", ["peach"], ["복숭아", "백도", "황도"], { f:"round", c:"#f1b47a", c2:"#e0505a", blush:0.55, blushA:-2.4, blushD:0.25, w:1.0, h:0.97, dip:0.08, tex:"fuzz", gloss:0.12, crease:true, stem:"tiny", leaf:1, leafL:0.75 });
+add("nectarine", ["nectarine"], ["천도복숭아"], { f:"round", c:"#e8a03a", c2:"#c42e2e", blush:0.7, blushD:0.15, w:1, h:0.96, dip:0.08, gloss:0.65, crease:true, stem:"tiny" });
+add("apricot", ["apricot"], ["살구"], { f:"round", c:"#f2a33c", c2:"#e86a32", blush:0.35, w:0.98, h:0.95, dip:0.06, tex:"fuzz", gloss:0.2, crease:true, size:0.85 });
+add("plum", ["plum"], ["자두", "후무사"], { f:"round", c:"#8b2348", c2:"#b8304a", blush:0.5, w:0.98, h:0.96, dip:0.05, tex:"bloom", gloss:0.35, crease:true, stem:"tiny", size:0.85 });
+add("persimmon", ["persimmon", "sharon fruit"], ["감", "단감", "홍시", "곶감"], { f:"round", c:"#ee7a1c", w:1.06, h:0.84, dip:0.05, lobes:4, lobeD:0.03, gloss:0.65, top:"crown", topC:"#5a5f2a" });
+add("pomegranate", ["pomegranate"], ["석류"], { f:"round", c:"#b8242c", c2:"#d8743a", blush:0.4, blushA:-2.2, w:1.0, h:0.95, gloss:0.45, top:"pom", lobes:6, lobeD:0.02 });
+add("cherry", ["cherry", "cherries"], ["체리", "버찌", "앵두"], { f:"cluster", kind:"cherries", c:"#8e0f22" });
+add("strawberry", ["strawberry", "strawberries"], ["딸기"], { f:"strawberry", c:"#d8262a" });
+add("blueberry", ["blueberry", "blueberries"], ["블루베리"], { f:"cluster", kind:"blueberries", c:"#3b4a8e" });
+add("raspberry", ["raspberry", "raspberries"], ["라즈베리", "산딸기", "복분자"], { f:"cluster", kind:"raspberry", c:"#c8253f" });
+add("grapes", ["grapes", "grape", "red grapes"], ["포도", "거봉", "캠벨", "머루", "델라웨어"], { f:"cluster", kind:"grapes", c:"#4b2350" });
+add("green grapes", ["green grapes", "white grapes", "shine muscat", "muscat"], ["청포도", "샤인머스캣", "머스캣"], { f:"cluster", kind:"grapes", c:"#a8c84a", tex:"smooth", gloss:0.6 });
+add("watermelon", ["watermelon"], ["수박"], { f:"round", c:"#4f9a3a", w:1.08, h:0.92, tex:"stripe", texC:"#1f4f23", gloss:0.45, stem:"tiny", size:1.12 });
+add("melon", ["melon", "cantaloupe", "muskmelon", "honeydew"], ["멜론", "머스크멜론"], { f:"round", c:"#a8b45a", c2:"#c9b665", w:1.0, h:0.96, tex:"net", texC:"#e6dcb6", gloss:0.15, stem:"short", stemC:"#7d8a3a", size:1.06 });
+add("chamoe", ["korean melon", "chamoe", "oriental melon"], ["참외"], { f:"round", c:"#f2c21a", w:1.12, h:0.78, point:0.05, tex:"groove", texC:"#fff6d6", stripes:10, gloss:0.65 });
+add("banana", ["banana", "bananas"], ["바나나"], { f:"banana", c:"#f2c93a", spots:18, len:1.7, wid:0.24, bend:0.55, rot:0.62 });
+add("bananas", ["bunch of bananas", "banana bunch"], ["바나나 송이"], { f:"banana", n:3, c:"#f2c93a", spots:12, len:1.55, wid:0.2, bend:0.5, rot:0.62 });
+add("plantain", ["plantain", "green banana"], ["플랜틴", "초록 바나나"], { f:"banana", c:"#8db43a", spots:4, len:1.7, wid:0.24, bend:0.4, rot:0.6, stemC:"#5a7a2a" });
+add("pineapple", ["pineapple"], ["파인애플"], { f:"pineapple" });
+add("mango", ["mango"], ["망고"], { f:"round", c:"#f2b632", c2:"#d8432e", blush:0.65, blushA:-2.5, blushD:0.55, w:1.12, h:0.82, beak:0.14, beakA:0.4, gloss:0.5, stem:"tiny" });
+add("kiwi", ["kiwi", "kiwifruit"], ["키위", "참다래", "그린키위"], { f:"round", c:"#8a6a3c", w:1.0, h:0.78, tex:"fuzz", texC:"#c8a878", gloss:0.05, size:0.92 });
+add("avocado", ["avocado"], ["아보카도"], { f:"pear", c:"#2f4a22", c2:"#3e5a28", neck:0.6, h:2.25, cave:0.15, w:1.0, tex:"pebble", gloss:0.3, stemL:0.12, stemC:"#4a3a20" });
+add("coconut", ["coconut"], ["코코넛"], { f:"round", c:"#6f4a2a", w:1.0, h:0.96, tex:"fiber", gloss:0.05, top:"eyes" });
+add("fig", ["fig"], ["무화과"], { f:"pear", c:"#5b2f4a", c2:"#7d6a3a", neck:0.34, h:2.25, cave:0.55, w:1.0, tex:"bloom", gloss:0.25, stemL:0.18, stemC:"#5a6a2c" });
+add("papaya", ["papaya"], ["파파야"], { f:"pear", c:"#e8a83a", c2:"#7fa83a", neck:0.62, h:2.8, cave:0.05, w:0.9, gloss:0.45, stem:"none" });
+add("quince", ["quince", "chinese quince"], ["모과"], { f:"round", c:"#e2bf2a", w:0.98, h:1.1, lump:0.05, tex:"speckle", texC:"#b78e2a", gloss:0.35, stem:"tiny" });
+add("dragon fruit", ["dragon fruit", "pitaya", "dragonfruit"], ["용과"], { f:"round", c:"#d6337a", w:0.9, h:1.12, gloss:0.45, tex:"dragon" });
+add("passion fruit", ["passion fruit", "passionfruit"], ["패션프루트", "백향과"], { f:"round", c:"#4a1f3e", w:1, h:0.95, tex:"wrinkle", gloss:0.35, stem:"tiny", size:0.85 });
+add("lychee", ["lychee", "litchi"], ["리치"], { f:"round", c:"#c43a3e", w:0.96, h:1.0, tex:"bumpy", gloss:0.2, stem:"short", size:0.78 });
+add("jujube", ["jujube", "red date"], ["대추"], { f:"round", c:"#9a2a1e", c2:"#c8a43a", blush:0.4, blushA:-0.5, blushD:0.6, w:0.82, h:1.05, gloss:0.75, stem:"tiny", size:0.75 });
+/* vegetables */
+add("carrot", ["carrot", "carrots"], ["당근"], { f:"long", prof:"carrot", c:"#ee7a1c", c2:"#d9601a", len:1.7, wid:0.24, rot:0.55, bend:0.05, tex:"rings", gloss:0.35, top:"fronds" });
+add("daikon", ["daikon", "radish", "white radish", "korean radish"], ["무", "무우", "왜무"], { f:"long", prof:"daikon", c:"#f3f1e6", c2:"#b9d98a", c2Rev:true, c2From:0.72, c2To:0.95, len:1.65, wid:0.3, rot:0.45, tex:"speck", texC:"#d8d2b6", gloss:0.25, top:"daikonLeaves", tail:true, rootC:"#d8d0b8" });
+add("red radish", ["red radish", "radishes"], ["래디시", "적무", "빨간 무"], { f:"round", c:"#d8284a", c2:"#f6eef0", blushA:1.6, blushD:0.9, blush:0.35, w:0.95, h:0.95, gloss:0.65, top:"radish", size:0.82 });
+add("beet", ["beet", "beetroot"], ["비트"], { f:"round", c:"#7a1a3a", w:0.98, h:0.95, gloss:0.35, top:"radish", topC:"#4f7a33", size:0.9 });
+add("turnip", ["turnip"], ["순무"], { f:"round", c:"#f2eee4", c2:"#9a3a8a", blushA:-1.57, blushD:0.75, blush:0.55, w:1.04, h:0.88, gloss:0.4, top:"radish" });
+add("potato", ["potato", "potatoes"], ["감자"], { f:"round", c:"#c7a06a", w:1.15, h:0.8, lump:0.05, tex:"eyes", gloss:0.08 });
+add("sweet potato", ["sweet potato", "yam"], ["고구마"], { f:"long", prof:"spud", c:"#a8384e", len:1.55, wid:0.3, rot:0.95, bend:0.12, tex:"lumpy", gloss:0.2, tail:true, rootC:"#7a3040" });
+add("onion", ["onion", "yellow onion", "brown onion"], ["양파"], { f:"round", c:"#c98a3a", w:1.0, h:0.95, dip:0.02, gloss:0.45, top:"onion" });
+add("red onion", ["red onion", "purple onion"], ["적양파", "자색양파"], { f:"round", c:"#8a2a5a", w:1.0, h:0.92, gloss:0.45, top:"onion", rootC:"#c7b28a" });
+add("garlic", ["garlic", "garlic bulb"], ["마늘", "통마늘"], { f:"round", c:"#f2ebdf", c3:"#9a5a8a", w:1.0, h:0.88, lobes:7, lobeD:0.035, gloss:0.25, top:"garlic", rootC:"#c9b48c", size:0.95 });
+add("ginger", ["ginger", "ginger root"], ["생강"], { f:"ginger" });
+add("cucumber", ["cucumber"], ["오이", "백오이", "취청오이"], { f:"long", prof:"cuke", c:"#3f7a2c", c2:"#9cbf5a", c2From:0.75, c2To:1, len:1.75, wid:0.17, rot:0.6, bend:0.12, tex:"bumps", gloss:0.45, top:"stem", stemC:"#6c7a3a" });
+add("zucchini", ["zucchini", "courgette", "korean zucchini"], ["애호박", "주키니", "돼지호박"], { f:"long", prof:"zuke", c:"#7fb24a", c2:"#b9d47a", c2From:0.0, c2To:0.4, c2Rev:true, len:1.7, wid:0.22, rot:0.6, bend:0.06, tex:"speck", texC:"#e6f0c8", gloss:0.5, top:"stem", stemC:"#7a8a46" });
+add("pumpkin", ["pumpkin"], ["호박", "늙은호박"], { f:"round", c:"#e8771c", w:1.15, h:0.84, dip:0.14, bot:0.06, lobes:8, lobeD:0.05, ribs:8, gloss:0.35, stem:"thick", stemC:"#6f6a3a", size:1.05 });
+add("kabocha", ["kabocha", "squash", "kabocha squash", "sweet pumpkin"], ["단호박"], { f:"round", c:"#2f4a28", w:1.1, h:0.86, dip:0.12, bot:0.05, lobes:8, lobeD:0.035, ribs:8, tex:"speckle", texC:"#a8b878", gloss:0.35, stem:"thick", stemC:"#a89a6a" });
+add("eggplant", ["eggplant", "aubergine"], ["가지"], { f:"long", prof:"egg", c:"#3a1a48", len:1.7, wid:0.3, rot:0.55, bend:0.15, gloss:0.95, top:"calyx" });
+add("tomato", ["tomato", "tomatoes"], ["토마토", "완숙토마토"], { f:"round", c:"#d8281e", w:1.06, h:0.88, dip:0.07, lobes:5, lobeD:0.02, gloss:0.8, top:"star", sepals:6, sepalL:0.42 });
+add("cherry tomato", ["cherry tomato", "cherry tomatoes"], ["방울토마토", "대추방울토마토", "대추토마토", "미니토마토"], { f:"round", c:"#e02a22", w:1.0, h:0.95, dip:0.04, gloss:0.9, top:"star", sepals:5, sepalL:0.5, size:0.62 });
+add("bell pepper", ["bell pepper", "paprika", "red pepper", "capsicum", "sweet pepper"], ["파프리카", "피망"], { f:"pepper", c:"#d8231c" });
+add("chili", ["chili", "chilli", "chili pepper", "hot pepper", "green chili", "jalapeno"], ["고추", "청양고추", "풋고추", "꽈리고추"], { f:"long", prof:"chili", c:"#2f8a2a", len:1.55, wid:0.14, rot:0.5, bend:0.42, gloss:0.95, top:"chiliCap" });
+add("red chili", ["red chili", "red chilli"], ["홍고추", "빨간 고추"], { f:"long", prof:"chili", c:"#c81e1a", len:1.55, wid:0.14, rot:0.5, bend:0.42, gloss:0.95, top:"chiliCap" });
+add("cabbage", ["cabbage", "green cabbage"], ["양배추"], { f:"leafy", kind:"head", c:"#9cc46a", c2:"#e8f0c8" });
+add("red cabbage", ["red cabbage", "purple cabbage"], ["적양배추", "적채"], { f:"leafy", kind:"head", c:"#6a2a6a", c2:"#c8b0d8" });
+add("iceberg", ["iceberg lettuce", "iceberg"], ["양상추"], { f:"leafy", kind:"head", c:"#b8d88a", c2:"#f2f6dc", loose:true });
+add("napa cabbage", ["napa cabbage", "chinese cabbage", "kimchi cabbage"], ["배추", "알배추", "알배기배추"], { f:"leafy", kind:"napa", c:"#6fa83a", c2:"#f6f4e2" });
+add("bok choy", ["bok choy", "pak choi", "bok choi"], ["청경채"], { f:"leafy", kind:"bokchoy", c:"#3f7a2c", c2:"#e5efcf" });
+add("lettuce", ["lettuce", "leaf lettuce", "red leaf lettuce"], ["상추", "적상추", "꽃상추"], { f:"leafy", kind:"leaf", c:"#6aa83a", edgeC:"#9a2450", frill:0.13, crinkle:true, leafW:0.28 });
+add("perilla", ["perilla leaf", "perilla", "sesame leaf"], ["깻잎"], { f:"leafy", kind:"leaf", c:"#3f7a2a", serrate:true, leafW:0.3, shapeP:0.55 });
+add("kale", ["kale"], ["케일"], { f:"leafy", kind:"leaf", c:"#3a5f3a", frill:0.12, crinkle:true, leafW:0.22 });
+add("spinach", ["spinach"], ["시금치"], { f:"leafy", kind:"spinach", c:"#2f6a2a" });
+add("broccoli", ["broccoli"], ["브로콜리"], { f:"broccoli", c:"#3f6f2c" });
+add("cauliflower", ["cauliflower"], ["콜리플라워", "꽃양배추"], { f:"broccoli", c:"#f2ead2", white:true });
+add("corn", ["corn", "sweetcorn", "corn on the cob", "maize"], ["옥수수", "찰옥수수"], { f:"corn", c:"#f2c53d" });
+add("mushroom", ["mushroom", "button mushroom", "champignon"], ["버섯", "양송이", "양송이버섯"], { f:"mushroom", c:"#e8dcc4", c2:"#f2ead8", gloss:0.25 });
+add("shiitake", ["shiitake", "shiitake mushroom"], ["표고버섯", "표고"], { f:"mushroom", c:"#7a4a2c", c2:"#efe6d2", cracks:true, flat:true });
+add("green onion", ["green onion", "scallion", "spring onion"], ["대파", "파", "쪽파"], { f:"bundle", c:"#f4f6ea", c2:"#4f9a3a", c2From:0.35, c2To:0.6, c2Rev:true, n:3, len:1.95, wid:0.075, rot:0.6, split:true, tail:true, rootC:"#d8ccac" });
+add("leek", ["leek"], ["리크"], { f:"bundle", c:"#f2f4e2", c2:"#3f7a3a", c2From:0.4, c2To:0.62, c2Rev:true, n:1, len:1.9, wid:0.16, rot:0.6, split:true, tail:true, rootC:"#d8ccac" });
+add("asparagus", ["asparagus"], ["아스파라거스"], { f:"bundle", c:"#6a9a3a", c2:"#c8d89a", c2From:0.7, c2To:1, n:4, len:1.85, wid:0.06, rot:0.55, tips:true, prof:"thin", gloss:0.3 });
+add("celery", ["celery"], ["셀러리", "샐러리"], { f:"bundle", c:"#a8cc6a", c2:"#e2efc0", c2From:0.6, c2To:1, n:3, len:1.85, wid:0.1, rot:0.5, tex:"ridge", gloss:0.35, split:true });
+add("green beans", ["green beans", "string beans", "beans"], ["그린빈", "깍지콩", "줄기콩"], { f:"bundle", c:"#5f9a2c", n:3, len:1.6, wid:0.06, rot:0.6, spread:0.18, gap:0.05, prof:"pod", gloss:0.4 });
+add("peas", ["peas", "pea pod", "snow peas", "green peas"], ["완두콩", "완두", "콩깍지"], { f:"long", prof:"pod", c:"#6aa83a", len:1.5, wid:0.2, rot:0.7, bend:0.25, tex:"pod", peas:6, gloss:0.45, top:"stem", stemC:"#5f8a34" });
+add("okra", ["okra"], ["오크라"], { f:"long", prof:"okra", c:"#5f9a3a", len:1.5, wid:0.18, rot:0.55, bend:0.12, tex:"ridge", gloss:0.3, top:"stem", stemC:"#7a8a4a" });
+add("burdock", ["burdock", "burdock root", "gobo"], ["우엉"], { f:"long", prof:"thin", c:"#7a5a3a", len:1.95, wid:0.07, rot:0.6, bend:0.08, tex:"speck", texC:"#3f2a18", gloss:0.1 });
+add("lotus root", ["lotus root", "lotus"], ["연근"], { f:"lotus" });
+
+/* more of the market stall */
+add("durian", ["durian"], ["두리안"], { f:"round", c:"#9a9a3a", c2:"#c2ad4a", blush:0.6, w:0.98, h:1.1, spikes:38, spikeH:0.05, tex:"spiky", texC:"#8a8a32", spikeStep:16, gloss:0.08, stem:"thick", stemC:"#7a6a3a", size:1.04 });
+add("jackfruit", ["jackfruit"], ["잭프루트"], { f:"round", c:"#a8b03a", c2:"#c8b24a", w:0.88, h:1.28, spikes:60, spikeH:0.018, tex:"spiky", texC:"#9aa236", spikeStep:10, gloss:0.1, stem:"short", stemC:"#6a5a2a", size:1.05 });
+add("rambutan", ["rambutan"], ["람부탄"], { f:"round", c:"#c42a2a", w:0.95, h:1.02, tex:"hairy", texC:"#7aa82a", gloss:0.25, size:0.74 });
+add("mangosteen", ["mangosteen"], ["망고스틴"], { f:"round", c:"#4a1838", c2:"#6a2a4a", w:1.02, h:0.9, dip:0.04, gloss:0.5, top:"crown", topC:"#6a7a3a", stem:"tiny", stemC:"#6a5a2a", size:0.86 });
+add("guava", ["guava"], ["구아바"], { f:"round", c:"#a8c84a", c2:"#e8d88a", blush:0.5, blushA:-2.4, w:0.94, h:1.06, bot:0.04, tex:"speckle", texC:"#6f8a2a", gloss:0.35, stem:"tiny", size:0.9 });
+add("starfruit", ["starfruit", "star fruit", "carambola"], ["스타프루트", "카람볼라"], { f:"round", c:"#f0cc2e", w:1.16, h:0.74, point:0.15, ribs:4, gloss:0.7, stem:"tiny", stemC:"#6a5a2a" });
+add("blackberry", ["blackberry", "blackberries"], ["블랙베리"], { f:"cluster", kind:"raspberry", c:"#2a1230" });
+add("mulberry", ["mulberry", "mulberries"], ["오디", "뽕나무 열매"], { f:"cluster", kind:"raspberry", c:"#3a0f2a" });
+add("cranberry", ["cranberry", "cranberries"], ["크랜베리"], { f:"cluster", kind:"blueberries", c:"#b0182c" });
+add("aronia", ["aronia", "chokeberry", "chokeberries"], ["아로니아"], { f:"cluster", kind:"blueberries", c:"#24182a" });
+add("olive", ["olive", "olives", "green olive"], ["올리브"], { f:"round", c:"#6a7a2a", c2:"#8a9a3a", w:0.78, h:1.06, gloss:0.8, stem:"tiny", stemC:"#5a5a2a", size:0.62 });
+add("date", ["date", "dates", "date palm fruit", "medjool"], ["대추야자"], { f:"round", c:"#6a2a14", c2:"#8a4a1e", w:0.66, h:1.14, tex:"wrinkle", gloss:0.65, stem:"tiny", size:0.74 });
+add("maesil", ["green plum", "maesil", "ume", "japanese apricot"], ["매실", "청매실"], { f:"round", c:"#94c23a", c2:"#e2d44a", blush:0.4, w:0.96, h:1.0, dip:0.05, tex:"fuzz", gloss:0.2, crease:true, stem:"tiny", size:0.72 });
+add("chestnut", ["chestnut", "chestnuts"], ["밤", "알밤", "군밤"], { f:"round", c:"#6a3418", c2:"#c8a87a", blushA:1.57, blushD:0.85, blush:0.35, w:1.06, h:0.86, knob:0.24, bot:0.08, gloss:0.85, size:0.8 });
+add("blood orange", ["blood orange"], ["블러드오렌지"], { f:"round", c:"#e8682a", c2:"#b82a2a", blush:0.5, w:1, h:0.97, tex:"dimple", gloss:0.45, navel:true });
+add("gold kiwi", ["gold kiwi", "golden kiwi"], ["골드키위"], { f:"round", c:"#a8864a", w:1.0, h:0.82, point:0.04, tex:"fuzz", texC:"#d2b888", gloss:0.08, size:0.9 });
+add("kohlrabi", ["kohlrabi"], ["콜라비"], { f:"round", c:"#8a4aa0", c2:"#c8d89a", blushA:1.57, blushD:0.85, blush:0.4, w:1.0, h:0.92, gloss:0.5, top:"radish", topC:"#4f8a3a", tex:"speckle", texC:"#d8c0e0" });
+add("brussels sprouts", ["brussels sprouts", "brussels sprout", "sprouts"], ["방울양배추", "미니양배추", "브뤼셀 스프라우트"], { f:"leafy", kind:"head", c:"#7fae4a", c2:"#e2efb0" });
+add("radicchio", ["radicchio"], ["라디치오", "적치커리"], { f:"leafy", kind:"head", c:"#8a1e48", c2:"#f2e6ea" });
+add("romaine", ["romaine", "romaine lettuce", "cos lettuce"], ["로메인", "로메인 상추"], { f:"leafy", kind:"leaf", c:"#4f9a3a", frill:0.05, crinkle:true, leafW:0.22 });
+add("crown daisy", ["crown daisy", "chrysanthemum greens", "garland chrysanthemum"], ["쑥갓"], { f:"leafy", kind:"leaf", c:"#3f8a3a", frill:0.2, serrate:true, leafW:0.2 });
+add("basil", ["basil", "basil leaf"], ["바질"], { f:"leafy", kind:"leaf", c:"#3f8a2a", leafW:0.34, shapeP:0.5 });
+add("taro", ["taro", "taro root", "eddo"], ["토란"], { f:"round", c:"#7a5a3a", w:0.9, h:1.08, lump:0.04, tex:"fiber", gloss:0.05, top:"radish", topC:"#3f7a3a", size:0.82 });
+add("chinese yam", ["chinese yam", "korean yam", "nagaimo", "mountain yam"], ["마", "산마", "장마"], { f:"long", prof:"daikon", c:"#c2a474", len:1.75, wid:0.16, rot:0.55, bend:0.06, tex:"speck", texC:"#6a4a2a", gloss:0.08, tail:true, rootC:"#a88a5a" });
+add("bellflower root", ["bellflower root", "balloon flower root", "doraji"], ["도라지"], { f:"long", prof:"carrot", c:"#efe6d0", len:1.6, wid:0.14, rot:0.55, bend:0.12, tex:"rings", gloss:0.2, tail:true, rootC:"#d8ccb0" });
+add("deodeok", ["deodeok", "lance asiabell"], ["더덕"], { f:"long", prof:"carrot", c:"#b8a07a", len:1.55, wid:0.16, rot:0.6, bend:0.2, tex:"lumpy", gloss:0.08, tail:true, rootC:"#8a7a5a" });
+add("bitter melon", ["bitter melon", "bitter gourd", "goya"], ["여주"], { f:"long", prof:"cuke", c:"#5fa83a", c2:"#9ac85a", c2From:0.0, c2To:0.3, c2Rev:true, len:1.65, wid:0.21, rot:0.6, bend:0.1, tex:"lumpy", gloss:0.55, top:"stem", stemC:"#6a7a3a" });
+add("nogak", ["old cucumber", "nogak"], ["노각"], { f:"long", prof:"cuke", c:"#c8902a", len:1.6, wid:0.24, rot:0.6, bend:0.08, tex:"speck", texC:"#7a4a1a", gloss:0.2, top:"stem", stemC:"#7a6a3a" });
+add("shishito", ["shishito", "shishito pepper", "korean green pepper", "long green pepper"], ["오이고추", "아삭이고추"], { f:"long", prof:"chili", c:"#6aae3a", len:1.5, wid:0.18, rot:0.5, bend:0.25, gloss:0.9, top:"chiliCap" });
+add("shallot", ["shallot", "shallots"], ["샬롯", "샬럿"], { f:"round", c:"#b86a4a", w:0.82, h:1.1, gloss:0.45, top:"onion", size:0.76 });
+add("water parsley", ["water parsley", "minari", "water dropwort"], ["미나리"], { f:"bundle", c:"#c8dc8a", c2:"#3f8a3a", c2From:0.5, c2To:0.75, c2Rev:true, n:5, len:1.9, wid:0.035, rot:0.55, split:true, spread:0.12, gloss:0.3 });
+add("chives", ["chives", "garlic chives", "korean chives"], ["부추", "쪽부추"], { f:"bundle", c:"#e8f0d2", c2:"#3f8a34", c2From:0.12, c2To:0.3, c2Rev:true, n:7, len:1.95, wid:0.026, rot:0.6, spread:0.1, gloss:0.35 });
+add("garlic scape", ["garlic scape", "garlic scapes"], ["마늘쫑", "마늘종"], { f:"bundle", c:"#7fae4a", n:3, len:1.85, wid:0.04, rot:0.6, spread:0.16, prof:"thin", tips:true, gloss:0.4 });
+add("bean sprouts", ["bean sprouts", "soybean sprouts", "mung bean sprouts"], ["콩나물", "숙주", "숙주나물"], { f:"bundle", c:"#f6f2e2", n:7, len:1.45, wid:0.028, rot:0.55, spread:0.15, heads:true, headC:"#ecd24a", headW:1.5, headL:1.9, headSplit:true, gloss:0.45, tail:true, rootC:"#e8e0c8" });
+add("enoki", ["enoki", "enoki mushroom", "enokitake"], ["팽이버섯", "팽이"], { f:"bundle", c:"#f4f0e0", c2:"#cdb98a", c2From:0.82, c2To:1, n:9, len:1.7, wid:0.024, rot:0.5, spread:0.09, heads:true, headC:"#f2ecd8", headW:1.7, headL:1.3, gloss:0.3 });
+add("king oyster", ["king oyster mushroom", "king oyster", "king trumpet"], ["새송이버섯", "새송이"], { f:"mushroom", c:"#a8865a", c2:"#f4eedc", flat:true });
+add("oyster mushroom", ["oyster mushroom", "oyster mushrooms"], ["느타리버섯", "느타리"], { f:"mushroom", c:"#8a8478", c2:"#efe8da", flat:true });
+add("pine mushroom", ["pine mushroom", "matsutake"], ["송이버섯", "송이"], { f:"mushroom", c:"#8a6a4a", c2:"#f0e6d2", cracks:true });
+
+/* colours you can ask for, in either language */
+const COLOR_WORDS = [
+  [["red", "빨간", "빨강", "붉은"], "#d0261e"], [["yellow", "노란", "노랑"], "#f2c21a"], [["orange", "주황", "주황색"], "#f07a1a"],
+  [["green", "초록", "초록색", "녹색", "파란"], "#3f8a2c"], [["purple", "보라", "보라색", "자주"], "#5a2060"], [["white", "하얀", "흰"], "#f0eee6"],
+];
+
+/* ---- understanding a name ---- */
+const norm = (w) => String(w || "").toLowerCase().normalize("NFC").replace(/[\s\-_.,!?'"“”‘’()]+/g, " ").trim()
+  .replace(/^(a|an|the|some|one|two|three) /, "").replace(/(요|이요|입니다|이에요|예요)$/, "").trim();
+const singular = (w) => w.replace(/ies$/, "y").replace(/(oes)$/, "o").replace(/(ches|shes)$/, (m) => m.slice(0, -2)).replace(/([^s])s$/, "$1");
+const INDEX = [];
+for (const k in P) for (const nm of P[k].names) INDEX.push([norm(nm), k]);
+INDEX.sort((a, b) => b[0].length - a[0].length);              /* longest names first: "green apple" before "apple" */
+function lookup(word){
+  const w = norm(word); if (!w) return null;
+  const ws = singular(w), compact = w.replace(/ /g, "");
+  for (const [nm, k] of INDEX) if (nm === w || nm === ws || nm.replace(/ /g, "") === compact) return k;
+  for (const [nm, k] of INDEX){
+    if (nm.length < 2) continue;
+    if (/^[a-z ]+$/.test(nm)){ if ((" " + ws + " ").includes(" " + nm + " ") || (" " + w + " ").includes(" " + nm + " ")) return k; }
+    else if (compact.includes(nm.replace(/ /g, ""))) return k;
+  }
+  /* a single Korean syllable name (배, 감, 무, 파) only when it stands alone or with a colour word */
+  return null;
+}
+function colorIn(word){
+  const w = norm(word);
+  for (const [names, hex] of COLOR_WORDS) for (const n of names) if (w.startsWith(n) || w.includes(" " + n) || w.startsWith(n + " ")) return hex;
+  return null;
+}
+
+/* the same lookup, but also says whether the whole phrase was accounted for
+   (a name, perhaps with a colour word) and which colour was asked for outside the name */
+function lookupEx(word){
+  const w = norm(word); if (!w) return null;
+  const ws = singular(w), compact = w.replace(/ /g, "");
+  for (const [nm, k] of INDEX) if (nm === w || nm === ws || nm.replace(/ /g, "") === compact) return { key:k, exact:true, color:null };
+  for (const [nm, k] of INDEX){
+    if (nm.length < 2 && !/^[a-z]+$/.test(nm)){
+      /* a one-syllable Korean name only with nothing but a colour word beside it */
+      const toks = w.split(" "); if (!toks.includes(nm)) continue;
+      const rest = toks.filter(t => t !== nm);
+      if (rest.length && rest.every(isColourTok)) return { key:k, exact:true, color:colorIn(rest.join(" ")) };
+      continue;
+    }
+    let rest = null;
+    if (/^[a-z ]+$/.test(nm)){
+      for (const v of [ws, w]) if ((" " + v + " ").includes(" " + nm + " ")){ rest = (" " + v + " ").replace(" " + nm + " ", " ").trim(); break; }
+    } else if (compact.includes(nm.replace(/ /g, ""))) rest = w.replace(nm, " ").replace(compact === w ? "" : nm.replace(/ /g, ""), " ").trim();
+    if (rest === null) continue;
+    const toks = rest.split(/ +/).filter(Boolean);
+    const exact = toks.every(isColourTok);
+    return { key:k, exact, color:toks.length ? colorIn(rest) : null };
+  }
+  return null;
+}
+function isColourTok(t){
+  if (/^(a|an|the|one|fresh|ripe|big|small|little|large|whole|raw|신선한|잘익은|익은|큰|작은|커다란|하나|한|개|색|색의)$/.test(t)) return true;
+  for (const [names] of COLOR_WORDS) for (const n of names) if (t === n || t.startsWith(n)) return true;
+  return false;
+}
+
+/* ---- paint one onto a canvas ---- */
+const FIT = { cherry_tomato:0.72, "cherry tomato":0.72, blueberry:0.8, lychee:0.78, jujube:0.74, kiwi:0.86, lime:0.86, apricot:0.84, plum:0.86, "red radish":0.9, garlic:0.9, "passion fruit":0.84 };
+function paint(canvas, key, opts = {}){
+  const item = P[key]; if (!item) return false;
+  /* paint large, off to the side, then fit whatever came out into the frame */
+  const S = 512, PAD = 160, off = document.createElement("canvas"); off.width = off.height = S + PAD * 2;
+  const g = off.getContext("2d", { willReadFrequently:true })   /* software canvas: thousands of small strokes, then one read-back */; g.translate(PAD, PAD);
+  let spec = { ...item.spec, ...(opts.spec || {}) };
+  if (opts.color && ["round", "long", "pepper", "cluster", "pear", "banana"].includes(spec.f)) spec = { ...spec, c:opts.color, c2:spec.f === "round" ? undefined : spec.c2 };
+  let h = 0; const sd = (opts.seed ?? key) + ""; for (let i = 0; i < sd.length; i++) h = (h * 31 + sd.charCodeAt(i)) >>> 0;
+  const R = rng(h || 7);
+  const fam = { round:paintRound, long:paintLong, banana:paintBanana, pear:paintPear, strawberry:paintStrawberry, cluster:paintCluster,
+                leafy:paintLeafy, broccoli:paintBroccoli, corn:paintCorn, pineapple:paintPineapple, pepper:paintPepper, mushroom:paintMushroom,
+                bundle:paintBundle, ginger:paintGinger, lotus:paintLotus }[spec.f];
+  if (!fam) return false;
+  g.save(); fam(g, spec, R, S); g.restore();
+  const N = off.width, d = g.getImageData(0, 0, N, N).data;
+  let x0 = N, y0 = N, x1 = 0, y1 = 0;
+  for (let y = 0; y < N; y += 2) for (let x = 0; x < N; x += 2) if (d[(y * N + x) * 4 + 3] > 10){ if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 <= x0) return false;
+  const T = canvas.width, out = canvas.getContext("2d"), bw = x1 - x0 + 2, bh = y1 - y0 + 2;
+  const k = Math.min(T * 0.9 / bw, T * 0.9 / bh) * (FIT[key] ?? 1);
+  out.clearRect(0, 0, T, T);
+  out.imageSmoothingQuality = "high";
+  out.drawImage(off, x0, y0, bw, bh, (T - bw * k) / 2, (T - bh * k) / 2, bw * k, bh * k);
+  return true;
+}
+return { paint, lookup, lookupEx, colorIn, P, keys:Object.keys(P), norm };
+})();
+
+
+const nameOf = (key) => {
+  const it = PRODUCE.P[key]; if (!it) return key;
+  const pick = (v) => Array.isArray(v) ? v[0] : v;
+  return LANG === "ko" ? (pick(it.ko) || pick(it.en) || key) : (pick(it.en) || key);
+};
+
+/* ---- Claude only answers what the shelf cannot: is it produce, and what does it look like ---- */
+let sampler = null, samplerTried = false;
+async function getSampler(){
+  if (samplerTried) return sampler;
+  samplerTried = true;
+  try{
+    const api = window.claude || (window.parent && window.parent !== window && window.parent.claude);
+    sampler = api && api.use ? await api.use("sample") : null;
+  } catch(e){ sampler = null; }
+  return sampler;
+}
+/* what Claude may set when it designs a drawing: every knob of the painter, with its range */
+const HEX = "hex", BOOL = "bool";
+const COMMON = { c:HEX, c2:HEX, gloss:[0, 1] };
+const SCHEMA = {
+  round:{ ...COMMON, c3:HEX, texC:HEX, stemC:HEX, leafC:HEX, topC:HEX, blush:[0, 1], blushA:[-3.2, 3.2], blushD:[0, 1],
+          w:[0.6, 1.4], h:[0.55, 1.4], dip:[0, 0.2], bot:[0, 0.12], point:[0, 0.3], knob:[0, 0.3], beak:[0, 0.3], beakA:[-3.2, 3.2],
+          lobes:[0, 10, 1], lobeD:[0, 0.06], lump:[0, 0.08], ribs:[0, 12, 1], spikes:[0, 70, 1], spikeH:[0, 0.08], spikeStep:[8, 20],
+          stripes:[0, 14, 1], leaf:[0, 2, 1], leafL:[0.3, 1], leafW:[0.1, 0.35], sepals:[3, 8, 1], sepalL:[0.2, 0.6], size:[0.6, 1.2],
+          crease:BOOL, navel:BOOL, streak:BOOL,
+          tex:["smooth", "dimple", "speckle", "lenticel", "fuzz", "bloom", "net", "stripe", "groove", "eyes", "bumpy", "pebble", "fiber", "wrinkle", "spiky", "hairy", "dragon"],
+          stem:["none", "tiny", "short", "long", "thick"], top:["none", "star", "crown", "pom", "onion", "garlic", "radish", "eyes"] },
+  long:{ ...COMMON, texC:HEX, stemC:HEX, rootC:HEX, c2From:[0, 1], c2To:[0, 1], c2Rev:BOOL, len:[1.2, 2], wid:[0.06, 0.36], rot:[0.3, 1.2],
+         bend:[0, 0.5], spots:[0, 20, 1], peas:[0, 9, 1], tail:BOOL,
+         prof:["carrot", "cuke", "zuke", "egg", "chili", "daikon", "spud", "pod", "okra", "thin"],
+         tex:["smooth", "rings", "bumps", "ridge", "speck", "lumpy", "pod"], top:["none", "fronds", "daikonLeaves", "roots", "stem", "calyx", "chiliCap"] },
+  pear:{ ...COMMON, texC:HEX, stemC:HEX, leafC:HEX, blushC:HEX, neck:[0.25, 0.8], h:[2.0, 3.0], cave:[0, 0.7], w:[0.8, 1.1], stemL:[0.08, 0.5], leaf:BOOL,
+         tex:["smooth", "speckle", "lenticel", "fuzz", "bloom", "pebble"], stem:["none", "tiny", "short"] },
+  banana:{ ...COMMON, stemC:HEX, spots:[0, 24, 1], len:[1.2, 1.9], wid:[0.14, 0.3], bend:[0.2, 0.7], n:[1, 3, 1] },
+  cluster:{ ...COMMON, kind:["grapes", "cherries", "blueberries", "raspberry"] },
+  leafy:{ ...COMMON, edgeC:HEX, frill:[0, 0.22], crinkle:BOOL, serrate:BOOL, leafW:[0.16, 0.36], shapeP:[0.4, 0.7], loose:BOOL,
+          kind:["head", "napa", "bokchoy", "leaf", "spinach"] },
+  bundle:{ ...COMMON, rootC:HEX, headC:HEX, c2From:[0, 1], c2To:[0, 1], c2Rev:BOOL, n:[1, 9, 1], len:[1.3, 2], wid:[0.02, 0.18], rot:[0.3, 1],
+           spread:[0, 0.2], split:BOOL, tail:BOOL, tips:BOOL, heads:BOOL, prof:["thin", "pod"], tex:["smooth", "ridge"] },
+  mushroom:{ ...COMMON, cracks:BOOL, flat:BOOL },
+  broccoli:{ c:HEX, white:BOOL }, pepper:{ c:HEX }, strawberry:{ c:HEX }, corn:{ c:HEX }, ginger:{ c:HEX }, lotus:{ c:HEX }, pineapple:{},
+};
+function cleanSpec(fam, raw){
+  const sch = SCHEMA[fam], out = {};
+  if (!sch || !raw || typeof raw !== "object") return out;
+  for (const k of Object.keys(raw)){
+    const rule = sch[k], v = raw[k];
+    if (!rule || v === null || v === undefined) continue;
+    if (rule === HEX){ if (typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v)) out[k] = v; }
+    else if (rule === BOOL){ if (typeof v === "boolean") out[k] = v; }
+    else if (typeof rule[0] === "string"){ if (rule.includes(v)) out[k] = v; }
+    else if (typeof v === "number" && Number.isFinite(v)){ let x = Math.max(rule[0], Math.min(rule[1], v)); if (rule[2]) x = Math.round(x); out[k] = x; }
+  }
+  return out;
+}
+/* the catalogue Claude chooses from, grouped by kind of drawing, with one full example of each */
+const CATALOGUE = (() => {
+  const by = {};
+  for (const k of PRODUCE.keys){ const f = PRODUCE.P[k].spec.f; (by[f] = by[f] || []).push(k); }
+  return Object.keys(by).map(f => {
+    const ex = by[f][0], spec = { ...PRODUCE.P[ex].spec }; delete spec.f;
+    const knobs = Object.entries(SCHEMA[f] || {}).map(([k, r]) => k + (r === HEX ? ":#rrggbb" : r === BOOL ? ":bool" : typeof r[0] === "string" ? ":" + r.join("|") : `:${r[0]}..${r[1]}`)).join(", ");
+    return `[${f}] keys: ${by[f].join(", ")}\n  e.g. "${ex}": ${JSON.stringify(spec)}\n  knobs: ${knobs || "(none)"}`;
+  }).join("\n");
+})();
+
+async function askClaude(word){
+  const s = await getSampler();
+  if (!s) return null;
+  const prompt =
+`A museum installation lets visitors tape ONE real fruit or vegetable to a wall; a painter program draws it as a realistic 2D still-life.
+A visitor typed:
+"${word.replace(/"/g, "'")}"
+It may be Korean or English, singular or plural, with typos, a colour word or a variety name.
+
+STEP 1 — Is it a real, edible fruit or vegetable as sold whole? (mushrooms, roots, tubers, pods, sprouts, leafy greens and fresh herbs count)
+It is NOT if it is a dish, drink, juice, sweet, processed food (kimchi, jam, chips, dried snacks), grain or flour, an animal, a person,
+a brand or device (an Apple watch), a place, or a word that merely contains a fruit name (사과문 = an apology, 배꼽 = a navel, banana phone).
+
+STEP 2 — If it is produce, design its drawing. Pick "like": the key whose drawing is closest in shape (same kind of drawing),
+then give "spec": only the knobs that must change so the picture is unmistakably this item — its true outer colours (c = main skin, c2 = second colour/blush),
+proportions, texture, top (stem, leaves, calyx), size. Keep values inside the ranges. Leave "spec" empty if the key already shows exactly this item.
+
+${CATALOGUE}
+
+Reply with JSON only, no prose:
+{"produce": true|false, "en": "common English name, lowercase", "ko": "common Korean name", "like": "<key>", "spec": { ... }}`;
+  for (const tier of ["default", "quick"]){
+    try{
+      const d = await s.json(prompt, { modelTier:tier, cache:true });
+      if (!d || typeof d.produce !== "boolean") continue;
+      if (!d.produce) return { produce:false };
+      const named = [d.en, d.ko].filter(v => typeof v === "string" && v.trim());
+      const label = String((LANG === "ko" ? d.ko : d.en) || named[0] || word).slice(0, 28);
+      /* a name the shelf knows exactly is painted from the shelf: hand-tuned beats improvised */
+      for (const n of named){ const h = PRODUCE.lookupEx(n); if (h && h.exact) return { produce:true, key:h.key, color:h.color, label }; }
+      const like = typeof d.like === "string" ? d.like.trim().toLowerCase() : "";
+      if (!PRODUCE.P[like]) continue;
+      const spec = cleanSpec(PRODUCE.P[like].spec.f, d.spec);
+      return { produce:true, key:like, spec, label, designed:true };
+    } catch(e){ if (e && (e.code === "not_granted" || e.code === "rate_limited")) break; }
+  }
+  return null;
+}
+
+/* the shelf first; Claude for anything the shelf only half-knows or does not know */
+async function resolve(raw){
+  const hit = PRODUCE.lookupEx(raw);
+  /* keep the visitor's own words when they are in the page's language ("red pepper", "노란 파프리카") */
+  const sameScript = LANG === "ko" ? /[\uac00-\ud7a3]/.test(raw) : !/[\uac00-\ud7a3]/.test(raw);
+  if (hit && hit.exact) return { key:hit.key, color:hit.color, label:sameScript ? raw.toLowerCase() : nameOf(hit.key) };
+  setHint(LANG === "ko" ? `“${raw}” 찾아보는 중 …` : `Looking up “${raw}” …`);
+  const ai = await askClaude(raw);
+  if (ai) return ai.produce ? ai : { reject:true };
+  if (hit) return { key:hit.key, color:hit.color, label:nameOf(hit.key) };
+  return { unknown:true };
+}
+
+function setHint(t){ $("maker-hint").textContent = t; }
+
+$("make").onclick = build;
+$("word").addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) build(); });
+$("again").onclick = () => { $("word").value = ""; $("word").focus(); };
+
+async function build(){
+  const raw = $("word").value.trim().replace(/\s+/g, " ");
+  if (!raw){ toast("Name a fruit or a vegetable."); return; }
+  if (busy) return;
+  busy = true; SFX.unlock();
+  const ko = LANG === "ko";
+  $("make").textContent = L("Painting…"); $("make").disabled = true;
+  setHint(ko ? `“${raw}” 그리는 중 …` : `Painting “${raw}” …`);
+  const T = addThing(raw);
+  const t0 = performance.now();
+  let r;
+  try { r = await resolve(raw); } catch(e){ r = { unknown:true }; }
+  if (r.reject || r.unknown){
+    removeThing(T, true);
+    toast(ko ? `과일이나 채소만 붙일 수 있어요 — “${raw}” 대신 배, 고추, 배추 같은 걸 적어 보세요.`
+             : r.reject ? `“${raw}” isn't a fruit or a vegetable — try a pear, a chilli or a cabbage.`
+                        : `I can't paint “${raw}” yet — try a pear, a chilli or a cabbage.`);
+    setHint(L("Type a fruit or vegetable — a tangerine, a carrot, a banana"));
+  } else {
+    setHint(ko ? `“${r.label}” 그리는 중 …` : `Painting “${r.label}” …`);
+    /* let the sketch run a moment: the painting should feel made, not fetched */
+    const left = 700 - (performance.now() - t0); if (left > 0) await wait(left);
+    await paintThing(T, r);
+    $("again").hidden = false;
+    setHint(ko ? `“${r.label}” — 다 그렸습니다. 벽으로 끌어다 놓으세요. 다른 이름을 적으면 함께 놓입니다.`
+               : `“${r.label}” — painted. Drag it onto the wall. Name another and it joins the first.`);
+    $("word").value = "";
+    step(2); SFX.made();
+  }
+  $("make").textContent = L("Paint it"); $("make").disabled = false;
+  $("word").focus();
+  busy = false;
+}
+
+/* a fresh canvas, side by side with the ones already there, sketching until the paint arrives */
+function addThing(word){
+  const el = document.createElement("div");
+  el.className = "thing loading";
+  const cv = document.createElement("canvas"); cv.width = cv.height = 512;
+  const lab = document.createElement("span"); lab.className = "label mono"; lab.textContent = word;
+  const kill = document.createElement("button");
+  kill.className = "kill"; kill.textContent = "×"; kill.title = L("Take it away");
+  kill.setAttribute("aria-label", LANG === "ko" ? `${word} 치우기` : "Remove " + word);
+  el.append(cv, lab, kill);
+  /* free spots along the wall, centre first, kept clear of the toolbar */
+  const n = things.length, vw = window.innerWidth, narrow = vw < 600, wide = vw > 900;
+  const half = narrow ? 66 : vw <= 900 ? 78 : 128, lo = half + 8, hi = vw - half - (wide ? 250 : 8);
+  const gap = half * 2.05, mid = (lo + hi) / 2, slots = Math.max(1, Math.floor((hi - lo) / gap) + 1);
+  const idx = n % slots, row = Math.floor(n / slots) % 3;
+  const order = Array.from({ length:slots }, (_, i) => i).sort((a, b) => Math.abs(a - (slots - 1) / 2) - Math.abs(b - (slots - 1) / 2) || a - b);
+  let x = mid + (order[idx] - (slots - 1) / 2) * gap + (row % 2 ? gap / 2 : 0);
+  if (x > hi) x -= gap;
+  el.style.left = Math.max(lo, Math.min(hi, x)) + "px";
+  el.style.top = (window.innerHeight * (narrow ? 0.5 : 0.44) + (-row * half * 1.05) + (idx % 2) * 14) + "px";
+  $("room").appendChild(el);
+  const T = { el, cv, ctx: cv.getContext("2d"), word, label:word, placed:false, taped:false, tape:null, loading:true, t0:performance.now() };
+  things.push(T);
+  kill.addEventListener("pointerdown", e => e.stopPropagation());
+  kill.addEventListener("click", e => { e.stopPropagation(); removeThing(T); });
+  el.addEventListener("pointerdown", e => { if (!T.loading) startDrag(e, T); });
+  sketch(T);
+  return T;
+}
+
+/* while it loads: a graphite outline circling itself, the way a still life starts */
+function sketch(T){
+  if (!T.loading || !T.el.isConnected) return;
+  const g = T.ctx, W = T.cv.width, t = (performance.now() - T.t0) / 1000;
+  g.clearRect(0, 0, W, W);
+  g.save(); g.translate(W / 2, W / 2);
+  g.lineCap = "round";
+  for (let k = 0; k < 3; k++){
+    const a0 = t * (1.6 + k * 0.35) + k * 2.1, len = 1.2 + Math.sin(t * 1.3 + k) * 0.5;
+    const r = W * (0.27 + k * 0.035) + Math.sin(t * 2 + k) * 4;
+    g.strokeStyle = `rgba(40,36,30,${0.32 - k * 0.07})`; g.lineWidth = 3.2 - k * 0.7;
+    g.beginPath();
+    for (let i = 0; i <= 40; i++){
+      const a = a0 + (i / 40) * len * Math.PI, wob = Math.sin(a * 5 + k) * 3;
+      const x = Math.cos(a) * (r + wob), y = Math.sin(a) * (r * 0.92 + wob);
+      i ? g.lineTo(x, y) : g.moveTo(x, y);
+    }
+    g.stroke();
+  }
+  g.fillStyle = "rgba(40,36,30,.42)";
+  for (let i = 0; i < 3; i++){
+    const s = 0.5 + 0.5 * Math.sin(t * 5 - i * 0.8);
+    g.beginPath(); g.arc((i - 1) * 22, 0, 4.5 + s * 2.5, 0, Math.PI * 2); g.globalAlpha = 0.35 + s * 0.65; g.fill();
+  }
+  g.restore(); g.globalAlpha = 1;
+  requestAnimationFrame(() => sketch(T));
+}
+
+/* paint off-screen, then wash it onto the canvas from the light's side */
+function paintThing(T, r){
+  return new Promise(res => {
+    const off = document.createElement("canvas"); off.width = off.height = T.cv.width;
+    let ok = PRODUCE.paint(off, r.key, { color:r.color || undefined, spec:r.spec, seed:(r.label || r.key) + (r.color || "") });
+    if (!ok && r.spec) ok = PRODUCE.paint(off, r.key, { seed:r.key });          /* a design that came out empty: fall back to the shelf's own */
+    T.loading = false; T.el.classList.remove("loading");
+    T.word = r.label; T.key = r.key;
+    T.el.querySelector(".label").textContent = r.label;
+    const kill = T.el.querySelector(".kill");
+    kill.setAttribute("aria-label", LANG === "ko" ? `${r.label} 치우기` : "Remove " + r.label);
+    const tilt = r.key.startsWith("banana") ? -16 : (Math.random() * 2 - 1) * 9;
+    T.cv.style.transform = `rotate(${tilt}deg)`;
+    const g = T.ctx, W = T.cv.width;
+    if (!ok){ g.clearRect(0, 0, W, W); res(); return; }
+    const dur = reduce ? 1 : 1100, start = performance.now();
+    (function frame(){
+      const p = Math.min(1, (performance.now() - start) / dur), e = 1 - Math.pow(1 - p, 3);
+      g.clearRect(0, 0, W, W);
+      g.drawImage(off, 0, 0);
+      if (p < 1){
+        const m = -0.35 + e * 1.7;
+        g.globalCompositeOperation = "destination-in";
+        const gr = g.createLinearGradient(0, 0, W, W);
+        gr.addColorStop(Math.max(0, Math.min(1, m - 0.3)), "rgba(0,0,0,1)");
+        gr.addColorStop(Math.max(0, Math.min(1, m + 0.05)), "rgba(0,0,0,0)");
+        g.fillStyle = gr; g.fillRect(0, 0, W, W);
+        g.globalCompositeOperation = "source-over";
+        requestAnimationFrame(frame);
+      } else res();
+    })();
+  });
+}
+
+function removeThing(T, quiet){
+  if (T.tape) T.tape.remove();
+  T.loading = false;
+  T.el.style.transition = "opacity .3s, transform .3s";
+  T.el.style.opacity = "0"; T.el.style.transform += " scale(.86)";
+  setTimeout(() => T.el.remove(), 300);
+  const i = things.indexOf(T); if (i >= 0) things.splice(i, 1);
+  if (!quiet) SFX.press();
+}
+
+/* ==========================================================================
+   3. carry it to the wall, tape it, peel it off
+   ========================================================================== */
+let dragging = null, grab = { x:0, y:0 }, tapeMode = false;
+function startDrag(e, T){
+  if (tapeMode) return;                       /* with tape in hand, dragging lays a strip instead */
+  if (T.taped){ peel(T); return; }            /* click a taped object to take the tape off */
+  dragging = T; T.el.classList.add("dragging");
+  const r = T.el.getBoundingClientRect();
+  grab = { x:e.clientX - (r.left + r.width / 2), y:e.clientY - (r.top + r.height / 2) };
+  T.el.setPointerCapture(e.pointerId);
+}
+window.addEventListener("pointermove", e => {
+  if (!dragging) return;
+  dragging.el.style.left = (e.clientX - grab.x) + "px";
+  dragging.el.style.top = (e.clientY - grab.y) + "px";
+});
+window.addEventListener("pointerup", () => {
+  if (!dragging) return;
+  const T = dragging; dragging = null; T.el.classList.remove("dragging");
+  const r = T.el.getBoundingClientRect(), wallH = window.innerHeight * 0.74;
+  if (r.top + r.height / 2 < wallH - 40){
+    T.placed = true; T.spinning = false;
+    if (!T.taped) toast("Now take the tape and drag a strip across it.");
+  } else {
+    T.placed = false; drop(T);
+  }
+});
+function drop(T){
+  T.placed = false; T.spinning = true;
+  T.el.style.transition = "top .55s cubic-bezier(.5,0,.9,.6)";
+  T.el.style.top = (window.innerHeight * (0.84 + Math.random() * 0.06)) + "px";
+  setTimeout(() => { T.el.style.transition = ""; SFX.thud(); }, 520);
+}
+
+/* the tape you pull across the wall */
+let tapeStart = null, liveTape = null;
+$("t-tape").onclick = e => {
+  tapeMode = !tapeMode;
+  e.currentTarget.setAttribute("aria-pressed", String(tapeMode));
+  e.currentTarget.textContent = L(tapeMode ? "Tape in hand" : "Take the tape");
+  $("room").classList.toggle("taping", tapeMode);     /* strokes draw over the objects */
+  toast(tapeMode ? "Drag a strip across what you painted. Put the tape down to move or peel things."
+                 : "Tape back on the shelf — you can move things again.");
+};
+$("room").addEventListener("pointerdown", e => {
+  if (!tapeMode) return;
+  if (e.target.closest(".paper, .maker, .toolbar, #crate")) return;
+  SFX.unlock();
+  tapeStart = { x:e.clientX, y:e.clientY };
+  liveTape = document.createElement("div");
+  liveTape.className = "tape live";
+  liveTape.style.left = e.clientX + "px"; liveTape.style.top = e.clientY + "px";
+  liveTape.style.width = "0px"; liveTape.style.marginTop = "-27px";
+  $("room").appendChild(liveTape);
+  SFX.rip(.5);
+});
+$("room").addEventListener("pointermove", e => {
+  if (!liveTape) return;
+  const dx = e.clientX - tapeStart.x, dy = e.clientY - tapeStart.y;
+  liveTape.style.width = Math.hypot(dx, dy) + "px";
+  liveTape.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+  liveTape.dataset.dx = dx; liveTape.dataset.dy = dy;
+});
+$("room").addEventListener("pointerup", () => {
+  if (!liveTape) return;
+  const w = parseFloat(liveTape.style.width);
+  if (w < 60){ liveTape.remove(); liveTape = null; tapeStart = null; return; }
+  const tr = liveTape.getBoundingClientRect();
+  const mx = (tr.left + tr.right) / 2, my = (tr.top + tr.bottom) / 2;
+  /* the nearest object on the wall that is not taped yet */
+  let best = null, bd = Infinity;
+  for (const T of things){
+    if (!T.placed || T.taped) continue;
+    const r = T.el.getBoundingClientRect();
+    const d = Math.hypot(r.left + r.width / 2 - mx, r.top + r.height / 2 - my);
+    if (d < r.width * 0.9 && d < bd){ bd = d; best = T; }
+  }
+  SFX.press();
+  if (best){
+    const r = best.el.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const ang = Math.atan2(parseFloat(liveTape.dataset.dy || 0), parseFloat(liveTape.dataset.dx || 1));
+    const len = Math.max(r.width * 1.22, 150);
+    liveTape.style.left = (cx - Math.cos(ang) * len / 2) + "px";
+    liveTape.style.top  = (cy - Math.sin(ang) * len / 2) + "px";
+    liveTape.style.width = len + "px";
+    liveTape.style.transform = `rotate(${ang}rad)`;
+    best.taped = true; best.tape = liveTape; best.el.classList.add("taped");
+    liveTape.classList.remove("live"); liveTape.classList.add("stuck");
+    liveTape.title = LANG === "ko" ? `“${best.word}”의 테이프 떼기` : `Peel the tape off “${best.word}”`;
+    liveTape.addEventListener("click", ev => { ev.stopPropagation(); peel(best); });
+    step(3); fadePapers();
+    best.el.style.filter = "drop-shadow(0 14px 14px rgba(0,0,0,.45))";
+    toast(things.filter(t => t.taped).length > 1
+      ? (LANG === "ko" ? `“${best.word}”도 붙었습니다. 지침에 하나뿐이라는 말은 없었죠.` : `“${best.word}” is up too. The instructions never said just one.`)
+      : "Taped. That is the whole work — and it is yours to repeat.");
+  } else {
+    const anyPlaced = things.some(t => t.placed && !t.taped);
+    toast(anyPlaced ? "A strip on the bare wall. Drag it across your fruit or vegetable." : "Put a fruit or vegetable on the wall first.");
+  }
+  liveTape = null; tapeStart = null;
+});
+function fadePapers(){
+  ["cert","instr"].forEach(id => { const el = $(id); if (el){ el.style.transition = "opacity .6s"; el.style.opacity = ".35"; } });
+}
+function peel(T){
+  if (!T.taped) return;
+  SFX.rip(.45);
+  if (T.tape){
+    const tp = T.tape;
+    tp.classList.add("peeling");
+    tp.style.transform += " translateY(-38px) rotate(-6deg)";
+    setTimeout(() => tp.remove(), 520);
+  }
+  T.taped = false; T.tape = null; T.el.classList.remove("taped");
+  setTimeout(() => drop(T), 200);
+  toast(LANG === "ko" ? `“${T.word}”을 떼어 냈습니다. 작품은 과일보다 오래 남습니다.` : `“${T.word}” comes off. The work survives the fruit.`);
+}
+$("t-peel").onclick = () => {
+  const up = things.filter(T => T.taped);
+  if (!up.length){ toast("Nothing is taped. Click a taped one to peel just that one."); return; }
+  up.forEach((T, i) => setTimeout(() => peel(T), i * 160));
+};
+$("t-clear").onclick = () => {
+  if (!things.length){ toast("Nothing to clear."); return; }
+  [...things].forEach(removeThing);
+  toast("The wall is bare again.");
+};
+$("t-sound").onclick = e => {
+  const on = e.currentTarget.getAttribute("aria-pressed") !== "true";
+  e.currentTarget.setAttribute("aria-pressed", String(on));
+  e.currentTarget.textContent = L(on ? "Sound on" : "Sound off");
+  SFX.setOn(on); SFX.unlock();
+};
+})();
+</script>
+</body>
+</html>

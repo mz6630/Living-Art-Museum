@@ -1,0 +1,11 @@
+# Firebase keys: kept on your machine (.env) and in GitHub Secrets, never in the repository
+.env
+.env.*
+!.env.example
+firebase-config.js
+
+# local tooling
+node_modules/
+_site/
+.DS_Store
+Thumbs.db

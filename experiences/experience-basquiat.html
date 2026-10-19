@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Notebook — Living Art Museum</title>
+<meta name="description" content="A pixel desk after Jean-Michel Basquiat: open the composition notebook, peel stickers of crowns and skulls, cut up a magazine, glue, write and rub out. Every page is kept for the next visitor. An experience from the Living Art Museum.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--serif:Fraunces,"Noto Serif KR",Georgia,serif;}
+html[lang="ko"]{--serif:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;}
+/* ==========================================================================
+   NOTEBOOK — after Jean-Michel Basquiat (1960–1988), in dots.
+   A desk you are allowed to make a mess of: a composition notebook that
+   opens like a real one, a binder of stickers (crowns, skulls, ©, teeth,
+   signs), a magazine to cut up, glue, an oilstick and an eraser.
+   Every page of the notebook is shared: what anyone sticks or writes on a
+   page stays there for the next visitor, like a guestbook.
+   All the pictures here — stickers, magazine, desk — are drawn from
+   scratch, dot by dot. None of Basquiat's works are reproduced.
+   ========================================================================== */
+:root{
+  --bg:#24170f; --ink:#f4efe4; --ink-dim:rgba(244,239,228,.7); --ink-faint:rgba(244,239,228,.44);
+  --yel:#f1bf2e; --red:#d6392b; --blue:#2d62b4;
+  --ease:cubic-bezier(.22,.68,.24,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{background:var(--bg);color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
+:focus-visible{outline:2px solid var(--yel);outline-offset:3px;border-radius:8px;}
+.glass{background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.05));
+  backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
+  border:1px solid rgba(255,255,255,.15);box-shadow:0 24px 60px -30px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.1);}
+#cv{position:fixed;left:0;top:0;display:block;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none;}
+body.fine #cv{cursor:none;}
+
+/* ---------- top bar (the site draws its own when this is embedded) ---------- */
+.top{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:20px;right:20px;z-index:10;display:flex;align-items:center;gap:14px;pointer-events:none;}
+.top > *{pointer-events:auto;}
+.logo{font-size:19px;font-weight:600;letter-spacing:-.018em;line-height:1;white-space:nowrap;text-decoration:none;color:var(--ink);}
+.title{margin-left:auto;text-align:right;max-width:44vw;}
+.title h1{font-family:var(--serif);font-size:16px;font-weight:600;line-height:1.25;}
+.title p{font-size:11.5px;color:var(--ink-dim);margin-top:2px;}
+body.embedded .top{display:none;}
+
+/* ---------- the tool bar ---------- */
+#bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:12;display:flex;align-items:center;gap:4px;padding:6px;border-radius:20px;max-width:calc(100% - 20px);}
+.sep{width:1px;align-self:stretch;margin:6px 4px;background:rgba(255,255,255,.14);}
+.tool{position:relative;display:grid;place-items:center;width:44px;height:44px;border-radius:14px;color:var(--ink-dim);}
+.tool img{width:32px;height:32px;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:none;}
+.tool:hover{background:rgba(255,255,255,.09);}
+.tool[aria-pressed="true"]{background:rgba(255,255,255,.88);}
+.tool .k{position:absolute;right:3px;bottom:2px;font-family:"JetBrains Mono",monospace;font-size:8.5px;color:rgba(0,0,0,.4);display:none;}
+body.fine .tool[aria-pressed="true"] .k{display:block;}
+#inks{display:none;align-items:center;gap:4px;padding:0 4px;}
+body.t-crayon #inks{display:flex;}
+.ink{width:22px;height:22px;border-radius:7px;border:2px solid rgba(255,255,255,.18);}
+.ink[aria-pressed="true"]{border-color:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.35);}
+.sz{height:30px;min-width:30px;padding:0 7px;border-radius:9px;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-dim);}
+.sz[aria-pressed="true"]{background:rgba(255,255,255,.16);color:var(--ink);}
+#nav{display:flex;align-items:center;gap:2px;}
+#nav button{width:34px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--ink-dim);}
+#nav button:hover{background:rgba(255,255,255,.09);color:var(--ink);}
+#nav button:disabled{opacity:.3;cursor:default;background:none;}
+#nav svg,.chip svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+#pg{min-width:66px;text-align:center;font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:11.5px;color:var(--ink);line-height:1.2;}
+#pg small{display:block;font-size:9.5px;color:var(--ink-faint);letter-spacing:.06em;}
+.chip{display:grid;place-items:center;width:38px;height:40px;border-radius:12px;color:var(--ink-dim);}
+.chip:hover{background:rgba(255,255,255,.09);color:var(--ink);}
+#snd[aria-pressed="false"] .on, #snd[aria-pressed="true"] .off{display:none;}
+
+/* ---------- hint, toast, about ---------- */
+#hint{position:fixed;left:50%;top:var(--hint-y,90px);transform:translate(-50%,-50%);z-index:11;padding:9px 15px;border-radius:999px;font-size:12.5px;color:var(--ink);white-space:nowrap;pointer-events:none;transition:opacity .4s;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;}
+#hint.off{opacity:0;}
+#toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translate(-50%,10px);z-index:13;padding:9px 15px;border-radius:14px;font-size:12.5px;line-height:1.4;color:var(--ink);opacity:0;pointer-events:none;transition:opacity .3s, transform .3s var(--ease);max-width:calc(100% - 24px);text-align:center;}
+#toast.on{opacity:1;transform:translate(-50%,0);}
+#about{position:fixed;right:20px;top:calc(76px + env(safe-area-inset-top,0px));width:340px;max-height:calc(100% - 170px);overflow:auto;z-index:20;border-radius:22px;padding:20px 20px 18px;display:none;}
+body.about #about{display:block;}
+#about .tag{font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);}
+#about h2{font-family:var(--serif);font-size:20px;font-weight:600;line-height:1.25;margin-top:8px;padding-right:24px;}
+#about p{font-size:12.5px;line-height:1.65;color:var(--ink-dim);margin-top:9px;}
+#about h3{font-size:12px;font-weight:600;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);}
+#about ol{margin:8px 0 0 18px;font-size:12.5px;line-height:1.6;color:var(--ink-dim);}
+#about .x{position:absolute;right:12px;top:12px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--ink-dim);}
+#about .x svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;}
+#about .store{margin-top:12px;font-size:11.5px;color:var(--ink-faint);}
+
+/* the keyboard's way in: an invisible text box that sits on the caret */
+#ime{position:fixed;left:0;top:0;width:2px;height:20px;opacity:0;font-size:16px;border:0;padding:0;resize:none;background:transparent;color:transparent;caret-color:transparent;z-index:1;}
+
+@media (max-width:760px){
+  #bar{gap:1px;padding:5px;border-radius:18px;bottom:calc(10px + env(safe-area-inset-bottom,0px));flex-wrap:wrap;justify-content:center;width:calc(100% - 16px);}
+  .tool{width:40px;height:40px;} .tool img{width:28px;height:28px;}
+  .sep{display:none;}
+  #inks{order:5;width:100%;justify-content:center;padding:2px 0 0;}
+  #about{left:10px;right:10px;width:auto;top:calc(64px + env(safe-area-inset-top,0px));}
+  #toast{bottom:calc(120px + env(safe-area-inset-bottom,0px));}
+}
+html[lang="ko"] #about .tag{letter-spacing:.04em;}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important;animation:none !important;} }
+</style>
+</head>
+<body>
+<canvas id="cv" aria-label=""></canvas>
+
+<header class="top">
+  <a class="logo" href="#" onclick="return false">Living Art Museum</a>
+  <div class="title"><h1 id="t-h"></h1><p id="t-p"></p></div>
+</header>
+
+<div id="hint" class="glass off"></div>
+<div id="toast" class="glass" role="status" aria-live="polite"></div>
+<textarea id="ime" maxlength="240" autocomplete="off" autocapitalize="off" spellcheck="false" aria-hidden="true" tabindex="-1"></textarea>
+
+<nav id="bar" class="glass">
+  <div id="tools" style="display:flex;gap:2px"></div>
+  <div id="inks"></div>
+  <span class="sep"></span>
+  <div id="nav">
+    <button id="pv" aria-label=""><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div id="pg"></div>
+    <button id="nx" aria-label=""><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
+  <span class="sep"></span>
+  <button class="chip" id="snd" aria-pressed="true" aria-label=""><svg class="on" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg><svg class="off" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
+  <button class="chip" id="info" aria-label=""><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
+</nav>
+
+<section id="about" class="glass" aria-labelledby="ab-h">
+  <button class="x" id="about-x" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="tag" id="ab-tag"></div>
+  <h2 id="ab-h"></h2>
+  <p id="ab-p1"></p>
+  <p id="ab-p2"></p>
+  <h3 id="ab-h3"></h3>
+  <ol id="ab-ol"></ol>
+  <p class="store" id="ab-store"></p>
+</section>
+
+<script>
+"use strict";
+/* ==========================================================================
+   0. BASICS
+   ========================================================================== */
+const LANG = (document.documentElement.lang || "en").toLowerCase().startsWith("ko") ? "ko" : "en";
+const T = (o) => (o && (o[LANG] ?? o.en)) || "";
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function rng(seed){ let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hstr(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+/* a colour as one 32-bit pixel (little-endian RGBA) */
+const C = (hex, al) => { const n = parseInt(hex.slice(1), 16); return ((Math.round((al ?? 1) * 255) << 24) | ((n & 255) << 16) | (((n >> 8) & 255) << 8) | ((n >> 16) & 255)) >>> 0; };
+const BAY = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+/* smooth value noise, for wood, marble and paper */
+function vh(x, y, s){ let h = Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263) + Math.imul(s | 0, 2147483647); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
+function vnoise(x, y, s){ const i = Math.floor(x), j = Math.floor(y), fx = x - i, fy = y - j, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
+  return lerp(lerp(vh(i, j, s), vh(i + 1, j, s), u), lerp(vh(i, j + 1, s), vh(i + 1, j + 1, s), u), v); }
+function fbm(x, y, s){ return vnoise(x, y, s) * .55 + vnoise(x * 2.1, y * 2.1, s + 7) * .3 + vnoise(x * 4.3, y * 4.3, s + 13) * .15; }
+
+/* the palette: the desk, the paper, and the colours he reached for */
+const P = {
+  k:C("#17130f"), k2:C("#3a332c"), w:C("#f7f3ea"), cr:C("#efe7d2"), lg:C("#d6d0c3"), gr:C("#9b958a"), dg:C("#5d5850"),
+  y:C("#f1bf2e"), y2:C("#c48e1a"), r:C("#d6392b"), r2:C("#93271d"), b:C("#2d62b4"), b2:C("#1d3f7a"), sky:C("#8fb8e0"),
+  g:C("#3f8a4a"), g2:C("#2a5e33"), o:C("#ec7a2a"), pk:C("#ec9aa6"), n:C("#7a5134"), n2:C("#4e3220"), sk:C("#c98b5e"),
+};
+
+/* ==========================================================================
+   1. A TINY PIXEL CANVAS — everything here is drawn a dot at a time
+   ========================================================================== */
+class PX {
+  constructor(w, h){ this.w = w; this.h = h; this.a = new Uint32Array(w * h); }
+  clear(){ this.a.fill(0); return this; }
+  set(x, y, c){ x = Math.floor(x); y = Math.floor(y); if (x < 0 || y < 0 || x >= this.w || y >= this.h) return; this.a[y * this.w + x] = c; }
+  get(x, y){ x = Math.floor(x); y = Math.floor(y); return (x < 0 || y < 0 || x >= this.w || y >= this.h) ? 0 : this.a[y * this.w + x]; }
+  rect(x, y, w, h, c){ for (let j = Math.floor(y); j < y + h; j++) for (let i = Math.floor(x); i < x + w; i++) this.set(i, j, c); return this; }
+  box(x, y, w, h, c){ this.rect(x, y, w, 1, c); this.rect(x, y + h - 1, w, 1, c); this.rect(x, y, 1, h, c); this.rect(x + w - 1, y, 1, h, c); return this; }
+  dot(x, y, c, th){ if (!th || th <= 1){ this.set(x, y, c); return; } const o = Math.floor((th - 1) / 2); for (let j = 0; j < th; j++) for (let i = 0; i < th; i++) this.set(x - o + i, y - o + j, c); }
+  line(x0, y0, x1, y1, c, th){ x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
+    const dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1, dy = -Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1; let e = dx + dy;
+    for (let n = 0; n < 5000; n++){ this.dot(x0, y0, c, th); if (x0 === x1 && y0 === y1) break; const e2 = 2 * e; if (e2 >= dy){ e += dy; x0 += sx; } if (e2 <= dx){ e += dx; y0 += sy; } }
+    return this; }
+  /* a line drawn by hand: it wanders a little */
+  wline(x0, y0, x1, y1, c, th, R, j){ j = j ?? .6; const n = Math.max(1, Math.round(Math.hypot(x1 - x0, y1 - y0) / 4)); let px = x0, py = y0;
+    for (let k = 1; k <= n; k++){ const t = k / n, x = x0 + (x1 - x0) * t + (k < n ? (R() - .5) * 2 * j : 0), y = y0 + (y1 - y0) * t + (k < n ? (R() - .5) * 2 * j : 0); this.line(px, py, x, y, c, th); px = x; py = y; }
+    return this; }
+  path(pts, c, th, R, j, close){ for (let i = 0; i < pts.length - (close ? 0 : 1); i++){ const a = pts[i], b = pts[(i + 1) % pts.length]; if (R) this.wline(a[0], a[1], b[0], b[1], c, th, R, j); else this.line(a[0], a[1], b[0], b[1], c, th); } return this; }
+  poly(pts, c){ let y0 = Infinity, y1 = -Infinity; for (const p of pts){ y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }
+    for (let y = Math.floor(y0); y <= Math.ceil(y1); y++){ const yc = y + .5, xs = [];
+      for (let i = 0; i < pts.length; i++){ const a = pts[i], b = pts[(i + 1) % pts.length]; if ((a[1] <= yc) !== (b[1] <= yc)) xs.push(a[0] + (yc - a[1]) / (b[1] - a[1]) * (b[0] - a[0])); }
+      xs.sort((p, q) => p - q);
+      for (let k = 0; k + 1 < xs.length; k += 2) for (let x = Math.ceil(xs[k] - .5); x + .5 < xs[k + 1]; x++) this.set(x, y, c); }
+    return this; }
+  ell(cx, cy, rx, ry, c){ for (let y = Math.floor(cy - ry); y <= cy + ry; y++) for (let x = Math.floor(cx - rx); x <= cx + rx; x++){ const u = (x + .5 - cx) / rx, v = (y + .5 - cy) / ry; if (u * u + v * v <= 1) this.set(x, y, c); } return this; }
+  disc(cx, cy, r, c){ return this.ell(cx, cy, r, r, c); }
+  ring(cx, cy, rx, ry, th, c){ for (let y = Math.floor(cy - ry); y <= cy + ry; y++) for (let x = Math.floor(cx - rx); x <= cx + rx; x++){
+      const u = (x + .5 - cx), v = (y + .5 - cy), o = (u / rx) ** 2 + (v / ry) ** 2, i = (u / Math.max(.1, rx - th)) ** 2 + (v / Math.max(.1, ry - th)) ** 2;
+      if (o <= 1 && i > 1) this.set(x, y, c); } return this; }
+  flood(x, y, c){ const t = this.get(x, y); if (t === c) return this; const st = [x, y];
+    while (st.length){ const j = st.pop(), i = st.pop(); if (i < 0 || j < 0 || i >= this.w || j >= this.h || this.a[j * this.w + i] !== t) continue; this.a[j * this.w + i] = c; st.push(i + 1, j, i - 1, j, i, j + 1, i, j - 1); }
+    return this; }
+  /* ordered dither: density f (0..1, or a function of x, y) of colour c */
+  dith(x, y, w, h, c, f){ for (let j = Math.floor(y); j < y + h; j++) for (let i = Math.floor(x); i < x + w; i++){ const d = typeof f === "function" ? f(i, j) : f; if (d * 16 > BAY[(j & 3) * 4 + (i & 3)] + .5) this.set(i, j, c); } return this; }
+  /* a ring of colour round everything already drawn (8-way) */
+  outline(c, n){ for (let k = 0; k < (n || 1); k++){ const b = this.a.slice(), W = this.w;
+      for (let y = 0; y < this.h; y++) for (let x = 0; x < W; x++){ if (b[y * W + x]) continue;
+        let hit = false; for (let dy = -1; dy <= 1 && !hit; dy++) for (let dx = -1; dx <= 1; dx++){ const X = x + dx, Y = y + dy; if (X >= 0 && Y >= 0 && X < W && Y < this.h && b[Y * W + X]){ hit = true; break; } }
+        if (hit) this.a[y * W + x] = c; } }
+    return this; }
+  /* swap one colour for another (to recolour a template) */
+  swap(from, to){ for (let i = 0; i < this.a.length; i++) if (this.a[i] === from) this.a[i] = to; return this; }
+  text(s, x, y, c, z){ return drawStr(this, s, x, y, c, z || 1, null); }
+  canvas(cv){ cv = cv || document.createElement("canvas"); if (cv.width !== this.w || cv.height !== this.h){ cv.width = this.w; cv.height = this.h; }
+    const g = cv.getContext("2d"), id = g.createImageData(this.w, this.h); new Uint32Array(id.data.buffer).set(this.a); g.putImageData(id, 0, 0); return cv; }
+}
+
+/* ==========================================================================
+   2. LETTERS — his capitals, five dots wide; Hangul is rasterised and
+      snapped to dots so it sits in the same hand
+   ========================================================================== */
+const F5 = {
+  A:[14,17,17,31,17,17,17], B:[30,17,17,30,17,17,30], C:[14,17,16,16,16,17,14], D:[30,17,17,17,17,17,30], E:[31,16,16,30,16,16,31],
+  F:[31,16,16,30,16,16,16], G:[14,17,16,23,17,17,15], H:[17,17,17,31,17,17,17], I:[14,4,4,4,4,4,14], J:[7,2,2,2,2,18,12],
+  K:[17,18,20,24,20,18,17], L:[16,16,16,16,16,16,31], M:[17,27,21,21,17,17,17], N:[17,17,25,21,19,17,17], O:[14,17,17,17,17,17,14],
+  P:[30,17,17,30,16,16,16], Q:[14,17,17,17,21,18,13], R:[30,17,17,30,20,18,17], S:[15,16,16,14,1,1,30], T:[31,4,4,4,4,4,4],
+  U:[17,17,17,17,17,17,14], V:[17,17,17,17,17,10,4], W:[17,17,17,21,21,21,10], X:[17,17,10,4,10,17,17], Y:[17,17,17,10,4,4,4], Z:[31,1,2,4,8,16,31],
+  0:[14,17,19,21,25,17,14], 1:[4,12,4,4,4,4,14], 2:[14,17,1,2,4,8,31], 3:[31,2,4,2,1,17,14], 4:[2,6,10,18,31,2,2],
+  5:[31,16,30,1,1,17,14], 6:[6,8,16,30,17,17,14], 7:[31,1,2,4,8,8,8], 8:[14,17,17,14,17,17,14], 9:[14,17,17,15,1,2,12],
+  ".":[0,0,0,0,0,12,12], ",":[0,0,0,0,12,4,8], "!":[4,4,4,4,4,0,4], "?":[14,17,1,2,4,0,4], "'":[12,4,8,0,0,0,0], '"':[10,10,0,0,0,0,0],
+  "-":[0,0,0,31,0,0,0], "+":[0,4,4,31,4,4,0], "=":[0,0,31,0,31,0,0], ":":[0,12,12,0,12,12,0], ";":[0,12,12,0,12,4,8],
+  "(":[2,4,8,8,8,4,2], ")":[8,4,2,2,2,4,8], "/":[0,1,2,4,8,16,0], "&":[12,18,20,8,21,18,13], "#":[10,10,31,10,31,10,10],
+  "$":[4,15,20,14,5,30,4], "%":[24,25,2,4,8,19,3], "*":[0,4,21,14,21,4,0], "@":[14,17,1,13,21,21,14],
+  "<":[2,4,8,16,8,4,2], ">":[8,4,2,1,2,4,8], "_":[0,0,0,0,0,0,31], "~":[0,0,8,21,2,0,0], "[":[14,8,8,8,8,8,14], "]":[14,2,2,2,2,2,14],
+  "^":[4,10,17,0,0,0,0], "|":[4,4,4,4,4,4,4], "\\":[0,16,8,4,2,1,0], "`":[8,4,0,0,0,0,0], "{":[6,4,4,8,4,4,6], "}":[12,4,4,2,4,4,12],
+};
+/* a few signs need seven dots across */
+const F7 = { "©":[62, 65, 93, 81, 93, 65, 62], "®":[62, 65, 93, 85, 89, 85, 62] };
+const GL = new Map();
+const rcv = document.createElement("canvas"); rcv.width = 32; rcv.height = 16; const rx = rcv.getContext("2d", { willReadFrequently:true });
+/* glyph: { w, h, top (rows above the baseline), bits } */
+function glyph(ch){
+  if (GL.has(ch)) return GL.get(ch);
+  let g;
+  const up = /[a-z]/.test(ch) ? ch.toUpperCase() : ch;
+  if (ch === " ") g = { w:3, h:1, top:0, bits:new Uint8Array(3) };
+  else if (F5[up] || F7[up]){
+    const rows = F5[up] || F7[up], N = F7[up] ? 7 : 5, top = 1 << (N - 1); let l = N, r = -1;
+    rows.forEach(v => { for (let i = 0; i < N; i++) if (v & (top >> i)){ l = Math.min(l, i); r = Math.max(r, i); } });
+    if (r < 0){ l = 0; r = 2; }
+    const w = r - l + 1, bits = new Uint8Array(w * 7);
+    rows.forEach((v, y) => { for (let i = l; i <= r; i++) if (v & (top >> i)) bits[y * w + i - l] = 1; });
+    g = { w, h:7, top:7, bits };
+  } else {
+    /* anything else (한글, accents, emoji…) is drawn by the system at 11 px and snapped to dots */
+    rx.clearRect(0, 0, 32, 16); rx.font = "400 11px 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif"; rx.textBaseline = "alphabetic"; rx.fillStyle = "#000";
+    rx.fillText(ch, 1, 12);
+    const d = rx.getImageData(0, 0, 32, 16).data; let l = 32, r = -1;
+    for (let y = 0; y < 16; y++) for (let x = 0; x < 32; x++) if (d[(y * 32 + x) * 4 + 3] > 100){ l = Math.min(l, x); r = Math.max(r, x); }
+    if (r < 0) g = { w:4, h:1, top:0, bits:new Uint8Array(4) };
+    else { const w = r - l + 1, bits = new Uint8Array(w * 16);
+      for (let y = 0; y < 16; y++) for (let x = l; x <= r; x++) if (d[(y * 32 + x) * 4 + 3] > 100) bits[y * w + x - l] = 1;
+      g = { w, h:16, top:12, bits }; }
+  }
+  GL.set(ch, g); return g;
+}
+/* lay a string out on the page: returns the dots it would touch, and where the caret ends.
+   y is the baseline (a ruled line); lines are 12 dots apart (24 at double size) and wrap at the page edge */
+function layoutStr(s, x, y, z, right){
+  const out = []; let cx = x, cy = y; const lh = 12 * z;
+  const chars = [...s];
+  chars.forEach((ch, i) => {
+    if (ch === "\n"){ cx = x; cy += lh; return; }
+    const g = glyph(ch), adv = (g.w + 1) * z;
+    /* wrap whole words where they fit on a line; break a word only when it is longer than the line */
+    if (ch !== " " && (i === 0 || chars[i - 1] === " " || chars[i - 1] === "\n") && cx > x){
+      let w = 0; for (let k = i; k < chars.length && chars[k] !== " " && chars[k] !== "\n"; k++) w += (glyph(chars[k]).w + 1) * z;
+      if (cx + w - z > right && w - z <= right - x){ cx = x; cy += lh; }
+    }
+    if (ch === " " && cx === x && i > 0 && chars[i - 1] !== "\n") return;
+    if (cx + g.w * z > right && cx > x){ cx = x; cy += lh; }
+    out.push({ g, x:cx, y:cy }); cx += adv;
+  });
+  return { glyphs:out, cx, cy };
+}
+/* draw into a PX; oilstick texture comes from rnd (a seeded generator) */
+function drawStr(px, s, x, y, c, z, rnd, right){
+  const L = layoutStr(s, x, y, z, right ?? px.w - 3);
+  L.glyphs.forEach(({ g, x:gx, y:gy }, n) => {
+    const jy = rnd ? (rnd() < .22 ? (rnd() < .5 ? -1 : 1) : 0) : 0;
+    for (let j = 0; j < g.h; j++) for (let i = 0; i < g.w; i++) if (g.bits[j * g.w + i])
+      for (let a = 0; a < z; a++) for (let b = 0; b < z; b++){ if (rnd && g.h === 7 && rnd() < .05) continue; px.set(gx + i * z + b, gy - g.top * z + j * z + a + jy, c); }
+  });
+  return L;
+}
+const strW = (s) => { let w = 0; for (const ch of s) w += glyph(ch).w + 1; return w - 1; };
+
+/* ==========================================================================
+   3. SPRITES — a picture plus what's needed to peel it: its outline, its
+      back (the white of a sticker, the grey reverse of a magazine) and a shadow
+   ========================================================================== */
+function mkSprite(px, kind, seed){
+  const w = px.w, h = px.h, m = new Uint8Array(w * h); let area = 0;
+  for (let i = 0; i < w * h; i++) if (px.a[i] >>> 24){ m[i] = 1; area++; }
+  const edge = [];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){ const i = y * w + x; if (!m[i]) continue;
+    if (x === 0 || y === 0 || x === w - 1 || y === h - 1 || !m[i - 1] || !m[i + 1] || !m[i - w] || !m[i + w]) edge.push([x + .5 - w / 2, y + .5 - h / 2]); }
+  const bk = new PX(w, h), sh = new PX(w, h), R = rng(seed || 3);
+  const b0 = kind === "cut" ? C("#e6e0d0") : C("#dedbd2"), b1 = kind === "cut" ? C("#cfc8b6") : C("#c9c5ba"), b2 = kind === "cut" ? C("#b9b2a1") : C("#f2f0ea");
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){ const i = y * w + x; if (!m[i]) continue;
+    const ed = x === 0 || y === 0 || x === w - 1 || y === h - 1 || !m[i - 1] || !m[i + 1] || !m[i - w] || !m[i + w];
+    /* a magazine's reverse shows the print from the other side, faintly */
+    bk.a[i] = ed ? b1 : (kind === "cut" && R() < .07 ? b2 : (kind !== "cut" && (x + y) % 7 === 0 && R() < .5 ? b2 : b0));
+    sh.a[i] = C("#000000"); }
+  return { cv:px.canvas(), back:bk.canvas(), sh:sh.canvas(), w, h, m, edge, area, px };
+}
+/* how much of a sprite has come up, if the edge at G has been pulled to P (both in the sprite's own frame) */
+function peeled(spr, G, P){
+  const dx = G[0] - P[0], dy = G[1] - P[1], L = Math.hypot(dx, dy); if (L < .5) return 0;
+  const nx = dx / L, ny = dy / L, mx = (G[0] + P[0]) / 2, my = (G[1] + P[1]) / 2; let n = 0, tot = 0;
+  for (let y = 0; y < spr.h; y += 2) for (let x = 0; x < spr.w; x += 2){ if (!spr.m[y * spr.w + x]) continue; tot++;
+    if ((x + .5 - spr.w / 2 - mx) * nx + (y + .5 - spr.h / 2 - my) * ny > 0) n++; }
+  return tot ? n / tot : 0;
+}
+function nearestEdge(spr, x, y){ let best = spr.edge[0] || [0, 0], bd = 1e9; for (const e of spr.edge){ const d = (e[0] - x) ** 2 + (e[1] - y) ** 2; if (d < bd){ bd = d; best = e; } } return [best[0], best[1]]; }
+function hitSprite(spr, lx, ly){ const x = Math.floor(lx + spr.w / 2), y = Math.floor(ly + spr.h / 2); return x >= 0 && y >= 0 && x < spr.w && y < spr.h && spr.m[y * spr.w + x] === 1; }
+
+/* ==========================================================================
+   4. THE STICKERS — his vocabulary, drawn fresh: crowns, a head, ©, teeth,
+      a halo, arrows, an eye, crossed-out words, signs from a book of symbols
+   ========================================================================== */
+const STK = [];
+function sticker(id, w, h, draw){ STK.push({ id, w, h, draw }); }
+const DIECUT = (px) => { px.outline(P.w, 2); px.outline(C("#c9c4b8"), 1); return px; };
+sticker("crown", 30, 22, (p, R) => {
+  const pts = [[3, 15], [4, 3], [9, 10], [15, 1], [21, 10], [26, 3], [27, 15]];
+  p.poly(pts, P.y); p.rect(3, 15, 25, 5, P.y);
+  p.path(pts, P.k, 1, R, .5); p.wline(3, 15, 3, 20, P.k, 1, R); p.wline(27, 15, 27, 20, P.k, 1, R); p.wline(3, 20, 27, 20, P.k, 1, R, .5); p.wline(3, 15, 27, 15, P.k, 1, R, .4);
+  for (let x = 6; x < 26; x += 4) p.line(x, 16, x + 1, 19, P.k);
+  [[4, 2], [15, 0], [26, 2]].forEach(([x, y]) => p.set(x, y, P.k));
+  p.dith(5, 10, 20, 5, P.y2, (x, y) => (y - 10) / 8);
+});
+sticker("crown2", 26, 19, (p, R) => {
+  const pts = [[3, 14], [3, 4], [8, 10], [13, 3], [18, 10], [23, 4], [23, 14]];
+  p.poly(pts, P.w); p.path(pts, P.k, 1, R, .6); p.wline(3, 14, 23, 14, P.k, 1, R, .6);
+  [[3, 3], [13, 2], [23, 3]].forEach(([x, y]) => p.disc(x, y, 1.6, P.r));
+  p.wline(5, 12, 21, 12, P.r, 1, R, .4);
+});
+sticker("head", 26, 28, (p, R) => {
+  p.ell(13, 11, 11, 10, P.cr); p.rect(6, 17, 15, 9, P.cr);
+  const cr = []; for (let a = Math.PI * .87; a <= Math.PI * 2.13; a += .3) cr.push([13 + Math.cos(a) * 11, 11 + Math.sin(a) * 10]);
+  p.path(cr, P.k, 1, R, .5); p.wline(6, 15, 6, 26, P.k, 1, R); p.wline(21, 15, 21, 26, P.k, 1, R); p.wline(6, 26, 21, 26, P.k, 1, R);
+  p.disc(8.5, 12, 3.2, P.k); p.disc(18, 12, 3.2, P.k); p.set(8, 12, P.r); p.set(9, 12, P.r); p.set(18, 11, P.r);
+  p.poly([[12, 15], [15, 15], [13.5, 18.5]], P.k);
+  p.rect(8, 20, 11, 5, P.w); p.box(8, 20, 11, 5, P.k); p.line(8, 22, 18, 22, P.k); for (let x = 10; x < 18; x += 2) p.line(x, 20, x, 24, P.k);
+  p.wline(5, 5, 11, 2, P.r, 1, R, 1); p.wline(14, 2, 21, 6, P.b, 1, R, 1); p.wline(16, 4, 20, 8, P.b, 1, R, 1);
+});
+sticker("copy", 19, 19, (p, R) => {
+  p.disc(9.5, 9.5, 9, P.w); p.ring(9.5, 9.5, 9, 9, 2, P.k);
+  p.ring(9.5, 9.5, 4.6, 4.6, 1.6, P.r);
+  for (let y = 0; y < 19; y++) for (let x = 11; x < 15; x++) if (Math.abs(y - 9.5) < 2.2 && p.get(x, y) === P.r) p.set(x, y, P.w);
+});
+sticker("teeth", 28, 13, (p, R) => {
+  p.rect(1, 1, 26, 11, P.w); p.rect(1, 1, 26, 2, P.r);
+  p.path([[1, 1], [27, 1], [27, 12], [1, 12]], P.k, 1, R, .4, true);
+  p.line(1, 7, 27, 7, P.k); for (let x = 4; x < 27; x += 3){ p.line(x, 3, x, 7, P.k); p.line(x + 1, 7, x + 1, 11, P.k); }
+});
+sticker("halo", 26, 12, (p, R) => { p.ring(13, 6, 12, 5, 2, P.y); p.ring(13, 6, 13, 6, 1, P.k); p.ring(13, 6, 10, 3, 1, P.k); });
+sticker("arrow", 26, 15, (p, R) => {
+  const a = [[1, 5], [15, 5], [15, 1], [24, 7.5], [15, 14], [15, 10], [1, 10]]; p.poly(a, P.r); p.path(a, P.k, 1, R, .4, true);
+  p.dith(2, 8, 13, 2, P.r2, .5);
+});
+sticker("eye", 24, 14, (p, R) => {
+  const up = [], lo = []; for (let i = 0; i <= 12; i++){ const t = i / 12; up.push([1 + t * 22, 7 - Math.sin(t * Math.PI) * 6]); lo.push([1 + t * 22, 7 + Math.sin(t * Math.PI) * 5]); }
+  const sh = up.concat(lo.reverse()); p.poly(sh, P.w); p.disc(12, 7, 4, P.b); p.disc(12, 7, 1.8, P.k); p.set(10, 5, P.w); p.path(sh, P.k, 1, R, .3, true);
+  for (let i = 3; i < 21; i += 3) p.line(i, 1 + Math.abs(12 - i) * .35 - 1, i - 1, -1 + Math.abs(12 - i) * .35, P.k);
+});
+const wordSticker = (id, word, fg, strike, bg) => sticker(id, strW(word) + 8, 13, (p, R) => {
+  const w = p.w; p.rect(1, 1, w - 2, 11, bg || P.cr); for (let y = 1; y < 12; y += 2){ p.set(0, y, bg || P.cr); p.set(w - 1, y + 1, bg || P.cr); }
+  p.text(word, 4, 10, fg); if (strike) p.wline(2, 6, w - 3, 6, strike, 1, R, .5);
+});
+wordSticker("aaa", "AAAAAA", P.k, 0);
+wordSticker("king", "KING", P.k, P.k);
+wordSticker("tar", "TAR", P.r, P.k);
+wordSticker("famous", "FAMOUS", P.b, P.r, P.y);
+sticker("star", 17, 17, (p, R) => {
+  [[0], [Math.PI / 3], [Math.PI * 2 / 3]].forEach(([a]) => p.line(8.5 - Math.cos(a) * 7, 8.5 - Math.sin(a) * 7, 8.5 + Math.cos(a) * 7, 8.5 + Math.sin(a) * 7, P.y, 3));
+  p.outline(P.k, 1);
+});
+sticker("bone", 30, 13, (p, R) => {
+  p.wline(3, 6, 24, 6, P.k, 1, R, .3);
+  for (let x = 7; x < 22; x += 3){ p.line(x, 6, x - 2, 1, P.k); p.line(x, 6, x - 2, 11, P.k); }
+  p.poly([[23, 1], [29, 6], [23, 11]], P.w); p.path([[23, 1], [29, 6], [23, 11]], P.k, 1, null, 0, true); p.set(25, 5, P.k);
+  p.line(3, 6, 0, 2, P.k); p.line(3, 6, 0, 10, P.k);
+});
+sticker("zig", 26, 12, (p, R) => { p.path([[1, 9], [6, 2], [11, 9], [16, 2], [21, 9], [25, 3]], P.b, 2); p.outline(P.k, 1); });
+sticker("box", 18, 18, (p, R) => { p.rect(1, 1, 16, 16, P.b); p.path([[1, 1], [17, 1], [17, 17], [1, 17]], P.k, 1, R, .4, true); p.wline(3, 3, 15, 15, P.k, 1, R); p.wline(15, 3, 3, 15, P.k, 1, R); });
+sticker("dollar", 14, 18, (p, R) => { p.text("$", 2, 16, P.g, 2); p.outline(P.k, 1); });
+sticker("dino", 30, 18, (p, R) => {
+  /* a toothy reptile, the way a kid draws one */
+  const b = [[2, 12], [8, 6], [16, 5], [22, 3], [28, 4], [28, 8], [22, 9], [20, 13], [16, 13], [15, 17], [13, 17], [12, 13], [8, 13], [7, 17], [5, 17], [5, 13]];
+  p.poly(b, P.g); p.path(b, P.k, 1, R, .4, true); p.set(25, 5, P.k);
+  for (let x = 22; x < 28; x += 2) p.set(x, 8, P.w);
+  for (let x = 9; x < 19; x += 3) p.line(x, 6, x + 1, 3, P.k);
+});
+sticker("halo2", 22, 22, (p, R) => { for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) p.line(11 + Math.cos(a) * 5, 11 + Math.sin(a) * 5, 11 + Math.cos(a) * 10, 11 + Math.sin(a) * 10, P.o, 1); p.disc(11, 11, 4.5, P.y); p.outline(P.k, 1); });
+const STKSP = {};
+function buildStickers(){ STK.forEach(s => { const px = new PX(s.w + 6, s.h + 6), inner = new PX(s.w, s.h); s.draw(inner, rng(hstr(s.id)));
+  for (let y = 0; y < s.h; y++) for (let x = 0; x < s.w; x++){ const c = inner.a[y * s.w + x]; if (c) px.set(x + 3, y + 3, c); }
+  DIECUT(px);
+  STKSP[s.id] = mkSprite(px, "st", hstr(s.id)); }); }
+const SHEETS = [["crown", "head", "copy", "teeth", "aaa", "halo", "eye", "bone"], ["crown2", "arrow", "king", "tar", "star", "zig", "box", "dollar"], ["famous", "dino", "halo2", "crown", "copy", "head", "aaa", "teeth"]];
+
+/* ==========================================================================
+   5. THE MAGAZINE — six pages printed here, ready to be cut up
+   ========================================================================== */
+const MW = 100, MH = 134, MAGN = 6;
+function squiggle(p, x, y, w, n, c, R, step){ step = step || 5;
+  for (let l = 0; l < n; l++){ let cx = x; const yy = y + l * step, end = x + w - (l === n - 1 ? Math.floor(w * .4 * R()) : 0);
+    while (cx < end){ const len = 3 + Math.floor(R() * 9); for (let i = 0; i < len && cx + i < end; i++) p.set(cx + i, yy - ((i + l) % 3 === 0 && R() < .6 ? 1 : 0), c); cx += len + 2; } } }
+function magBase(R){ const p = new PX(MW, MH); p.rect(0, 0, MW, MH, C("#f1ebdc")); for (let i = 0; i < 160; i++) p.set(R() * MW, R() * MH, C("#e2dac7")); return p; }
+const MAGS = [
+  /* 0: jazz tonight */
+  (R) => { const p = magBase(R);
+    p.rect(0, 0, MW, 72, C("#1d2b55")); p.dith(0, 40, MW, 32, C("#2c3f7a"), (x, y) => (y - 40) / 40);
+    p.text("JAZZ", 6, 18, P.w, 2); p.text("TONIGHT 9PM", 6, 29, P.y);
+    /* the saxophone */
+    const sx = [[64, 8], [66, 14], [67, 30], [67, 46], [66, 54], [61, 59], [53, 58], [50, 52]];
+    p.path(sx, P.y2, 5); p.path(sx, P.y, 3); p.disc(48, 50, 6, P.y); p.disc(48, 50, 3.5, C("#7a5a12")); p.ring(48, 50, 6, 6, 1, P.y2);
+    p.line(62, 6, 58, 2, P.k, 2); for (let k = 0; k < 6; k++) p.disc(65 - (k > 3 ? 1 : 0), 18 + k * 6, 1.4, C("#7a5a12"));
+    /* notes floating */
+    [[22, 50], [33, 42], [82, 22], [86, 40]].forEach(([x, y], i) => { p.disc(x, y, 2, P.w); p.line(x + 1, y, x + 1, y - 8, P.w); if (i % 2) p.line(x + 1, y - 8, x + 4, y - 6, P.w); });
+    p.text("LIVE AT THE", 6, 84, P.k); p.text("BLUE ROOM", 6, 95, P.r, 1);
+    squiggle(p, 6, 104, 88, 5, C("#8a8478"), R);
+    return p; },
+  /* 1: fresh fruit */
+  (R) => { const p = magBase(R);
+    p.text("FRESH!", 8, 20, P.r, 2); p.text("FRUIT OF THE WEEK", 8, 31, P.k);
+    p.ell(50, 76, 40, 13, P.w); p.ring(50, 76, 40, 13, 1, P.lg); p.ring(50, 76, 30, 9, 1, P.lg);
+    /* banana */
+    for (let a = .15; a < 2.6; a += .02){ const x = 50 + Math.cos(a + 1.6) * 30, y = 52 + Math.sin(a + 1.6) * 16; p.dot(x, y, P.y, 5); }
+    for (let a = .15; a < 2.6; a += .02){ const x = 50 + Math.cos(a + 1.6) * 30, y = 52 + Math.sin(a + 1.6) * 16; p.set(x, y + 2, P.y2); }
+    p.dot(28, 60, P.n2, 2); p.dot(73, 62, P.n2, 2);
+    /* apple */
+    p.disc(37, 66, 11, P.r); p.dith(26, 55, 22, 22, P.r2, (x, y) => clamp(((x - 32) + (y - 60)) / 24, 0, .8)); p.rect(32, 60, 3, 3, C("#f6c4bc")); p.line(37, 55, 39, 50, P.n2, 2); p.ell(43, 52, 4, 2, P.g);
+    /* pear */
+    p.disc(64, 70, 9, C("#9bbf3c")); p.disc(62, 59, 6, C("#9bbf3c")); p.dith(54, 52, 22, 28, C("#6f9a22"), (x, y) => clamp((x - 62) / 12, 0, .7)); p.line(62, 53, 64, 49, P.n2, 1);
+    p.rect(8, 96, 34, 14, P.y); p.text("$1", 13, 107, P.k, 1); p.text("A LB", 23, 107, P.k);
+    squiggle(p, 48, 98, 44, 6, C("#8a8478"), R);
+    return p; },
+  /* 2: the big fight */
+  (R) => { const p = magBase(R);
+    p.rect(0, 0, MW, 60, C("#e8d9b5")); for (let k = 0; k < 3; k++) p.line(0, 18 + k * 12, MW, 14 + k * 12, P.r, 1);
+    const glove = (cx, cy, flip) => { p.ell(cx, cy, 13, 11, P.r); p.ell(cx + flip * 9, cy + 2, 6, 7, P.r); p.rect(cx - 9, cy + 9, 18, 8, P.w); p.box(cx - 9, cy + 9, 18, 8, P.k);
+      p.dith(cx - 13, cy - 11, 26, 22, P.r2, (x, y) => clamp((y - cy) / 14 + .1, 0, .7)); p.set(cx - 6, cy - 6, C("#ffb0a6")); p.set(cx - 5, cy - 6, C("#ffb0a6")); p.ring(cx, cy, 13, 11, 1, P.k); };
+    glove(32, 36, 1); glove(68, 32, -1);
+    [[14, 12], [86, 50], [50, 8]].forEach(([x, y]) => { p.line(x - 3, y, x + 3, y, P.y, 1); p.line(x, y - 3, x, y + 3, P.y, 1); });
+    p.text("CHAMP", 8, 80, P.k, 2); p.text("THE BIG FIGHT", 8, 92, P.r);
+    squiggle(p, 8, 101, 84, 6, C("#8a8478"), R);
+    return p; },
+  /* 3: downtown at night */
+  (R) => { const p = magBase(R);
+    p.rect(0, 0, MW, 86, C("#241a3c")); p.dith(0, 30, MW, 56, C("#47306a"), (x, y) => (y - 30) / 60);
+    p.disc(78, 16, 7, C("#f3ecc4")); p.disc(81, 14, 6, C("#241a3c"));
+    for (let i = 0; i < 30; i++) p.set(R() * MW, R() * 30, P.w);
+    let x = 0; while (x < MW){ const w = 9 + Math.floor(R() * 12), h = 22 + Math.floor(R() * 40); p.rect(x, 86 - h, w, h, C("#0f0c18"));
+      for (let wy = 86 - h + 4; wy < 82; wy += 4) for (let wx = x + 2; wx < x + w - 2; wx += 3) if (R() < .45) p.set(wx, wy, R() < .8 ? P.y : P.w);
+      x += w + 1; }
+    p.rect(34, 76, 30, 7, P.y); p.rect(40, 71, 16, 6, P.y); p.rect(42, 72, 5, 3, P.sky); p.rect(49, 72, 5, 3, P.sky); p.disc(40, 83, 2.5, P.k); p.disc(58, 83, 2.5, P.k);
+    for (let i = 36; i < 62; i += 4) p.set(i, 79, P.k);
+    p.text("DOWNTOWN", 6, 100, P.k, 1); p.text("AFTER DARK", 6, 110, P.r);
+    squiggle(p, 6, 118, 88, 3, C("#8a8478"), R);
+    return p; },
+  /* 4: the hand, from an anatomy book */
+  (R) => { const p = magBase(R);
+    p.text("FIG. 7", 8, 14, P.k); p.text("THE HAND", 8, 24, P.k, 1);
+    const bone = (x0, y0, x1, y1) => { p.line(x0, y0, x1, y1, C("#e9dfc4"), 3); p.line(x0, y0, x1, y1, C("#b9ab88"), 1); p.disc(x0, y0, 2.2, C("#e9dfc4")); p.disc(x1, y1, 2.2, C("#e9dfc4")); p.ring(x0, y0, 2.2, 2.2, 1, P.dg); p.ring(x1, y1, 2.2, 2.2, 1, P.dg); };
+    p.ell(50, 100, 16, 9, C("#e9dfc4")); p.ring(50, 100, 16, 9, 1, P.dg);
+    const fingers = [[30, 70, -1.0], [40, 58, -.25], [50, 54, 0], [60, 58, .2], [70, 66, .5]];
+    fingers.forEach(([fx, fy, a], i) => { const bx = 42 + i * 4, by = 92; bone(bx, by, fx, fy);
+      let x = fx, y = fy; for (let k = 0; k < (i === 0 ? 2 : 3); k++){ const nx = x + Math.sin(a) * 9, ny = y - Math.cos(a) * 9; bone(x, y, nx, ny); x = nx; y = ny; } });
+    [[22, 50, "A"], [80, 46, "B"], [84, 92, "C"]].forEach(([x, y, l]) => { p.text(l, x, y, P.k); p.line(x + 2, y + 2, 56, 78, C("#8a8478")); });
+    squiggle(p, 8, 116, 84, 3, C("#8a8478"), R);
+    return p; },
+  /* 5: a television ad */
+  (R) => { const p = magBase(R);
+    p.text("NEW!", 8, 16, P.r, 2); p.text("COLOR TV", 46, 16, P.k);
+    p.rect(14, 26, 60, 46, C("#6b4a2e")); p.box(14, 26, 60, 46, P.k); p.rect(19, 31, 40, 34, C("#2a3550"));
+    p.dith(19, 31, 40, 34, C("#4f86c9"), (x, y) => .25 + .5 * Math.sin((x - 19) / 40 * Math.PI) * Math.sin((y - 31) / 34 * Math.PI));
+    p.disc(39, 46, 7, P.sk); p.rect(36, 44, 2, 2, P.k); p.rect(41, 44, 2, 2, P.k); p.line(37, 50, 41, 50, P.k); p.rect(32, 53, 14, 12, P.r);
+    p.disc(66, 38, 3, P.lg); p.disc(66, 48, 3, P.lg); p.ring(66, 38, 3, 3, 1, P.k); p.ring(66, 48, 3, 3, 1, P.k);
+    p.line(34, 26, 26, 14, P.k); p.line(44, 26, 52, 12, P.k); p.rect(18, 72, 6, 4, P.k); p.rect(64, 72, 6, 4, P.k);
+    p.rect(8, 84, 40, 16, P.y); p.text("$99", 12, 96, P.k, 1); p.text("BUY NOW", 52, 92, P.r);
+    for (let x = 6; x < 94; x += 3){ p.set(x, 104, P.k); p.set(x, 130, P.k); } for (let y = 104; y < 131; y += 3){ p.set(6, y, P.k); p.set(93, y, P.k); }
+    p.text("COUPON", 10, 114, P.k); squiggle(p, 10, 120, 78, 2, C("#8a8478"), R);
+    return p; },
+];
+const MAGPX = [], MAGCV = [];
+function buildMags(){ MAGS.forEach((f, i) => { MAGPX[i] = f(rng(100 + i)); MAGCV[i] = MAGPX[i].canvas(); }); }
+/* a piece cut from page m along polygon poly (in that page's dots) */
+const CUTS = new Map();
+function cutSprite(m, poly){
+  const key = m + ":" + poly.join(","); if (CUTS.has(key)) return CUTS.get(key);
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; const pts = [];
+  for (let i = 0; i < poly.length; i += 2){ pts.push([poly[i], poly[i + 1]]); x0 = Math.min(x0, poly[i]); y0 = Math.min(y0, poly[i + 1]); x1 = Math.max(x1, poly[i]); y1 = Math.max(y1, poly[i + 1]); }
+  x0 = Math.floor(x0); y0 = Math.floor(y0); const w = Math.ceil(x1) - x0 + 1, h = Math.ceil(y1) - y0 + 1;
+  const mask = new PX(w, h); mask.poly(pts.map(([x, y]) => [x - x0, y - y0]), 1);
+  const px = new PX(w, h), src = MAGPX[m];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (mask.a[y * w + x]) px.a[y * w + x] = src.get(x + x0, y + y0) || C("#f1ebdc");
+  const s = mkSprite(px, "cut", hstr(key)); s.ox = x0; s.oy = y0; CUTS.set(key, s); return s;
+}
+
+/* ==========================================================================
+   6. THE NOTEBOOK — marbled cover, ruled pages, a printed inside cover
+   ========================================================================== */
+const NP = 60, PW = 118, PH = 156, CW = PW + 3, CH = PH + 4, RULE0 = 24, RULE = 12, MARGIN = 14;
+const INK = ["#1b1714", "#d2382a", "#2a5fb3", "#e7b324", "#f6f2e8"];
+let COVER = null, INSIDE = null, BACKIN = null, BACKCOVER = null, PAPER = null, PAPERCV = null;
+function marble(px, x0, y0, w, h, seed){
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
+    const n = fbm(x / 7 + seed, y / 7, seed), m = fbm(x / 3.1, y / 3.1 + seed, seed + 3);
+    const v = n * .7 + m * .3; px.set(x0 + x, y0 + y, v > .63 ? P.w : v > .585 ? C("#8d8a84") : (v < .3 && (x + y) % 3 === 0 ? C("#2b2a28") : P.k)); }
+}
+function buildBook(){
+  /* front cover */
+  let p = new PX(CW, CH); marble(p, 0, 0, CW, CH, 4);
+  p.rect(0, 0, 12, CH, C("#121110")); for (let y = 0; y < CH; y += 2) p.set(11, y, C("#2a2826")); for (let y = 1; y < CH; y += 3) for (let x = 1; x < 11; x += 4) p.set(x, y, C("#1d1c1a"));
+  const lx = 24, ly = 22, lw = 88, lh = 46; p.rect(lx, ly, lw, lh, C("#f4f0e4")); p.box(lx, ly, lw, lh, P.k); p.box(lx + 2, ly + 2, lw - 4, lh - 4, P.k);
+  p.text("COMPOSITION", lx + Math.floor((lw - strW("COMPOSITION")) / 2), ly + 13, P.k); p.text("BOOK", lx + Math.floor((lw - strW("BOOK")) / 2), ly + 22, P.k);
+  p.text("NAME", lx + 5, ly + 33, P.k); p.line(lx + 26, ly + 34, lx + lw - 5, ly + 34, P.k);
+  drawStr(p, LANG === "ko" ? "모두" : "EVERYONE", lx + 29, ly + 32, C("#c3322a"), 1, rng(9), lx + lw - 2);
+  p.text("PAGES", lx + 5, ly + 42, P.k); p.line(lx + 32, ly + 43, lx + lw - 5, ly + 43, P.k); drawStr(p, String(NP), lx + 40, ly + 41, C("#c3322a"), 1, rng(4));
+  /* a crown someone drew on it */
+  const R = rng(17); const cr = [[78, 118], [79, 104], [86, 113], [93, 101], [100, 113], [107, 104], [108, 118]]; p.path(cr, P.y, 2, R, .8); p.wline(78, 119, 108, 119, P.y, 2, R, .8);
+  COVER = p.canvas();
+  /* the back cover, plain marble */
+  p = new PX(CW, CH); marble(p, 0, 0, CW, CH, 9); p.rect(CW - 12, 0, 12, CH, C("#121110")); BACKCOVER = p.canvas();
+  /* inside the front cover: grey board, a printed box */
+  const board = (seed) => { const q = new PX(CW, CH); q.rect(0, 0, CW, CH, C("#d8d1bd")); const R2 = rng(seed); for (let i = 0; i < 500; i++) q.set(R2() * CW, R2() * CH, C("#ccc4ae")); return q; };
+  p = board(5); p.box(10, 12, CW - 20, CH - 24, C("#6c6758"));
+  p.text("THIS BOOK", 16, 26, C("#4b473d")); p.text("BELONGS TO", 16, 35, C("#4b473d"));
+  (LANG === "ko" ? ["다음에 올 사람"] : ["WHOEVER", "COMES NEXT"]).forEach((l, i) => drawStr(p, l, 16, 50 + i * 11, C("#c3322a"), 1, rng(2 + i), CW - 12));
+  const lines = LANG === "ko" ? ["스티커를 떼어", "붙이고, 잡지를", "오려 풀칠하고,", "그리고, 쓰고,", "지우세요.", "모든 장이", "모두에게 남아요."]
+                              : ["PEEL A STICKER.", "CUT UP THE", "MAGAZINE, GLUE.", "DRAW, WRITE,", "RUB IT OUT.", "EVERY PAGE IS", "KEPT FOR ALL."];
+  lines.forEach((l, i) => drawStr(p, l, 16, 78 + i * 10, C("#4b473d"), 1, null, CW - 12));
+  INSIDE = p.canvas();
+  p = board(8); p.box(10, 12, CW - 20, CH - 24, C("#6c6758")); p.text("TABLES", 16, 26, C("#4b473d"));
+  for (let r = 0; r < 9; r++) for (let c = 0; c < 3; c++) p.text(`${c + 2}X${r + 1}=${(c + 2) * (r + 1)}`, 16 + c * 32, 42 + r * 11, C("#6c6758"));
+  BACKIN = p.canvas();
+  /* a ruled page */
+  p = new PX(PW, PH); p.rect(0, 0, PW, PH, C("#f2ecdc")); const R3 = rng(31); for (let i = 0; i < 300; i++) p.set(R3() * PW, R3() * PH, C("#e8e1cf"));
+  for (let y = RULE0; y < PH - 4; y += RULE) p.rect(0, y, PW, 1, C("#a9bedb"));
+  p.rect(MARGIN, 0, 1, PH, C("#dc8f8a"));
+  PAPER = p; PAPERCV = p.canvas();
+}
+
+/* ==========================================================================
+   7. THE DESK — wood, rings from old coffee, and the things on it
+   ========================================================================== */
+let DESK = null;
+function buildDesk(){
+  const p = new PX(LW, LH), R = rng(77); const tones = [C("#3f2818"), C("#4d311e"), C("#5b3a24"), C("#6a452b"), C("#7a5232")];
+  let y = 0, pl = 0;
+  while (y < LH){ const h = 24 + Math.floor(R() * 12), s = pl * 31 + 5, off = R() * 1000;
+    for (let j = y; j < Math.min(LH, y + h); j++) for (let i = 0; i < LW; i++){
+      const n = fbm((i + off) / 40, (j - y) / 3.4, s), g = n + Math.sin((i + off) / 23 + n * 6) * .06;
+      let t = Math.floor(clamp(g * 5 - .8 + BAY[(j & 3) * 4 + (i & 3)] / 16 * .9, 0, 4)); if (j === y) t = 0; if (j === y + 1) t = Math.min(4, t + 1);
+      p.set(i, j, tones[t]); }
+    y += h; pl++; }
+  /* old rings and spills */
+  for (let k = 0; k < 3; k++){ const cx = R() * LW, cy = R() * LH, r = 10 + R() * 4; for (let a = 0; a < 6.28; a += .02) if (R() < .7) p.set(cx + Math.cos(a) * r, cy + Math.sin(a) * r, C("#392313")); }
+  for (let k = 0; k < 60; k++) p.set(R() * LW, R() * LH, C("#2e1c10"));
+  /* a darker edge all round */
+  p.dith(0, 0, LW, LH, C("#24160c"), (x, y) => { const dx = Math.min(x, LW - 1 - x) / 46, dy = Math.min(y, LH - 1 - y) / 36; return clamp(.75 - Math.min(dx, dy), 0, .75); });
+  DESK = p.canvas();
+}
+/* the things on the desk */
+function mkBinder(){ const p = new PX(60, 64), R = rng(5); p.rect(2, 0, 58, 64, P.b); p.rect(2, 0, 58, 2, C("#4f80cf")); p.rect(2, 62, 58, 2, P.b2); p.rect(58, 0, 2, 64, P.b2); p.rect(2, 0, 6, 64, P.b2);
+  [12, 30, 48].forEach(y => { p.ring(5, y, 3, 3, 1, P.lg); p.set(3, y - 1, P.w); });
+  p.rect(12, 8, 44, 11, P.w); p.box(12, 8, 44, 11, P.k); p.text("STICKERS", 34 - Math.floor(strW("STICKERS") / 2), 17, P.k);
+  p.poly([[18, 39], [19, 30], [24, 36], [28, 29], [32, 36], [37, 30], [38, 39]], P.y); p.path([[18, 39], [19, 30], [24, 36], [28, 29], [32, 36], [37, 30], [38, 39], [18, 39]], P.k, 1);
+  p.disc(46, 50, 6, P.w); p.ring(46, 50, 6, 6, 1, P.k); p.ring(46, 50, 3, 3, 1, P.r); p.rect(14, 47, 18, 7, P.cr); p.text("AAA", 16, 53, P.k);
+  return p; }
+function mkMagClosed(){ const p = new PX(56, 72), R = rng(12);
+  p.rect(6, 6, 50, 66, C("#cfc6b0")); p.rect(3, 3, 50, 66, C("#e3dac6")); p.rect(0, 0, 50, 66, C("#f1ebdc"));
+  p.rect(0, 0, 50, 13, P.r); p.text("PICTURE", 4, 10, P.w);
+  p.rect(4, 17, 42, 30, C("#1d2b55")); for (let a = 0; a < 6.28; a += .5) p.line(25, 32, 25 + Math.cos(a) * 14, 32 + Math.sin(a) * 12, P.y);
+  p.disc(25, 32, 5, P.y); p.text("1982", 4, 56, P.k); squiggle(p, 4, 60, 42, 2, C("#8a8478"), R, 4); p.box(0, 0, 50, 66, C("#b8ae98"));
+  return p; }
+function mkMug(){ const p = new PX(32, 28); p.rect(24, 10, 7, 8, P.w); p.rect(26, 12, 3, 4, 0); p.disc(13, 14, 13, P.w); p.ring(13, 14, 13, 13, 1, P.lg); p.disc(13, 14, 10, C("#3a2214")); p.disc(13, 14, 10, C("#3a2214"));
+  p.dith(3, 4, 20, 20, C("#4f301c"), (x, y) => clamp(((x - 13) ** 2 + (y - 14) ** 2) < 64 ? .4 : 0, 0, 1)); p.set(9, 10, C("#a07b5b")); p.set(10, 10, C("#a07b5b")); p.ring(13, 14, 10, 10, 1, P.lg); return p; }
+function mkSticks(){ const p = new PX(34, 30), cols = [P.r, P.b, P.y, P.k];
+  cols.forEach((c, i) => { const x0 = 3 + i * 7, y0 = 4 + i * 3; p.line(x0, y0, x0 + 18, y0 + 20, c, 4); p.line(x0 + 3, y0 + 4, x0 + 15, y0 + 18, P.cr, 4); p.line(x0 + 4, y0 + 7, x0 + 11, y0 + 15, c, 1); });
+  return p; }
+
+/* ==========================================================================
+   8. TOOLS — the hand, scissors, glue, oilstick and eraser, as dots
+   ========================================================================== */
+const HANDMAP = ["....kk.......", "...kwwk......", "...kwwk......", "...kwwk......", "...kwwkkk.k..", "...kwwkwwkwk.", ".kkkwwkwwkwwk", "kwwkwwwwwwwwk", "kwwwwwwwwwwwk", ".kwwwwwwwwwwk", "..kwwwwwwwwwk", "..kwwwwwwwwk.", "...kwwwwwwwk.", "....kwwwwwk..", "....kkkkkkk.."];
+function fromMap(rows, pal){ const p = new PX(rows[0].length, rows.length); rows.forEach((r, y) => [...r].forEach((ch, x) => { if (pal[ch]) p.set(x, y, pal[ch]); })); return p; }
+function mkTool(id, ink){
+  if (id === "hand") return { px:fromMap(HANDMAP, { k:P.k, w:P.w }), hx:4.5, hy:0 };
+  const p = new PX(18, 18);
+  if (id === "scissors"){ p.line(3, 15, 15, 3, P.lg, 2); p.line(15, 15, 3, 3, P.lg, 2); p.line(4, 14, 15, 3, P.dg); p.line(14, 14, 3, 3, P.dg);
+    p.ring(4, 14, 3.4, 3.4, 1.4, P.r); p.ring(14, 14, 3.4, 3.4, 1.4, P.r); p.set(9, 9, P.k); return { px:p, hx:15, hy:3, a:-Math.PI / 4 }; }
+  if (id === "glue"){ p.line(4, 14, 13, 5, C("#8e5fc2"), 5); p.line(4, 14, 9, 9, P.w, 5); p.line(13, 5, 15, 3, C("#e7e2f4"), 3); p.set(16, 2, C("#c8e4f4")); p.line(6, 13, 8, 11, C("#8e5fc2")); return { px:p, hx:16, hy:2 }; }
+  if (id === "crayon"){ const c = C(INK[ink || 0]); p.line(3, 15, 13, 5, c, 4); p.line(4, 14, 10, 8, C("#d8cfb6"), 4); p.line(13, 5, 16, 2, c, 2); p.set(16, 1, c); return { px:p, hx:16, hy:1 }; }
+  if (id === "eraser"){ p.line(3, 13, 10, 6, C("#e88f9a"), 6); p.line(9, 7, 14, 2, C("#5c86c9"), 6); p.outline(C("#6b4b4b"), 1); return { px:p, hx:3, hy:15 }; }
+}
+const TOOLS = ["hand", "scissors", "glue", "crayon", "eraser"];
+const TOOLNAME = { hand:{ en:"Hand — open, turn pages, peel, move", ko:"손 — 펼치기, 넘기기, 떼기, 옮기기" }, scissors:{ en:"Scissors — cut round a picture in the magazine", ko:"가위 — 잡지 속 그림을 따라 오리기" },
+  glue:{ en:"Glue — rub over a cut-out to stick it", ko:"풀 — 오린 조각 위를 문질러 붙이기" }, crayon:{ en:"Oilstick — drag to draw, click to type", ko:"오일스틱 — 끌면 그리기, 누르면 타자로 쓰기" }, eraser:{ en:"Eraser — rub out what was written", ko:"지우개 — 쓴 글씨 문질러 지우기" } };
+let TOOLSP = {};
+
+/* ==========================================================================
+   9. SOUND — paper, vinyl, steel blades, rubber
+   ========================================================================== */
+const AUD = (() => {
+  let ctx = null, master = null, nb = null, on = true, borrowed = false; const loops = {};
+  function ensure(){ if (ctx) return ctx; const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+    try { const host = window.parent !== window && window.parent.__lamAudio && window.parent.__lamAudio(); if (host && host.state === "running"){ ctx = host; borrowed = true; } } catch (_){}
+    if (!ctx){ try { ctx = new AC(); } catch (_){ return null; } }
+    master = ctx.createGain(); master.gain.value = on ? .8 : 0; master.connect(ctx.destination);
+    nb = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate); const d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return ctx; }
+  const ok = () => on && ensure() && ctx.state === "running";
+  function noise(t, dur, f, q, g, type){ const s = ctx.createBufferSource(); s.buffer = nb; const fl = ctx.createBiquadFilter(); fl.type = type || "bandpass"; fl.frequency.value = f; fl.Q.value = q;
+    const gg = ctx.createGain(); gg.gain.setValueAtTime(.0001, t); gg.gain.exponentialRampToValueAtTime(g, t + Math.min(.006, dur * .2)); gg.gain.exponentialRampToValueAtTime(.0001, t + dur); s.connect(fl); fl.connect(gg); gg.connect(master); s.start(t, Math.random() * 1.5); s.stop(t + dur + .05); }
+  function tone(t, f0, f1, dur, g, type){ const o = ctx.createOscillator(); o.type = type || "sine"; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, t); a.gain.exponentialRampToValueAtTime(g, t + .005); a.gain.exponentialRampToValueAtTime(.0001, t + dur); o.connect(a); a.connect(master); o.start(t); o.stop(t + dur + .02); }
+  /* a held sound — rubbing, peeling — whose loudness follows the hand */
+  function loop(name, f, q){ if (loops[name]) return loops[name]; const s = ctx.createBufferSource(); s.buffer = nb; s.loop = true; const fl = ctx.createBiquadFilter(); fl.type = "bandpass"; fl.frequency.value = f; fl.Q.value = q;
+    const g = ctx.createGain(); g.gain.value = 0; s.connect(fl); fl.connect(g); g.connect(master); s.start(); return loops[name] = { s, fl, g }; }
+  return {
+    unlock(){ if (ensure() && ctx.state !== "running") ctx.resume().catch(() => {}); },
+    get on(){ return on; }, set on(v){ on = v; if (master) master.gain.setTargetAtTime(v ? .8 : 0, ctx.currentTime, .05); },
+    stop(){ if (!ctx) return; Object.values(loops).forEach(l => { try { l.s.stop(); } catch (_){} }); try { master.disconnect(); } catch (_){} if (!borrowed) try { ctx.close(); } catch (_){} },
+    rub(name, v, f, q, gmax){ if (!ok()) return; const l = loop(name, f, q), t = ctx.currentTime; l.g.gain.setTargetAtTime(clamp(v, 0, 1) * gmax, t, .03); l.fl.frequency.setTargetAtTime(f * (.85 + v * .3), t, .05); },
+    hush(name){ const l = loops[name]; if (l && ctx) l.g.gain.setTargetAtTime(0, ctx.currentTime, .05); },
+    /* a page turning: air, then the flutter of the sheet */
+    flip(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .32, 900, .7, .09); noise(t + .05, .2, 2600, 1.4, .05); noise(t + .22, .1, 400, 1, .06); },
+    cover(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .4, 600, .6, .08); tone(t + .28, 120, 70, .14, .1); noise(t + .28, .08, 300, 1, .08); },
+    /* vinyl coming away from paper: a dry crackle */
+    peel(v){ if (!ok()) return; const t = ctx.currentTime, n = 1 + Math.round(v * 5); for (let i = 0; i < n; i++) noise(t + Math.random() * .04, .006 + Math.random() * .01, 2400 + Math.random() * 3600, 2 + Math.random() * 3, .05 + v * .12); },
+    pop(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .05, 1800, 1.5, .16); tone(t, 520, 300, .06, .04); },
+    stick(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .08, 500, .8, .14, "lowpass"); tone(t, 150, 90, .08, .06); },
+    snip(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .025, 6200, 3, .14, "highpass"); tone(t + .004, 3400, 2900, .05, .03, "triangle"); noise(t + .03, .03, 1500, 2, .06); },
+    key(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .05, 2200 + Math.random() * 900, 2.2, .06); noise(t + .01, .04, 700, 1.4, .05); },
+    pick(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .07, 1600, 1, .06); },
+    drop(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .14, 700, .8, .06); },
+    slide(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .18, 300, .8, .07); },
+    ui(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .015, 3000, 3, .05); },
+  };
+})();
+
+/* ==========================================================================
+   10. STATE & LAYOUT
+   ========================================================================== */
+const cv = $("cv"), g = cv.getContext("2d");
+let S = 3, LW = 400, LH = 240, single = false;
+const B = { open:0, openT:0, s:0, cp:1, flip:null, x:0, y:0 };          /* the book */
+const PAN = { st:false, mg:false, stPage:0, mgPage:0, taken:{} };      /* the sticker binder and the magazine, opened */
+const OBJ = { binder:{ x:0, y:0, spr:null, set:false }, mag:{ x:0, y:0, spr:null, set:false }, mug:{ x:0, y:0, spr:null, set:false }, sticks:{ x:0, y:0, spr:null, set:false } };
+let tool = "hand", ink = 0, size = 1;
+const pointer = { x:-99, y:-99, in:false, fine:false };
+let topPad = 22, botPad = 26;
+
+function layout(){
+  const W = innerWidth, H = innerHeight, small = W <= 760;
+  const padT = 64, padB = small ? 128 : 86;
+  let pick = null;
+  for (let s = 6; s >= 1; s--){
+    const lw = Math.ceil(W / s), lh = Math.ceil(H / s), avail = lh - Math.ceil(padT / s) - Math.ceil(padB / s);
+    if (lw >= 2 * CW + 2 * 62 && avail >= CH + 6){ pick = { s, single:false }; break; }
+    if (lw < 2 * CW + 2 * 62 && lw >= CW + 12 && avail >= CH + 84){ pick = { s, single:true }; break; }
+  }
+  if (!pick) pick = { s:1, single:W < 2 * CW + 124 };
+  S = pick.s; single = pick.single;
+  LW = Math.ceil(W / S); LH = Math.ceil(H / S); topPad = Math.ceil(padT / S); botPad = Math.ceil(padB / S);
+  cv.width = LW; cv.height = LH; cv.style.width = LW * S + "px"; cv.style.height = LH * S + "px";
+  g.imageSmoothingEnabled = false;
+  buildDesk();
+  const avail = LH - topPad - botPad;
+  if (!single){
+    B.y = topPad + Math.max(2, Math.floor((avail - CH) / 2)) + 2;
+    const sideY = B.y + Math.floor(CH / 2);
+    place("binder", Math.max(6, Math.floor(LW / 2 - PW - 18 - 48 - Math.min(60, (LW / 2 - PW - 66) * .4))), sideY - 36);
+    place("mag", Math.min(LW - 62, Math.ceil(LW / 2 + PW + 18 + Math.min(60, (LW / 2 - PW - 74) * .4))), sideY - 30);
+    place("mug", LW - 44, topPad + 4); place("sticks", 14, B.y + CH - 20);
+  } else {
+    B.y = topPad + 4;
+    const oy = B.y + CH + 12;
+    place("binder", Math.floor(LW * .18), oy); place("mag", Math.floor(LW * .58), oy - 4); place("mug", LW - 38, LH - botPad - 34); place("sticks", 8, LH - botPad - 32);
+  }
+  document.documentElement.style.setProperty("--hint-y", (topPad * S + 22) + "px");
+  pageCache.clear();
+}
+function place(id, x, y){ const o = OBJ[id]; if (!o.set){ o.x = x; o.y = y; } o.x = clamp(o.x, -10, LW - 20); o.y = clamp(o.y, topPad - 10, LH - botPad - 10); }
+/* where the spine is, now (eased as panels open and the cover comes round) */
+let spineX = 0;
+function targetSpine(){
+  if (single){ const open = B.open > .5; return Math.floor((LW - (open ? PW : CW)) / 2) - (open ? 0 : 0); }
+  let x = Math.floor(LW / 2);
+  const panL = 8 + PANW + 6 + PW, panR = LW - 8 - PANW - 6 - PW;
+  if (PAN.st) x = Math.max(x, panL); if (PAN.mg) x = Math.min(x, panR);
+  return x - Math.round((1 - B.open) * CW / 2);
+}
+const PANW = 112, PANH = 154;
+function panelRect(which){
+  if (single){ const y = Math.min(B.y + CH + 6, LH - botPad - PANH); return { x:Math.floor((LW - PANW) / 2), y, w:PANW, h:PANH }; }
+  const y = clamp(B.y + Math.floor((CH - PANH) / 2), topPad, LH - botPad - PANH);
+  return which === "st" ? { x:8, y, w:PANW, h:PANH } : { x:LW - 8 - PANW, y, w:PANW, h:PANH };
+}
+
+/* ==========================================================================
+   11. THE GUESTBOOK — everything anyone leaves here is kept and shared:
+       what's on the pages, the cut-outs and stickers lying on the desk, the
+       holes in the magazine, where the binder and the mug were left.
+       BACKEND is the only part that talks to the museum's shared store. If
+       a visitor's account can't write to it, nothing is refused: their work
+       is kept on their own device and shown together with everyone else's.
+   ========================================================================== */
+const COL = { items:"basquiatNotebook", loose:"basquiatDesk", holes:"basquiatHoles", meta:"basquiatMeta" };
+const BACKEND = {
+  /* the museum's shared store. To host this page somewhere else, give these five the same meaning. */
+  async open(){ const api = window.claude || (window.parent !== window && window.parent.claude); if (!api || !api.use) return null; return await api.use("db"); },
+  watch(col, eq, cb, err){ let q = store.db.collection(col); if (eq) q = q.where(eq[0], "==", eq[1]); return q.limit(900).onSnapshot(s => cb(s.docs.map(d => [d.id, d.data()])), err); },
+  newId(col){ return store.db.collection(col).doc().id; },
+  set(col, id, data){ return store.db.collection(col).doc(id).set(data); },
+  del(col, id){ return store.db.collection(col).doc(id).delete(); },
+};
+const items = {};                 /* page -> everything on it (shared + this device's) */
+const hidden = new Set();         /* page things lifted off right now */
+const shared = { items:{}, loose:[], holes:[], objs:null };
+const local = { items:{}, loose:[], holes:[], objs:null, hide:[] };
+const store = { mode:"local", db:null, canWrite:true, subs:new Map(), warned:false };
+const LKEY = "lam.basquiat.v2";
+const num = (v, a, b) => clamp(Math.round(+v || 0), a, b);
+const polyOf = (a) => Array.isArray(a) ? a.slice(0, 400).map(v => num(v, 0, 200)) : [];
+function cleanItem(id, d){
+  if (!d || typeof d !== "object") return null;
+  const p = d.p | 0; if (p < 1 || p > NP) return null;
+  const t = +d.t || 0, base = { id:String(id), p, k:d.k, t };
+  if (d.k === "st"){ if (!STKSP[d.s]) return null; return { ...base, s:d.s, x:num(d.x, -30, PW + 30), y:num(d.y, -30, PH + 30), r:clamp(+d.r || 0, -3.2, 3.2) }; }
+  if (d.k === "cut"){ const m = d.m | 0, poly = polyOf(d.poly); if (m < 0 || m >= MAGN || poly.length < 6) return null;
+    return { ...base, m, poly, x:num(d.x, -40, PW + 40), y:num(d.y, -40, PH + 40), r:clamp(+d.r || 0, -3.2, 3.2) }; }
+  if (d.k === "tx"){ const s = String(d.s || "").slice(0, 240); if (!s.trim()) return null; return { ...base, s, x:num(d.x, 0, PW), y:num(d.y, 0, PH + 24), c:num(d.c, 0, INK.length - 1), z:num(d.z, 1, 2), o:d.o ? 1 : 0 }; }
+  if (d.k === "er" || d.k === "dr"){ if (!Array.isArray(d.pts)) return null; const pts = d.pts.slice(0, 1200).map(v => num(v, -20, 200)); if (pts.length < 2) return null;
+    return d.k === "er" ? { ...base, pts, w:num(d.w, 2, 16) } : { ...base, pts, w:num(d.w, 1, 6), c:num(d.c, 0, INK.length - 1) }; }
+  return null;
+}
+function cleanLoose(id, d){
+  if (!d || typeof d !== "object") return null;
+  const page = d.page == null ? null : (d.page | 0); if (page != null && (page < 1 || page > NP)) return null;
+  const o = { id:String(id), kind:d.kind, t:+d.t || 0, r:clamp(+d.r || 0, -3.2, 3.2), page, stuck:!!d.stuck && page == null };
+  if (d.kind === "st"){ if (!STKSP[d.s]) return null; o.s = d.s; }
+  else if (d.kind === "cut"){ o.m = d.m | 0; o.poly = polyOf(d.poly); if (o.m < 0 || o.m >= MAGN || o.poly.length < 6) return null; }
+  else return null;
+  if (page != null){ o.x = num(d.x, -40, PW + 40); o.y = num(d.y, -40, PH + 40); } else { o.nx = clamp(+d.nx || 0, 0, 1); o.ny = clamp(+d.ny || 0, 0, 1); }
+  return o;
+}
+function cleanHole(id, d){ if (!d || typeof d !== "object") return null; const m = d.m | 0, poly = polyOf(d.poly); if (m < 0 || m >= MAGN || poly.length < 6) return null; return { id:String(id), m, poly, t:+d.t || 0 }; }
+function cleanObjs(d){ if (!d || typeof d !== "object") return null; const o = {}; Object.keys(OBJ).forEach(k => { if (Array.isArray(d[k])) o[k] = [clamp(+d[k][0] || 0, -.2, 1), clamp(+d[k][1] || 0, -.2, 1)]; }); return o; }
+
+/* this device's share */
+function loadLocal(){
+  try { const o = JSON.parse(localStorage.getItem(LKEY) || "null");
+    if (o){ Object.assign(local, { items:o.items || {}, loose:o.loose || [], holes:o.holes || [], objs:o.objs || null, hide:o.hide || [] }); }
+    else { const v1 = JSON.parse(localStorage.getItem("lam.basquiat.pages.v1") || "{}"); Object.keys(v1).forEach(p => local.items[p] = v1[p]); }
+  } catch (_){}
+  Object.keys(local.items).forEach(p => local.items[p] = (local.items[p] || []).map(d => cleanItem(d.id, d)).filter(Boolean));
+  local.loose = local.loose.map(d => cleanLoose(d.id, d)).filter(Boolean); local.holes = local.holes.map(d => cleanHole(d.id, d)).filter(Boolean);
+  local.objs = cleanObjs(local.objs); local.hide = Array.isArray(local.hide) ? local.hide.map(String) : [];
+}
+let lsT = 0;
+function saveLocal(){ clearTimeout(lsT); lsT = setTimeout(() => { try {
+  const strip = (r) => { const o = { ...r }; delete o.src; delete o.spr; delete o.glue; delete o.gm; return o; };
+  const its = {}; Object.keys(local.items).forEach(p => its[p] = local.items[p].map(strip));
+  localStorage.setItem(LKEY, JSON.stringify({ items:its, loose:local.loose.map(strip), holes:local.holes.map(strip), objs:local.objs, hide:local.hide.slice(-800) })); } catch (_){} }, 250); }
+
+/* the views everything is drawn from */
+function mergePage(p){ const hide = new Set(local.hide);
+  items[p] = [...(shared.items[p] || []).map(it => (it.src = "db", it)), ...(local.items[p] || []).map(it => (it.src = "local", it))].filter(it => !hide.has(it.id)); pageCache.delete(p); }
+function mergeAll(){ new Set([...Object.keys(shared.items), ...Object.keys(local.items), ...Object.keys(items)]).forEach(p => mergePage(+p)); rebuildLoose(); rebuildHoles(); applyObjs(); }
+function putView(where, col, rec){
+  if (col === "items"){ const L = where.items[rec.p] = (where.items[rec.p] || []).filter(x => x.id !== rec.id); L.push(rec); mergePage(rec.p); }
+  else { where[col] = where[col].filter(x => x.id !== rec.id); where[col].push(rec); col === "loose" ? rebuildLoose() : rebuildHoles(); }
+}
+function cutView(where, col, rec){
+  if (col === "items"){ where.items[rec.p] = (where.items[rec.p] || []).filter(x => x.id !== rec.id); mergePage(rec.p); }
+  else { where[col] = where[col].filter(x => x.id !== rec.id); col === "loose" ? rebuildLoose() : rebuildHoles(); }
+}
+function hideHere(id){ if (!local.hide.includes(id)) local.hide.push(id); saveLocal(); }
+const bodyOf = (rec) => { const o = { ...rec }; delete o.id; delete o.src; return o; };
+const canShare = () => store.mode === "shared" && store.canWrite;
+function warnLocal(){ if (store.warned) return; store.warned = true;
+  toast(T({ en:"Kept on this device — your account can't write to the shared notebook yet, so only you see this part.", ko:"이 기기에 저장했어요 — 지금 계정으로는 공유 노트에 쓸 수 없어서, 이 부분은 나에게만 보여요." })); }
+/* keep something (new, or moved): shared if possible, on this device if not */
+function keep(col, rec){
+  rec.t = rec.t || Date.now();
+  if (rec.src === "db" && !canShare()){ const old = rec.id; hideHere(old); cutView(shared, col, rec); rec = { ...rec, id:null, src:null }; }
+  if (canShare() && rec.src !== "local"){
+    const isNew = !rec.id; rec.id = rec.id || BACKEND.newId(COL[col]); rec.src = "db";
+    putView(shared, col, rec);
+    BACKEND.set(COL[col], rec.id, bodyOf(rec)).then(() => { if (isNew) noteSaved(); }).catch(e => {
+      const code = e && e.code; cutView(shared, col, rec);
+      if (code === "quota_exceeded") toast(T({ en:"The shared notebook is full — this is kept on your device instead.", ko:"공유 노트가 가득 찼어요 — 대신 이 기기에 저장했어요." }));
+      else { if (code !== "unavailable") store.canWrite = false; warnLocal(); }
+      if (!isNew) hideHere(rec.id);
+      putView(local, col, { ...rec, id:"l" + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36), src:"local" }); saveLocal();
+    });
+  } else {
+    rec.id = rec.src === "local" && rec.id ? rec.id : "l" + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36); rec.src = "local";
+    putView(local, col, rec); saveLocal(); noteSaved(); if (store.mode === "shared") warnLocal();
+  }
+  return rec;
+}
+/* take something away (peeled off, glued down, moved onto a page) */
+function unkeep(col, rec){
+  if (!rec || !rec.id) return;
+  if (rec.src === "db"){ cutView(shared, col, rec); if (canShare()) BACKEND.del(COL[col], rec.id).catch(() => { hideHere(rec.id); mergeAll(); }); else hideHere(rec.id); }
+  else { cutView(local, col, rec); saveLocal(); }
+}
+function addItem(it){ keep("items", it); return true; }
+function removeItem(it){ unkeep("items", it); }
+
+async function openStore(){
+  loadLocal(); mergeAll(); refreshStoreNote();
+  try {
+    const db = await BACKEND.open(); if (!db) return;
+    store.db = db; store.mode = "shared"; refreshStoreNote();
+    const dead = () => {};
+    store.subs.set("loose", BACKEND.watch(COL.loose, null, docs => { shared.loose = docs.map(([id, d]) => cleanLoose(id, d)).filter(Boolean); rebuildLoose(); }, dead));
+    store.subs.set("holes", BACKEND.watch(COL.holes, null, docs => { shared.holes = docs.map(([id, d]) => cleanHole(id, d)).filter(Boolean); rebuildHoles(); }, dead));
+    store.subs.set("meta", BACKEND.watch(COL.meta, null, docs => { const d = docs.find(([id]) => id === "objs"); shared.objs = d ? cleanObjs(d[1]) : null; applyObjs(); }, dead));
+    watchVisible();
+  } catch (_){ store.mode = "local"; refreshStoreNote(); }
+}
+function watchPages(list){
+  if (store.mode !== "shared") return;
+  list.filter(p => p >= 1 && p <= NP && !store.subs.has(p)).forEach(p => {
+    store.subs.set(p, BACKEND.watch(COL.items, ["p", p], docs => { shared.items[p] = docs.map(([id, d]) => cleanItem(id, d)).filter(Boolean); mergePage(p); }, () => store.subs.delete(p)));
+  });
+  /* keep a handful of pages live, let the rest go */
+  const pages = [...store.subs.keys()].filter(k => typeof k === "number");
+  if (pages.length > 10) pages.filter(p => !list.includes(p)).slice(0, pages.length - 10).forEach(p => { try { store.subs.get(p)(); } catch (_){} store.subs.delete(p); });
+}
+function watchVisible(){ const v = single ? [B.cp - 1, B.cp, B.cp + 1, B.cp + 2] : [2 * B.s - 1, 2 * B.s, 2 * B.s + 1, 2 * B.s + 2, 2 * B.s + 3]; watchPages(v); }
+
+/* the binder, magazine, mug and sticks: wherever the last person left them */
+let objsSent = "";
+function applyObjs(){ const o = local.objs || shared.objs; if (!o) return;
+  Object.keys(o).forEach(k => { if (!OBJ[k] || (down && down.act === "obj" && down.obj === k)) return; OBJ[k].x = Math.round(o[k][0] * LW); OBJ[k].y = Math.round(o[k][1] * LH); OBJ[k].set = true; }); }
+function keepObjs(){
+  const rec = {}; Object.keys(OBJ).forEach(k => { if (OBJ[k].set) rec[k] = [+(OBJ[k].x / LW).toFixed(4), +(OBJ[k].y / LH).toFixed(4)]; });
+  const js = JSON.stringify(rec); if (js === objsSent || js === "{}") return; objsSent = js; rec.t = Date.now();
+  if (canShare() && !local.objs){ shared.objs = cleanObjs(rec); BACKEND.set(COL.meta, "objs", rec).catch(e => { if (e && e.code !== "unavailable") store.canWrite = false; local.objs = cleanObjs(rec); saveLocal(); warnLocal(); }); }
+  else { local.objs = cleanObjs(rec); saveLocal(); }
+}
+let savedAt = 0;
+function noteSaved(){ if (performance.now() - savedAt > 9000){ savedAt = performance.now(); toast(store.mode === "shared" && store.canWrite ? T({ en:"Kept — everyone who opens this notebook will find it.", ko:"남았어요 — 이 노트를 여는 모든 사람이 보게 돼요." }) : T({ en:"Kept on this page, on this device.", ko:"이 기기의 노트에 남았어요." })); } }
+function refreshStoreNote(){ $("ab-store").textContent = store.mode === "shared"
+  ? T({ en:"Shared notebook: everything left here — on the pages, on the desk, cut from the magazine — is kept for everyone, and anyone can peel, move or rub it out.", ko:"공유 노트: 페이지 위, 책상 위, 잡지에서 오려 낸 것까지 여기 남긴 모든 것이 모두에게 저장되고, 누구나 떼고 옮기고 지울 수 있어요." })
+  : T({ en:"Right now this is kept in this browser only (no shared store here).", ko:"지금은 이 브라우저에만 저장돼요 (공유 저장소가 없는 환경이에요)." }); showNav(); }
+
+/* ==========================================================================
+   12. DRAWING A PAGE — paper, the oilstick layer (minus what was rubbed out),
+       then everything stuck to it, oldest first
+   ========================================================================== */
+const pageCache = new Map();
+const inkLo = new PX(PW, PH), inkHi = new PX(PW, PH), inkCv = [document.createElement("canvas"), document.createElement("canvas")];
+let typing = null, erasing = null, drawing = null;
+function spriteOf(it){ return it.k === "st" ? STKSP[it.s] : cutSprite(it.m, it.poly); }
+function pageCanvas(p){
+  if (p === 0) return INSIDE; if (p === NP + 1) return BACKIN; if (p < 0 || p > NP + 1) return null;
+  const c = pageCache.get(p); if (c) return c;
+  const out = document.createElement("canvas"); out.width = PW; out.height = PH; const q = out.getContext("2d"); q.imageSmoothingEnabled = false;
+  q.drawImage(PAPERCV, 0, 0);
+  /* the page number, bottom outside corner */
+  const num = new PX(PW, PH); const ns = String(p); num.text(ns, p % 2 ? PW - 5 - strW(ns) : 5, PH - 4, C("#a59f90")); q.drawImage(num.canvas(), 0, 0);
+  const list = (items[p] || []).filter(it => !hidden.has(it.id)).slice().sort((a, b) => a.t - b.t);
+  if (typing && typing.p === p) list.push(typing);
+  if (erasing && erasing.p === p) list.push(erasing);
+  if (drawing && drawing.p === p) list.push(drawing);
+  inkLo.clear(); inkHi.clear();
+  list.forEach(it => {
+    if (it.k === "dr"){ const c = C(INK[it.c]), w = it.w, R = rng(hstr(it.p + ":" + it.pts.slice(0, 6).join(",") + it.c)), o = Math.floor(w / 2);
+      /* oilstick: waxy, a few dots skipped where the paper's tooth shows through */
+      for (let i = 0; i + 1 < it.pts.length; i += 2){ const x0 = it.pts[i], y0 = it.pts[i + 1], x1 = it.pts[i + 2] ?? x0, y1 = it.pts[i + 3] ?? y0, n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0)));
+        for (let k = 0; k <= n; k++){ const x = Math.round(lerp(x0, x1, k / n)), y = Math.round(lerp(y0, y1, k / n));
+          for (let b = 0; b < w; b++) for (let a = 0; a < w; a++){ if ((w > 2 && (a === 0 || a === w - 1) && (b === 0 || b === w - 1)) || R() < .09) continue; inkHi.set(x - o + a, y - o + b, c); } } }
+    }
+    else if (it.k === "tx") drawStr(it.o ? inkHi : inkLo, it.s, it.x, it.y, C(INK[it.c]), it.z, rng(hstr(it.p + ":" + it.x + ":" + it.y)), PW - 3);
+    else if (it.k === "er") [inkLo, inkHi].forEach(L => { const r = it.w / 2; for (let i = 0; i + 1 < it.pts.length; i += 2){ const x0 = it.pts[i], y0 = it.pts[i + 1], x1 = it.pts[i + 2] ?? x0, y1 = it.pts[i + 3] ?? y0; const n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0)));
+      for (let k = 0; k <= n; k++){ const x = lerp(x0, x1, k / n), y = lerp(y0, y1, k / n); for (let yy = Math.floor(y - r); yy <= y + r; yy++) for (let xx = Math.floor(x - r); xx <= x + r; xx++) if ((xx + .5 - x) ** 2 + (yy + .5 - y) ** 2 <= r * r) L.set(xx, yy, 0); } } });
+  });
+  q.drawImage(inkLo.canvas(inkCv[0]), 0, 0);
+  list.forEach(it => { if (it.k === "st" || it.k === "cut") drawItem(q, spriteOf(it), it.x, it.y, it.r, .16); });
+  q.drawImage(inkHi.canvas(inkCv[1]), 0, 0);
+  pageCache.set(p, out); return out;
+}
+function drawItem(q, spr, x, y, r, shadow){
+  q.save(); q.translate(Math.round(x), Math.round(y)); q.rotate(r || 0);
+  if (shadow){ q.globalAlpha = shadow; q.drawImage(spr.sh, -Math.floor(spr.w / 2) + 1, -Math.floor(spr.h / 2) + 1); q.globalAlpha = 1; }
+  q.drawImage(spr.cv, -Math.floor(spr.w / 2), -Math.floor(spr.h / 2)); q.restore();
+}
+
+/* ==========================================================================
+   13. THE BOOK ON THE DESK — a sheet turning is drawn a column of dots at a
+       time, foreshortened as it rises, darker as it stands up
+   ========================================================================== */
+function flap(front, back, sx, y, W, H, a){
+  const ca = Math.cos(a), sa = Math.sin(a), vis = ca >= 0, src = vis ? front : back; if (!src) return;
+  const sw = src.width, shd = Math.round(clamp(.42 * sa * sa, 0, .42) * 8) / 8;
+  for (let i = 0; i < W; i++){
+    const u0 = i / W, u1 = (i + 1) / W; let x0 = sx + u0 * W * ca, x1 = sx + u1 * W * ca; if (x1 < x0){ const t = x0; x0 = x1; x1 = t; }
+    const k = 1 + .09 * sa * (u0 + u1) / 2, hh = Math.round(H * k), yy = Math.round(y + (H - hh) / 2) - Math.round(sa * 2 * u0);
+    const dx = Math.floor(x0), dw = Math.max(1, Math.round(x1) - dx), col = vis ? i : W - 1 - i;
+    if (col < sw) g.drawImage(src, col, 0, 1, src.height, dx, yy, dw, hh);
+    const s = shd * (vis ? (.55 + .45 * u0) : (1 - .5 * u0));
+    if (s > .01){ g.fillStyle = `rgba(28,18,10,${s.toFixed(3)})`; g.fillRect(dx, yy, dw, hh); }
+  }
+}
+/* the pages on show while nothing turns */
+function restPages(){ return single ? { L:null, R:B.cp } : { L:2 * B.s, R:2 * B.s + 1 }; }
+function pageRect(side){ return side === "L" ? { x:spineX - PW, y:B.y } : { x:spineX, y:B.y }; }
+function drawPage(p, side){
+  /* the insides of the covers are the boards themselves, already drawn underneath */
+  if (p == null || p <= 0 || p > NP) return;
+  g.drawImage(pageCanvas(p), side === "L" ? spineX - PW : spineX, B.y);
+}
+function stack(side, n){
+  for (let k = n; k >= 1; k--){ g.fillStyle = k % 2 ? "#d9d1bd" : "#c4bba3";
+    if (side === "R") g.fillRect(spineX + 1, B.y + k, PW - 1 + k, PH); else g.fillRect(spineX - PW - k, B.y + k, PW - 1 + k, PH); }
+}
+function drawBook(now){
+  const y = B.y, op = B.open, open = op >= .999;
+  /* a soft shadow under the whole book */
+  g.fillStyle = "rgba(10,5,2,.38)";
+  if (open && !single) g.fillRect(spineX - CW + 3, y + 3, CW * 2, CH); else g.fillRect(spineX + 3, y + 3, CW, CH);
+  if (!open){
+    /* closed, or the cover on its way round: page 1 underneath */
+    g.drawImage(BACKIN, spineX, y - 2); stack("R", 3);
+    drawPage(single ? B.cp : 1, "R");
+    flap(COVER, INSIDE, spineX, y - 2, CW, CH, op * Math.PI);
+    return;
+  }
+  g.drawImage(INSIDE, spineX - CW, y - 2); g.drawImage(BACKIN, spineX, y - 2);
+  const f = B.flip, rp = restPages();
+  const leftN = single ? 0 : Math.ceil(3 * (2 * B.s) / NP), rightN = Math.ceil(3 * (NP - (single ? B.cp : 2 * B.s + 1)) / NP);
+  if (!single && (f ? 2 * f.from - (f.dir < 0 ? 2 : 0) : rp.L) > 0) stack("L", Math.max(1, leftN));
+  if ((f ? (single ? f.from : 2 * f.from + (f.dir > 0 ? 3 : 1)) : rp.R) <= NP) stack("R", Math.max(1, rightN));
+  if (!f){ drawPage(rp.L, "L"); drawPage(rp.R, "R"); }
+  else if (!single){
+    if (f.dir > 0){ drawPage(2 * f.from, "L"); drawPage(2 * f.from + 3, "R"); }
+    else { drawPage(2 * f.from - 2, "L"); drawPage(2 * f.from + 1, "R"); }
+    const R = f.dir > 0 ? 2 * f.from + 1 : 2 * f.from - 1;
+    flap(pageCanvas(R), pageCanvas(R + 1), spineX, y, PW, PH, f.a);
+  } else {
+    if (f.dir > 0){ drawPage(f.from + 1, "R"); flap(pageCanvas(f.from), pageCanvas(f.from + 1) || BACKIN, spineX, y, PW, PH, f.a); }
+    else { drawPage(f.from, "R"); flap(pageCanvas(f.from - 1), pageCanvas(f.from), spineX, y, PW, PH, f.a); }
+  }
+  /* the gutter: paper curving down into the spine */
+  for (let k = 0; k < 5; k++){ g.fillStyle = `rgba(60,40,20,${(.22 - k * .045).toFixed(3)})`; g.fillRect(spineX + k, y, 1, PH); if (!single) g.fillRect(spineX - 1 - k, y, 1, PH); }
+}
+
+/* ==========================================================================
+   14. LOOSE THINGS — cut-outs waiting for glue, stickers dropped on the desk
+   ========================================================================== */
+let loose = [];             /* what lies about: { id, src, kind, s | m+poly, spr, x, y, r, page?, stuck?, glue } — x, y are screen dots on the desk, page dots on a page */
+const lifted = new Set();   /* loose things in someone's hand right now */
+function rebuildLoose(){
+  const hide = new Set(local.hide), prev = new Map(loose.map(o => [o.id, o]));
+  loose = [...shared.loose.map(r => (r.src = "db", r)), ...local.loose.map(r => (r.src = "local", r))]
+    .filter(r => !hide.has(r.id) && !lifted.has(r.id)).sort((a, b) => a.t - b.t)
+    .map(r => { const o = prev.get(r.id), spr = looseSprite(r); if (!spr) return null;
+      return { ...r, spr, glue:o ? o.glue : 0, gm:o ? o.gm : [], x:r.page != null ? r.x : clamp(Math.round(r.nx * LW), 8, LW - 8), y:r.page != null ? r.y : clamp(Math.round(r.ny * LH), topPad + 4, LH - botPad - 4) }; })
+    .filter(Boolean);
+}
+/* the record kept for a loose thing; patch moves it */
+function looseRec(o, patch){
+  const r = { id:o.id || null, src:o.src || null, kind:o.kind, r:+(+(o.r || 0)).toFixed(3), page:o.page ?? null, stuck:!!o.stuck, t:Date.now(), x:o.x, y:o.y };
+  if (o.kind === "st") r.s = o.s; else { r.m = o.m; r.poly = o.poly; }
+  Object.assign(r, patch || {});
+  if (r.page != null){ r.x = Math.round(r.x); r.y = Math.round(r.y); r.stuck = false; }
+  else { r.nx = +clamp(r.x / LW, 0, 1).toFixed(4); r.ny = +clamp(r.y / LH, 0, 1).toFixed(4); delete r.x; delete r.y; }
+  return r;
+}
+let held = null;            /* what the hand is carrying */
+let peel = null;            /* a sticker or cut-out coming off */
+let uidN = 1;
+function looseSprite(o){ return o.kind === "st" ? STKSP[o.s] : cutSprite(o.m, o.poly); }
+
+/* ==========================================================================
+   15. THE OPEN BINDER AND THE OPEN MAGAZINE
+   ========================================================================== */
+function slotsOf(r){ const out = []; const cols = 2, rows = 4, cw = (r.w - 12) / cols, ch = (r.h - 34) / rows;
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) out.push({ x:r.x + 6 + cw * (i + .5), y:r.y + 18 + ch * (j + .5) }); return out; }
+const PANEL_BG = {};
+function panelBg(kind){
+  if (PANEL_BG[kind]) return PANEL_BG[kind];
+  const p = new PX(PANW, PANH);
+  if (kind === "st"){ p.rect(0, 0, PANW, PANH, P.b2); p.rect(2, 2, PANW - 4, PANH - 4, P.b); p.rect(5, 12, PANW - 10, PANH - 28, C("#f4f1ea"));
+    for (let y = 14; y < PANH - 18; y += 4) for (let x = 7; x < PANW - 6; x += 4) p.set(x, y, C("#e3dfd5"));
+    [24, 70, 116].forEach(y => p.ring(3, y + 4, 3, 3, 1, P.lg)); p.text("STICKERS", 8, 9, P.w); }
+  else { p.rect(0, 0, PANW, PANH, C("#cfc6b0")); p.rect(3, 3, PANW - 5, PANH - 5, C("#e3dac6")); }
+  return PANEL_BG[kind] = p.canvas();
+}
+function drawArrows(r, label){
+  const ay = r.y + r.h - 9, cx = r.x + r.w / 2, q = new PX(r.w, 12);
+  q.poly([[6, 5.5], [12, 1], [12, 10]], P.w); q.poly([[r.w - 6, 5.5], [r.w - 12, 1], [r.w - 12, 10]], P.w);
+  q.text(label, Math.floor(r.w / 2 - strW(label) / 2), 9, P.w);
+  g.drawImage(q.canvas(), r.x, ay - 5);
+}
+function drawX(r){ const q = new PX(11, 11); q.disc(5.5, 5.5, 5.5, P.k); q.line(3, 3, 7, 7, P.w); q.line(7, 3, 3, 7, P.w); g.drawImage(q.canvas(), r.x + r.w - 9, r.y - 3); }
+function drawPanels(now){
+  if (PAN.st){ const r = panelRect("st"); g.fillStyle = "rgba(8,4,2,.4)"; g.fillRect(r.x + 3, r.y + 4, r.w, r.h); g.drawImage(panelBg("st"), r.x, r.y);
+    const sheet = SHEETS[PAN.stPage];
+    slotsOf(r).forEach((sl, i) => { const id = sheet[i], spr = STKSP[id], key = PAN.stPage + ":" + i, tk = PAN.taken[key];
+      if (peel && peel.slot === key) return;
+      if (tk && now - tk < 1400){ g.globalAlpha = .18; g.drawImage(spr.sh, Math.round(sl.x - spr.w / 2), Math.round(sl.y - spr.h / 2)); g.globalAlpha = 1; return; }
+      if (tk){ delete PAN.taken[key]; }
+      g.drawImage(spr.cv, Math.round(sl.x - spr.w / 2), Math.round(sl.y - spr.h / 2)); });
+    drawArrows(r, `${PAN.stPage + 1}/${SHEETS.length}`); drawX(r); }
+  if (PAN.mg){ const r = panelRect("mg"); g.fillStyle = "rgba(8,4,2,.4)"; g.fillRect(r.x + 3, r.y + 4, r.w, r.h); g.drawImage(panelBg("mg"), r.x, r.y);
+    const mx = r.x + Math.floor((r.w - MW) / 2), my = r.y + 4;
+    /* the page under this one shows through any holes */
+    const under = MAGCV[(PAN.mgPage + 1) % MAGN]; g.drawImage(under, mx, my);
+    g.drawImage(magWithHoles(PAN.mgPage), mx, my);
+    g.fillStyle = "rgba(0,0,0,.1)"; g.fillRect(mx, my, 2, MH);
+    drawArrows({ x:r.x, y:r.y + 6, w:r.w, h:r.h - 6 }, `${PAN.mgPage + 1}/${MAGN}`); drawX(r);
+    if (cutting) drawLasso(now); }
+}
+const holes = {};          /* magazine page -> the last polygons anyone cut out of it */
+const holeCv = {}; let holeVer = 0;
+function rebuildHoles(){ const hide = new Set(local.hide); Object.keys(holes).forEach(k => delete holes[k]);
+  [...shared.holes, ...local.holes].filter(h => !hide.has(h.id)).sort((a, b) => a.t - b.t).forEach(h => (holes[h.m] = holes[h.m] || []).push(h.poly));
+  /* a magazine only has so much paper: the oldest holes are reprinted */
+  Object.keys(holes).forEach(m => holes[m] = holes[m].slice(-14)); holeVer++; }
+function magWithHoles(m){
+  if (!holes[m] || !holes[m].length) return MAGCV[m];
+  if (holeCv[m] && holeCv[m].v === holeVer) return holeCv[m];
+  const px = new PX(MW, MH); px.a.set(MAGPX[m].a);
+  holes[m].forEach(poly => { const pts = []; for (let i = 0; i < poly.length; i += 2) pts.push([poly[i], poly[i + 1]]); px.poly(pts, 0);
+    /* a thin white edge where the scissors went */
+    const e = new PX(MW, MH); e.poly(pts, 1); for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (!e.get(x, y) && (e.get(x + 1, y) || e.get(x - 1, y) || e.get(x, y + 1) || e.get(x, y - 1)) && px.get(x, y)) px.set(x, y, C("#fbf8f1")); });
+  const c = px.canvas(); c.v = holeVer; holeCv[m] = c; return c;
+}
+
+/* ==========================================================================
+   16. FRAME
+   ========================================================================== */
+const crumbs = [];
+let last = performance.now();
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  step(dt, now); render(now);
+}
+function step(dt, now){
+  /* the cover */
+  if (B.openT !== B.open && !coverDrag){ const d = B.openT - B.open, sp = reduce ? 1 : dt * 2.4; B.open = Math.abs(d) < sp ? B.openT : B.open + Math.sign(d) * sp;
+    if (B.open === B.openT) pageCache.clear(); }
+  const ts = targetSpine(); spineX = Math.abs(ts - spineX) < 1 ? ts : Math.round(lerp(spineX, ts, Math.min(1, dt * 9)));
+  /* a page turning on its own */
+  const f = B.flip;
+  if (f && !f.drag){ const goal = f.to, sp = reduce ? 9 : dt * 5.2; const d = goal - f.a; f.a = Math.abs(d) < sp ? goal : f.a + Math.sign(d) * sp;
+    if (f.a === goal){ if (f.commit){ if (single) B.cp = f.dir > 0 ? f.from + 1 : f.from - 1; else B.s = f.dir > 0 ? f.from + 1 : f.from - 1; } B.flip = null; showNav(); watchVisible(); } }
+  if (peel && peel.back){ const k = Math.min(1, dt * 14); peel.P[0] = lerp(peel.P[0], peel.G[0], k); peel.P[1] = lerp(peel.P[1], peel.G[1], k);
+    if (Math.hypot(peel.P[0] - peel.G[0], peel.P[1] - peel.G[1]) < .4){ if (peel.item){ hidden.delete(peel.item.id); pageCache.delete(peel.item.p); } if (peel.loose){ lifted.delete(peel.loose.id); rebuildLoose(); } peel = null; } }
+  for (let i = crumbs.length - 1; i >= 0; i--){ const c = crumbs[i]; c.t -= dt; c.x += c.vx * dt; c.y += c.vy * dt; c.vy += 30 * dt; c.vx *= .9; if (c.t <= 0) crumbs.splice(i, 1); }
+}
+function render(now){
+  g.setTransform(1, 0, 0, 1, 0, 0); g.imageSmoothingEnabled = false;
+  g.drawImage(DESK, 0, 0);
+  /* things on the desk */
+  ["sticks", "mug"].forEach(id => drawObj(id));
+  if (!PAN.st) drawObj("binder"); if (!PAN.mg) drawObj("mag");
+  drawBook(now);
+  /* cut-outs lying loose on the open pages */
+  loose.filter(o => o.page != null).forEach(o => { const pr = pageOfLoose(o); if (!pr) return; drawItem(g, o.spr, pr.x + o.x, pr.y + o.y, o.r, .32); drawGlue(o, pr.x + o.x, pr.y + o.y); });
+  drawPanels(now);
+  loose.filter(o => o.page == null).forEach(o => { drawItem(g, o.spr, o.x, o.y, o.r, o.stuck ? .16 : .32); drawGlue(o, o.x, o.y); });
+  if (peel) drawPeel(peel);
+  if (held){ g.globalAlpha = .28; g.save(); g.translate(Math.round(held.x) + 3, Math.round(held.y) + 5); g.rotate(held.r); g.drawImage(held.spr.sh, -Math.floor(held.spr.w / 2), -Math.floor(held.spr.h / 2)); g.restore(); g.globalAlpha = 1; drawItem(g, held.spr, held.x, held.y, held.r, 0); }
+  crumbs.forEach(c => { g.fillStyle = c.c; g.fillRect(Math.round(c.x), Math.round(c.y), 1, 1); });
+  /* the caret, blinking */
+  if (typing){ const pr = visiblePageRect(typing.p); if (pr && Math.floor(now / 480) % 2 === 0){ const L = layoutStr(typing.s, typing.x, typing.y, typing.z, PW - 3);
+      g.fillStyle = INK[typing.c] === "#f6f2e8" ? "#7d776b" : INK[typing.c]; g.fillRect(pr.x + L.cx, pr.y + L.cy - 8 * typing.z, typing.z, 9 * typing.z); } }
+  if (pointer.fine && pointer.in){ const t = TOOLSP[tool === "crayon" ? "crayon" + ink : tool]; if (t){ g.save(); g.translate(Math.round(pointer.x), Math.round(pointer.y)); g.drawImage(t.cv, -t.hx, -t.hy); g.restore(); } }
+}
+function drawObj(id){ const o = OBJ[id]; if (!o.spr) return; g.globalAlpha = .35; g.drawImage(o.spr.sh, Math.round(o.x) + 2, Math.round(o.y) + 3); g.globalAlpha = 1; g.drawImage(o.spr.cv, Math.round(o.x), Math.round(o.y)); }
+function drawGlue(o, x, y){ if (!o.glue || o.stuck) return; const k = Math.min(1, o.glue / GLUE_NEED); g.save(); g.translate(Math.round(x), Math.round(y)); g.rotate(o.r);
+  g.fillStyle = `rgba(210,235,255,${(.25 + .35 * k).toFixed(2)})`; o.gm.forEach(([u, v]) => g.fillRect(u, v, 1, 1)); g.restore(); }
+function drawPeel(pl){
+  const spr = pl.spr, w = spr.w, h = spr.h, G = pl.G, Pp = pl.P;
+  g.save(); g.translate(Math.round(pl.X), Math.round(pl.Y)); g.rotate(pl.r);
+  const dx = G[0] - Pp[0], dy = G[1] - Pp[1], L = Math.hypot(dx, dy);
+  if (L < .5){ g.drawImage(spr.cv, -Math.floor(w / 2), -Math.floor(h / 2)); g.restore(); return; }
+  const nx = dx / L, ny = dy / L, mx = (G[0] + Pp[0]) / 2, my = (G[1] + Pp[1]) / 2, big = 200, px = -ny, py = nx;
+  const half = (sgn) => { g.beginPath(); g.moveTo(mx + px * big, my + py * big); g.lineTo(mx - px * big, my - py * big); g.lineTo(mx - px * big + sgn * nx * big, my - py * big + sgn * ny * big); g.lineTo(mx + px * big + sgn * nx * big, my + py * big + sgn * ny * big); g.closePath(); };
+  const ox = -Math.floor(w / 2), oy = -Math.floor(h / 2), d = mx * nx + my * ny;
+  /* what is still stuck down */
+  g.save(); half(-1); g.clip(); g.drawImage(spr.cv, ox, oy); g.restore();
+  /* the flap's shadow, then the flap itself: the sprite folded over the line, back side up */
+  g.save(); g.translate(1, 2); g.transform(1 - 2 * nx * nx, -2 * nx * ny, -2 * nx * ny, 1 - 2 * ny * ny, 2 * d * nx, 2 * d * ny); half(1); g.clip(); g.globalAlpha = .25; g.drawImage(spr.sh, ox, oy); g.restore();
+  g.save(); g.transform(1 - 2 * nx * nx, -2 * nx * ny, -2 * nx * ny, 1 - 2 * ny * ny, 2 * d * nx, 2 * d * ny); half(1); g.clip(); g.drawImage(spr.back, ox, oy);
+  g.restore(); g.restore();
+}
+
+/* ==========================================================================
+   17. HITS — what's under a dot on the screen
+   ========================================================================== */
+function visiblePageRect(p){
+  if (B.open < .999 || B.flip) return null;
+  const rp = restPages();
+  if (rp.R === p && p >= 1 && p <= NP) return { x:spineX, y:B.y };
+  if (!single && rp.L === p && p >= 1 && p <= NP) return { x:spineX - PW, y:B.y };
+  return null;
+}
+function pageAt(x, y){
+  if (B.open < .999 || B.flip) return null;
+  const rp = restPages();
+  if (y >= B.y && y < B.y + PH){
+    if (x >= spineX && x < spineX + PW) return { p:rp.R, side:"R", lx:x - spineX, ly:y - B.y };
+    if (!single && x >= spineX - PW && x < spineX) return { p:rp.L, side:"L", lx:x - spineX + PW, ly:y - B.y };
+  }
+  return null;
+}
+function pageOfLoose(o){ return visiblePageRect(o.page); }
+function itemAt(pa){
+  if (!pa || pa.p < 1 || pa.p > NP) return null;
+  const list = (items[pa.p] || []).filter(it => (it.k === "st" || it.k === "cut") && !hidden.has(it.id)).sort((a, b) => b.t - a.t);
+  for (const it of list){ const spr = spriteOf(it), c = Math.cos(-it.r), s = Math.sin(-it.r), dx = pa.lx - it.x, dy = pa.ly - it.y;
+    if (hitSprite(spr, dx * c - dy * s, dx * s + dy * c)) return it; }
+  return null;
+}
+function looseAt(x, y){
+  for (let i = loose.length - 1; i >= 0; i--){ const o = loose[i]; let X = o.x, Y = o.y;
+    if (o.page != null){ const pr = pageOfLoose(o); if (!pr) continue; X += pr.x; Y += pr.y; }
+    const c = Math.cos(-o.r), s = Math.sin(-o.r), dx = x - X, dy = y - Y; if (hitSprite(o.spr, dx * c - dy * s, dx * s + dy * c)) return o; }
+  return null;
+}
+function inRect(x, y, r){ return x >= r.x && y >= r.y && x < r.x + r.w && y < r.y + r.h; }
+function objAt(x, y){ for (const id of ["binder", "mag", "mug", "sticks"]){ if ((id === "binder" && PAN.st) || (id === "mag" && PAN.mg)) continue; const o = OBJ[id]; if (o.spr && hitSprite(o.spr, x - o.x - o.spr.w / 2, y - o.y - o.spr.h / 2)) return id; } return null; }
+function coverAt(x, y){ if (B.open > .001) return false; return x >= spineX && x < spineX + CW && y >= B.y - 2 && y < B.y - 2 + CH; }
+function toLocal(x, y, X, Y, r){ const c = Math.cos(-r), s = Math.sin(-r), dx = x - X, dy = y - Y; return [dx * c - dy * s, dx * s + dy * c]; }
+
+/* ==========================================================================
+   18. HANDS ON
+   ========================================================================== */
+let down = null, coverDrag = false, cutting = null, rubbing = null;
+const GLUE_NEED = 46;
+function ptr(e){ return { x:e.clientX / S, y:e.clientY / S }; }
+cv.addEventListener("pointerdown", e => {
+  AUD.unlock(); e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (_){}
+  pointer.fine = e.pointerType === "mouse"; document.body.classList.toggle("fine", pointer.fine);
+  const p = ptr(e); pointer.x = p.x; pointer.y = p.y; pointer.in = true;
+  if (typing) commitTyping();
+  down = { x:p.x, y:p.y, x0:p.x, y0:p.y, t:performance.now(), moved:false, act:null };
+  hideHint();
+  /* the panels first: their arrows, their close tab, their stickers */
+  for (const k of ["st", "mg"]) if (PAN[k]){ const r = panelRect(k);
+    if (Math.hypot(p.x - (r.x + r.w - 4), p.y - (r.y + 2)) < 7){ togglePanel(k, false); down.act = "none"; return; }
+    if (inRect(p.x, p.y, r) && p.y > r.y + r.h - 16){ const dir = p.x < r.x + r.w / 2 ? -1 : 1; if (k === "st") PAN.stPage = (PAN.stPage + dir + SHEETS.length) % SHEETS.length; else PAN.mgPage = (PAN.mgPage + dir + MAGN) % MAGN; AUD.flip(); down.act = "none"; return; } }
+  const lo = looseAt(p.x, p.y);
+  if (tool === "glue" && lo && !lo.stuck){ rubbing = { o:lo, lx:p.x, ly:p.y }; down.act = "glue"; return; }
+  if (lo && tool !== "eraser" && tool !== "crayon" && !lo.stuck){ pickLoose(lo, p); down.act = "held"; return; }
+  if (lo && lo.stuck && (tool === "hand" || tool === "scissors")){ startPeel({ loose:lo }, p); down.act = "peel"; return; }
+  if (PAN.st){ const r = panelRect("st"); if (inRect(p.x, p.y, r)){ const sl = slotsOf(r), sheet = SHEETS[PAN.stPage];
+      for (let i = 0; i < sl.length; i++){ const spr = STKSP[sheet[i]], key = PAN.stPage + ":" + i; if (PAN.taken[key]) continue;
+        if (hitSprite(spr, p.x - sl[i].x, p.y - sl[i].y)){ startPeel({ sheet:sheet[i], slot:key, X:sl[i].x, Y:sl[i].y }, p); down.act = "peel"; return; } }
+      down.act = "none"; return; } }
+  if (PAN.mg){ const r = panelRect("mg"), mx = r.x + Math.floor((r.w - MW) / 2), my = r.y + 4;
+    if (inRect(p.x, p.y, { x:mx, y:my, w:MW, h:MH })){
+      if (tool === "scissors"){ cutting = { m:PAN.mgPage, pts:[[p.x - mx, p.y - my]], ox:mx, oy:my, len:0, snipAt:0 }; down.act = "cut"; AUD.snip(); return; }
+      hint(T({ en:"Pick up the scissors to cut round a picture", ko:"가위를 들고 그림 둘레를 따라 오려 보세요" }), true); flashTool("scissors"); down.act = "none"; return; }
+    if (inRect(p.x, p.y, r)){ down.act = "none"; return; } }
+  /* the notebook */
+  if (coverAt(p.x, p.y)){ coverDrag = true; down.act = "cover"; down.a0 = B.open; return; }
+  const pa = pageAt(p.x, p.y);
+  if (pa){
+    const it = (tool === "hand" || tool === "scissors" || tool === "glue") ? itemAt(pa) : null;
+    const edge = (pa.side === "R" && pa.lx > PW - 12) || (pa.side === "L" && pa.lx < 12);
+    if (tool === "crayon" && pa.p >= 1 && pa.p <= NP){ down.act = "ink"; down.page = pa; return; }
+    if (tool === "eraser" && pa.p >= 1 && pa.p <= NP){ erasing = { id:"erasing", k:"er", p:pa.p, pts:[Math.round(pa.lx), Math.round(pa.ly)], w:7, t:Date.now() }; pageCache.delete(pa.p); down.act = "erase"; down.page = pa; rubCrumbs(p.x, p.y); return; }
+    if (it && !edge){ startPeel({ item:it, page:pa }, p); down.act = "peel"; return; }
+    if (edge || pa.p === 0 || pa.p === NP + 1){ down.act = "flip"; down.side = pa.side; return; }
+    if (it){ startPeel({ item:it, page:pa }, p); down.act = "peel"; return; }
+    if (tool === "glue"){ hint(T({ en:"Glue goes on a loose cut-out: drop one here first", ko:"풀은 오려 낸 조각 위에 문질러요 — 먼저 조각을 올려 두세요" }), true); }
+    down.act = "none"; return;
+  }
+  /* things on the desk */
+  const ob = objAt(p.x, p.y);
+  if (ob){ down.act = "obj"; down.obj = ob; down.ox = OBJ[ob].x - p.x; down.oy = OBJ[ob].y - p.y; return; }
+  down.act = "none";
+});
+cv.addEventListener("pointermove", e => {
+  const p = ptr(e); pointer.x = p.x; pointer.y = p.y; pointer.in = true;
+  if (e.pointerType === "mouse" && !pointer.fine){ pointer.fine = true; document.body.classList.add("fine"); }
+  if (!down) return;
+  const mv = Math.hypot(p.x - down.x, p.y - down.y); if (Math.hypot(p.x - down.x0, p.y - down.y0) > 1.5) down.moved = true;
+  const act = down.act;
+  if (act === "held" && held){ held.x = p.x + held.gx; held.y = p.y + held.gy; return; }
+  if (act === "peel" && peel && !peel.back){ const L = toLocal(p.x, p.y, peel.X, peel.Y, peel.r); peel.P = [peel.G[0] + L[0] - peel.L0[0], peel.G[1] + L[1] - peel.L0[1]];
+    const fr = peeled(peel.spr, peel.G, peel.P), v = Math.abs(fr - peel.fr); if (v > .004) AUD.peel(Math.min(1, v * 14)); peel.fr = fr;
+    if (fr > .72) detachPeel(p); return; }
+  if (act === "cover"){ const a = Math.acos(clamp((p.x - spineX) / CW, -1, 1)); B.open = B.openT = clamp(a / Math.PI, 0, .998); return; }
+  if (act === "flip" && down.moved){ if (!B.flip) startFlip(down.side === "R" ? 1 : -1, true); if (B.flip){ B.flip.a = Math.acos(clamp((p.x - spineX) / PW, -1, 1)); } return; }
+  if (act === "obj"){ const o = OBJ[down.obj]; o.x = p.x + down.ox; o.y = p.y + down.oy; o.set = true; if (down.moved && !down.slid){ down.slid = true; AUD.slide(); } return; }
+  if (act === "cut" && cutting){ const q = cutting.pts[cutting.pts.length - 1], lx = clamp(p.x - cutting.ox, 0, MW - 1), ly = clamp(p.y - cutting.oy, 0, MH - 1), d = Math.hypot(lx - q[0], ly - q[1]);
+    if (d >= 1.5 && cutting.pts.length < 400){ cutting.pts.push([lx, ly]); cutting.len += d; if (cutting.len - cutting.snipAt > 7){ cutting.snipAt = cutting.len; AUD.snip(); } } return; }
+  if (act === "erase" && erasing){ const pa = pageAt(p.x, p.y); if (pa && pa.p === erasing.p){ const n = erasing.pts.length, lx = Math.round(pa.lx), ly = Math.round(pa.ly);
+      if (Math.hypot(lx - erasing.pts[n - 2], ly - erasing.pts[n - 1]) >= 2 && n < 780){ erasing.pts.push(lx, ly); pageCache.delete(erasing.p); AUD.rub("erase", Math.min(1, mv / 20), 650, 1, .2); rubCrumbs(p.x, p.y); } } down.x = p.x; down.y = p.y; return; }
+  if (act === "ink"){ const pa = pageAt(p.x, p.y);
+    if (!drawing && down.moved && down.page) drawing = { id:"drawing", k:"dr", p:down.page.p, pts:[Math.round(down.page.lx), Math.round(down.page.ly)], c:ink, w:size === 2 ? 4 : 2, t:Date.now() + 2e9 };
+    if (drawing && pa && pa.p === drawing.p){ const n = drawing.pts.length, lx = Math.round(pa.lx), ly = Math.round(pa.ly);
+      if (Math.hypot(lx - drawing.pts[n - 2], ly - drawing.pts[n - 1]) >= 1.5 && n < 1180){ drawing.pts.push(lx, ly); pageCache.delete(drawing.p); AUD.rub("draw", Math.min(1, mv / 12), 1250, 1.6, .13); } }
+    down.x = p.x; down.y = p.y; return; }
+  if (act === "glue" && rubbing){ const d = Math.hypot(p.x - rubbing.lx, p.y - rubbing.ly); rubbing.lx = p.x; rubbing.ly = p.y; const o = rubbing.o;
+    if (looseAt(p.x, p.y) === o){ o.glue += d; const pr = o.page != null ? pageOfLoose(o) : { x:0, y:0 }; if (pr){ const L = toLocal(p.x, p.y, o.x + pr.x, o.y + pr.y, o.r);
+        for (let k = 0; k < 3; k++) o.gm.push([Math.round(L[0] + (Math.random() - .5) * 4), Math.round(L[1] + (Math.random() - .5) * 4)]); }
+      AUD.rub("glue", Math.min(1, d / 3), 1700, 7, .12);
+      if (o.glue >= GLUE_NEED) glueDown(o); }
+    return; }
+});
+function endPointer(e){
+  if (!down) return;
+  const p = ptr(e), act = down.act, click = !down.moved && performance.now() - down.t < 450;
+  if (act === "held" && held) dropHeld(p);
+  if (act === "peel" && peel && !peel.back){ if (click && peel.item){ hint(T({ en:"Drag from its edge to peel it off", ko:"가장자리를 잡고 끌어 떼어 내세요" }), true); } peel.back = true; AUD.hush("peel"); }
+  if (act === "cover"){ coverDrag = false; if (click){ setOpen(B.open < .5); } else setOpen(B.open > .35); }
+  if (act === "flip"){ if (B.flip && B.flip.drag){ const f = B.flip; f.drag = false; const done = f.dir > 0 ? f.a > Math.PI / 2 : f.a < Math.PI / 2; f.commit = done; f.to = done ? (f.dir > 0 ? Math.PI : 0) : (f.dir > 0 ? 0 : Math.PI); if (done) AUD.flip(); }
+    else if (click){ turn(down.side === "R" ? 1 : -1); } }
+  if (act === "obj"){ if (click){ if (down.obj === "binder") togglePanel("st", true); else if (down.obj === "mag") togglePanel("mg", true); else AUD.drop(); } else { saveDesk(); AUD.drop(); } }
+  if (act === "cut") finishCut();
+  if (act === "erase" && erasing){ const er = erasing; erasing = null; AUD.hush("erase"); if (er.pts.length >= 4) addItem({ k:"er", p:er.p, pts:er.pts, w:er.w }); else pageCache.delete(er.p); }
+  if (act === "glue"){ AUD.hush("glue"); rubbing = null; }
+  if (act === "ink"){ AUD.hush("draw"); if (drawing){ const d = drawing; drawing = null; pageCache.delete(d.p); if (d.pts.length >= 4) addItem({ k:"dr", p:d.p, pts:d.pts, c:d.c, w:d.w }); } else if (click && down.page) startTyping(down.page); }
+  down = null;
+}
+cv.addEventListener("pointerup", endPointer); cv.addEventListener("pointercancel", endPointer);
+cv.addEventListener("pointerleave", () => { pointer.in = false; });
+cv.addEventListener("wheel", e => { if (held){ e.preventDefault(); held.r += Math.sign(e.deltaY) * .12; } }, { passive:false });
+
+function startPeel(src, p){
+  let spr, X, Y, r;
+  if (src.item){ const it = src.item, pr = visiblePageRect(it.p); spr = spriteOf(it); X = pr.x + it.x; Y = pr.y + it.y; r = it.r; hidden.add(it.id); pageCache.delete(it.p); }
+  else if (src.loose){ const o = src.loose, pr = o.page != null ? pageOfLoose(o) : { x:0, y:0 }; spr = o.spr; X = o.x + pr.x; Y = o.y + pr.y; r = o.r; lifted.add(o.id); loose = loose.filter(q => q !== o); }
+  else { spr = STKSP[src.sheet]; X = src.X; Y = src.Y; r = 0; }
+  const L0 = toLocal(p.x, p.y, X, Y, r), G = nearestEdge(spr, L0[0], L0[1]);
+  peel = { spr, X, Y, r, G, P:[G[0], G[1]], L0, fr:0, item:src.item || null, loose:src.loose || null, sheet:src.sheet || null, slot:src.slot || null, back:false };
+  AUD.peel(.3);
+}
+function detachPeel(p){
+  const pl = peel; peel = null; AUD.pop();
+  const kind = pl.sheet ? "st" : (pl.item ? pl.item.k : pl.loose.kind);
+  const o = { kind, spr:pl.spr, r:pl.r + (pl.sheet ? (Math.random() - .5) * .3 : 0), glue:0, gm:[] };
+  if (kind === "st") o.s = pl.sheet || (pl.item ? pl.item.s : pl.loose.s); else { const src = pl.item || pl.loose; o.m = src.m; o.poly = src.poly; }
+  if (pl.item) removeItem(pl.item);
+  if (pl.loose){ unkeep("loose", pl.loose); lifted.delete(pl.loose.id); }
+  if (pl.slot) PAN.taken[pl.slot] = performance.now();
+  held = { ...o, x:p.x, y:p.y, gx:0, gy:0 };
+  if (down) down.act = "held";
+  if (pl.item) hidden.delete(pl.item.id);
+  if (!seen.peel){ seen.peel = 1; hint(T({ en:"Drop it on a page. Wheel or Q / E turns it", ko:"페이지 위에 놓아 붙이세요. 휠이나 Q / E로 돌릴 수 있어요" }), true); }
+}
+function pickLoose(o, p){ lifted.add(o.id); loose = loose.filter(q => q !== o); const pr = o.page != null ? pageOfLoose(o) : { x:0, y:0 }; const X = o.x + pr.x, Y = o.y + pr.y;
+  held = { ...o, from:o, page:null, x:X, y:Y, gx:X - p.x, gy:Y - p.y }; AUD.pick(); }
+function dropHeld(p){
+  const h = held; held = null; const pa = pageAt(h.x, h.y), from = h.from || null;
+  const done = () => { if (from) lifted.delete(from.id); rebuildLoose(); };
+  /* back into the binder */
+  if (PAN.st && h.kind === "st" && inRect(h.x, h.y, panelRect("st"))){ if (from) unkeep("loose", from); done(); AUD.drop(); return; }
+  if (pa && pa.p >= 1 && pa.p <= NP){
+    const lx = Math.round(h.x - (pa.side === "R" ? spineX : spineX - PW)), ly = Math.round(h.y - B.y);
+    if (h.kind === "st"){ addItem({ k:"st", p:pa.p, s:h.s, x:lx, y:ly, r:+h.r.toFixed(3) }); if (from) unkeep("loose", from); done(); AUD.stick(); return; }
+    keep("loose", looseRec(from || h, { page:pa.p, x:lx, y:ly, r:h.r, stuck:false })); done(); AUD.drop();
+    if (!seen.glue){ seen.glue = 1; hint(T({ en:"Now take the glue and rub over it to stick it down", ko:"이제 풀을 들고 조각 위를 문질러 붙이세요" }), true); flashTool("glue"); }
+    return;
+  }
+  /* on the desk: it lies there, as messy as you like — and stays for the next person */
+  keep("loose", looseRec(from || h, { page:null, x:h.x, y:h.y, r:h.r, stuck:false })); done(); AUD.drop();
+}
+function glueDown(o){
+  rubbing = null; AUD.hush("glue");
+  if (o.page != null){ unkeep("loose", o); addItem({ k:"cut", p:o.page, m:o.m, poly:o.poly, x:Math.round(o.x), y:Math.round(o.y), r:+o.r.toFixed(3) }); }
+  else keep("loose", looseRec(o, { stuck:true }));
+  AUD.stick();
+}
+function finishCut(){
+  const c = cutting; cutting = null; if (!c) return;
+  /* simplify, and close it */
+  const pts = []; c.pts.forEach(q => { const l = pts[pts.length - 1]; if (!l || Math.hypot(q[0] - l[0], q[1] - l[1]) >= 2) pts.push([Math.round(q[0]), Math.round(q[1])]); });
+  let area = 0; for (let i = 0; i < pts.length; i++){ const a = pts[i], b = pts[(i + 1) % pts.length]; area += a[0] * b[1] - b[0] * a[1]; } area = Math.abs(area) / 2;
+  if (pts.length < 4 || area < 30){ if (c.len > 4) hint(T({ en:"Go all the way round the picture, then let go", ko:"그림 둘레를 한 바퀴 돌고 손을 떼세요" }), true); return; }
+  const step = Math.max(1, Math.ceil(pts.length / 120)), poly = []; for (let i = 0; i < pts.length; i += step) poly.push(pts[i][0], pts[i][1]);
+  keep("holes", { m:c.m, poly });
+  const spr = cutSprite(c.m, poly);
+  keep("loose", looseRec({ kind:"cut", m:c.m, poly, r:-.06, x:c.ox + spr.ox + spr.w / 2 - 3, y:c.oy + spr.oy + spr.h / 2 - 4, page:null }));
+  AUD.snip(); setTimeout(() => AUD.snip(), 70);
+  if (!seen.cut){ seen.cut = 1; hint(T({ en:"Got it. Carry the piece to the notebook", ko:"오려졌어요. 조각을 노트로 옮겨 보세요" }), true); flashTool("hand"); }
+}
+function drawLasso(now){ const c = cutting; if (!c) return; const off = Math.floor(now / 90) % 4;
+  c.pts.forEach((q, i) => { if ((i + off) % 4 < 2){ g.fillStyle = "#17130f"; g.fillRect(Math.round(c.ox + q[0]), Math.round(c.oy + q[1]), 1, 1); } else { g.fillStyle = "#f7f3ea"; g.fillRect(Math.round(c.ox + q[0]), Math.round(c.oy + q[1]), 1, 1); } }); }
+function rubCrumbs(x, y){ if (Math.random() < .5) crumbs.push({ x, y, vx:(Math.random() - .5) * 40, vy:-10 - Math.random() * 20, t:.6 + Math.random() * .6, c:Math.random() < .5 ? "#e88f9a" : "#b9a9a0" }); }
+
+/* the cover, and turning pages */
+function setOpen(v){ if (B.flip) return; const was = B.openT; B.openT = v ? 1 : 0; if (was !== B.openT){ AUD.cover(); if (v && !seen.open){ seen.open = 1; setTimeout(() => hint(T({ en:"Open the sticker binder on the left, the magazine on the right", ko:"왼쪽 스티커 북, 오른쪽 잡지를 눌러 펼쳐 보세요" })), 900); } } showNav(); watchVisible(); }
+function canTurn(dir){ if (B.open < .999) return dir > 0; if (single) return dir > 0 ? B.cp < NP : true; return dir > 0 ? B.s < NP / 2 : true; }
+function startFlip(dir, drag){
+  if (B.flip || B.open < .999) return false;
+  if (single){ if (dir > 0 && B.cp >= NP) return false; if (dir < 0 && B.cp <= 1){ setOpen(false); return false; } }
+  else { if (dir > 0 && B.s >= NP / 2) return false; if (dir < 0 && B.s <= 0){ setOpen(false); return false; } }
+  if (typing) commitTyping();
+  const from = single ? B.cp : B.s;
+  B.flip = { dir, from, a:dir > 0 ? 0 : Math.PI, to:dir > 0 ? Math.PI : 0, drag:!!drag, commit:true };
+  if (!drag) AUD.flip();
+  /* page items for what is about to show */
+  if (single) watchPages([from - 1, from, from + 1, from + 2]); else watchPages([2 * from - 2, 2 * from - 1, 2 * from, 2 * from + 1, 2 * from + 2, 2 * from + 3]);
+  return true;
+}
+function turn(dir){ if (B.open < .999){ if (dir > 0) setOpen(true); return; } startFlip(dir, false); }
+
+/* typing with the oilstick */
+const ime = $("ime");
+function startTyping(pa){
+  const y = clamp(RULE0 + Math.round((pa.ly + 4 - RULE0) / RULE) * RULE - 1, RULE0 - 1 + (size === 2 ? 12 : 0), PH - 6);
+  const x = clamp(Math.round(pa.lx), MARGIN + 2, PW - 12);
+  const over = itemAt(pa) ? 1 : 0;
+  typing = { id:"typing", k:"tx", p:pa.p, x, y, s:"", c:ink, z:size, o:over, t:Date.now() + 1e9 };
+  ime.value = ""; const pr = visiblePageRect(pa.p); ime.style.left = (pr.x + x) * S + "px"; ime.style.top = (pr.y + y - 8) * S + "px";
+  ime.focus({ preventScroll:true }); pageCache.delete(pa.p);
+  if (!seen.type){ seen.type = 1; hint(T({ en:"Type — Enter for a new line, Esc or click away to finish. Drag instead to draw", ko:"타자로 써 보세요 — Enter 줄바꿈, Esc나 다른 곳을 누르면 끝. 끌면 그림이 그려져요" }), true); }
+}
+ime.addEventListener("input", () => { if (!typing) return; const v = ime.value.slice(0, 240); if (v.length > typing.s.length) AUD.key(); typing.s = v; pageCache.delete(typing.p);
+  const L = layoutStr(v, typing.x, typing.y, typing.z, PW - 3), pr = visiblePageRect(typing.p); if (pr){ ime.style.left = (pr.x + L.cx) * S + "px"; ime.style.top = (pr.y + L.cy - 8) * S + "px"; } });
+ime.addEventListener("keydown", e => { if (e.key === "Escape"){ e.preventDefault(); commitTyping(); } e.stopPropagation(); });
+ime.addEventListener("blur", () => setTimeout(() => { if (typing && document.activeElement !== ime) commitTyping(); }, 150));
+function commitTyping(){ const t = typing; if (!t) return; typing = null; ime.blur(); pageCache.delete(t.p);
+  if (t.s.trim()) addItem({ k:"tx", p:t.p, s:t.s.replace(/\r/g, "").slice(0, 240), x:t.x, y:t.y, c:t.c, z:t.z, o:t.o }); }
+
+function saveDesk(){ keepObjs(); }
+
+/* ==========================================================================
+   19. UI
+   ========================================================================== */
+const seen = {};
+let hintT = 0;
+function hint(s, brief){ const h = $("hint"); h.textContent = s; h.classList.remove("off"); clearTimeout(hintT); hintT = setTimeout(() => h.classList.add("off"), brief ? 3600 : 7000); }
+function hideHint(){ if (!$("hint").classList.contains("off") && performance.now() - hintShown > 2500) $("hint").classList.add("off"); }
+let hintShown = 0;
+let toastT = 0;
+function toast(s){ const t = $("toast"); t.textContent = s; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 3200); }
+function togglePanel(k, v){ if (typing) commitTyping();
+  if (v && !single){ const both = LW >= 2 * (PANW + PW) + 40; if (!both) PAN[k === "st" ? "mg" : "st"] = false; }
+  if (v && single) PAN[k === "st" ? "mg" : "st"] = false;
+  PAN[k] = v; AUD.flip();
+  if (v && k === "st" && !seen.st){ seen.st = 1; hint(T({ en:"Grab a sticker by its edge and peel it off the sheet", ko:"스티커 가장자리를 잡고 시트에서 떼어 내세요" }), true); }
+  if (v && k === "mg" && !seen.mg){ seen.mg = 1; hint(T({ en:"Take the scissors and cut round anything you like", ko:"가위를 들고 마음에 드는 것을 따라 오려 보세요" }), true); flashTool("scissors"); } }
+function flashTool(id){ const b = document.querySelector(`.tool[data-t="${id}"]`); if (!b) return; b.animate([{ transform:"translateY(0)" }, { transform:"translateY(-6px)" }, { transform:"translateY(0)" }], { duration:420, iterations:2 }); }
+function setTool(t){ if (typing && t !== "crayon") commitTyping(); tool = t;
+  if (t === "crayon" && !seen.crayon){ seen.crayon = 1; hint(T({ en:"Drag on a page to draw — or click a line and type", ko:"페이지 위를 끌어 그리거나, 줄을 누르고 타자로 써 보세요" }), true); } document.querySelectorAll(".tool").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.t === t)));
+  document.body.className = document.body.className.replace(/\bt-\w+/g, "").trim() + " t-" + t; AUD.ui(); }
+function buildUI(){
+  const tl = $("tools"); tl.innerHTML = "";
+  TOOLS.forEach((t, i) => { const b = document.createElement("button"); b.className = "tool"; b.dataset.t = t; b.title = T(TOOLNAME[t]); b.setAttribute("aria-label", T(TOOLNAME[t]));
+    const im = document.createElement("img"); im.alt = ""; im.src = TOOLSP[t === "crayon" ? "crayon0" : t].cv.toDataURL(); b.appendChild(im);
+    const k = document.createElement("span"); k.className = "k"; k.textContent = i + 1; b.appendChild(k);
+    b.onclick = () => setTool(t); tl.appendChild(b); });
+  const ik = $("inks"); ik.innerHTML = "";
+  INK.forEach((c, i) => { const b = document.createElement("button"); b.className = "ink"; b.style.background = c; b.setAttribute("aria-label", T({ en:["Black", "Red", "Blue", "Yellow", "White"][i] + " oilstick", ko:["검정", "빨강", "파랑", "노랑", "흰색"][i] + " 오일스틱" }));
+    b.setAttribute("aria-pressed", String(i === ink)); b.onpointerdown = (e) => e.preventDefault();
+    b.onclick = () => { ink = i; document.querySelectorAll(".ink").forEach((x, j) => x.setAttribute("aria-pressed", String(j === i))); if (typing){ typing.c = i; pageCache.delete(typing.p); } document.querySelector('.tool[data-t="crayon"] img').src = TOOLSP["crayon" + i].cv.toDataURL(); AUD.ui(); };
+    ik.appendChild(b); });
+  [1, 2].forEach(z => { const b = document.createElement("button"); b.className = "sz"; b.textContent = z === 1 ? "Aa" : "AA"; b.setAttribute("aria-label", T(z === 1 ? { en:"Small letters", ko:"작은 글씨" } : { en:"Big letters", ko:"큰 글씨" }));
+    b.setAttribute("aria-pressed", String(z === size)); b.onpointerdown = (e) => e.preventDefault();
+    b.onclick = () => { size = z; document.querySelectorAll(".sz").forEach(x => x.setAttribute("aria-pressed", String(x === b))); if (typing){ typing.z = z; pageCache.delete(typing.p); } AUD.ui(); }; ik.appendChild(b); });
+  setTool("hand");
+}
+function showNav(){
+  const pg = $("pg");
+  if (B.openT < 1){ pg.innerHTML = `${T({ en:"closed", ko:"덮임" })}<small>${NP} ${T({ en:"pages", ko:"쪽" })}</small>`; }
+  else if (single){ pg.innerHTML = `p. ${B.cp}<small>/ ${NP}${store.mode === "shared" ? " · " + T({ en:"shared", ko:"공유" }) : ""}</small>`; }
+  else { const l = 2 * B.s, r = 2 * B.s + 1; pg.innerHTML = `${l < 1 ? "" : l}${l >= 1 && r <= NP ? "–" : ""}${r > NP ? "" : r}<small>/ ${NP}${store.mode === "shared" ? " · " + T({ en:"shared", ko:"공유" }) : ""}</small>`; }
+  $("pv").disabled = B.openT < 1; $("nx").disabled = B.openT >= 1 && !canTurn(1);
+}
+$("pv").onclick = () => { AUD.unlock(); turn(-1); };
+$("nx").onclick = () => { AUD.unlock(); turn(1); };
+$("snd").onclick = () => { AUD.unlock(); AUD.on = !AUD.on; $("snd").setAttribute("aria-pressed", String(AUD.on)); };
+$("info").onclick = () => { document.body.classList.toggle("about"); AUD.ui(); };
+$("about-x").onclick = () => document.body.classList.remove("about");
+window.addEventListener("keydown", e => {
+  if (document.activeElement === ime) return;
+  AUD.unlock();
+  const k = e.key.toLowerCase();
+  if (["1", "2", "3", "4", "5"].includes(k)) setTool(TOOLS[+k - 1]);
+  else if (k === "arrowright") turn(1); else if (k === "arrowleft") turn(-1);
+  else if ((k === "q" || k === "e") && held) held.r += k === "q" ? -.12 : .12;
+  else if (k === "escape"){ document.body.classList.remove("about"); }
+});
+["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
+window.addEventListener("pagehide", () => AUD.stop());
+
+/* words */
+$("t-h").textContent = T({ en:"Untitled — the notebook", ko:"무제 — 노트" });
+$("t-p").textContent = T({ en:"Jean-Michel Basquiat · 1982 · a desk you can mess up", ko:"장 미쉘 바스키아 · 1982 · 마음껏 어질러도 되는 책상" });
+$("pv").setAttribute("aria-label", T({ en:"Previous page", ko:"이전 쪽" })); $("nx").setAttribute("aria-label", T({ en:"Next page", ko:"다음 쪽" }));
+$("snd").setAttribute("aria-label", T({ en:"Sound", ko:"소리" })); $("info").setAttribute("aria-label", T({ en:"About the work", ko:"작품 설명" }));
+cv.setAttribute("aria-label", T({ en:"A pixel desk with a composition notebook, a sticker binder and a magazine", ko:"컴포지션 노트, 스티커 북, 잡지가 놓인 픽셀 책상" }));
+$("ab-tag").textContent = T({ en:"Neo-Expressionism · 1980s New York", ko:"신표현주의 · 1980년대 뉴욕" });
+$("ab-h").textContent = T({ en:"Feeling, rough marks and stories, back in the picture", ko:"감정과 거친 붓질, 이야기를 다시 그림 속으로" });
+$("ab-p1").textContent = T({ en:"Basquiat began on the walls of downtown New York and went on to fill canvases and cheap notebooks with crowns for the heroes he chose, skulls and heads, the © sign, teeth, arrows and words — often crossed out, which only makes you read them harder. Painting after years of cool, clean art, he brought back the hand, the mess and the argument.",
+                            ko:"바스키아는 뉴욕 다운타운의 벽에서 시작해, 캔버스와 값싼 노트를 왕관(그가 고른 영웅들에게 씌운), 해골과 머리, © 기호, 이빨, 화살표, 그리고 글자로 채웠어요. 글자는 자주 줄을 그어 지웠는데, 그러면 오히려 더 읽고 싶어지죠. 차갑고 매끈한 미술이 이어지던 때에 그는 손의 흔적과 어수선함, 하고 싶은 말을 다시 그림으로 데려왔어요." });
+$("ab-p2").textContent = T({ en:"Here it is all in dots — a low, home-made kind of picture, far from the polished mainstream. Every sticker and magazine page was drawn for this room; none of his works are copied.",
+                            ko:"여기서는 모든 것이 도트예요 — 매끈한 주류와는 거리가 먼, 손으로 찍은 낮은 그림이죠. 스티커와 잡지는 모두 이 방을 위해 새로 그렸고, 그의 작품을 옮겨 오지 않았어요." });
+$("ab-h3").textContent = T({ en:"How to make a mess", ko:"어지르는 법" });
+$("ab-ol").innerHTML = "";
+[{ en:"Click the notebook to open it; drag a page's outer edge to turn it.", ko:"노트를 눌러 펼치고, 페이지 바깥 가장자리를 끌어 넘기세요." },
+ { en:"Open the binder. Peel a sticker from its edge and press it onto a page. Peel it off the page the same way.", ko:"스티커 북을 열고 가장자리부터 떼어 페이지에 붙이세요. 붙은 스티커도 같은 방법으로 떼어 낼 수 있어요." },
+ { en:"Open the magazine, take the scissors and cut round something. Carry it over, then rub glue on it.", ko:"잡지를 열고 가위로 오린 뒤, 노트로 옮겨 풀로 문질러 붙이세요." },
+ { en:"Oilstick: drag to draw, click a line to type. Eraser: rub out ink and letters.", ko:"오일스틱: 끌면 그려지고, 줄을 누르면 타자로 써져요. 지우개: 그림과 글씨를 문질러 지우기." },
+ { en:"Anything dropped on the desk just lies there. Move the mug. Nobody minds.", ko:"책상에 떨어뜨린 건 그냥 거기 놓여 있어요. 머그잔도 옮겨 보세요. 아무도 뭐라 하지 않아요." },
+ { en:"Everything stays — on the pages, on the desk, in the magazine — and the next person can peel it, move it or rub it out.", ko:"페이지 위, 책상 위, 잡지에 남긴 모든 것이 그대로 남고, 다음 사람이 떼고, 옮기고, 지울 수 있어요." }]
+  .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); $("ab-ol").appendChild(li); });
+
+/* ==========================================================================
+   20. START
+   ========================================================================== */
+function buildAll(){
+  buildStickers(); buildMags(); buildBook();
+  OBJ.binder.spr = mkSprite(mkBinder(), "st", 1); OBJ.mag.spr = mkSprite(mkMagClosed(), "cut", 2); OBJ.mug.spr = mkSprite(mkMug(), "st", 3); OBJ.sticks.spr = mkSprite(mkSticks(), "st", 4);
+  TOOLS.forEach(t => { if (t === "crayon") INK.forEach((_, i) => { const r = mkTool("crayon", i); TOOLSP["crayon" + i] = { cv:r.px.canvas(), hx:r.hx, hy:r.hy }; }); else { const r = mkTool(t); TOOLSP[t] = { cv:r.px.canvas(), hx:r.hx, hy:r.hy }; } });
+}
+buildAll(); layout(); spineX = targetSpine(); buildUI(); showNav(); openStore();
+window.addEventListener("resize", () => { layout(); applyObjs(); spineX = targetSpine(); rebuildLoose(); });
+hintShown = performance.now(); hint(T({ en:"Click the notebook to open it", ko:"노트를 눌러 펼쳐 보세요" }));
+/* when the fonts arrive, Hangul is redrawn with them */
+if (document.fonts && document.fonts.load) document.fonts.load("700 11px 'Noto Sans KR'", "가").then(() => { [...GL.keys()].forEach(k => { if (!F5[k.toUpperCase()] && !F7[k] && k !== " ") GL.delete(k); }); buildBook(); pageCache.clear(); }).catch(() => {});
+requestAnimationFrame(frame);
+window.__bq = { geom:() => ({ S, LW, LH, single, spine:spineX, by:B.y, PW, PH, MW, MH, st:panelRect("st"), mg:panelRect("mg"), slots:slotsOf(panelRect("st")), objs:Object.fromEntries(Object.entries(OBJ).map(([k, o]) => [k, { x:o.x, y:o.y, w:o.spr.w, h:o.spr.h }])) }), B, PAN, items, get loose(){ return loose; }, get held(){ return held; }, mergeAll, setTool, togglePanel, setOpen, turn, addItem, layout, S:() => S, LW:() => LW, spine:() => spineX, typeText:(s) => { if (typing){ ime.value = s; ime.dispatchEvent(new Event("input")); } }, commitTyping, store:() => store.mode };
+</script>
+</body>
+</html>

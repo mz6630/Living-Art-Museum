@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Pumpkin — Living Art Museum</title>
+<meta name="description" content="Paint the pumpkin. An experience from the Living Art Museum.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--serif:Fraunces,"Noto Serif KR",Georgia,serif;}
+html[lang="ko"]{--serif:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;}   /* in Korean every heading is the same gothic */
+/* ==========================================================================
+   PUMPKIN — an experience page
+   A pumpkin you can turn, paint, smudge and wipe clean.
+   ========================================================================== */
+:root{
+  --ink:#f2f3f6;
+  --ink-dim:rgba(242,243,246,.62);
+  --ink-faint:rgba(242,243,246,.38);
+  --line:rgba(255,255,255,.12);
+  --accent:#f0c46a;
+  --ease:cubic-bezier(.22,.68,.24,1);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  background:
+    radial-gradient(120% 90% at 50% -10%, #1d2130 0%, rgba(29,33,48,0) 55%),
+    radial-gradient(90% 70% at 50% 110%, #241f2c 0%, rgba(36,31,44,0) 60%),
+    linear-gradient(170deg, #0d0f16 0%, #090a0f 45%, #06070a 100%);
+  color:var(--ink);
+  font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  -webkit-user-select:none;user-select:none;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px;}
+.serif{font-family:var(--serif);}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;}
+
+/* ---------- glass, the house style ---------- */
+.glass{
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.018));
+  backdrop-filter:blur(26px) saturate(165%);-webkit-backdrop-filter:blur(26px) saturate(165%);
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 16px 36px -32px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.12);
+}
+
+/* ---------- stage ---------- */
+#stage{position:fixed;inset:0;}
+#stage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair;}
+#stage.rotating canvas{cursor:grabbing;}
+.vign{position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 240px 70px rgba(0,0,0,.72);}
+.loading{position:fixed;inset:0;display:grid;place-content:center;justify-items:center;gap:12px;
+  font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:12px;color:var(--ink-dim);letter-spacing:.18em;text-transform:uppercase;}
+
+/* ---------- top bar ---------- */
+body.embedded .top{display:none;}
+.views{display:flex;gap:2px;padding:4px;border-radius:999px;
+  background:linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.04));
+  backdrop-filter:blur(22px) saturate(165%);-webkit-backdrop-filter:blur(22px) saturate(165%);
+  border:1px solid rgba(255,255,255,.14);}
+.views a{padding:8px 15px;border-radius:999px;font-size:12.5px;text-decoration:none;color:rgba(255,255,255,.62);}
+.views a:hover{color:#fff;background:rgba(255,255,255,.08);}
+body.embedded .views{display:none;}
+@media (max-width:900px){ .views a{padding:7px 11px;font-size:11.5px;} }
+.top{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:20px;right:20px;z-index:10;
+  display:flex;align-items:center;gap:14px;pointer-events:none;}
+.top > *{pointer-events:auto;}
+.logo{font-family:Inter,"Noto Sans KR",system-ui,sans-serif;font-size:19px;font-weight:600;letter-spacing:-.018em;line-height:1;
+  white-space:nowrap;display:flex;align-items:center;text-decoration:none;color:var(--ink);}
+.title{margin-left:auto;text-align:right;}
+.title h1{font-family:var(--serif);font-size:17px;font-weight:600;}
+.title p{font-size:11.5px;color:var(--ink-dim);margin-top:2px;}
+
+/* ---------- panels ---------- */
+.panel{position:fixed;z-index:10;border-radius:20px;padding:16px;}
+body.embedded .side{top:calc(50% + 16px);}
+.tools{left:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;width:76px;align-items:center;}
+.tool{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;transition:background .25s,color .25s;}
+.tool svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+.tool[aria-pressed="true"]{background:var(--accent);color:#1a1206;}
+.tool:hover:not([aria-pressed="true"]){background:rgba(255,255,255,.08);}
+.tools .sep{width:34px;height:1px;background:var(--line);margin:4px 0;}
+.tools .lab{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);}
+
+.side{right:20px;top:50%;transform:translateY(-50%);width:252px;display:flex;flex-direction:column;gap:18px;}
+.side h2{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);}
+.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:10px;}
+.sw{aspect-ratio:1;border-radius:50%;border:1px solid rgba(255,255,255,.22);transition:transform .2s;}
+.sw:hover{transform:scale(1.12);}
+.sw[aria-pressed="true"]{outline:2px solid var(--ink);outline-offset:2px;}
+.sw.custom{position:relative;overflow:hidden;background:conic-gradient(#e55,#ec4,#5c6,#4ad,#a5e,#e55);}
+.sw.custom input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.row{display:flex;align-items:center;gap:12px;margin-top:12px;}
+.row label{font-size:11.5px;color:var(--ink-dim);width:54px;flex:0 0 auto;}
+.row input[type=range]{flex:1;accent-color:var(--accent);}
+.row .val{width:34px;text-align:right;font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:11px;color:var(--ink-dim);}
+.hintline{font-size:11.5px;color:var(--ink-faint);line-height:1.6;margin-top:4px;}
+.count{font-family:var(--serif);font-size:30px;font-weight:600;}
+.count span{font-family:Inter,sans-serif;font-size:11.5px;color:var(--ink-dim);margin-left:7px;}
+
+/* ---------- bottom bar ---------- */
+.bottom{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  z-index:10;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:18px;}
+.bottom button{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:12px;font-size:12.5px;white-space:nowrap;
+  color:var(--ink-dim);transition:background .25s,color .25s;}
+.bottom button:hover:not(:disabled){background:rgba(255,255,255,.08);color:var(--ink);}
+.bottom button:disabled{opacity:.35;cursor:not-allowed;}
+.bottom svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+.bottom .divider{width:1px;height:22px;background:var(--line);margin:0 2px;}
+.bottom .done{background:var(--accent);color:#1a1206;font-weight:600;}
+.bottom .done:hover{background:#ffd98a;color:#1a1206;}
+
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translate(-50%,10px);
+  z-index:40;padding:11px 17px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;
+  transition:opacity .3s,transform .3s;}
+.toast.in{opacity:1;transform:translate(-50%,0);}
+
+.field{position:fixed;inset:0;z-index:30;display:none;flex-direction:column;
+  background:
+    radial-gradient(120% 90% at 50% -10%, #1d2130 0%, rgba(29,33,48,0) 55%),
+    linear-gradient(170deg,#0d0f16,#07080c 70%);}
+.field.open{display:flex;}
+.field{flex-direction:column-reverse;}
+.field-top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:16px 28px calc(20px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+  backdrop-filter:blur(24px) saturate(165%);-webkit-backdrop-filter:blur(24px) saturate(165%);}
+.field-top h2{font-family:var(--serif);font-size:26px;font-weight:600;}
+.field-top p{font-size:12.5px;color:var(--ink-dim);}
+.field-top .right{margin-left:auto;display:flex;gap:8px;}
+.field-top button{padding:10px 16px;border-radius:12px;font-size:12.5px;color:var(--ink-dim);
+  border:1px solid var(--line);background:rgba(255,255,255,.04);}
+.field-top button:hover{color:var(--ink);background:rgba(255,255,255,.08);}
+.field-grid{flex:1;overflow-y:auto;padding:calc(84px + env(safe-area-inset-top,0px)) 28px 28px;display:grid;gap:18px;
+  grid-template-columns:repeat(auto-fill,minmax(190px,1fr));align-content:start;}
+.pk{text-align:left;border-radius:16px;overflow:hidden;padding:0;
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.018));
+  border:1px solid rgba(255,255,255,.1);transition:transform .25s var(--ease), border-color .25s;}
+.pk:hover{transform:translateY(-3px);border-color:rgba(240,196,106,.5);}
+.pk img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#0b0d12;}
+.pk .nm{padding:11px 13px 2px;font-family:var(--serif);font-size:15px;}
+.pk .mt{padding:0 13px 12px;font-size:11px;color:var(--ink-faint);}
+.pk.mine{border-color:rgba(240,196,106,.7);}
+.field-grid .empty{grid-column:1/-1;color:var(--ink-dim);font-size:13.5px;line-height:1.8;padding:40px 0;text-align:center;}
+
+html{touch-action:pan-x pan-y;}   /* no page pinch or double-tap zoom; scrolling still works */
+.zoom{position:fixed;inset:0;z-index:34;display:none;touch-action:none;overscroll-behavior:none;
+  background:radial-gradient(90% 70% at 50% 42%, #161a26 0%, #06070b 72%);}
+.zoom.open{display:block;}
+.zoom-stage{position:absolute;inset:0;touch-action:none;cursor:grab;}
+.zoom-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity .35s;}
+.zoom-stage.ready canvas{opacity:1;}
+.zoom-stage.drag{cursor:grabbing;}
+#z-thumb{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:min(78vw,460px);aspect-ratio:4/3;
+  object-fit:cover;border-radius:18px;opacity:.92;transition:opacity .35s;pointer-events:none;}
+.zoom-stage.ready #z-thumb{opacity:0;}
+.zoom-top{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  display:flex;align-items:center;gap:14px;max-width:calc(100% - 28px);padding:10px 10px 10px 18px;border-radius:18px;
+  border:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+  backdrop-filter:blur(24px) saturate(165%);-webkit-backdrop-filter:blur(24px) saturate(165%);}
+.zoom-top{width:min(460px, calc(100% - 28px));}
+.zoom-top .zt{min-width:0;flex:1;}
+.zoom-top h3{font-family:var(--serif);font-size:18px;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.zoom-top p{font-size:11.5px;color:var(--ink-dim);white-space:nowrap;}
+.zoom-top button{flex:none;padding:9px 14px;border-radius:12px;font-size:12.5px;color:var(--ink-dim);
+  border:1px solid var(--line);background:rgba(255,255,255,.04);}
+.zoom-top button:hover{color:var(--ink);background:rgba(255,255,255,.08);}
+.zoom-foot{position:absolute;left:0;right:0;bottom:calc(92px + env(safe-area-inset-bottom,0px));text-align:center;pointer-events:none;
+  font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);}
+.field-top button[hidden]{display:none;}
+
+.save{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.96);z-index:31;
+  width:min(380px,90vw);border-radius:20px;padding:22px;display:none;}
+.save.open{display:block;transform:translate(-50%,-50%) scale(1);}
+.save h2{font-size:19px;font-weight:600;}
+.save input{width:100%;margin-top:14px;padding:11px 13px;border-radius:12px;background:rgba(255,255,255,.06);
+  border:1px solid var(--line);color:var(--ink);font:inherit;font-size:14px;}
+.save-row{display:flex;gap:10px;margin-top:16px;}
+.save-row button{flex:1;padding:11px;border-radius:12px;font-size:13px;color:var(--ink-dim);border:1px solid var(--line);}
+.save-row button.done{background:var(--accent);color:#1a1206;font-weight:600;border-color:transparent;}
+
+@media (max-width:900px){
+  .top{left:14px;right:14px;}
+  .title h1{font-size:14px;} .title p{display:none;}
+  .tools{left:12px;top:auto;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:none;
+    flex-direction:row;width:auto;padding:10px;}
+  .tools .sep{width:1px;height:30px;margin:0 2px;}
+  .tools .lab{display:none;}
+  .side{right:12px;left:12px;top:auto;bottom:calc(150px + env(safe-area-inset-bottom,0px));width:auto;
+    transform:none;flex-direction:row;flex-wrap:wrap;gap:12px;padding:12px;}
+  .side .block{flex:1 1 150px;}
+  .side .block.about{display:none;}
+  .bottom{gap:4px;padding:8px;}
+  .bottom button{padding:8px 10px;font-size:11.5px;}
+  .bottom .lbl{display:none;}
+}
+.bottom .lbl-s{display:none;}
+/* phones: the same tools, smaller */
+@media (max-width:600px){
+  .logo{font-size:15.5px;}
+  .top{gap:10px;} .top .title{display:none;}
+  .views{padding:3px;margin-left:auto;} .views a{padding:6px 10px;font-size:10.5px;}
+  .tools{left:10px;bottom:calc(62px + env(safe-area-inset-bottom,0px));padding:5px;gap:3px;border-radius:14px;}
+  .tool{width:36px;height:36px;border-radius:10px;}
+  .tool svg{width:18px;height:18px;}
+  .tools .sep{height:24px;}
+  .side, body.embedded .side{left:10px;right:10px;top:auto;bottom:calc(112px + env(safe-area-inset-bottom,0px));gap:8px 12px;padding:10px 12px;border-radius:16px;}
+  .side h2{font-size:9px;letter-spacing:.16em;}
+  .swatches{display:flex;gap:7px;margin-top:7px;overflow-x:auto;padding:3px;scrollbar-width:none;}
+  .swatches::-webkit-scrollbar{display:none;}
+  .sw{flex:0 0 27px;width:27px;height:27px;aspect-ratio:auto;}
+  .side .block{flex:1 1 100%;}
+  .side .hintline{display:none;}
+  .row{gap:8px;margin-top:4px;}
+  .row label{font-size:10.5px;width:44px;}
+  .row .val{font-size:10px;width:26px;}
+  .hintline{font-size:10.5px;line-height:1.5;}
+  .bottom{bottom:calc(12px + env(safe-area-inset-bottom,0px));gap:2px;padding:5px;border-radius:14px;}
+  .bottom button{padding:7px 8px;border-radius:10px;}
+  .bottom svg{width:16px;height:16px;}
+  .bottom .divider{height:18px;margin:0 1px;}
+  .bottom .done{padding:7px 12px;font-size:11.5px;}
+  .bottom .done .lbl-s{display:inline;}
+  .toast{top:calc(100px + env(safe-area-inset-top,0px));bottom:auto;font-size:12px;padding:9px 14px;}
+  .field-top{padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));gap:8px 12px;}
+  .field-top h2{font-size:20px;} .field-top p{font-size:11.5px;}
+  .field-top button{padding:8px 12px;font-size:11.5px;}
+  .field-grid{padding:calc(70px + env(safe-area-inset-top,0px)) 14px 14px;gap:12px;grid-template-columns:repeat(2,1fr);}
+  .zoom-top{bottom:calc(12px + env(safe-area-inset-bottom,0px));gap:10px;width:calc(100% - 24px);padding:7px 7px 7px 13px;border-radius:14px;}
+  .zoom-top h3{font-size:14.5px;} .zoom-top p{font-size:10.5px;}
+  .zoom-top button{padding:7px 11px;font-size:11.5px;border-radius:10px;}
+  .zoom-foot{bottom:calc(66px + env(safe-area-inset-bottom,0px));font-size:9px;letter-spacing:.1em;}
+  #z-thumb{width:min(72vw,320px);}
+}
+html[lang="ko"] body{word-break:keep-all;}
+html[lang="ko"] .side h2, html[lang="ko"] .tools .lab{letter-spacing:.06em;}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+</head>
+<body>
+
+<div id="stage"><div class="loading" id="loading">preparing the pumpkin</div></div>
+<div class="vign"></div>
+
+<header class="top">
+  <a class="logo" href="https://claude.ai/artifact/VKnXjTpP7PtFE1dUEE9tcz">Living Art Museum</a>
+    <nav class="views" aria-label="Main view">
+      <a href="https://claude.ai/artifact/VKnXjTpP7PtFE1dUEE9tcz?view=space">3D</a>
+      <a href="https://claude.ai/artifact/VKnXjTpP7PtFE1dUEE9tcz?view=card">Card</a>
+      <a href="https://claude.ai/artifact/VKnXjTpP7PtFE1dUEE9tcz?view=display">Display</a>
+    </nav>
+  <div class="title">
+    <h1 class="serif">Pumpkin</h1>
+    <p>Yayoi Kusama · 1994 · painted fibreglass</p>
+  </div>
+</header>
+
+<!-- tools -->
+<nav class="panel tools glass" id="tools" aria-label="Tools">
+  <button class="tool" data-tool="brush" aria-pressed="true" aria-label="Brush" title="Brush">
+    <svg viewBox="0 0 24 24"><path d="M15.5 4.5l4 4L10 18l-5 1 1-5z"/><path d="M13.5 6.5l4 4"/></svg></button>
+  <button class="tool" data-tool="dot" aria-pressed="false" aria-label="Dots" title="Dots">
+    <svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="2.4"/><circle cx="16" cy="7" r="1.5"/><circle cx="7" cy="16" r="1.5"/><circle cx="15" cy="15" r="3"/></svg></button>
+  <button class="tool" data-tool="blur" aria-pressed="false" aria-label="Smudge" title="Smudge">
+    <svg viewBox="0 0 24 24"><path d="M12 3c3.5 4 6 6.8 6 9.6A6 6 0 0 1 6 12.6C6 9.8 8.5 7 12 3z"/><path d="M9 13c1.6 1.4 4.4 1.4 6 0"/></svg></button>
+  <button class="tool" data-tool="eraser" aria-pressed="false" aria-label="Eraser" title="Eraser">
+    <svg viewBox="0 0 24 24"><path d="M8 19h11"/><path d="M15.5 5.5l3 3L10 17H7l-1.5-1.5z"/><path d="M11 9l3 3"/></svg></button>
+  <span class="sep"></span>
+  <span class="lab" id="tool-name">Brush</span>
+</nav>
+
+<!-- settings -->
+<aside class="panel side glass">
+  <div class="block">
+    <h2>Colour</h2>
+    <div class="swatches" id="swatches"></div>
+  </div>
+  <div class="block">
+    <h2>Brush</h2>
+    <div class="row"><label for="size">Size</label><input type="range" id="size" min="6" max="90" value="30"><span class="val" id="size-v">30</span></div>
+    <div class="row" id="gap-row"><label for="gap">Spacing</label><input type="range" id="gap" min="10" max="320" value="60"><span class="val" id="gap-v">0.6</span></div>
+    <div class="row"><label for="flow">Flow</label><input type="range" id="flow" min="10" max="100" value="80"><span class="val" id="flow-v">80</span></div>
+    <p class="hintline" id="hint">Press and drag on the pumpkin to paint. Drag the empty space to turn it.</p>
+  </div>
+  <div class="block about">
+    <h2>So far</h2>
+    <div class="count"><span id="marks">0</span> <span>marks</span></div>
+    <p class="hintline">Yayoi Kusama first met pumpkins as a child, in her family's seed nursery. She has described the dots
+      as a way of meeting the patterns she has seen since childhood — repetition as a way of living with something.
+      The yellow pumpkin on the pier at Naoshima was set down in 1994.</p>
+  </div>
+</aside>
+
+<!-- actions -->
+<nav class="panel bottom glass" aria-label="Actions">
+  <button id="a-undo" title="Undo" disabled>
+    <svg viewBox="0 0 24 24"><path d="M9 14l-4-4 4-4"/><path d="M5 10h8a6 6 0 0 1 0 12h-3"/></svg><span class="lbl">Undo</span></button>
+  <button id="a-fill" title="Fill the whole pumpkin with this colour">
+    <svg viewBox="0 0 24 24"><path d="M5 11l7-7 7 7-7 7z"/><path d="M19 15c1.2 1.6 1.8 2.7 1.8 3.4a1.8 1.8 0 0 1-3.6 0c0-.7.6-1.8 1.8-3.4z"/></svg><span class="lbl">Fill</span></button>
+  <button id="a-reset" title="Start again">
+    <svg viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M6 3v4h4"/></svg><span class="lbl">Start again</span></button>
+  <span class="divider"></span>
+  <button id="a-front" title="Face the pumpkin">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.2"/></svg><span class="lbl">Centre</span></button>
+  <button id="a-spin" title="Turn slowly" aria-pressed="false">
+    <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.7-5.6"/><path d="M20 12a8 8 0 0 1-13.7 5.6"/><path d="M18 3v4h-4"/><path d="M6 21v-4h4"/></svg><span class="lbl">Turn</span></button>
+  <span class="divider"></span>
+  <button id="a-field" title="See the pumpkin field">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="4" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="lbl">Field</span></button>
+  <button class="done" id="a-done"><span class="lbl">Put it in the field</span><span class="lbl-s">Save</span></button>
+</nav>
+
+<div class="field" id="field" aria-hidden="true">
+  <header class="field-top">
+    <h2 class="serif">The pumpkin field</h2>
+    <p id="field-count">Loading…</p>
+    <div class="right">
+      <button id="field-sync" hidden>Connect again</button>
+      <button id="field-close">Back to painting</button>
+    </div>
+  </header>
+  <div class="field-grid" id="field-grid"></div>
+</div>
+
+<div class="zoom" id="zoom" aria-hidden="true">
+  <div class="zoom-stage" id="z-stage"><img id="z-thumb" alt=""></div>
+  <div class="zoom-foot">Drag to turn it &nbsp;·&nbsp; pinch or scroll to come closer</div>
+  <header class="zoom-top">
+    <div class="zt"><h3 class="serif" id="z-title"></h3><p id="z-meta"></p></div>
+    <button id="z-close">Back to the field</button>
+  </header>
+</div>
+
+<div class="save glass" id="save" aria-hidden="true">
+  <h2 class="serif">Name your pumpkin</h2>
+  <input id="save-name" maxlength="24" placeholder="Untitled pumpkin" aria-label="Name">
+  <div class="save-row">
+    <button id="save-cancel">Cancel</button>
+    <button id="save-go" class="done">Put it in the field</button>
+  </div>
+</div>
+
+<div class="toast glass" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let tt; function toast(m){ const t = $("toast"); t.textContent = L(m); t.classList.add("in"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("in"), 2400); }
+/* ---- language: English unless the museum (or ?lang=ko) asks for Korean ---- */
+const LANG = (() => {
+  let l = (document.documentElement.lang || "en").slice(0, 2);
+  try { const q = new URLSearchParams(location.search).get("lang"); if (q) l = q; } catch (_){}
+  return l === "ko" ? "ko" : "en";
+})();
+const KO = {
+ "@title": "호박 — Living Art Museum",
+ "3D": "3D",
+ "Card": "카드",
+ "Display": "전시",
+ "Main view": "메인 보기",
+ "preparing the pumpkin": "호박을 준비하는 중",
+ "the 3d library did not load — please refresh": "3D 라이브러리를 불러오지 못했습니다 — 새로고침해 주세요",
+ "Pumpkin": "호박",
+ "Yayoi Kusama · 1994 · painted fibreglass": "쿠사마 야요이 · 1994 · 채색한 섬유 강화 플라스틱",
+ "Tools": "도구",
+ "Brush": "붓",
+ "Dots": "도트",
+ "Smudge": "번지기",
+ "Eraser": "지우개",
+ "Colour": "색",
+ "Size": "크기",
+ "Spacing": "간격",
+ "Flow": "농도",
+ "So far": "지금까지",
+ "marks": "획",
+ "Press and drag on the pumpkin to paint. Drag the empty space to turn it.": "호박 위를 누른 채 드래그하면 칠해집니다. 빈 곳을 드래그하면 돌아갑니다.",
+ "Each press leaves one dot; drag for a trail. Spacing sets how far apart they fall.": "누를 때마다 점이 하나 찍히고, 드래그하면 점이 이어집니다. 간격으로 점 사이 거리를 정하세요.",
+ "Drag over the paint to smudge it, the way a wet brush would.": "칠한 곳을 드래그하면 젖은 붓처럼 번집니다.",
+ "Drag to wipe back to the bare pumpkin.": "드래그하면 빈 호박으로 되돌아갑니다.",
+ "Yayoi Kusama first met pumpkins as a child, in her family's seed nursery. She has described the dots as a way of meeting the patterns she has seen since childhood — repetition as a way of living with something. The yellow pumpkin on the pier at Naoshima was set down in 1994.": "쿠사마 야요이는 어린 시절, 집안의 종묘장에서 처음 호박을 만났습니다. 그녀는 점을 어릴 때부터 보아 온 무늬와 마주하는 방법이라고 말합니다 — 무언가와 함께 살아가는 방법으로서의 반복. 나오시마 부두의 노란 호박은 1994년에 놓였습니다.",
+ "Actions": "동작",
+ "Undo": "실행 취소",
+ "Fill the whole pumpkin with this colour": "호박 전체를 이 색으로 채우기",
+ "Fill": "채우기",
+ "Start again": "처음부터",
+ "Face the pumpkin": "정면 보기",
+ "Centre": "가운데",
+ "Turn slowly": "천천히 돌리기",
+ "Turn": "회전",
+ "See the pumpkin field": "호박 밭 보기",
+ "Field": "호박 밭",
+ "Put it in the field": "호박 밭에 두기",
+ "The pumpkin field": "호박 밭",
+ "Loading…": "불러오는 중…",
+ "Back to painting": "다시 칠하기",
+ "Back to the field": "호박 밭으로",
+ "Drag to turn it · pinch or scroll to come closer": "드래그해 돌리기 · 두 손가락이나 스크롤로 다가가기",
+ "Connect again": "다시 연결",
+ "Your pumpkin is in the field — on every device.": "호박이 호박 밭에 놓였습니다 — 어느 기기에서나 보입니다.",
+ "Kept on this device for now — it joins the shared field once it connects.": "지금은 이 기기에 보관했어요 — 공유 호박 밭에 연결되면 자동으로 올라갑니다.",
+ "The shared field is full, so this one could not be added.": "공유 호박 밭이 가득 차서 더 놓을 수 없습니다.",
+ "Its paint could not be fetched — here is its photo.": "칠한 무늬를 불러오지 못해 사진으로 보여 드립니다.",
+ " · this device": " · 이 기기에만",
+ "Name your pumpkin": "호박에 이름을 붙이세요",
+ "Untitled pumpkin": "이름 없는 호박",
+ "Name": "이름",
+ "Cancel": "취소",
+ "Pick a colour": "색 고르기",
+ "The whole pumpkin, in one colour.": "호박 전체를 한 색으로 칠했습니다.",
+ "Back to a bare pumpkin — undo brings it back.": "빈 호박으로 돌아갔습니다 — 실행 취소로 되돌릴 수 있어요.",
+ "Turning slowly — press again to stop.": "천천히 도는 중 — 다시 누르면 멈춥니다.",
+ "Your pumpkin stays on this page for now. Saving comes in the next build step.": "호박은 지금은 이 페이지에만 남습니다.",
+ "Your pumpkin is in the field.": "당신의 호박이 호박 밭에 놓였습니다.",
+ "That could not be saved. Please try again.": "저장하지 못했습니다. 다시 시도해 주세요.",
+ "This one was saved before turning was possible.": "이 호박은 돌려 볼 수 있기 전에 저장되었습니다.",
+ "Save": "저장",
+ "just now": "방금",
+ " · yours": " · 내 호박",
+ " · turn it": " · 돌려 보기"
+};
+const L = (s) => (LANG === "ko" && KO[s] !== undefined) ? KO[s] : s;
+(function localise(){
+  if (LANG !== "ko") return;
+  document.documentElement.lang = "ko";
+  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT,
+    { acceptNode:n => /^(SCRIPT|STYLE)$/.test(n.parentNode.nodeName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  const hits = [];
+  while (walk.nextNode()){
+    const n = walk.currentNode, k = n.nodeValue.replace(/\s+/g, " ").trim();
+    if (k && KO[k] !== undefined) hits.push([n, KO[k]]);
+  }
+  hits.forEach(([n, v]) => { const m = n.nodeValue.match(/^(\s*)[\s\S]*?(\s*)$/); n.nodeValue = m[1] + v + m[2]; });
+  document.querySelectorAll("[title],[aria-label],[placeholder]").forEach(el => ["title", "aria-label", "placeholder"].forEach(a => {
+    const v = el.getAttribute(a); if (v && KO[v] !== undefined) el.setAttribute(a, KO[v]);
+  }));
+  document.querySelectorAll("[data-ko]").forEach(el => { el.innerHTML = el.dataset.ko; });
+  if (KO["@title"]) document.title = KO["@title"];
+})();
+
+if (!window.THREE){ $("loading").textContent = L("the 3d library did not load — please refresh"); return; }
+$("loading").remove();
+
+/* ==========================================================================
+   1. the surface we paint on
+   ========================================================================== */
+const TW = 2048, TH = 1024, BASE = "#e7e2d3";
+const paint = document.createElement("canvas"); paint.width = TW; paint.height = TH;
+const pc = paint.getContext("2d", { willReadFrequently:true });
+function fillBase(c){ pc.fillStyle = c; pc.fillRect(0, 0, TW, TH); }
+fillBase(BASE);
+
+/* a soft round stamp — clean paint, no grain */
+function makeStamp(){
+  const S = 192, cv = document.createElement("canvas"); cv.width = cv.height = S;
+  const g = cv.getContext("2d");
+  const grd = g.createRadialGradient(S/2, S/2, S*0.05, S/2, S/2, S*0.5);
+  grd.addColorStop(0, "rgba(0,0,0,1)");
+  grd.addColorStop(.62, "rgba(0,0,0,.82)");
+  grd.addColorStop(1, "rgba(0,0,0,0)");
+  g.fillStyle = grd; g.fillRect(0, 0, S, S);
+  return cv;
+}
+const STAMPS = [makeStamp()];
+const tintCache = new Map();
+function tinted(stamp, colour){
+  const key = colour + "|" + STAMPS.indexOf(stamp);
+  if (tintCache.has(key)) return tintCache.get(key);
+  const cv = document.createElement("canvas"); cv.width = stamp.width; cv.height = stamp.height;
+  const g = cv.getContext("2d");
+  g.drawImage(stamp, 0, 0);
+  g.globalCompositeOperation = "source-in";
+  g.fillStyle = colour; g.fillRect(0, 0, cv.width, cv.height);
+  tintCache.set(key, cv);
+  if (tintCache.size > 90) tintCache.delete(tintCache.keys().next().value);
+  return cv;
+}
+
+/* ==========================================================================
+   2. the pumpkin
+   ========================================================================== */
+function pumpkinGeometry(){
+  const g = new THREE.SphereGeometry(1, 190, 128);
+  const p = g.attributes.position, ribs = 10;
+  for (let i = 0; i < p.count; i++){
+    let x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    const rr = Math.hypot(x, z), phi = Math.atan2(z, x);
+    const groove = Math.pow(0.5 + 0.5 * Math.cos(ribs * phi), 14);
+    const s = 1 - 0.085 * groove * Math.min(1, rr * 1.4);
+    x *= s; z *= s;
+    y = y * 0.72 * (1 - 0.30 * Math.exp(-(rr * rr) / 0.05));
+    p.setXYZ(i, x, y, z);
+  }
+  g.computeVertexNormals();
+  return g;
+}
+
+const host = $("stage");
+const renderer = new THREE.WebGLRenderer({ antialias:true, preserveDrawingBuffer:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0x000000, 0);
+host.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const cam = new THREE.PerspectiveCamera(34, 1, 0.1, 60);
+scene.add(new THREE.HemisphereLight(0xdfe6ff, 0x30241c, 0.55));
+const key = new THREE.DirectionalLight(0xfff2dd, 0.95); key.position.set(3.4, 5, 4.2); scene.add(key);
+const rim = new THREE.DirectionalLight(0x9fc4ff, 0.42); rim.position.set(-4.4, 1.6, -3.4); scene.add(rim);
+
+const tex = new THREE.CanvasTexture(paint); tex.anisotropy = 8;
+const body = new THREE.Mesh(pumpkinGeometry(), new THREE.MeshStandardMaterial({
+  map:tex, roughness:.6, metalness:.03 }));
+body.scale.setScalar(1.5);
+const group = new THREE.Group(); group.add(body); scene.add(group);
+
+const stemGeo = new THREE.CylinderGeometry(0.075, 0.12, 0.44, 16, 4);
+{ const sp = stemGeo.attributes.position;
+  for (let i = 0; i < sp.count; i++){ const y = sp.getY(i); sp.setX(i, sp.getX(i) + Math.pow((y + 0.22) / 0.44, 2) * 0.09); }
+  stemGeo.computeVertexNormals(); }
+const stem = new THREE.Mesh(stemGeo, new THREE.MeshStandardMaterial({ color:0x6f6a55, roughness:.92 }));
+stem.position.y = 0.72 * 1.5 * 0.7 + 0.14; group.add(stem);
+
+/* a soft pool of light under it */
+{
+  const sh = document.createElement("canvas"); sh.width = sh.height = 256;
+  const s2 = sh.getContext("2d");
+  const gr = s2.createRadialGradient(128, 128, 8, 128, 128, 128);
+  gr.addColorStop(0, "rgba(0,0,0,.5)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+  s2.fillStyle = gr; s2.fillRect(0, 0, 256, 256);
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(5, 5),
+    new THREE.MeshBasicMaterial({ map:new THREE.CanvasTexture(sh), transparent:true, depthWrite:false }));
+  shadow.rotation.x = -Math.PI / 2; shadow.position.y = -1.08; scene.add(shadow);
+}
+
+const view = { yaw:-0.5, pitch:0.3, dist:5.4 };
+/* tall phone screens see less from side to side: step back until the whole pumpkin fits */
+const fitDist = (aspect) => Math.max(5.4, 5.75 / Math.max(aspect || 1, .2));
+function place(){
+  const d = view.dist * fitDist(cam.aspect) / 5.4;
+  cam.position.set(Math.sin(view.yaw) * Math.cos(view.pitch) * d, Math.sin(view.pitch) * d + 0.1, Math.cos(view.yaw) * Math.cos(view.pitch) * d);
+  cam.lookAt(0, -0.05, 0);
+}
+function size(){
+  const w = host.clientWidth, h = host.clientHeight;
+  if (!w || !h) return;
+  renderer.setSize(w, h, false); cam.aspect = w / h;
+  /* on a phone the tools sit along the bottom: lift the pumpkin into the open part of the screen */
+  if (w <= 600) cam.setViewOffset(w, h, 0, Math.round(h * 0.1), w, h); else cam.clearViewOffset();
+  cam.updateProjectionMatrix(); place();
+}
+size(); place();
+new ResizeObserver(() => { if (!zoomOn){ size(); dirty = true; } }).observe(host);
+
+let dirty = true, needTex = false, spin = false, zoomOn = false;
+(function loop(){
+  requestAnimationFrame(loop);
+  if (spin && !painting){ view.yaw += 0.0035; place(); dirty = true; }
+  if (needTex){ tex.needsUpdate = true; needTex = false; dirty = true; }
+  if (dirty && !zoomOn){ renderer.render(scene, cam); dirty = false; }
+})();
+
+/* ==========================================================================
+   3. tools
+   ========================================================================== */
+let tool = "brush", colour = "#f2b705", brushSize = 30, gap = 0.6, flow = 0.8, marks = 0;
+const COLOURS = ["#f2b705","#111111","#ffffff","#e03131","#f08c00","#e8590c","#d6336c","#7048e8","#1971c2","#0ca678","#2f9e44","#8a5a3b"];
+
+const swEl = $("swatches");
+COLOURS.forEach(c => {
+  const b = document.createElement("button");
+  b.className = "sw"; b.style.background = c; b.dataset.c = c;
+  b.setAttribute("aria-label", L("Colour") + " " + c);
+  b.setAttribute("aria-pressed", String(c === colour));
+  swEl.appendChild(b);
+});
+const custom = document.createElement("label");
+custom.className = "sw custom"; custom.title = L("Pick a colour");
+custom.innerHTML = `<input type="color" value="#44c0ff" aria-label="${L("Pick a colour")}">`;
+swEl.appendChild(custom);
+swEl.addEventListener("click", e => { const b = e.target.closest("button.sw"); if (b) setColour(b.dataset.c); });
+custom.querySelector("input").addEventListener("input", e => setColour(e.target.value));
+function setColour(c){
+  colour = c;
+  swEl.querySelectorAll(".sw").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.c === c)));
+  if (tool === "eraser" || tool === "blur") setTool("brush");
+}
+
+const TOOL_HINT = {
+  brush:"Press and drag on the pumpkin to paint. Drag the empty space to turn it.",
+  dot:"Each press leaves one dot; drag for a trail. Spacing sets how far apart they fall.",
+  blur:"Drag over the paint to smudge it, the way a wet brush would.",
+  eraser:"Drag to wipe back to the bare pumpkin.",
+};
+const TOOL_NAME = { brush:"Brush", dot:"Dots", blur:"Smudge", eraser:"Eraser" };
+document.querySelectorAll(".tool").forEach(b => b.onclick = () => setTool(b.dataset.tool));
+function setTool(t){
+  tool = t;
+  document.querySelectorAll(".tool").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tool === t)));
+  $("tool-name").textContent = L(TOOL_NAME[t]);
+  $("hint").textContent = L(TOOL_HINT[t]);
+  $("gap-row").style.opacity = (t === "dot" || t === "brush") ? "1" : ".35";
+}
+$("size").oninput = e => { brushSize = +e.target.value; $("size-v").textContent = brushSize; };
+$("gap").oninput = e => { gap = +e.target.value / 100; $("gap-v").textContent = gap.toFixed(1); };
+$("flow").oninput = e => { flow = +e.target.value / 100; $("flow-v").textContent = e.target.value; };
+
+/* ==========================================================================
+   4. painting on the surface
+   ========================================================================== */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+function hit(e){
+  const r = renderer.domElement.getBoundingClientRect();
+  ndc.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+  ndc.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+  ray.setFromCamera(ndc, cam);
+  const h = ray.intersectObject(body, false)[0];
+  return h && h.uv ? { u:h.uv.x, v:h.uv.y, p:h.point } : null;
+}
+/* the texture is stretched towards the poles, so widen the stamp to match */
+function stretch(v){ return 1 / Math.max(0.12, Math.sin((1 - v) * Math.PI)); }
+
+function dab(u, v, r, alpha, colr, rot){
+  const x = u * TW, y = (1 - v) * TH;
+  const sx = Math.min(TW / 2, r * stretch(v)), sy = r;
+  const idx = (Math.random() * STAMPS.length) | 0;
+  const st = tinted(STAMPS[idx], colr);
+  pc.globalAlpha = alpha;
+  for (const ox of [0, -TW, TW]){
+    const cx = x + ox;
+    if (cx + sx < 0 || cx - sx > TW) continue;
+    pc.save(); pc.translate(cx, y); pc.rotate(rot); pc.drawImage(st, -sx, -sy, sx * 2, sy * 2); pc.restore();
+  }
+  pc.globalAlpha = 1;
+  needTex = true;
+}
+/* oil paint picks up what is already on the surface */
+function pickUp(u, v){
+  const x = Math.max(0, Math.min(TW - 1, Math.round(u * TW)));
+  const y = Math.max(0, Math.min(TH - 1, Math.round((1 - v) * TH)));
+  const d = pc.getImageData(x, y, 1, 1).data;
+  return [d[0], d[1], d[2]];
+}
+function mixHex(hex, rgb, k){
+  const h = hex.replace("#", "");
+  const r = parseInt(h.slice(0,2), 16), g = parseInt(h.slice(2,4), 16), b = parseInt(h.slice(4,6), 16);
+  const m = (a, b2) => Math.round(a * (1 - k) + b2 * k);
+  return "#" + [m(r, rgb[0]), m(g, rgb[1]), m(b, rgb[2])].map(v => v.toString(16).padStart(2, "0")).join("");
+}
+
+/* a quick box blur of one patch, for the smudge tool */
+function smudge(u, v, r){
+  const x = Math.round(u * TW), y = Math.round((1 - v) * TH);
+  const rx = Math.min(140, Math.round(r * stretch(v))), ry = Math.min(140, Math.round(r));
+  const x0 = Math.max(0, x - rx), y0 = Math.max(0, y - ry);
+  const w = Math.min(TW - x0, rx * 2), h = Math.min(TH - y0, ry * 2);
+  if (w < 3 || h < 3) return;
+  const img = pc.getImageData(x0, y0, w, h), d = img.data, out = new Uint8ClampedArray(d);
+  const K = 2;
+  for (let yy = K; yy < h - K; yy++){
+    for (let xx = K; xx < w - K; xx++){
+      let rr = 0, gg = 0, bb = 0, n = 0;
+      for (let j = -K; j <= K; j++) for (let i = -K; i <= K; i++){
+        const o = ((yy + j) * w + (xx + i)) * 4;
+        rr += d[o]; gg += d[o+1]; bb += d[o+2]; n++;
+      }
+      const o = (yy * w + xx) * 4;
+      const fade = 1 - Math.hypot((xx - w/2) / (w/2), (yy - h/2) / (h/2));   /* soft edge */
+      const k = Math.max(0, Math.min(1, fade)) * 0.9;
+      out[o]   = d[o]   * (1 - k) + (rr / n) * k;
+      out[o+1] = d[o+1] * (1 - k) + (gg / n) * k;
+      out[o+2] = d[o+2] * (1 - k) + (bb / n) * k;
+    }
+  }
+  img.data.set(out);
+  pc.putImageData(img, x0, y0);
+  needTex = true;
+}
+
+/* undo, up to twelve steps */
+const undoStack = [];
+function pushUndo(){
+  undoStack.push(pc.getImageData(0, 0, TW, TH));
+  if (undoStack.length > 12) undoStack.shift();
+  $("a-undo").disabled = false;
+}
+
+let painting = false, rotating = false, last = null, lastT = 0, blurLock = 0, strokeRot = 0;
+const cvs = renderer.domElement;
+
+cvs.addEventListener("pointerdown", e => {
+  if (zoomOn) return;
+  cvs.setPointerCapture(e.pointerId);
+  spinOff();
+  const h = hit(e);
+  if (!h){ rotating = true; last = { x:e.clientX, y:e.clientY }; host.classList.add("rotating"); return; }
+  pushUndo();
+  painting = true; strokeRot = Math.random() * Math.PI * 2; dotAcc = 0; wet = null;
+  lastT = performance.now();
+  apply(h, 1);
+  last = h;
+});
+
+cvs.addEventListener("pointermove", e => {
+  if (zoomOn) return;
+  if (rotating){
+    view.yaw -= (e.clientX - last.x) * 0.0062;
+    view.pitch = Math.max(-1.0, Math.min(1.25, view.pitch + (e.clientY - last.y) * 0.005));
+    last = { x:e.clientX, y:e.clientY }; place(); dirty = true; return;
+  }
+  if (!painting) return;
+  const h = hit(e); if (!h) return;
+  const now = performance.now();
+  const dt = Math.max(8, now - lastT); lastT = now;
+  /* speed changes the weight of the line, the way a real brush does */
+  const dist = h.p.distanceTo(last.p);
+  const speed = Math.min(2.6, dist / (dt / 1000) / 4);
+  apply(h, speed, dist);
+  last = h;
+});
+
+let dotAcc = 0, wet = null;
+function apply(h, speed, dist){
+  const r = brushSize * (0.5 + 0.5 * Math.max(0.35, 1 - speed * 0.45));     /* fast strokes run thin */
+  const a = flow * (0.45 + 0.55 * Math.max(0.3, 1 - speed * 0.35));
+  const worldR = (r / TH) * Math.PI * 0.72 * 1.5;
+
+  if (tool === "blur"){
+    if (performance.now() > blurLock){ smudge(h.u, h.v, r * 0.8); blurLock = performance.now() + 28; }
+    return;
+  }
+  const erasing = tool === "eraser";
+  const base = erasing ? BASE : colour;
+
+  if (tool === "dot"){
+    const step = worldR * (1.1 + gap * 2.4);
+    if (dist === undefined){                       /* the first press always leaves one */
+      dotAcc = 0;
+      dab(h.u, h.v, r * 0.5, erasing ? 1 : Math.min(1, a + 0.2), base, Math.random() * Math.PI);
+      marks++;
+    } else {
+      dotAcc += dist;
+      let guard = 0;
+      while (dotAcc >= step && guard++ < 40){      /* space them evenly along the drag */
+        dotAcc -= step;
+        const t = 1 - (dotAcc / Math.max(dist, 1e-6));
+        const u = lerpU(last.u, h.u, Math.max(0, Math.min(1, t)));
+        const v = last.v + (h.v - last.v) * Math.max(0, Math.min(1, t));
+        dab(u, v, r * 0.5 * (0.88 + Math.random() * 0.24), erasing ? 1 : Math.min(1, a + 0.2),
+            base, Math.random() * Math.PI);
+        marks++;
+      }
+    }
+  } else {
+    /* interpolate so a fast drag still leaves a continuous mark */
+    const step = Math.max(worldR * 0.22 * (0.6 + gap), 0.004);
+    const n = dist === undefined ? 1 : Math.min(26, Math.ceil(dist / step));
+    if (dist === undefined) wet = erasing ? null : pickUp(h.u, h.v);
+    for (let i = 1; i <= n; i++){
+      const t = n === 1 ? 1 : i / n;
+      const u = lerpU(last ? last.u : h.u, h.u, t);
+      const v = (last ? last.v : h.v) + ((h.v - (last ? last.v : h.v)) * t);
+      strokeRot += 0.22;
+      /* oil mixes with whatever is under the bristles */
+      let colr = base;
+      if (!erasing && wet) colr = mixHex(base, wet, 0.22 + 0.18 * Math.sin(strokeRot * 1.7));
+      dab(u, v, r * 0.5, a / Math.sqrt(n), colr, strokeRot);
+    }
+    if (!erasing && Math.random() < 0.35) wet = pickUp(h.u, h.v);
+    marks += 1;
+  }
+  $("marks").textContent = marks.toLocaleString();
+}
+function lerpU(a, b, t){                       /* shortest way round the seam */
+  let d = b - a; if (d > 0.5) d -= 1; if (d < -0.5) d += 1;
+  let u = a + d * t; return (u % 1 + 1) % 1;
+}
+
+function endStroke(){
+  if (rotating){ rotating = false; host.classList.remove("rotating"); }
+  painting = false; last = null;
+}
+cvs.addEventListener("pointerup", endStroke);
+cvs.addEventListener("pointercancel", endStroke);
+cvs.addEventListener("wheel", e => {
+  e.preventDefault();
+  if (zoomOn) return;
+  view.dist = Math.max(3.2, Math.min(9, view.dist * Math.exp(e.deltaY * 0.001)));
+  place(); dirty = true;
+}, { passive:false });
+
+/* pinch to zoom */
+const pts = new Map();
+cvs.addEventListener("pointerdown", e => { if (!zoomOn) pts.set(e.pointerId, e); });
+cvs.addEventListener("pointermove", e => {
+  if (zoomOn || !pts.has(e.pointerId)) return;
+  pts.set(e.pointerId, e);
+  if (pts.size === 2){
+    const [a, b] = [...pts.values()];
+    const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    if (pinchD){ view.dist = Math.max(3.2, Math.min(9, view.dist * pinchD / d)); place(); dirty = true; }
+    pinchD = d; painting = false;
+  }
+});
+let pinchD = 0;
+["pointerup","pointercancel"].forEach(ev => cvs.addEventListener(ev, e => { pts.delete(e.pointerId); if (pts.size < 2) pinchD = 0; }));
+
+/* ==========================================================================
+   5. actions
+   ========================================================================== */
+$("a-undo").onclick = () => {
+  const d = undoStack.pop(); if (!d) return;
+  pc.putImageData(d, 0, 0); needTex = true;
+  $("a-undo").disabled = !undoStack.length;
+};
+$("a-fill").onclick = () => { pushUndo(); fillBase(colour); needTex = true; toast("The whole pumpkin, in one colour."); };
+$("a-reset").onclick = () => { pushUndo(); fillBase(BASE); marks = 0; $("marks").textContent = "0"; needTex = true; toast("Back to a bare pumpkin — undo brings it back."); };
+$("a-front").onclick = () => { spinOff(); view.yaw = 0; view.pitch = 0.16; view.dist = 5.4; place(); dirty = true; };
+/* a pinch belongs to the pumpkin, never to the page: the browser's own zoom blew the tools up over everything */
+["gesturestart", "gesturechange", "gestureend"].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive:false }));
+document.addEventListener("touchmove", e => { if (e.touches && e.touches.length > 1) e.preventDefault(); }, { passive:false });
+function spinOff(){ spin = false; $("a-spin").setAttribute("aria-pressed", "false"); }
+$("a-spin").onclick = e => {
+  spin = !spin;
+  e.currentTarget.setAttribute("aria-pressed", String(spin));
+  if (spin) toast("Turning slowly — press again to stop.");
+};
+$("a-done").onclick = () => toast("Your pumpkin stays on this page for now. Saving comes in the next build step.");
+
+window.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  const map = { b:"brush", d:"dot", s:"blur", e:"eraser" };
+  if (map[e.key.toLowerCase()]) setTool(map[e.key.toLowerCase()]);
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z"){ e.preventDefault(); $("a-undo").click(); }
+});
+
+
+/* ==========================================================================
+   6. the field: every pumpkin anyone leaves behind
+   One shared field, kept in the museum's database, so a pumpkin saved on a
+   phone is there on the laptop too. Each pumpkin is two small documents:
+   a light card (name, time, photo) and its paint, fetched only to turn it.
+   When the database cannot be reached the pumpkin waits on this device and
+   moves over by itself the next time the field connects.
+   ========================================================================== */
+let store = null, fieldList = [], mine = new Set(), fieldState = "loading", saving = false;
+let unsub = null, pollT = null, migrating = false;
+const LOCAL_KEY = "lm.pumpkins", MINE_KEY = "lm.pumpkins.mine";
+const wait = (ms) => new Promise(r => setTimeout(r, ms));
+try{ JSON.parse(localStorage.getItem(MINE_KEY) || "[]").forEach(id => mine.add(id)); } catch(e){}
+function rememberMine(id){
+  mine.add(id);
+  try{ localStorage.setItem(MINE_KEY, JSON.stringify([...mine].slice(-300))); } catch(e){}
+}
+
+/* names come from other visitors: never let one be read as markup */
+const esc = (v) => String(v || "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+function when(t){
+  const m = Math.round((Date.now() - t) / 60000);
+  const ko = LANG === "ko";
+  if (m < 1) return L("just now");
+  if (m < 60) return ko ? m + "분 전" : m + " min ago";
+  const h = Math.round(m / 60);
+  if (h < 24) return ko ? h + "시간 전" : h + " h ago";
+  return ko ? Math.round(h / 24) + "일 전" : Math.round(h / 24) + " d ago";
+}
+function safeImg(v){ return typeof v === "string" && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v) ? v : ""; }
+function clean(d, local){
+  const tex = safeImg(d.tex);
+  return { id:String(d.id), title:String(d.title || "").slice(0, 24), t:+d.t || 0, thumb:safeImg(d.thumb), tex,
+           turn: tex ? true : d.turn === true, local:!!local };
+}
+
+/* ---- pictures small enough for one document each (a document holds 256 KiB) ---- */
+const TEX_SIZES   = [[1024, 512, .74], [1024, 512, .6], [1024, 512, .48], [768, 384, .55], [512, 256, .5]];
+const THUMB_SIZES = [[320, 240, .78], [320, 240, .62], [240, 180, .56]];
+function encodeFit(src, sizes, maxLen, cover){
+  const sw = src.naturalWidth || src.width, sh = src.naturalHeight || src.height;
+  if (!sw || !sh) return "";
+  for (const [w, h, q] of sizes){
+    const c = document.createElement("canvas"); c.width = w; c.height = h;
+    const g = c.getContext("2d");
+    g.fillStyle = "#0b0d12"; g.fillRect(0, 0, w, h);
+    if (cover){
+      const k = Math.max(w / sw, h / sh);
+      g.drawImage(src, (w - sw * k) / 2, (h - sh * k) / 2, sw * k, sh * k);
+    } else g.drawImage(src, 0, 0, w, h);
+    const u = c.toDataURL("image/jpeg", q);
+    if (u.length <= maxLen) return u;
+  }
+  return "";
+}
+const TEX_MAX = 230000, THUMB_MAX = 70000;
+function loadImg(url){
+  return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+}
+function snapshotCanvas(){
+  renderer.render(scene, cam);
+  return renderer.domElement;
+}
+
+/* ---- this device's waiting room ---- */
+function readLocal(){
+  try{ const a = JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]"); return Array.isArray(a) ? a : []; }
+  catch(e){ return []; }
+}
+function writeLocal(a){
+  for (let n = a.length; n >= 0; n--){            /* a phone's storage is small: drop the oldest until it fits */
+    try{ localStorage.setItem(LOCAL_KEY, JSON.stringify(a.slice(0, n))); return n; } catch(e){}
+  }
+  return 0;
+}
+function keepLocal(rec){
+  const id = "local-" + rec.t;
+  const a = readLocal(); a.unshift({ id, ...rec }); writeLocal(a.slice(0, 16));
+  rememberMine(id);
+}
+const localItems = () => readLocal().map(d => clean(d, true)).filter(p => p.thumb);
+
+/* ---- finding the database: this page's own, or the museum's when the pumpkin is shown inside it ---- */
+function apiCandidates(){
+  const out = [];
+  const add = (R) => {
+    try{ if (R && R.claude && typeof R.claude.use === "function" && !out.some(o => o.R === R)) out.push({ R, api:R.claude }); }
+    catch(e){}
+  };
+  add(window);
+  try{ if (window.parent && window.parent !== window) add(window.parent); } catch(e){}
+  try{ if (window.top && window.top !== window) add(window.top); } catch(e){}
+  return out;
+}
+function findDB(){
+  const cs = apiCandidates();
+  if (!cs.length) return Promise.resolve(null);
+  return new Promise(res => {
+    let left = cs.length;
+    const miss = () => { if (--left === 0) res(null); };
+    cs.forEach(c => {
+      let p; try{ p = c.api.use("db"); } catch(e){ miss(); return; }
+      Promise.resolve(p).then(db => db ? res({ db, R:c.R }) : miss(), miss);
+    });
+  });
+}
+function makeStore({ db, R }){
+  /* bodies are built in the window that owns the database, so they read as its own plain objects */
+  const plain = (o) => R.JSON.parse(JSON.stringify(o));
+  const field = db.collection("pumpkinField"), paints = db.collection("pumpkinTex");
+  const q = () => field.orderBy("t", "desc").limit(60);
+  const rows = (s) => s.docs.map(d => ({ id:d.id, ...d.data() }));
+  return {
+    watch:(next, fail) => q().onSnapshot(s => next(rows(s)), fail),
+    list: async () => rows(await q().get()),
+    async put(rec){
+      const ref = field.doc();
+      if (rec.tex) await paints.doc(ref.id).set(plain({ tex:rec.tex, t:rec.t }));
+      await ref.set(plain({ title:rec.title, t:rec.t, thumb:rec.thumb, turn:!!rec.tex, v:2 }));
+      return ref.id;
+    },
+    async paint(id){ const s = await paints.doc(id).get(); return s.exists ? safeImg((s.data() || {}).tex) : ""; },
+  };
+}
+
+async function connect(){
+  fieldState = "loading"; refresh();
+  let found = null;
+  for (let i = 0; i < 3 && !found; i++){
+    found = await findDB();
+    if (!found && i < 2) await wait(1500 * (i + 1));
+  }
+  if (!found){ goLocal(); return; }
+  store = makeStore(found);
+  subscribe(0);
+  /* a first answer can wait on a permission prompt: keep this device's pumpkins safe meanwhile */
+  setTimeout(() => { if (fieldState === "loading"){ fieldState = "local"; refresh(); } }, 15000);
+}
+function subscribe(tries){
+  if (unsub){ try{ unsub(); } catch(e){} unsub = null; }
+  try{
+    unsub = store.watch(list => {
+      fieldState = "shared"; fieldList = list.map(d => clean(d)).filter(p => p.thumb);
+      refresh(); migrateLocal();
+    }, async err => {
+      unsub = null;
+      const code = err && err.code;
+      if (/unavailable|queue_overflow|resource_exhausted/.test(code || "") && tries < 4){ setTimeout(() => subscribe(tries + 1), 2000 * (tries + 1)); return; }
+      try{ await pollOnce(); startPoll(); }          /* live updates failed: read it now and then instead */
+      catch(e){ goLocal(); }
+    });
+  } catch(e){ pollOnce().then(startPoll, goLocal); }
+}
+async function pollOnce(){
+  const list = await store.list();
+  fieldState = "shared"; fieldList = list.map(d => clean(d)).filter(p => p.thumb);
+  refresh(); migrateLocal();
+}
+function startPoll(){ clearInterval(pollT); pollT = setInterval(() => { if (fieldOpen()) pollOnce().catch(() => {}); }, 15000); }
+function goLocal(){ store = null; fieldState = "local"; fieldList = []; refresh(); }
+
+/* pumpkins that waited on this device join the shared field */
+async function migrateLocal(){
+  if (migrating || !store) return;
+  const waiting = readLocal();
+  if (!waiting.length) return;
+  migrating = true;
+  let moved = 0; const left = [];
+  for (const p of waiting){
+    try{
+      const rec = { title:String(p.title || "").slice(0, 24), t:+p.t || Date.now(), thumb:"", tex:"" };
+      if (safeImg(p.thumb)) rec.thumb = encodeFit(await loadImg(p.thumb), THUMB_SIZES, THUMB_MAX, true);
+      if (safeImg(p.tex))   rec.tex   = encodeFit(await loadImg(p.tex), TEX_SIZES, TEX_MAX, false);
+      if (!rec.thumb){ continue; }
+      const id = await store.put(rec);
+      rememberMine(id); moved++;
+    } catch(e){ left.push(p); }
+  }
+  writeLocal(left);
+  migrating = false;
+  if (moved) toast(LANG === "ko" ? `이 기기에 있던 호박 ${moved}개가 공유 호박 밭으로 옮겨졌습니다.`
+                                 : `${moved} pumpkin${moved > 1 ? "s" : ""} from this device joined the shared field.`);
+  refresh();
+}
+
+$("a-done").onclick = () => { $("save-name").value = ""; $("save").classList.add("open"); $("save-name").focus(); };
+$("save-cancel").onclick = () => $("save").classList.remove("open");
+$("save-go").onclick = async () => {
+  if (saving) return; saving = true; $("save-go").disabled = true;
+  let rec = null;
+  try{
+    rec = { title:$("save-name").value.trim().slice(0, 24), t:Date.now(),
+            thumb:encodeFit(snapshotCanvas(), THUMB_SIZES, THUMB_MAX, true),
+            tex:encodeFit(paint, TEX_SIZES, TEX_MAX, false) };
+    if (store && fieldState === "shared"){
+      let id;
+      try{ id = await store.put(rec); }
+      catch(err){
+        if (err && err.code === "quota_exceeded") throw err;
+        await wait(700 + Math.random() * 600);
+        id = await store.put(rec);                  /* one more go: the network blinks */
+      }
+      rememberMine(id);
+      toast("Your pumpkin is in the field — on every device.");
+    } else {
+      keepLocal(rec);
+      toast("Kept on this device for now — it joins the shared field once it connects.");
+    }
+    $("save").classList.remove("open");
+    openField();
+  } catch(err){
+    if (err && err.code === "quota_exceeded") toast("The shared field is full, so this one could not be added.");
+    else if (rec){ keepLocal(rec); $("save").classList.remove("open"); openField();
+                   toast("Kept on this device for now — it joins the shared field once it connects."); }
+    else toast("That could not be saved. Please try again.");
+  } finally { saving = false; $("save-go").disabled = false; }
+};
+
+const fieldOpen = () => $("field").classList.contains("open");
+function refresh(){ if (fieldOpen()) drawField(); }
+function drawField(){
+  const grid = $("field-grid"), ko = LANG === "ko";
+  const waiting = localItems();
+  const items = [...waiting, ...fieldList];
+  const n = items.length;
+  $("field-sync").hidden = fieldState !== "local";
+  $("field-count").textContent =
+      fieldState === "shared"
+    ? (ko ? `관람객들이 남긴 호박 ${fieldList.length}개 · 어느 기기에서 열어도 같은 밭입니다` : `${fieldList.length} pumpkins left by visitors · the same field on every device`)
+      + (waiting.length ? (ko ? ` · 이 기기에서 올라가는 중 ${waiting.length}개` : ` · ${waiting.length} still moving over from this device`) : "")
+    : fieldState === "loading"
+    ? (ko ? "공유 호박 밭에 연결하는 중…" : "Connecting to the shared field…")
+    : (ko ? `공유 호박 밭에 연결하지 못해 이 기기에만 보관 중 · ${n}개` : `Could not reach the shared field · ${n} kept on this device only`);
+  if (!n){
+    grid.innerHTML = fieldState === "loading" ? "" :
+      (ko ? `<p class="empty">호박 밭이 비어 있습니다.<br>호박을 칠해 여기에 놓아 보세요.</p>`
+          : `<p class="empty">The field is empty.<br>Paint a pumpkin and put it here.</p>`);
+    return;
+  }
+  grid.innerHTML = "";
+  items.forEach(p => {
+    const b = document.createElement("button");
+    b.className = "pk" + (mine.has(p.id) ? " mine" : "");
+    const nm = esc(p.title) || L("Untitled pumpkin");
+    b.innerHTML = `<img src="${p.thumb}" alt=""><div class="nm">${nm}</div>
+                   <div class="mt">${when(p.t)}${mine.has(p.id) ? L(" · yours") : ""}${p.local ? L(" · this device") : ""}</div>`;
+    b.setAttribute("aria-label", `${p.title || L("Untitled pumpkin")} — ${ko ? "열어서 돌려 보기" : "open and turn it"}`);
+    b.onclick = () => p.turn ? openZoom(p) : toast("This one was saved before turning was possible.");
+    grid.appendChild(b);
+  });
+}
+function openField(){ drawField(); $("field").classList.add("open"); if (fieldState === "shared" && pollT) pollOnce().catch(() => {}); }
+$("a-field").onclick = openField;
+$("field-close").onclick = () => $("field").classList.remove("open");
+$("field-sync").onclick = () => { if (fieldState !== "loading") connect(); };
+connect();
+
+/* ---- one visitor's pumpkin, on its own turntable ----
+   It borrows the painting's canvas rather than opening a second 3D context:
+   phones only allow a few, and a second one is what went black. */
+const zhost = $("z-stage");
+let Z = null, zRaf = null, zDrag = null, zSeq = 0;
+const zPts = new Map(); let zPinch = 0;
+const paintCache = new Map();
+function buildZoom(){
+  const sc = new THREE.Scene();
+  const cm = new THREE.PerspectiveCamera(34, 1, .1, 80);
+  sc.add(new THREE.HemisphereLight(0xdfe6ff, 0x30241c, .55));
+  const k = new THREE.DirectionalLight(0xfff2dd, .95); k.position.set(3.4, 5, 4.2); sc.add(k);
+  const rim = new THREE.DirectionalLight(0x9fc4ff, .42); rim.position.set(-4.4, 1.6, -3.4); sc.add(rim);
+  const mesh = new THREE.Mesh(pumpkinGeometry(), new THREE.MeshStandardMaterial({ roughness:.6 }));
+  mesh.scale.setScalar(1.5);
+  const grp = new THREE.Group(); grp.add(mesh); sc.add(grp);
+  const st = new THREE.Mesh(stemGeo.clone(), new THREE.MeshStandardMaterial({ color:0x6f6a55, roughness:.92 }));
+  st.position.y = 0.72 * 1.5 * 0.7 + 0.14; grp.add(st);
+  grp.visible = false;
+  const view = { yaw:-0.5, pitch:0.3, dist:1 };            /* dist: 1 = the whole pumpkin in view */
+  let W = 0, H = 0;
+  const place = () => {
+    const d = view.dist * fitDist(cm.aspect);
+    cm.position.set(Math.sin(view.yaw) * Math.cos(view.pitch) * d, Math.sin(view.pitch) * d + .1, Math.cos(view.yaw) * Math.cos(view.pitch) * d);
+    cm.lookAt(0, -0.05, 0);
+  };
+  const size = () => {
+    const w = zhost.clientWidth, h = zhost.clientHeight;
+    if (!w || !h) return false;
+    if (w === W && h === H) return true;
+    W = w; H = h;
+    renderer.setSize(w, h, false); cm.aspect = w / h; cm.updateProjectionMatrix(); place();
+    return true;
+  };
+  const clampD = (d) => Math.max(.62, Math.min(1.7, d));
+  zhost.addEventListener("pointerdown", e => {
+    zPts.set(e.pointerId, e);
+    try{ zhost.setPointerCapture(e.pointerId); } catch(_){}
+    if (zPts.size === 1){ zDrag = { x:e.clientX, y:e.clientY }; zhost.classList.add("drag"); }
+    else { zDrag = null; zPinch = 0; }
+  });
+  zhost.addEventListener("pointermove", e => {
+    if (!zPts.has(e.pointerId)) return;
+    zPts.set(e.pointerId, e);
+    if (zPts.size >= 2){                                   /* two fingers: come closer or step back */
+      const [a, b] = [...zPts.values()];
+      const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+      if (zPinch) view.dist = clampD(view.dist * zPinch / d);
+      zPinch = d; place(); return;
+    }
+    if (!zDrag) return;
+    view.yaw -= (e.clientX - zDrag.x) * .008;
+    view.pitch = Math.max(-.35, Math.min(1.35, view.pitch + (e.clientY - zDrag.y) * .006));
+    zDrag = { x:e.clientX, y:e.clientY }; place();
+  });
+  ["pointerup","pointercancel","lostpointercapture"].forEach(ev => zhost.addEventListener(ev, e => {
+    zPts.delete(e.pointerId);
+    if (zPts.size < 2) zPinch = 0;
+    if (zPts.size === 1){ const p = [...zPts.values()][0]; zDrag = { x:p.clientX, y:p.clientY }; }
+    if (!zPts.size){ zDrag = null; zhost.classList.remove("drag"); }
+  }));
+  zhost.addEventListener("wheel", e => { e.preventDefault(); view.dist = clampD(view.dist * Math.exp(e.deltaY * .001)); place(); }, { passive:false });
+  Z = { sc, cm, mesh, grp, view, place, size, reset(){ W = H = 0; } };
+}
+async function openZoom(p){
+  if (!Z) buildZoom();
+  const seq = ++zSeq;
+  $("z-title").textContent = p.title || L("Untitled pumpkin");
+  $("z-meta").textContent = when(p.t) + (mine.has(p.id) ? L(" · yours") : "");
+  $("z-thumb").src = p.thumb || "";
+  zhost.classList.remove("ready");
+  Z.grp.visible = false;
+  $("zoom").classList.add("open");
+  zoomOn = true;
+  zhost.appendChild(renderer.domElement);                  /* borrow the one canvas */
+  Z.reset(); Z.view.yaw = -0.5; Z.view.pitch = 0.3; Z.view.dist = 1;
+  cancelAnimationFrame(zRaf);
+  (function run(){
+    zRaf = requestAnimationFrame(run);
+    if (!Z.size()) return;                                  /* wait for the overlay to have a size */
+    if (!zDrag && !zPts.size) Z.view.yaw += .004;
+    Z.place(); renderer.render(Z.sc, Z.cm);
+  })();
+  let url = p.tex || paintCache.get(p.id) || "";
+  if (!url && store){
+    try{ url = await store.paint(p.id); if (url) paintCache.set(p.id, url); } catch(e){ url = ""; }
+  }
+  if (seq !== zSeq || !zoomOn) return;
+  if (!url){ toast("Its paint could not be fetched — here is its photo."); return; }
+  new THREE.TextureLoader().load(url, t => {
+    if (seq !== zSeq) { t.dispose(); return; }
+    const old = Z.mesh.material.map; Z.mesh.material.map = t; Z.mesh.material.needsUpdate = true;
+    if (old) old.dispose();
+    Z.grp.visible = true; zhost.classList.add("ready");
+  }, undefined, () => toast("Its paint could not be fetched — here is its photo."));
+}
+function closeZoom(){
+  if (!zoomOn) return;
+  zoomOn = false; zSeq++;
+  cancelAnimationFrame(zRaf); zRaf = null;
+  zPts.clear(); zDrag = null; zPinch = 0;
+  $("zoom").classList.remove("open");
+  host.appendChild(renderer.domElement);                   /* give the canvas back to the painting */
+  size(); dirty = true;
+}
+$("z-close").onclick = closeZoom;
+
+window.addEventListener("keydown", e => {
+  if (e.key === "Escape"){
+    if ($("zoom").classList.contains("open")) $("z-close").click();
+    else { $("field").classList.remove("open"); $("save").classList.remove("open"); }
+  }
+});
+
+setTool("brush");
+})();
+</script>
+</body>
+</html>

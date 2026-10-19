@@ -1,0 +1,59 @@
+rules_version = '2';
+
+// Firestore security rules for the Living Art Museum.
+// Paste into Firebase console → Firestore Database → Rules → Publish.
+// Anyone may look; anyone may add, in the shapes the rooms write and no bigger.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function d() { return request.resource.data; }
+    function str(v, n) { return v is string && v.size() <= n; }
+    function list(v, n) { return v is list && v.size() <= n; }
+
+    // ---- Pumpkin: the field of painted pumpkins (added, never edited or removed) ----
+    match /pumpkinField/{id} {
+      allow read: if true;
+      allow create: if d().keys().hasOnly(['title', 't', 'thumb', 'turn', 'v'])
+                    && str(d().title, 24) && d().t is number
+                    && str(d().thumb, 300000);
+      allow update, delete: if false;
+    }
+    match /pumpkinTex/{id} {
+      allow read: if true;
+      allow create: if d().keys().hasOnly(['tex', 't'])
+                    && str(d().tex, 1000000) && d().t is number;
+      allow update, delete: if false;
+    }
+
+    // ---- Basquiat: the shared notebook (anyone can stick, write, peel off) ----
+    match /basquiatNotebook/{id} {
+      allow read: if true;
+      allow create, update: if d().p is number && d().p >= 1 && d().p <= 60
+                            && d().k in ['st', 'cut', 'tx', 'er', 'dr']
+                            && d().t is number
+                            && (!('s' in d()) || str(d().s, 240))
+                            && (!('pts' in d()) || list(d().pts, 1200))
+                            && (!('poly' in d()) || list(d().poly, 400));
+      allow delete: if true;
+    }
+    // things lying on the desk
+    match /basquiatDesk/{id} {
+      allow read: if true;
+      allow create, update: if d().kind in ['st', 'cut'] && d().t is number
+                            && (!('poly' in d()) || list(d().poly, 400));
+      allow delete: if true;
+    }
+    // holes cut in the magazine
+    match /basquiatHoles/{id} {
+      allow read: if true;
+      allow create: if d().m is number && list(d().poly, 400) && d().t is number;
+      allow update, delete: if false;
+    }
+    // where the binder, magazine, mug and oilsticks were left
+    match /basquiatMeta/{id} {
+      allow read: if true;
+      allow create, update: if id == 'objs' && d().size() <= 6;
+      allow delete: if false;
+    }
+  }
+}

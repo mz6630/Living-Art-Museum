@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Shark Film — Living Art Museum</title>
+<meta name="description" content="Pick a strip of black film, push it into the tank and drag it sideways: a scanimation of a shark that swims, sinks, and is kept. An experience from the Living Art Museum.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700&family=Caveat:wght@600&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<style>
+:root{--serif:Fraunces,"Noto Serif KR",Georgia,serif;}
+html[lang="ko"]{--serif:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;}
+/* ==========================================================================
+   SHARK FILM — after Hirst's shark (1991), as a scanimation.
+   Three strips of black film wait on the left. Each is a barrier grid: black,
+   with clear slits. Pick one, push it down into the tank, drag it sideways —
+   and the woven picture behind the glass starts to move.
+   The illustration is drawn here from scratch in flat poster colours.
+   ========================================================================== */
+:root{
+  --bg:#0f1530; --ink:#eef1f6; --ink-dim:rgba(238,241,246,.66); --ink-faint:rgba(238,241,246,.42);
+  --red:#e23a33; --blue:#2f62ad; --sky:#a9d2ec; --cream:#f3ecd9;
+  --ease:cubic-bezier(.22,.68,.24,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{background:var(--bg);color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(60% 55% at 60% 55%, rgba(70,110,190,.22), rgba(15,21,48,0) 70%), radial-gradient(40% 40% at 8% 50%, rgba(226,58,51,.06), rgba(0,0,0,0));}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
+:focus-visible{outline:2px solid var(--sky);outline-offset:3px;border-radius:8px;}
+.glass{background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.05));
+  backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
+  border:1px solid rgba(255,255,255,.14);box-shadow:0 24px 60px -30px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.1);}
+#stage{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+#stage.grab{cursor:grab;} #stage.grabbing{cursor:grabbing;}
+
+/* ---------- top bar (the site draws its own when this is embedded) ---------- */
+.top{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:20px;right:20px;z-index:10;display:flex;align-items:center;gap:14px;pointer-events:none;}
+.top > *{pointer-events:auto;}
+.logo{font-size:19px;font-weight:600;letter-spacing:-.018em;line-height:1;white-space:nowrap;text-decoration:none;color:var(--ink);}
+.views{display:flex;gap:2px;padding:4px;border-radius:999px;}
+.views a{padding:8px 15px;border-radius:999px;font-size:12.5px;text-decoration:none;color:var(--ink-dim);}
+.views a:hover{color:var(--ink);background:rgba(255,255,255,.1);}
+.title{margin-left:auto;text-align:right;max-width:44vw;}
+.title h1{font-family:var(--serif);font-size:16px;font-weight:600;line-height:1.25;}
+.title p{font-size:11.5px;color:var(--ink-dim);margin-top:2px;}
+body.embedded .top{display:none;}
+
+/* ---------- the films, waiting on the left ---------- */
+#films{position:fixed;left:24px;top:var(--films-top,120px);z-index:6;display:flex;flex-direction:column;gap:var(--films-gap,26px);}
+#films .lb{font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:-12px;}
+.film{position:relative;display:block;width:var(--fw,250px);text-align:left;transition:transform .35s var(--ease), opacity .35s;}
+.film canvas{display:block;width:100%;height:auto;filter:drop-shadow(0 14px 18px rgba(0,0,0,.45));}
+.film:hover{transform:translateX(8px) rotate(-1deg);}
+.film.out{opacity:.22;transform:none;pointer-events:none;}
+.film.out::after{content:attr(data-out);position:absolute;left:34%;top:30%;font-size:11px;color:var(--ink);font-family:"JetBrains Mono","Noto Sans KR",monospace;letter-spacing:.06em;}
+.film .cap{display:block;margin-top:8px;padding-left:18px;font-size:12px;color:var(--ink-dim);line-height:1.35;}
+.film .cap b{color:var(--ink);font-weight:600;}
+#fly{position:fixed;z-index:30;pointer-events:none;transform-origin:0 0;will-change:transform;}
+
+/* ---------- under the tank ---------- */
+#ui{position:fixed;left:var(--ui-x,340px);top:var(--ui-y,700px);width:var(--ui-w,640px);z-index:7;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 16px;border-radius:18px;}
+#status{flex:1;min-width:0;font-size:12.5px;line-height:1.4;color:var(--ink-dim);}
+#status b{color:var(--ink);font-weight:600;}
+#dots{display:flex;gap:5px;}
+#dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.18);transition:background .12s;}
+#dots i.on{background:var(--red);box-shadow:0 0 8px rgba(226,58,51,.7);}
+.chip{display:flex;align-items:center;gap:6px;padding:8px 11px;border-radius:12px;font-size:12px;color:var(--ink-dim);white-space:nowrap;}
+.chip svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none;}
+.chip:hover{background:rgba(255,255,255,.08);color:var(--ink);}
+.chip[aria-pressed="true"]{background:rgba(255,255,255,.9);color:#0f1530;}
+.chip:disabled{opacity:.32;cursor:default;} .chip:disabled:hover{background:none;color:var(--ink-dim);}
+.chip.ic{padding:8px 9px;}
+#snd[aria-pressed="true"]{background:none;color:var(--ink-dim);}
+#snd[aria-pressed="false"] .on, #snd[aria-pressed="true"] .off{display:none;}
+#hint{position:fixed;left:var(--hint-x,50%);top:var(--hint-y,100px);transform:translate(-50%,-50%);z-index:8;padding:9px 15px;border-radius:999px;font-size:12.5px;color:var(--ink);white-space:nowrap;pointer-events:none;transition:opacity .4s;display:flex;align-items:center;gap:8px;background:rgba(14,20,48,.72);}
+#hint svg{width:16px;height:16px;stroke:var(--red);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;animation:nudge 1.2s ease-in-out infinite;}
+@keyframes nudge{0%,100%{transform:translateY(-2px)}50%{transform:translateY(3px)}}
+#hint.h svg{animation-name:nudgeh;} @keyframes nudgeh{0%,100%{transform:translateX(-3px)}50%{transform:translateX(3px)}}
+#hint .v{display:none;} #hint.h .v{display:block;} #hint.h .d{display:none;}
+#hint.gone{opacity:0;}
+
+/* ---------- about ---------- */
+#about{position:fixed;right:20px;top:calc(76px + env(safe-area-inset-top,0px));width:340px;max-height:calc(100% - 110px);overflow:auto;z-index:20;border-radius:22px;padding:20px 20px 18px;display:none;background:rgba(15,21,48,.9);}
+body.about #about{display:block;}
+#about .tag{font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);}
+#about h2{font-family:var(--serif);font-size:20px;font-weight:600;line-height:1.25;margin-top:8px;padding-right:24px;}
+#about p{font-size:12.5px;line-height:1.65;color:var(--ink-dim);margin-top:9px;}
+#about h3{font-size:12px;font-weight:600;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);}
+#about svg.how{display:block;width:100%;height:auto;margin-top:8px;}
+#about .x{position:absolute;right:12px;top:12px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--ink-dim);}
+#about .x svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;}
+
+@media (max-width:760px){
+  .top .title{display:none;} .logo{font-size:15.5px;} .views a{padding:6px 10px;font-size:10.5px;} .views{margin-left:auto;}
+  #films{left:10px;right:10px;flex-direction:row;justify-content:space-between;gap:6px;}
+  #films .lb{display:none;}
+  .film{width:calc((100vw - 32px) / 3);} .film .cap{padding-left:4px;font-size:10px;margin-top:5px;} .film .cap span{display:none;}
+  .film:hover{transform:none;}
+  #ui{left:10px;right:10px;width:auto;flex-wrap:wrap;gap:6px;padding:8px 8px 8px 12px;}
+  #status{flex-basis:100%;font-size:11.5px;}
+  .chip .t{display:none;}
+  #about{left:10px;right:10px;width:auto;}
+  #hint{font-size:11.5px;}
+}
+html[lang="ko"] body{word-break:keep-all;}
+html[lang="ko"] #about .tag{letter-spacing:.04em;}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important;animation:none !important;} }
+</style>
+</head>
+<body>
+
+<canvas id="stage" aria-label="The tank"></canvas>
+
+<header class="top">
+  <a class="logo" href="https://claude.ai/artifact/VKnXjTpP7PtFE1dUEE9tcz">Living Art Museum</a>
+  <nav class="views glass" aria-label="Main view">
+    <a href="https://claude.ai/artifact/VKnXjTpP7PtFE1dUEE9tcz?view=space">3D</a>
+    <a href="https://claude.ai/artifact/VKnXjTpP7PtFE1dUEE9tcz?view=card">Card</a>
+    <a href="https://claude.ai/artifact/VKnXjTpP7PtFE1dUEE9tcz?view=display">Display</a>
+  </nav>
+  <div class="title">
+    <h1>The Physical Impossibility of Death in the Mind of Someone Living</h1>
+    <p>Damien Hirst · 1991 · as a scanimation</p>
+  </div>
+</header>
+
+<div id="films" aria-label="Films"><div class="lb">Films</div></div>
+<div id="hint"><svg class="d" viewBox="0 0 24 24"><path d="M12 4v15M6 13l6 6 6-6"/></svg><svg class="v" viewBox="0 0 24 24"><path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg><span id="hint-t">Pick a film</span></div>
+
+<div id="ui" class="glass">
+  <div id="status">Pick a film on the left</div>
+  <div id="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <button class="chip" id="auto" aria-pressed="false" disabled><svg viewBox="0 0 24 24"><path d="M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4"/></svg><span class="t">Auto</span></button>
+  <button class="chip" id="eject" disabled><svg viewBox="0 0 24 24"><path d="M12 5l7 8H5z"/><path d="M5 18h14"/></svg><span class="t">Take out</span></button>
+  <button class="chip ic" id="info" aria-label="About the work"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
+  <button class="chip ic" id="snd" aria-pressed="true" aria-label="Sound"><svg class="on" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg><svg class="off" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
+</div>
+
+<section id="about" class="glass">
+  <button class="x" id="about-x" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="tag">Damien Hirst · 1991</div>
+  <h2>A shark that cannot die, and cannot live</h2>
+  <p>Hirst hung a 4.3-metre tiger shark in a tank of formaldehyde, eyes open, as if it might still move. It did not stay that way: the fluid clouded, in 1993 its skin was stretched over a fibreglass mould, and in 2006 Hirst replaced it with a new shark in the same tank. If the idea is the work, the shark can be swapped. If the shark is the work, the 1991 piece is gone.</p>
+  <h3>How the film makes it move</h3>
+  <svg class="how" viewBox="0 0 280 92" aria-hidden="true" id="how-svg"></svg>
+  <p>Behind the glass, six pictures are cut into thin strips and woven together. Each film is black with clear slits that let only one picture's strips through. Slide the film and the next picture shows — the dead shark moves only while you move it.</p>
+</section>
+
+<script>
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+
+/* ---------------- language ---------------- */
+const LANG = (() => {
+  let l = (document.documentElement.lang || "en").slice(0, 2);
+  try { const q = new URLSearchParams(location.search).get("lang"); if (q) l = q; } catch (_){}
+  return l === "ko" ? "ko" : "en";
+})();
+const KO = {
+  "The Physical Impossibility of Death in the Mind of Someone Living": "살아 있는 자의 마음속에 있는 죽음의 물리적 불가능성",
+  "Damien Hirst · 1991 · as a scanimation": "데미안 허스트 · 1991 · 스캐니메이션으로",
+  "Main view": "메인 보기", "Card": "카드", "Display": "전시", "Films": "필름", "The tank": "수조",
+  "Auto": "자동", "Take out": "필름 빼기", "About the work": "작품 설명", "Sound": "소리", "Close": "닫기",
+  "Pick a film": "필름을 골라 보세요", "Pick a film on the left": "왼쪽에서 필름을 골라 보세요",
+  "Damien Hirst · 1991": "데미안 허스트 · 1991",
+  "A shark that cannot die, and cannot live": "죽을 수도, 살 수도 없는 상어",
+  "Hirst hung a 4.3-metre tiger shark in a tank of formaldehyde, eyes open, as if it might still move. It did not stay that way: the fluid clouded, in 1993 its skin was stretched over a fibreglass mould, and in 2006 Hirst replaced it with a new shark in the same tank. If the idea is the work, the shark can be swapped. If the shark is the work, the 1991 piece is gone.":
+    "허스트는 길이 4.3m의 뱀상어를 포름알데히드 수조에 띄웠습니다. 눈을 뜬 채, 금방이라도 움직일 것처럼. 하지만 상어는 그대로 남지 않았어요. 용액은 흐려졌고, 1993년에는 가죽을 유리섬유 틀에 씌웠으며, 2006년 허스트는 같은 수조에 새 상어를 넣었습니다. 아이디어가 작품이라면 상어는 바꿀 수 있고, 상어가 작품이라면 1991년의 작품은 이미 사라졌습니다.",
+  "How the film makes it move": "필름이 그림을 움직이는 원리",
+  "Behind the glass, six pictures are cut into thin strips and woven together. Each film is black with clear slits that let only one picture's strips through. Slide the film and the next picture shows — the dead shark moves only while you move it.":
+    "유리 뒤에는 여섯 장의 그림이 가는 띠로 잘려 한 장에 엮여 있어요. 필름은 검은 바탕에 투명한 틈이 나 있어서 한 그림의 띠만 통과시켜요. 필름을 밀면 다음 그림이 보여요 — 죽은 상어는 당신이 움직일 때만 움직입니다.",
+};
+const L = (s) => (LANG === "ko" && KO[s] !== undefined) ? KO[s] : s;
+const T = (o) => o[LANG] || o.en;
+if (LANG === "ko"){
+  document.documentElement.lang = "ko"; document.title = "상어 필름 — Living Art Museum";
+  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode:n => /^(SCRIPT|STYLE)$/.test(n.parentNode.nodeName) ? 2 : 1 });
+  const hits = []; while (walk.nextNode()) hits.push(walk.currentNode);
+  hits.forEach(n => { const k = n.nodeValue.replace(/\s+/g, " ").trim(); if (k && KO[k] !== undefined) n.nodeValue = KO[k]; });
+  document.querySelectorAll("[aria-label],[title]").forEach(el => { ["aria-label", "title"].forEach(a => { const v = el.getAttribute(a); if (v && KO[v]) el.setAttribute(a, KO[v]); }); });
+}
+
+/* ---------------- the three films ---------------- */
+const FILMS = [
+  { id:"live", no:"01", name:{ en:"The living shark", ko:"살아 있는 상어" }, tape:{ en:"01 alive", ko:"01 살아 있음" },
+    sub:{ en:"Bubbles and a beating tail", ko:"거품을 내며 꼬리를 흔들어요" }, ink:"#e23a33" },
+  { id:"sink", no:"02", name:{ en:"The dead shark", ko:"죽은 상어" }, tape:{ en:"02 sinking", ko:"02 가라앉음" },
+    sub:{ en:"It goes limp and sinks", ko:"힘이 빠진 몸이 가라앉아요" }, ink:"#5f97d2" },
+  { id:"kept", no:"03", name:{ en:"The preserved shark", ko:"박제된 상어" }, tape:{ en:"03 kept", ko:"03 박제" },
+    sub:{ en:"It never moves; only the living walk past and the clock runs", ko:"상어는 그대로, 산 사람들만 지나가고 시계만 돌아요" }, ink:"#f2b33d" },
+];
+const N = 6;                                            /* pictures woven into each tank */
+const SLIT = 2;                                         /* slit width in CSS px */
+
+/* ---------------- sound ---------------- */
+const AUD = (() => {
+  let ctx = null, master = null, nb = null, on = true, lastTick = 0;
+  function ensure(){ if (ctx) return ctx; const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+    try { ctx = new AC(); } catch (_){ return null; }
+    master = ctx.createGain(); master.gain.value = .6; master.connect(ctx.destination);
+    nb = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); const d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return ctx; }
+  const ok = () => on && ensure() && ctx.state === "running";
+  function noise(t, dur, f, q, g, type){ const s = ctx.createBufferSource(); s.buffer = nb; const fl = ctx.createBiquadFilter(); fl.type = type || "bandpass"; fl.frequency.value = f; fl.Q.value = q;
+    const gg = ctx.createGain(); gg.gain.setValueAtTime(.0001, t); gg.gain.exponentialRampToValueAtTime(g, t + .006); gg.gain.exponentialRampToValueAtTime(.0001, t + dur); s.connect(fl); fl.connect(gg); gg.connect(master); s.start(t, Math.random() * .5); s.stop(t + dur + .02); }
+  function tone(t, f, dur, g, type, f2){ const o = ctx.createOscillator(); o.type = type || "sine"; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur); const gg = ctx.createGain();
+    gg.gain.setValueAtTime(.0001, t); gg.gain.exponentialRampToValueAtTime(g, t + .01); gg.gain.exponentialRampToValueAtTime(.0001, t + dur); o.connect(gg); gg.connect(master); o.start(t); o.stop(t + dur + .02); }
+  return {
+    unlock(){ if (ensure() && ctx.state !== "running") ctx.resume(); },
+    get on(){ return on; }, set on(v){ on = v; },
+    pick(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .18, 2600, .8, .07); noise(t + .02, .12, 5200, 1.5, .04); },
+    slide(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .22, 1600, 1, .06); },
+    lock(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .04, 3000, 4, .22); tone(t, 700, .06, .04, "triangle"); noise(t + .05, .03, 4200, 5, .12); },
+    tick(scene){ if (!ok()) return; const t = ctx.currentTime; if (t - lastTick < .035) return; lastTick = t;
+      noise(t, .022, 3800 + Math.random() * 600, 6, .07);
+      if (scene === "live" && Math.random() < .25) tone(t, 900 + Math.random() * 900, .07, .012, "sine", 1800 + Math.random() * 900);
+      if (scene === "sink" && Math.random() < .2) tone(t, 140, .3, .02, "sine", 90); },
+    out(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .3, 1300, .9, .07); tone(t, 520, .12, .02, "sine", 300); },
+  };
+})();
+
+/* ==========================================================================
+   THE ILLUSTRATION — flat poster colours, drawn in a 1000 × 400 space.
+   ========================================================================== */
+function rng(seed){ let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function cubic(p0, p1, p2, p3, n, out){ for (let i = 1; i <= n; i++){ const t = i / n, u = 1 - t;
+  out.push([u * u * u * p0[0] + 3 * u * u * t * p1[0] + 3 * u * t * t * p2[0] + t * t * t * p3[0], u * u * u * p0[1] + 3 * u * u * t * p1[1] + 3 * u * t * t * p2[1] + t * t * t * p3[1]]); } }
+function shape(start, segs, n = 12){ const pts = [start.slice()]; let p = start; segs.forEach(s => { if (s.length === 3){ cubic(p, s[0], s[1], s[2], n, pts); p = s[2]; } else { pts.push(s[0].slice()); p = s[0]; } }); return pts; }
+const rotP = (pts, cx, cy, a) => { const c = Math.cos(a), s = Math.sin(a); return pts.map(([x, y]) => [cx + (x - cx) * c - (y - cy) * s, cy + (x - cx) * s + (y - cy) * c]); };
+function poly(c, pts){ c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]); c.closePath(); }
+function line(c, pts){ c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]); }
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+
+/* the shark, side on, snout to the left (the same anatomy for all three films) */
+function bodyPts(){
+  return shape([42, 196], [
+    [[50, 170], [100, 146], [170, 136]], [[240, 124], [330, 112], [420, 112]], [[540, 112], [680, 134], [790, 160]],
+    [[830, 168], [860, 172], [880, 175]], [[884, 197]], [[860, 200], [830, 204], [790, 210]],
+    [[680, 228], [560, 250], [440, 254]], [[330, 256], [250, 248], [180, 238]], [[120, 232], [70, 220], [42, 196]],
+  ], 16);
+}
+const FIN = {
+  dorsal: () => shape([398, 118], [[[420, 84], [446, 44], [468, 26]], [[480, 52], [500, 90], [530, 106]], [[536, 112], [540, 115], [548, 118]]]),
+  dorsal2:() => shape([752, 160], [[[762, 146], [770, 134], [776, 128]], [[780, 140], [786, 152], [798, 164]]]),
+  pect:   () => shape([296, 240], [[[330, 266], [372, 308], [414, 338]], [[398, 312], [390, 284], [384, 250]], [[360, 246]]]),
+  pelvic: () => shape([616, 240], [[[636, 254], [656, 264], [678, 272]], [[670, 258], [666, 248], [662, 236]]]),
+  anal:   () => shape([756, 212], [[[768, 224], [780, 232], [794, 236]], [[792, 224], [790, 214], [786, 206]]]),
+  tail:   () => shape([864, 170], [[[900, 140], [944, 92], [988, 44]], [[980, 84], [962, 134], [934, 184]], [[948, 206], [964, 232], [980, 262]], [[944, 242], [904, 216], [866, 204]]]),
+};
+/* a shark in flat colour: o = { wave, amp, tail, pect, mouth, eye, pal, droop } */
+function shark(c, o){
+  const pal = o.pal, bend = (x) => o.amp * Math.sin(x / 120 - o.wave) * smooth(260, 900, x);
+  const wv = (pts) => pts.map(([x, y]) => [x, y + bend(x)]);
+  const body = wv(bodyPts());
+  const tail = wv(rotP(FIN.tail(), 878, 186, o.tail));
+  const dorsal = wv(rotP(FIN.dorsal(), 470, 118, (o.droop || 0) * .18));
+  const pect = wv(rotP(FIN.pect(), 300, 242, o.pect + (o.droop || 0) * .22));
+  const dorsal2 = wv(FIN.dorsal2()), anal = wv(FIN.anal()), pelvic = wv(rotP(FIN.pelvic(), 620, 240, (o.droop || 0) * .15));
+  const finTwo = (pts, inset) => {                     /* a fin in two tones: dark edge, lighter panel */
+    c.fillStyle = pal.back; poly(c, pts); c.fill();
+    const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length, cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+    c.fillStyle = pal.side; poly(c, pts.map(([x, y]) => [cx + (x - cx) * inset, cy + (y - cy) * inset + 3])); c.fill();
+  };
+  finTwo(tail, .7); finTwo(dorsal, .62); finTwo(dorsal2, .5); finTwo(anal, .5);
+  /* body: one flat colour, then the dark back and the cream belly, cut by clean wavy lines */
+  c.fillStyle = pal.side; poly(c, body); c.fill();
+  c.save(); poly(c, body); c.clip();
+  c.fillStyle = pal.back; c.beginPath(); c.moveTo(0, 0);
+  for (let x = 0; x <= 1000; x += 20) c.lineTo(x, 150 + Math.sin(x / 70) * 5 + (x - 500) * .045 + bend(x));
+  c.lineTo(1000, 0); c.closePath(); c.fill();
+  /* tiger stripes, crisp */
+  c.fillStyle = pal.stripe;
+  const SR = rng(23);
+  for (let i = 0; i < 15; i++){ const x = 320 + i * 36 + SR() * 8, w = 6 + SR() * 6, d = bend(x);
+    c.beginPath(); c.moveTo(x - w, 110 + d); c.lineTo(x + w, 110 + d); c.lineTo(x + w * .3 + 10, 178 + SR() * 10 + d); c.lineTo(x - w * .3 + 8, 182 + d); c.closePath(); c.fill(); }
+  c.fillStyle = pal.belly; c.beginPath(); c.moveTo(0, 400);
+  for (let x = 0; x <= 1000; x += 20) c.lineTo(x, 214 + Math.sin(x / 55) * 3 + (x - 300) * .012 + bend(x));
+  c.lineTo(1000, 400); c.closePath(); c.fill();
+  /* a pale line of light along the back, a band of shadow along the belly */
+  c.strokeStyle = pal.rim; c.lineWidth = 3; line(c, body.slice(1, 40)); c.stroke();
+  c.fillStyle = pal.shade; c.beginPath(); c.moveTo(0, 400);
+  for (let x = 0; x <= 1000; x += 20) c.lineTo(x, 240 + (x - 300) * .02 + bend(x)); c.lineTo(1000, 400); c.closePath(); c.fill();
+  c.restore();
+  /* the lateral line, gills, nostril */
+  c.strokeStyle = pal.rim; c.lineWidth = 1.6; line(c, wv(shape([196, 166], [[[400, 152], [640, 166], [870, 184]]], 24))); c.stroke();
+  c.strokeStyle = pal.stripe; c.lineWidth = 3.2; c.lineCap = "round";
+  for (let i = 0; i < 5; i++){ const x = 232 + i * 15; c.beginPath(); c.moveTo(x, 172 + i); c.quadraticCurveTo(x + 7, 200, x + 2, 226 - i * 2); c.stroke(); }
+  c.lineWidth = 2.4; c.beginPath(); c.moveTo(62, 191); c.quadraticCurveTo(70, 187, 79, 190); c.stroke();
+  /* the mouth: red inside, white teeth */
+  const m = o.mouth, A = [86, 214], B = [206, 236];
+  const up = shape(A, [[[120, 229], [160, 235], B]], 16), lo = shape(A, [[[118, 232 + m * 30], [168, 242 + m * 26], B]], 16);
+  c.fillStyle = pal.mouth; c.beginPath(); c.moveTo(A[0], A[1]); up.forEach(p => c.lineTo(p[0], p[1])); for (let i = lo.length - 1; i >= 0; i--) c.lineTo(lo[i][0], lo[i][1]); c.closePath(); c.fill();
+  c.fillStyle = pal.belly; c.beginPath(); c.moveTo(A[0], A[1]); lo.forEach(p => c.lineTo(p[0], p[1])); c.lineTo(B[0] - 8, B[1] + 10); c.quadraticCurveTo(150, 250 + m * 22, 92, 224); c.closePath(); c.fill();
+  c.fillStyle = "#fbf8ef";
+  for (let i = 2; i < up.length - 2; i++){ const [x, y] = up[i]; c.beginPath(); c.moveTo(x - 2.8, y - .5); c.lineTo(x + 2.8, y - .5); c.lineTo(x + .3, y + 7); c.closePath(); c.fill(); }
+  for (let i = 3; i < lo.length - 3; i++){ const [x, y] = lo[i]; c.beginPath(); c.moveTo(x - 2.4, y + .5); c.lineTo(x + 2.4, y + .5); c.lineTo(x, y - 5.5); c.closePath(); c.fill(); }
+  /* the eye */
+  if (o.eye === "dead"){ c.fillStyle = "#dfe3e6"; c.beginPath(); c.arc(128, 168, 7.5, 0, 7); c.fill(); c.strokeStyle = pal.stripe; c.lineWidth = 2; c.stroke();
+    c.fillStyle = "rgba(90,104,130,.55)"; c.beginPath(); c.arc(129, 169, 3.2, 0, 7); c.fill(); }
+  else { c.fillStyle = "#0b0f22"; c.beginPath(); c.arc(128, 168, 7.6, 0, 7); c.fill();
+    c.fillStyle = "#fff"; c.beginPath(); c.arc(125.4, 165.4, o.eye === "glass" ? 2.8 : 2, 0, 7); c.fill();
+    if (o.eye === "glass"){ c.strokeStyle = "rgba(255,255,255,.6)"; c.lineWidth = 1.2; c.beginPath(); c.arc(128, 168, 5, .4, 1.5); c.stroke(); } }
+  /* near fins on top */
+  finTwo(pelvic, .55); finTwo(pect, .66);
+  c.strokeStyle = pal.rim; c.lineWidth = 1.6; line(c, pect.slice(1, 10)); c.stroke();
+}
+const PAL = {
+  live:{ back:"#1f3f7a", side:"#2f62ad", stripe:"#16224a", belly:"#f3ecd9", rim:"rgba(255,255,255,.28)", shade:"rgba(14,20,48,.18)", mouth:"#e23a33" },
+  sink:{ back:"#3c4b6b", side:"#62759a", stripe:"#2b3754", belly:"#d8d4c8", rim:"rgba(255,255,255,.18)", shade:"rgba(14,20,48,.22)", mouth:"#8c3b3b" },
+  kept:{ back:"#284a79", side:"#4d7eb8", stripe:"#1d3560", belly:"#efe9d6", rim:"rgba(255,255,255,.32)", shade:"rgba(14,20,48,.14)", mouth:"#c8443c" },
+};
+
+/* --- the water, the light, the things that float --- */
+function water(c, cols, beams, f, still){
+  const bands = [[0, cols[0]], [70, cols[1]], [170, cols[2]], [290, cols[3]]];
+  const ph = still ? 0 : f * 2 * Math.PI / N;
+  bands.forEach(([y0, col], i) => { c.fillStyle = col; c.beginPath(); c.moveTo(0, 400);
+    for (let x = 0; x <= 1000; x += 25) c.lineTo(x, y0 + (i ? Math.sin(x / 90 + i * 1.7 + ph) * 7 : 0)); c.lineTo(1000, 400); c.closePath(); c.fill(); });
+  /* beams of light from the top, flat and sharp-edged */
+  const sw = still ? 0 : Math.sin(ph) * 8;
+  [[120, 60, .16], [300, 46, .12], [520, 70, .1], [760, 40, .08]].forEach(([x, w, a]) => {
+    c.fillStyle = `rgba(255,255,255,${a * beams})`; c.beginPath(); c.moveTo(x + sw, 0); c.lineTo(x + w + sw, 0); c.lineTo(x + w + 190 + sw * 2, 400); c.lineTo(x + 170 + sw * 2, 400); c.closePath(); c.fill(); });
+  /* the surface: a light rim with ripples */
+  c.fillStyle = "rgba(255,255,255,.55)"; c.beginPath(); c.moveTo(0, 0);
+  for (let x = 0; x <= 1000; x += 20) c.lineTo(x, 9 + Math.sin(x / 40 + ph) * 2.5); c.lineTo(1000, 0); c.closePath(); c.fill();
+}
+function floorBand(c, col, line2){ c.fillStyle = col; c.fillRect(0, 368, 1000, 32); c.fillStyle = line2; c.fillRect(0, 368, 1000, 3); }
+function bubble(c, x, y, r){
+  c.fillStyle = "rgba(255,255,255,.2)"; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+  c.strokeStyle = "#ffffff"; c.lineWidth = Math.max(1.4, r * .22); c.stroke();
+  c.fillStyle = "#fff"; c.beginPath(); c.arc(x - r * .38, y - r * .38, r * .22, 0, 7); c.fill();
+}
+function fishlet(c, x, y, s, flip, ph){
+  c.save(); c.translate(x, y); c.scale(flip ? -s : s, s);
+  c.fillStyle = "#e3f1f7"; c.beginPath(); c.moveTo(-14, 0); c.quadraticCurveTo(-2, -7, 10, -1); c.lineTo(17, -6 + ph * 3); c.lineTo(15, 0); c.lineTo(17, 6 + ph * 3); c.lineTo(10, 1); c.quadraticCurveTo(-2, 7, -14, 0); c.fill();
+  c.fillStyle = "#16224a"; c.fillRect(-6, -1.5, 14, 1.4); c.beginPath(); c.arc(-9, -1, 1.2, 0, 7); c.fill();
+  c.restore();
+}
+/* a person walking past the tank, seen against the light */
+function walker(c, x, base, h, f, dir, col, kind){
+  const ph = f / N * 2 * Math.PI, sw = Math.sin(ph) * .42, bob = Math.abs(Math.cos(ph)) * h * .012;
+  c.save(); c.translate(x, base - bob); c.scale(dir * h / 100, h / 100); c.fillStyle = col; c.strokeStyle = col; c.lineCap = "round"; c.lineJoin = "round";
+  c.lineWidth = 9;
+  [sw, -sw].forEach(a => { c.beginPath(); c.moveTo(0, -48); c.lineTo(Math.sin(a) * 26, -48 + Math.cos(a) * 26); c.lineTo(Math.sin(a) * 26 + Math.sin(a * .4) * 22 + 2, -48 + Math.cos(a) * 26 + 22); c.stroke(); });
+  c.beginPath(); c.moveTo(-12, -92); c.quadraticCurveTo(-16, -60, -14, -42); c.lineTo(15, -42); c.quadraticCurveTo(16, -66, 11, -92); c.closePath(); c.fill();
+  c.lineWidth = 7;
+  if (kind === "phone"){ c.beginPath(); c.moveTo(4, -88); c.lineTo(20, -96); c.lineTo(26, -112); c.stroke(); c.fillRect(22, -124, 8, 13); }
+  else if (kind === "point"){ c.beginPath(); c.moveTo(4, -88); c.lineTo(24, -98); c.lineTo(44, -104); c.stroke(); }
+  else { c.beginPath(); c.moveTo(2, -88); c.lineTo(Math.sin(-sw) * 18, -64); c.stroke(); }
+  c.beginPath(); c.arc(0, -104, 11, 0, 7); c.fill();
+  if (kind === "hat"){ c.fillRect(-15, -114, 30, 4); c.fillRect(-9, -128, 18, 15); }
+  else { c.beginPath(); c.arc(-3, -108, 11, Math.PI * .9, Math.PI * 2.1); c.fill(); }
+  c.restore();
+}
+function clock(c, x, y, r, f){
+  c.fillStyle = "rgba(243,236,217,.9)"; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+  c.strokeStyle = "#16224a"; c.lineWidth = 3; c.stroke();
+  for (let i = 0; i < 12; i++){ const a = i / 12 * Math.PI * 2; c.lineWidth = i % 3 ? 1.4 : 2.6; c.beginPath(); c.moveTo(x + Math.cos(a) * r * .78, y + Math.sin(a) * r * .78); c.lineTo(x + Math.cos(a) * r * .9, y + Math.sin(a) * r * .9); c.stroke(); }
+  const mA = f / N * Math.PI * 2 - Math.PI / 2, hA = (f / N) * Math.PI / 6 + Math.PI * .15;
+  c.lineWidth = 3; c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.cos(hA) * r * .45, y + Math.sin(hA) * r * .45); c.stroke();
+  c.strokeStyle = "#e23a33"; c.lineWidth = 2; c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.cos(mA) * r * .72, y + Math.sin(mA) * r * .72); c.stroke();
+  c.fillStyle = "#16224a"; c.beginPath(); c.arc(x, y, 2.5, 0, 7); c.fill();
+}
+
+/* a shark placed in the tank: scaled about its middle, nudged, tilted */
+function sharkAt(c, o, dx, dy, sc, rot){
+  c.save(); c.translate(500 + dx, 196 + dy); c.rotate(rot || 0); c.scale(sc, sc); c.translate(-515, -196); shark(c, o); c.restore();
+}
+/* a visitor in front of the glass, seen from the shoulders up, against the light */
+function visitor(c, x, base, s, f, kind, col){
+  const ph = f / N * 2 * Math.PI, bob = Math.abs(Math.sin(ph)) * 5, sway = Math.sin(ph) * 3;
+  c.save(); c.translate(x + sway, base - bob); c.scale(s, s); c.fillStyle = col;
+  /* shoulders and coat */
+  c.beginPath(); c.moveTo(-62, 30); c.quadraticCurveTo(-60, -34, -24, -40); c.lineTo(24, -40); c.quadraticCurveTo(60, -34, 62, 30); c.closePath(); c.fill();
+  c.fillRect(-11, -58, 22, 22);
+  /* the head, turned towards the tank */
+  c.beginPath(); c.ellipse(0, -84, 25, 30, 0, 0, 7); c.fill();
+  if (kind === "beanie"){ c.beginPath(); c.ellipse(0, -100, 27, 20, 0, Math.PI, 0); c.fill(); c.fillRect(-27, -102, 54, 7); c.beginPath(); c.arc(0, -122, 6, 0, 7); c.fill(); }
+  if (kind === "bun"){ c.beginPath(); c.arc(-10, -116, 13, 0, 7); c.fill(); c.beginPath(); c.moveTo(-24, -92); c.quadraticCurveTo(-36, -60, -28, -40); c.lineTo(-18, -44); c.quadraticCurveTo(-24, -66, -20, -88); c.fill(); }
+  if (kind === "cap"){ c.beginPath(); c.ellipse(0, -100, 26, 18, 0, Math.PI, 0); c.fill(); c.beginPath(); c.moveTo(18, -102); c.lineTo(46, -98); c.lineTo(44, -94); c.lineTo(16, -94); c.fill(); }
+  /* nose and chin in profile, facing right */
+  c.beginPath(); c.moveTo(22, -94); c.lineTo(32, -80); c.lineTo(23, -76); c.lineTo(25, -66); c.lineTo(14, -58); c.closePath(); c.fill();
+  if (kind === "beanie"){                                   /* a raised phone, filming the shark */
+    const up = 6 + Math.sin(ph) * 4;
+    c.beginPath(); c.moveTo(34, -20); c.quadraticCurveTo(54, -40 - up, 58, -96 - up); c.lineTo(70, -96 - up); c.quadraticCurveTo(66, -40, 52, -6); c.closePath(); c.fill();
+    c.fillStyle = col; c.fillRect(48, -150 - up, 34, 58);
+    c.fillStyle = "#a9d2ec"; c.fillRect(51, -146 - up, 28, 48); c.fillStyle = "#2f62ad"; c.beginPath(); c.moveTo(55, -120 - up); c.quadraticCurveTo(64, -128 - up, 75, -121 - up); c.lineTo(78, -126 - up); c.lineTo(76, -118 - up); c.quadraticCurveTo(64, -113 - up, 55, -120 - up); c.fill();
+    c.fillStyle = "#e23a33"; c.beginPath(); c.arc(76, -142 - up, 2, 0, 7); c.fill();
+  }
+  if (kind === "cap"){                                      /* a small hand pointing at the shark */
+    const r = Math.sin(ph) * .08;
+    c.save(); c.translate(36, -10); c.rotate(-.9 + r); c.fillRect(0, -9, 70, 18); c.fillRect(64, -12, 18, 10); c.restore();
+  }
+  c.restore();
+}
+
+/* --- each film's six pictures --- */
+const SCENE = {
+  live(c, f){
+    const t = f / N, ph = t * Math.PI * 2;
+    water(c, ["#d5ebf4", "#a9d2ec", "#6fa6d6", "#3d6fae"], 1, f);
+    floorBand(c, "#1f3f7a", "#5f97d2");
+    c.fillStyle = "rgba(14,20,48,.22)"; c.beginPath(); c.ellipse(500, 380, 360, 9, 0, 0, 7); c.fill();
+    /* air stones on the floor, and the bubbles they lift */
+    [[70, 0], [935, 2.1]].forEach(([bx, s0]) => { c.fillStyle = "#16224a"; c.fillRect(bx - 10, 360, 20, 10);
+      for (let k = 0; k < 9; k++){ const y = 360 - ((k * 44 + t * 44) % 396), r = 3 + (360 - y) / 70; bubble(c, bx + Math.sin(y / 22 + s0 + k) * 5, y, r); } });
+    fishlet(c, 210 + Math.sin(ph) * 6, 300 + Math.cos(ph) * 4, 1.1, false, Math.sin(ph * 2));
+    fishlet(c, 640 + Math.sin(ph + 1) * 6, 330 + Math.cos(ph + 1) * 4, .9, false, Math.sin(ph * 2 + 1));
+    c.save(); c.translate(0, Math.sin(ph) * 5);
+    sharkAt(c, { wave:ph, amp:9, tail:Math.sin(ph) * .16, pect:Math.sin(ph + 1) * .07, mouth:.42 + Math.sin(ph) * .08, eye:"live", pal:PAL.live }, 0, 0, .86);
+    c.restore();
+    /* bubbles from the gills, trailing back */
+    for (let k = 0; k < 6; k++){ const u = (k / 6 + t / 6) % 1; bubble(c, 300 + u * 150, 172 - u * 150 + Math.sin(u * 12 + k) * 4 + Math.sin(ph) * 5, 2.5 + u * 5); }
+    fishlet(c, 760 + Math.sin(ph + 2) * 6, 92 + Math.cos(ph) * 3, .8, true, Math.sin(ph * 2 + 2));
+  },
+  sink(c, f){
+    const t = f / N;
+    water(c, ["#c9dbe9", "#9ab9d8", "#6b8bb3", "#41608d"], .6, f);
+    floorBand(c, "#1b2a50", "#3d5a86");
+    c.fillStyle = "#3d5a86"; for (let i = 0; i < 9; i++){ c.beginPath(); c.ellipse(300 + i * 60, 370, 30, 6, 0, Math.PI, 0); c.fill(); }
+    c.fillStyle = `rgba(216,212,200,${.06 + t * .22})`; c.beginPath(); c.ellipse(520, 362, 220 + t * 60, 12 + t * 10, 0, 0, 7); c.fill();
+    const y = lerp(-30, 112, t), a = lerp(.03, .24, t);
+    c.fillStyle = `rgba(14,20,48,${.1 + t * .2})`; c.beginPath(); c.ellipse(520, 380, 300 - t * 40, 7, 0, 0, 7); c.fill();
+    sharkAt(c, { wave:0, amp:0, tail:.12 - t * .2, pect:.3, mouth:.85, eye:"dead", pal:PAL.sink, droop:1 }, 0, y, .84, a);
+    /* the last of the air rising as the body falls, and flakes coming down */
+    const R = rng(4);
+    for (let k = 0; k < 7; k++){ const u = (k / 7 + t / 7) % 1, x0 = 140 + R() * 30; bubble(c, x0 + Math.sin(u * 9 + k) * 6 + t * 10, 200 + y * .7 - u * 230, 2 + R() * 4 * (1 - u)); }
+    c.fillStyle = "rgba(216,212,200,.7)";
+    for (let k = 0; k < 40; k++){ const fx = R() * 1000, fy = (R() * 400 + t * 30) % 400; c.fillRect(fx, fy, 2.4, 1.4); }
+  },
+  kept(c, f){
+    const t = f / N;
+    water(c, ["#dcefe9", "#bfe2da", "#93c7c4", "#6aa3ab"], .45, 0, true);
+    /* the gallery behind the glass: a doorway, a clock, an exit sign */
+    c.fillStyle = "rgba(22,34,74,.12)"; c.fillRect(60, 40, 120, 260); c.fillRect(70, 52, 100, 236);
+    c.fillStyle = "rgba(22,34,74,.18)"; c.fillRect(0, 300, 1000, 4);
+    clock(c, 720, 58, 30, f);
+    c.fillStyle = "rgba(226,58,51,.8)"; c.fillRect(80, 16, 80, 18); c.fillStyle = "#fff"; c.font = "600 11px Inter, sans-serif"; c.textAlign = "center"; c.fillText("EXIT", 120, 29);
+    floorBand(c, "#2a5b6a", "#6aa3ab");
+    c.fillStyle = "rgba(14,20,48,.18)"; c.beginPath(); c.ellipse(500, 380, 360, 8, 0, 0, 7); c.fill();
+    sharkAt(c, { wave:0, amp:0, tail:0, pect:0, mouth:.7, eye:"glass", pal:PAL.kept }, 0, -14, .86);
+    const R = rng(9); c.fillStyle = "rgba(255,255,255,.55)"; for (let k = 0; k < 26; k++) c.fillRect(R() * 1000, 30 + R() * 320, 2, 2);
+    /* the living, walking past in front of the glass */
+    visitor(c, 190, 400, 1.05, f, "beanie", "#121a3a");
+    visitor(c, 520, 412, .82, (f + 2) % N, "cap", "#1a2550");
+    visitor(c, 800, 404, 1.12, (f + 4) % N, "bun", "#121a3a");
+    c.fillStyle = "rgba(255,255,255,.12)"; c.beginPath(); c.moveTo(600, 0); c.lineTo(660, 0); c.lineTo(560, 400); c.lineTo(500, 400); c.closePath(); c.fill();
+  },
+};
+
+/* a little paper grain, the same on every picture so it doesn't shimmer */
+let GRAIN = null;
+function grain(w, h){
+  if (GRAIN && GRAIN.width === w && GRAIN.height === h) return GRAIN;
+  const g = document.createElement("canvas"); g.width = w; g.height = h; const x = g.getContext("2d"), id = x.createImageData(w, h), R = rng(3);
+  for (let i = 0; i < id.data.length; i += 4){ const v = R() * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 16; }
+  x.putImageData(id, 0, 0); GRAIN = g; return g;
+}
+function drawPicture(cv, scene, f){
+  const c = cv.getContext("2d"), W = cv.width, H = cv.height;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, W, H);
+  c.setTransform(W / 1000, 0, 0, H / 400, 0, 0);
+  SCENE[scene](c, f);
+  c.setTransform(1, 0, 0, 1, 0, 0);
+  c.globalCompositeOperation = "overlay"; c.drawImage(grain(W, H), 0, 0); c.globalCompositeOperation = "source-over";
+}
+
+/* ==========================================================================
+   THE FILM — black acetate with sprocket holes, edge print, a paper tape label,
+   a tapered leader, and (through the middle) the clear slits.
+   ========================================================================== */
+function drawFilm(cv, film, opt){
+  const c = cv.getContext("2d"), W = cv.width, H = cv.height, m = opt.margin, R = rng(+film.no * 7 + 1);
+  c.clearRect(0, 0, W, H);
+  const lead = opt.lead, path = new Path2D();
+  path.moveTo(lead, 0); path.lineTo(W - 6, 0); path.quadraticCurveTo(W, 0, W, 6); path.lineTo(W, H - 6); path.quadraticCurveTo(W, H, W - 6, H);
+  path.lineTo(lead, H); path.lineTo(lead, H * .66); path.lineTo(0, H * .54); path.lineTo(lead * .15, H * .3); path.lineTo(lead, H * .24); path.closePath();
+  c.save(); c.clip(path);
+  /* acetate base: near-black with a warm brown cast */
+  let g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#1d1a16"); g.addColorStop(.5, "#0d0c0a"); g.addColorStop(1, "#1a1713"); c.fillStyle = g; c.fillRect(0, 0, W, H);
+  /* the emulsion's fine grain */
+  const id = c.getImageData(0, 0, W, H), d = id.data;
+  for (let i = 0; i < d.length; i += 4){ const n = (R() - .5) * 14; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+  c.putImageData(id, 0, 0);
+  /* edge print in amber along both margins */
+  const fs = Math.max(6, m * .24); c.font = `500 ${fs}px "JetBrains Mono", monospace`; c.fillStyle = "rgba(226,160,70,.75)"; c.textBaseline = "middle"; c.textAlign = "left";
+  for (let x = lead + m * .6, k = 0; x < W - m * 3; x += m * 5.6, k++){ c.fillText(`LAM ${film.no} ▸ ${String(k * 6 + 1).padStart(2, "0")}A`, x, m * .2); c.fillText(`◂ SAFETY FILM  ${k + 1}`, x + m * 1.6, H - m * .2); }
+  c.restore();
+  /* cut the holes: sprockets along both edges, slits through the middle */
+  c.save(); c.globalCompositeOperation = "destination-out";
+  const sh = m * .34, sw = m * .26, sy = [m * .56 - sh / 2, H - m * .56 - sh / 2];
+  for (let x = lead + m * .4; x < W - sw - 4; x += m * .64) sy.forEach(y => { c.beginPath(); if (c.roundRect) c.roundRect(x, y, sw, sh, sw * .28); else c.rect(x, y, sw, sh); c.fill(); });
+  if (opt.slits){
+    /* the barrier band is thinner black: a ghost of the picture shows through, the slits show it clear */
+    c.fillStyle = "rgba(0,0,0,.2)"; c.fillRect(opt.slitFrom, m, opt.slitTo - opt.slitFrom, H - 2 * m); c.fillStyle = "#000";
+    for (let x = opt.slitFrom; x < opt.slitTo; x += opt.period) c.fillRect(x, m, opt.slit, H - 2 * m); }
+  c.restore();
+  c.save(); c.clip(path); c.globalCompositeOperation = "source-atop";
+  /* the frame lines where the slit band begins and ends */
+  c.fillStyle = "rgba(255,255,255,.06)"; c.fillRect(0, m - 1, W, 1); c.fillRect(0, H - m, W, 1);
+  /* scratches and dust */
+  for (let i = 0; i < 12; i++){ const x = lead + R() * (W - lead); c.strokeStyle = `rgba(255,255,255,${.04 + R() * .06})`; c.lineWidth = .8; c.beginPath(); c.moveTo(x, R() * H * .3); c.lineTo(x + (R() - .5) * 6, H * (.5 + R() * .5)); c.stroke(); }
+  for (let i = 0; i < Math.round(W * H / 4000); i++){ c.fillStyle = `rgba(255,255,255,${.06 + R() * .12})`; c.fillRect(lead + R() * (W - lead), R() * H, 1.3, 1.3); }
+  /* gloss: two sheens across the acetate */
+  g = c.createLinearGradient(0, 0, W * .6, H * 1.4); g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(.45, "rgba(255,255,255,0)"); g.addColorStop(.5, "rgba(255,255,255,.1)"); g.addColorStop(.56, "rgba(255,255,255,0)");
+  c.fillStyle = g; c.fillRect(0, 0, W, H);
+  g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "rgba(255,255,255,.07)"); g.addColorStop(.12, "rgba(255,255,255,0)"); g.addColorStop(.9, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,.25)");
+  c.fillStyle = g; c.fillRect(0, 0, W, H);
+  c.restore();
+  /* the paper tape label: near the leader on a waiting film, at the tail on the long one */
+  const tw = opt.tapeW, th = opt.tapeH, tx = opt.tapeAt !== undefined ? opt.tapeAt : lead + m * .45, ty = H / 2 - th / 2;
+  c.save(); c.translate(tx + tw / 2, ty + th / 2); c.rotate(-.03);
+  c.shadowColor = "rgba(0,0,0,.4)"; c.shadowBlur = th * .15; c.shadowOffsetY = th * .05;
+  c.fillStyle = "#efe6cf"; c.beginPath(); c.moveTo(-tw / 2, -th / 2);
+  for (let x = -tw / 2; x <= tw / 2; x += th / 5) c.lineTo(x, -th / 2 + (R() - .5) * th * .04);
+  for (let y = -th / 2; y <= th / 2; y += th / 6) c.lineTo(tw / 2 + (R() - .5) * th * .08, y);
+  for (let x = tw / 2; x >= -tw / 2; x -= th / 5) c.lineTo(x, th / 2 + (R() - .5) * th * .04);
+  c.closePath(); c.fill(); c.shadowColor = "transparent";
+  c.fillStyle = "rgba(120,90,40,.12)"; c.fillRect(-tw / 2, -th / 2, tw, th * .16);
+  c.fillStyle = film.ink; c.fillRect(-tw / 2 + th * .25, -th * .24, th * .12, th * .48);
+  c.fillStyle = "#1b1a2a"; c.textAlign = "left"; c.textBaseline = "middle";
+  c.font = LANG === "ko" ? `${th * .62}px "Nanum Pen Script", cursive` : `600 ${th * .56}px Caveat, cursive`;
+  c.fillText(T(film.tape), -tw / 2 + th * .52, th * .05);
+  c.restore();
+  /* the waiting films show their first picture through a little window */
+  if (opt.thumb){ const wh = (H - 2 * m) * .84, wy = m + (H - 2 * m) * .08, wx = tx + tw + m * .5, ww = Math.min(wh * 2.1, W - wx - m * .45);
+    if (ww > wh * .9){ const sw2 = opt.thumb.height * ww / wh; c.drawImage(opt.thumb, (opt.thumb.width - sw2) / 2, 0, sw2, opt.thumb.height, wx, wy, ww, wh);
+      c.strokeStyle = "rgba(0,0,0,.65)"; c.lineWidth = 2; c.strokeRect(wx, wy, ww, wh); c.fillStyle = "rgba(255,255,255,.08)"; c.fillRect(wx, wy, ww, wh * .14); } }
+}
+
+/* ==========================================================================
+   STAGE: the tank, the woven picture, and a film you push in and slide
+   ========================================================================== */
+const cv = $("stage"), cx = cv.getContext("2d");
+const S = { scene:"live", film:null, state:"none", fx:0, fy:0, vx:0, auto:false, frame:-1, dpr:1 };
+let G = {};
+const WEAVE = {}, FILMCV = {};
+function weave(scene){
+  const key = scene + "|" + G.pw + "x" + G.ph + "|" + G.sl;
+  if (WEAVE[key]) return WEAVE[key];
+  const frames = [];
+  for (let f = 0; f < N; f++){ const p = document.createElement("canvas"); p.width = G.pw; p.height = G.ph; drawPicture(p, scene, f); frames.push(p); }
+  const w = document.createElement("canvas"); w.width = G.pw; w.height = G.ph; const x = w.getContext("2d");
+  for (let col = 0, k = 0; col < G.pw; col += G.sl, k = (k + 1) % N) x.drawImage(frames[k], col, 0, G.sl, G.ph, col, 0, G.sl, G.ph);
+  /* a touch brighter, all at once: the film hides five strips in six */
+  const b = document.createElement("canvas"); b.width = G.pw; b.height = G.ph; const bx = b.getContext("2d"); bx.filter = "brightness(1.12) saturate(1.1)"; bx.drawImage(w, 0, 0);
+  WEAVE[key] = b; return b;
+}
+const slitFrom = () => G.lead + Math.round(G.fm * .5);
+const slitTo = () => slitFrom() + G.slitLen;
+function filmCanvas(film){
+  const key = film.id + "|" + G.fl + "x" + G.fh + "|" + G.sl;
+  if (FILMCV[key]) return FILMCV[key];
+  const c = document.createElement("canvas"); c.width = G.fl; c.height = G.fh;
+  drawFilm(c, film, { margin:G.fm, slit:G.sl, period:G.sl * N, slits:true, slitFrom:slitFrom(), slitTo:slitTo(), lead:G.lead, tapeW:G.tapeW, tapeH:G.tapeH, tapeAt:slitTo() + Math.round(G.fm * .6) });
+  FILMCV[key] = c; return c;
+}
+function layout(){
+  const w = innerWidth, h = innerHeight, small = w <= 760, dpr = Math.min(2, devicePixelRatio || 1);
+  S.dpr = dpr; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  const filmsW = small ? 0 : Math.round(Math.min(260, Math.max(190, w * .17)));
+  const left = small ? 12 : filmsW + 70, right = w - (small ? 12 : 44);
+  let pw = Math.min(980, right - left);
+  pw = Math.min(pw, (small ? h - 330 : h - 230) / (.4 * 1.95));
+  const ph = Math.round(pw * .4), above = ph * .84;
+  const top = small ? 150 + above + Math.max(0, (h - 150 - above - ph - 34 - 150) / 2) : Math.max(84 + above, 84 + above + (h - 84 - above - ph * 1.25 - 130) * .45);
+  const px = Math.round((left + right) / 2 - pw / 2), py = Math.round(top);
+  const D = (v) => Math.round(v * dpr);
+  G = { px:D(px), py:D(py), pw:D(pw), ph:D(ph), sl:Math.max(small ? 1 : 2, Math.round((small ? 1 : SLIT) * dpr)), bar:D(Math.max(12, ph * .085)), plinth:D(Math.max(34, ph * .19)), post:D(Math.max(5, pw * .009)) };
+  G.fm = Math.round(G.ph * .14); G.fh = G.ph + 2 * G.fm; G.lead = Math.round(G.fm * 1.1);
+  G.tapeH = Math.round(G.fm * 1.15); G.tapeW = Math.round(G.tapeH * 4.2);
+  G.slitLen = Math.round(G.pw * 1.16 / (G.sl * N)) * G.sl * N;
+  G.fl = slitTo() + G.tapeW + Math.round(G.fm * 1.6);
+  const r = document.documentElement.style, plinthCss = Math.max(34, ph * .19);
+  r.setProperty("--ui-x", (small ? 10 : px) + "px"); r.setProperty("--ui-w", small ? "auto" : Math.min(pw, 760) + "px");
+  r.setProperty("--ui-y", (py + ph + plinthCss + 16) + "px");
+  r.setProperty("--fw", (small ? 0 : filmsW) + "px");
+  r.setProperty("--films-top", (small ? 60 : Math.max(96, py - ph * .5)) + "px");
+  r.setProperty("--films-gap", (small ? 6 : Math.round(Math.max(16, Math.min(34, (h - 330) / 14)))) + "px");
+  r.setProperty("--hint-x", (px + pw / 2) + "px"); r.setProperty("--hint-y", (py + ph * .72) + "px");
+  buildFilms();
+  if (S.film){ if (S.state === "in") placeFilm("in"); else if (S.state === "staged") placeFilm("staged"); }
+  dirty = true;
+}
+/* where the film can be */
+const xMax = () => G.px - slitFrom();                   /* its slits begin at the picture's left edge */
+const xMin = () => G.px + G.pw - slitTo();              /* its slits end at the picture's right edge */
+const yIn = () => G.py - G.fm, yStaged = () => G.py - G.fm - Math.round(G.ph * .74);
+function placeFilm(st){
+  if (st === "staged"){ S.fy = yStaged(); S.fx = Math.round(lerp(xMin(), xMax(), .5)); }
+  if (st === "in"){ S.fy = yIn(); S.fx = clamp(S.fx, xMin(), xMax()); }
+}
+
+let dirty = true;
+function frameShown(){
+  if (!S.film || S.state === "none") return -1;
+  const first = Math.round(S.fx) + slitFrom();          /* the screen column of the first slit */
+  return ((Math.floor((first - G.px) / G.sl + .5) % N) + N) % N;
+}
+function draw(){
+  const c = cx, W = cv.width, H = cv.height;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, W, H);
+  const { px, py, pw, ph, bar, plinth, post } = G;
+  const sg = c.createRadialGradient(px + pw / 2, py + ph + plinth, 0, px + pw / 2, py + ph + plinth, pw * .65);
+  sg.addColorStop(0, "rgba(0,0,0,.45)"); sg.addColorStop(1, "rgba(0,0,0,0)"); c.fillStyle = sg; c.fillRect(px - pw * .2, py + ph, pw * 1.4, plinth * 2.2);
+  /* the woven picture behind the glass */
+  c.drawImage(weave(S.film ? S.film.id : S.scene), px, py);
+  /* steel posts at the ends; the film runs in front of them */
+  c.fillStyle = "#c9ced6"; c.fillRect(px - post, py - bar, post, ph + bar); c.fillRect(px + pw, py - bar, post, ph + bar);
+  const fc = S.film && S.state !== "none" && S.state !== "flying" ? filmCanvas(S.film) : null, fx = Math.round(S.fx), fy = Math.round(S.fy);
+  if (fc){
+    if (S.state !== "in"){ c.save(); c.shadowColor = "rgba(0,0,0,.5)"; c.shadowBlur = 22 * S.dpr; c.shadowOffsetY = 10 * S.dpr; c.drawImage(fc, fx, fy); c.restore(); }
+    c.drawImage(fc, fx, fy);
+  }
+  /* the top rail with its slot, then the plinth: the film goes in behind them */
+  let g = c.createLinearGradient(0, py - bar, 0, py); g.addColorStop(0, "#d9dde3"); g.addColorStop(1, "#aeb4be");
+  c.fillStyle = g; c.fillRect(px - post * 2, py - bar, pw + post * 4, bar);
+  const slotY = py - Math.round(bar * .55);
+  if (fc){ c.save(); c.beginPath(); c.rect(0, 0, W, slotY); c.clip(); c.drawImage(fc, fx, fy); c.restore(); }
+  c.fillStyle = "#151b33"; c.fillRect(px + pw * .02, slotY, pw * .96, Math.max(2, Math.round(bar * .16)));
+  g = c.createLinearGradient(0, py + ph, 0, py + ph + plinth); g.addColorStop(0, "#c3c9d2"); g.addColorStop(1, "#8f97a4");
+  c.fillStyle = g; c.fillRect(px - post * 2, py + ph, pw + post * 4, plinth);
+  c.fillStyle = "rgba(255,255,255,.35)"; c.fillRect(px - post * 2, py + ph, pw + post * 4, Math.max(1, S.dpr));
+  /* the plaque */
+  const fs = Math.max(9 * S.dpr, plinth * .24);
+  c.font = `500 ${fs}px "JetBrains Mono", "Noto Sans KR", monospace`; c.fillStyle = "#1b2140"; c.textAlign = "center"; c.textBaseline = "middle";
+  const label = S.film ? `${S.film.no} · ${T(S.film.name).toUpperCase()}` : (LANG === "ko" ? "필름 없음 · 엮인 그림" : "NO FILM · THE WOVEN PICTURE");
+  c.fillText(label, px + pw / 2, py + ph + plinth * .52);
+  if (S.film && S.state === "in"){ c.fillStyle = "#e23a33"; c.beginPath(); c.arc(px + pw / 2 - c.measureText(label).width / 2 - fs, py + ph + plinth * .52, fs * .3, 0, 7); c.fill(); }
+  /* glass: a cool sheen over everything inside */
+  c.save(); c.beginPath(); c.rect(px, py, pw, ph); c.clip();
+  c.fillStyle = "rgba(255,255,255,.06)"; c.beginPath(); c.moveTo(px + pw * .62, py); c.lineTo(px + pw * .7, py); c.lineTo(px + pw * .58, py + ph); c.lineTo(px + pw * .5, py + ph); c.closePath(); c.fill();
+  c.restore();
+}
+
+/* ---------------- the films on the left ---------------- */
+const THUMB = {};
+function thumbOf(id){ if (THUMB[id]) return THUMB[id]; const t = document.createElement("canvas"); t.width = 250; t.height = 100; drawPicture(t, id, 0); THUMB[id] = t; return t; }
+function buildFilms(){
+  const box = $("films"); box.querySelectorAll(".film").forEach(e => e.remove());
+  const small = innerWidth <= 760, fw = small ? (innerWidth - 32) / 3 : parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--fw")) || 240;
+  const dpr = S.dpr, cw = Math.round(fw * dpr), ch = Math.round(fw * (small ? .56 : .4) * dpr), m = Math.round(ch * .18);
+  FILMS.forEach(f => {
+    const b = document.createElement("button"); b.className = "film"; b.dataset.id = f.id; b.dataset.out = LANG === "ko" ? "수조 안에" : "in the tank";
+    b.setAttribute("aria-label", `${f.no} ${T(f.name)}`);
+    const c = document.createElement("canvas"); c.width = cw; c.height = ch;
+    const tapeH = Math.round(m * 1.3);
+    drawFilm(c, f, { margin:m, slits:false, lead:Math.round(m * 1.1), tapeH, tapeW:Math.round(small ? cw - m * 2.2 : Math.min(tapeH * 4.2, cw * .42)), thumb:small ? null : thumbOf(f.id) });
+    b.appendChild(c);
+    const cap = document.createElement("span"); cap.className = "cap"; cap.innerHTML = `<b>${f.no} ${T(f.name)}</b><span><br>${T(f.sub)}</span>`; b.appendChild(cap);
+    if (S.film && S.film.id === f.id) b.classList.add("out");
+    b.onclick = () => pick(f.id, b);
+    box.appendChild(b);
+  });
+}
+
+/* pick a film: it grows out of the column and waits above the slot */
+let flying = false;
+function flyCanvas(fc){ const fly = document.createElement("canvas"); fly.id = "fly"; fly.width = fc.width; fly.height = fc.height; fly.getContext("2d").drawImage(fc, 0, 0);
+  fly.style.width = fc.width / S.dpr + "px"; fly.style.height = fc.height / S.dpr + "px"; fly.style.left = "0px"; fly.style.top = "0px"; document.body.appendChild(fly); return fly; }
+function pick(id, btn){
+  if (flying) return;
+  AUD.unlock();
+  const f = FILMS.find(x => x.id === id);
+  if (S.film && S.film.id === id) return;
+  const go = () => {
+    btn = document.querySelector(`.film[data-id="${id}"]`) || btn;
+    S.film = f; S.scene = id; S.frame = -1; S.vx = 0; S.auto = false; $("auto").setAttribute("aria-pressed", "false");
+    const r = btn.querySelector("canvas").getBoundingClientRect(), fc = filmCanvas(f);
+    placeFilm("staged"); S.state = "flying";
+    const fly = flyCanvas(fc), tw = fc.width / S.dpr, th = fc.height / S.dpr, tx = S.fx / S.dpr, ty = S.fy / S.dpr;
+    btn.classList.add("out"); flying = true; AUD.pick();
+    const a = fly.animate([
+      { transform:`translate(${r.left}px, ${r.top}px) scale(${r.width / tw}, ${r.height / th}) rotate(-2deg)` },
+      { transform:`translate(${(r.left + tx) / 2}px, ${Math.min(r.top, ty) - 20}px) scale(${(r.width / tw + 1) / 2}) rotate(2deg)`, offset:.55 },
+      { transform:`translate(${tx}px, ${ty}px) scale(1) rotate(0deg)` }], { duration:reduce ? 1 : 620, easing:"cubic-bezier(.3,.7,.2,1)" });
+    a.onfinish = () => { fly.remove(); flying = false; S.state = "staged"; dirty = true; status(); hint(); };
+    dirty = true; status();
+  };
+  if (S.film) eject(go); else go();
+}
+/* take the film out: it rises from the slot and flies home */
+function eject(then){
+  if (!S.film || flying) return;
+  const f = S.film, fc = filmCanvas(f), btn = document.querySelector(`.film[data-id="${f.id}"]`);
+  AUD.out(); flying = true;
+  const fly = flyCanvas(fc), tw = fc.width / S.dpr, th = fc.height / S.dpr;
+  const r = btn ? btn.querySelector("canvas").getBoundingClientRect() : { left:-tw, top:0, width:tw, height:th };
+  const sx = S.fx / S.dpr, sy = S.fy / S.dpr;
+  S.film = null; S.state = "none"; S.auto = false; S.vx = 0; $("auto").setAttribute("aria-pressed", "false"); dirty = true;
+  const a = fly.animate([
+    { transform:`translate(${sx}px, ${sy}px)` },
+    { transform:`translate(${sx}px, ${sy - th * .9}px)`, offset:.35 },
+    { transform:`translate(${r.left}px, ${r.top}px) scale(${r.width / tw}, ${r.height / th}) rotate(-2deg)` }], { duration:reduce ? 1 : 640, easing:"cubic-bezier(.4,.1,.2,1)" });
+  a.onfinish = () => { fly.remove(); flying = false; if (btn) btn.classList.remove("out"); status(); hint(); if (then) then(); };
+  status();
+}
+
+/* ---------------- dragging: push the film in, then slide it ---------------- */
+let drag = null, glide = null;
+function onFilm(x, y){
+  if (!S.film || (S.state !== "staged" && S.state !== "in")) return false;
+  const X = x * S.dpr, Y = y * S.dpr;
+  return X >= S.fx && X <= S.fx + G.fl && Y >= S.fy && Y <= S.fy + G.fh;
+}
+cv.addEventListener("pointerdown", e => {
+  AUD.unlock();
+  if (!onFilm(e.clientX, e.clientY)) return;
+  e.preventDefault(); glide = null;
+  drag = { x:e.clientX, y:e.clientY, fx:S.fx, fy:S.fy, axis:null, t:performance.now(), lx:e.clientX, moved:false };
+  S.vx = 0; if (S.auto){ S.auto = false; $("auto").setAttribute("aria-pressed", "false"); }
+  cv.classList.add("grabbing"); try { cv.setPointerCapture(e.pointerId); } catch (_){}
+});
+cv.addEventListener("pointermove", e => {
+  if (!drag){ cv.classList.toggle("grab", onFilm(e.clientX, e.clientY)); return; }
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (!drag.axis){ if (Math.hypot(dx, dy) < 5) return; drag.moved = true;
+    drag.axis = S.state === "staged" ? "y" : (Math.abs(dy) > Math.abs(dx) * 1.4 && dy < 0 ? "y" : "x"); }
+  if (drag.axis === "y"){
+    S.fy = clamp(drag.fy + dy * S.dpr, yStaged() - G.ph * .6, yIn());
+    if (S.state === "in" && S.fy < yIn() - 2){ S.state = "staged"; status(); hint(); }
+    if (S.state === "staged" && S.fy >= yIn()){ S.state = "in"; AUD.lock(); status(); hint(); }
+  } else {
+    const now = performance.now();
+    S.fx = rubber(drag.fx + dx * S.dpr);
+    S.vx = (e.clientX - drag.lx) * S.dpr / Math.max(8, now - drag.t) * 1000; drag.t = now; drag.lx = e.clientX;
+  }
+  hideHint(); dirty = true;
+});
+function rubber(x){ const a = xMin(), b = xMax(); if (x < a) return a - Math.pow(a - x, .7); if (x > b) return b + Math.pow(x - b, .7); return x; }
+function up(){
+  if (!drag) return;
+  const d = drag; drag = null; cv.classList.remove("grabbing");
+  if (!d.moved && S.state === "staged"){ pushIn(); return; }       /* a tap pushes it in for you */
+  if (d.axis === "y" && S.state !== "in"){
+    if (S.fy > yStaged() + G.ph * .4) pushIn();
+    else if (S.fy < yStaged() - G.ph * .3) eject();
+    else glideY(yStaged());
+  }
+  if (d.axis === "x" && performance.now() - d.t > 90) S.vx = 0;
+}
+cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+function glideY(to, done){ glide = { from:S.fy, to, t0:performance.now(), done }; }
+function pushIn(){ if (S.state !== "staged") return; AUD.slide(); glideY(yIn(), () => { S.state = "in"; AUD.lock(); status(); hint(); }); }
+addEventListener("keydown", e => {
+  if (!S.film) return;
+  if (e.key === "Enter" && S.state === "staged"){ pushIn(); e.preventDefault(); }
+  if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && S.state === "in"){ S.fx = clamp(S.fx + (e.key === "ArrowLeft" ? -1 : 1) * G.sl, xMin(), xMax()); dirty = true; e.preventDefault(); }
+});
+
+/* ---------------- words under the tank ---------------- */
+function status(){
+  const st = $("status");
+  if (!S.film) st.innerHTML = LANG === "ko" ? "<b>왼쪽에서 필름을 골라 보세요.</b> 필름이 없으면 여섯 장의 그림이 띠로 엮여 뒤죽박죽 보여요." : "<b>Pick a film on the left.</b> Without one, the tank shows six pictures woven into stripes.";
+  else if (S.state !== "in") st.innerHTML = LANG === "ko" ? `<b>${S.film.no} ${T(S.film.name)}</b> — 필름을 아래로 끌어 수조 틈에 끼우세요 (눌러도 들어가요)` : `<b>${S.film.no} ${T(S.film.name)}</b> — drag the film down into the slot (or tap it)`;
+  else st.innerHTML = LANG === "ko" ? `<b>${S.film.no} ${T(S.film.name)}</b> — 필름을 양옆으로 드래그하세요. ${T(S.film.sub)}.` : `<b>${S.film.no} ${T(S.film.name)}</b> — drag the film from side to side. ${T(S.film.sub)}.`;
+  $("auto").disabled = S.state !== "in"; $("eject").disabled = !S.film;
+}
+let hintGone = false;
+function hint(){
+  const h = $("hint");
+  if (S.state === "staged"){ $("hint-t").textContent = LANG === "ko" ? "아래로 밀어 넣으세요" : "Push it down into the slot"; h.classList.remove("h", "gone"); hintGone = false; }
+  else if (S.state === "in"){ $("hint-t").textContent = LANG === "ko" ? "양옆으로 드래그" : "Drag it side to side"; h.classList.add("h"); h.classList.remove("gone"); hintGone = false; }
+  else { $("hint-t").textContent = LANG === "ko" ? "왼쪽에서 필름을 고르세요" : "Pick a film on the left"; h.classList.remove("h", "gone"); }
+}
+function hideHint(){ if (!hintGone){ hintGone = true; setTimeout(() => $("hint").classList.add("gone"), 1200); } }
+
+$("auto").onclick = () => { AUD.unlock(); S.auto = !S.auto; $("auto").setAttribute("aria-pressed", String(S.auto)); S.vx = S.auto ? 40 * S.dpr : 0; hideHint(); };
+$("eject").onclick = () => eject();
+$("info").onclick = () => document.body.classList.toggle("about");
+$("about-x").onclick = () => document.body.classList.remove("about");
+$("snd").onclick = () => { AUD.unlock(); AUD.on = !AUD.on; $("snd").setAttribute("aria-pressed", String(AUD.on)); };
+(function(){                                            /* the little diagram in "about" */
+  const cols = ["#e23a33", "#f2b33d", "#a9d2ec", "#2f62ad", "#f3ecd9", "#5f97d2"]; let s = "";
+  for (let i = 0; i < 36; i++) s += `<rect x="${14 + i * 7}" y="14" width="7" height="8" fill="${cols[i % 6]}"/>`;
+  for (let i = 0; i < 6; i++) s += `<rect x="${14 + i * 42 + 7}" y="34" width="35" height="6" fill="#0d0c0a" stroke="rgba(255,255,255,.25)" stroke-width=".6"/>`;
+  for (let i = 0; i < 6; i++) s += `<line x1="140" y1="80" x2="${17.5 + i * 42}" y2="20" stroke="rgba(226,58,51,.55)" stroke-width=".9"/>`;
+  s += `<circle cx="140" cy="82" r="5" fill="#fff"/><circle cx="140" cy="82" r="2.2" fill="#0e1430"/>`;
+  $("how-svg").innerHTML = s;
+})();
+
+/* ---------------- the loop ---------------- */
+let last = performance.now();
+function loop(now){
+  requestAnimationFrame(loop);
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (glide){ const k = Math.min(1, (now - glide.t0) / (reduce ? 1 : 340)), e = 1 - Math.pow(1 - k, 3); S.fy = lerp(glide.from, glide.to, e); dirty = true; if (k >= 1){ const d = glide.done; glide = null; if (d) d(); } }
+  if (!drag && S.state === "in"){
+    if (S.auto){ S.fx += S.vx * dt; if (S.fx < xMin()){ S.fx = xMin(); S.vx = Math.abs(S.vx); } if (S.fx > xMax()){ S.fx = xMax(); S.vx = -Math.abs(S.vx); } dirty = true; }
+    else {
+      if (Math.abs(S.vx) > 2){ S.fx += S.vx * dt; S.vx *= Math.exp(-dt * 2.4); dirty = true; }
+      const a = xMin(), b = xMax();
+      if (S.fx < a - .5 || S.fx > b + .5){ S.fx += ((S.fx < a ? a : b) - S.fx) * (1 - Math.exp(-dt * 12)); S.vx *= .7; dirty = true; }
+    }
+  }
+  if (dirty){
+    dirty = false; draw();
+    const f = frameShown();
+    if (f !== S.frame){ if (f >= 0 && S.frame >= 0 && S.state === "in") AUD.tick(S.film && S.film.id); S.frame = f; document.querySelectorAll("#dots i").forEach((d, i) => d.classList.toggle("on", i === f)); }
+  }
+}
+addEventListener("resize", layout);
+layout(); status(); hint();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { Object.keys(FILMCV).forEach(k => delete FILMCV[k]); buildFilms(); dirty = true; });
+requestAnimationFrame(loop);
+window.__shark = { draw:(s, f, c) => drawPicture(c, s, f), S, pick:(id) => pick(id, document.querySelector(`.film[data-id="${id}"]`)), pushIn, eject, frameShown, G:() => G, xMin, xMax };
+})();
+</script>
+</body>
+</html>
