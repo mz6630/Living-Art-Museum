@@ -442,7 +442,11 @@ const AUD = (() => {
       mot.o.frequency.setTargetAtTime(78 + k * 40 + (jam ? 20 : 0), tt, .1); mot.o2.frequency.setTargetAtTime(156 + k * 80, tt, .1);
       if (k > .1 && performance.now() - rT > 55 + (1 - k) * 140){ rT = performance.now(); if (ok()){ noise(white, tt, .045, 4200 + Math.random() * 1800, 1.6, .045 * k, "bandpass"); noise(white, tt + .02, .03, 6500, 1, .02 * k, "highpass"); } } },
     /* a camera somewhere in the room: a quiet shutter, a faint flash */
-    shutter(){ if (!ok()) return; const tt = ctx.currentTime; noise(white, tt, .02, 5200, 1.4, .03, "bandpass"); noise(white, tt + .055, .018, 4400, 1.4, .022, "bandpass"); S.flash = Math.max(S.flash, .35); },
+    shutter(){ if (!ok()) return; const tt = ctx.currentTime;
+      /* mirror up: a sharp clack … curtain and mirror down: a second, softer one */
+      noise(white, tt, .03, 3600, 1.2, .2, "bandpass"); noise(white, tt, .02, 7000, .8, .1, "highpass"); tone(tt, 1900, 1700, .03, .04, "triangle");
+      noise(white, tt + .07, .035, 2900, 1.2, .15, "bandpass"); noise(white, tt + .07, .02, 6000, .8, .07, "highpass");
+      S.flash = Math.max(S.flash, 1); },
     alarm(){ if (!ok()) return; const tt = ctx.currentTime; for (let i = 0; i < 4; i++) tone(tt + i * .22, 3100, 3100, .12, .05, "square"); },
     /* the handle: a brass pawl dropping into each tooth of the ratchet — a dry, bright tick (no low end at all) */
     click(k){ if (!ok()) return; const tt = ctx.currentTime; k = k ?? 1;
@@ -533,7 +537,7 @@ function render(t){
   g.setTransform(DPR, 0, 0, DPR, 0, 0);
   drawPlaque();
   for (const s of fallen) drawStrip(s);
-  if (S.flash > .01){ g.fillStyle = `rgba(255,255,255,${S.flash * .2})`; g.fillRect(0, 0, W, H); }
+  if (S.flash > .01){ g.fillStyle = `rgba(255,255,255,${S.flash * .55})`; g.fillRect(0, 0, W, H); }
 }
 
 /* ==========================================================================
@@ -548,8 +552,8 @@ function frame(now){
   if (ptr.mode !== "crank" && !S.auto) S.crankV *= Math.exp(-dt * 6);
   if (now - S.lastFeed > 140 && !S.auto) S.crankV *= Math.exp(-dt * 8);
   AUD.motor(S.crankV, S.jam);
-  S.flash *= Math.exp(-dt * 9); S.shake *= Math.exp(-dt * 5);
-  if (S.started && !S.done && S.crankV > .3 && rnd() < dt * .35) AUD.shutter();
+  S.flash *= Math.exp(-dt * 7); S.shake *= Math.exp(-dt * 5);
+  if (S.started && !S.done && S.crankV > .3 && rnd() < dt * .7) AUD.shutter();
   const steps = reduce ? 1 : 2; for (let k = 0; k < steps; k++) physics(dt / steps);
   render(t);
 }
