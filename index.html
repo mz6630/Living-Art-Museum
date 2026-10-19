@@ -2831,7 +2831,7 @@ const DETAIL = {
       body:"Basquiat began as a teenager writing on the walls of downtown New York and within a few years was painting huge, crowded canvases — crowns, skulls and heads, the © sign, teeth, lists of words, many of them crossed out. He filled cheap composition notebooks with capital letters and drawings, and his paintings look like those pages blown up.",
       why:"Neo-Expressionism brought feeling, rough marks and stories back after years of cool, clean art — and Basquiat put Black heroes, money and fame on the canvas, from outside the mainstream.",
       kind:"Signature experience · a desk in dots", name:"Open the notebook and make a mess — every page is kept for the next visitor",
-      steps:["Click the composition notebook to open it; drag a page's edge to turn it", "Peel stickers off the binder by their edge, cut pictures out of the magazine and glue them down", "Draw and type in oilstick, rub out with the eraser — everything left on the pages, on the desk and in the magazine stays for everyone, and anyone can peel or move it"] },
+      steps:["Click the composition notebook to open it; drag a page's edge to turn it", "Peel stickers off the binder by their edge, cut pictures out of the magazine and glue them down — and toss what you don't want in the wastebasket", "Draw and type in oilstick, rub out with the eraser — everything left on the pages, on the desk and in the magazine stays for everyone, and anyone can peel or move it"] },
     soup: {
       body:"Warhol painted 32 canvases, one for each flavour the company sold, every one almost the same as the next, and first showed them in a row on a shelf like goods in a shop. He said he had eaten the same soup for lunch nearly every day for twenty years.",
       why:"Mass production made into art: the same thing, made again and again, sold to everyone — and a painting that looks printed.",
@@ -2883,7 +2883,7 @@ const DETAIL = {
       body:"바스키아는 10대에 뉴욕 다운타운의 벽에 글을 쓰며 시작해, 몇 년 만에 왕관과 해골, 머리, © 기호, 이빨, 단어 목록(상당수는 줄을 그어 지운)으로 빽빽한 거대한 캔버스를 그렸습니다. 값싼 컴포지션 노트를 대문자와 그림으로 채웠고, 그의 그림은 그 노트 한 장을 크게 키워 놓은 것처럼 보입니다.",
       why:"신표현주의는 차갑고 매끈한 미술이 이어진 뒤 감정과 거친 붓질, 이야기를 되살렸고, 바스키아는 주류 바깥에서 흑인 영웅과 돈, 명성을 캔버스에 올렸습니다.",
       kind:"대표 체험 · 도트로 된 책상", name:"노트를 펼치고 마음껏 어지르세요 — 한 장 한 장이 다음 방문자를 위해 남아요",
-      steps:["컴포지션 노트를 눌러 펼치고, 페이지 가장자리를 끌어 넘기세요", "스티커 북에서 스티커를 가장자리부터 떼어 붙이고, 잡지를 가위로 오려 풀로 붙이세요", "오일스틱으로 그리고 타자로 쓰고, 지우개로 지우세요 — 페이지, 책상, 잡지에 남긴 모든 것이 모두에게 남고, 누구나 떼고 옮길 수 있어요"] },
+      steps:["컴포지션 노트를 눌러 펼치고, 페이지 가장자리를 끌어 넘기세요", "스티커 북에서 스티커를 가장자리부터 떼어 붙이고, 잡지를 가위로 오려 풀로 붙이세요 — 필요 없는 건 휴지통에 버려요", "오일스틱으로 그리고 타자로 쓰고, 지우개로 지우세요 — 페이지, 책상, 잡지에 남긴 모든 것이 모두에게 남고, 누구나 떼고 옮길 수 있어요"] },
     soup: {
       body:"워홀은 회사가 팔던 맛마다 한 점씩, 거의 똑같은 캔버스 32점을 그렸고, 처음 전시할 때는 가게 상품처럼 선반 위에 나란히 올려 두었습니다. 그는 20년 가까이 점심으로 거의 매일 같은 수프를 먹었다고 말했습니다.",
       why:"대량 생산을 예술로 — 똑같은 것을 계속 만들어 모두에게 파는 일, 그리고 인쇄물처럼 보이는 그림.",
@@ -18215,6 +18215,53 @@ function mkSticks(){ const p = new PX(34, 30), cols = [P.r, P.b, P.y, P.k];
   cols.forEach((c, i) => { const x0 = 3 + i * 7, y0 = 4 + i * 3; p.line(x0, y0, x0 + 18, y0 + 20, c, 4); p.line(x0 + 3, y0 + 4, x0 + 15, y0 + 18, P.cr, 4); p.line(x0 + 4, y0 + 7, x0 + 11, y0 + 15, c, 1); });
   return p; }
 
+/* a desk lamp, seen from above: weighted base, jointed arm, a red metal shade */
+function mkLamp(on){ const p = new PX(46, 42);
+  p.disc(36, 33, 7, C("#2b2a28")); p.ring(36, 33, 7, 7, 1, C("#4a4743")); p.set(34, 30, C("#77736c")); p.disc(36, 33, 2, C("#77736c"));
+  p.line(36, 31, 26, 20, C("#6d6a64"), 2); p.line(26, 20, 19, 15, C("#6d6a64"), 2); p.disc(26, 20, 1.6, C("#3a3834"));
+  p.ell(14, 12, 13, 10, P.r2); p.ell(14, 11, 12, 9, P.r); p.dith(2, 2, 26, 20, P.r2, (x, y) => clamp(((x - 14) + (y - 11)) / 22, 0, .6));
+  p.ell(13, 13, 8, 6, C("#3b120d")); p.ring(14, 11, 12, 9, 1, C("#5e1712"));
+  p.disc(13, 13, 3.2, on ? C("#fff3c4") : C("#cfc6ae")); if (on){ p.set(12, 12, P.w); p.ring(13, 13, 4.5, 4.5, 1, C("#f7d77e")); }
+  p.set(8, 6, C("#f08a7e")); p.set(9, 5, C("#f08a7e")); return p; }
+/* a little boombox: two speakers, a cassette, a handle */
+function mkRadio(pulse){ const p = new PX(52, 32);
+  p.box(14, 0, 24, 6, C("#5d5a55")); p.box(15, 1, 22, 5, C("#3a3834"));
+  p.rect(1, 6, 50, 25, C("#2a2a2e")); p.rect(1, 6, 50, 1, C("#4a4a52")); p.rect(1, 30, 50, 1, C("#18181b"));
+  [11, 41].forEach(cx => { const r = pulse ? 8.5 : 8; p.disc(cx, 19, r, C("#55555d")); p.disc(cx, 19, r - 1.5, C("#1d1d21"));
+    p.dith(cx - 7, 12, 14, 14, C("#3c3c44"), (x, y) => ((x - cx) ** 2 + (y - 19) ** 2) < 36 ? .5 : 0); p.disc(cx, 19, pulse ? 3 : 2.4, C("#77777f")); p.set(cx - 1, 18, C("#a5a5ad")); });
+  p.rect(20, 11, 12, 9, C("#c9c2b0")); p.rect(21, 12, 10, 7, C("#2c2925")); p.disc(23.5, 15.5, 1.6, P.w); p.disc(28.5, 15.5, 1.6, P.w); p.rect(24, 17, 4, 1, C("#d6392b"));
+  for (let i = 0; i < 4; i++) p.rect(20 + i * 3, 8, 2, 2, i === 0 ? P.r : C("#8a8a92"));
+  p.rect(21, 23, 10, 5, C("#3b3b44")); p.text("BX", 22, 28, C("#a5a5ad"));
+  p.set(46, 9, pulse ? C("#ff6a4a") : C("#7a2a20")); return p; }
+/* the wastebasket, and whatever has gone into it */
+function mkBin(n){ const p = new PX(32, 32);
+  p.disc(16, 16, 15, C("#7c776d")); p.ring(16, 16, 15, 15, 1, C("#4d4943")); p.disc(16, 16, 12.5, C("#2c2924")); p.ring(16, 16, 13.5, 13.5, 1, C("#a39d90"));
+  for (let a = 0; a < 6.28; a += .26) p.set(16 + Math.cos(a) * 14, 16 + Math.sin(a) * 14, C("#5f5a51"));
+  const spots = [[13, 18], [19, 14], [16, 21], [11, 13], [21, 20], [16, 11], [12, 21], [20, 9]];
+  for (let i = 0; i < Math.min(n, spots.length); i++){ const [x, y] = spots[i], R = rng(40 + i); p.disc(x, y, 3.6, i % 3 === 1 ? C("#e9d7a8") : P.cr);
+    for (let k = 0; k < 5; k++) p.set(x + (R() - .5) * 5, y + (R() - .5) * 5, C("#b8b09e")); p.ring(x, y, 3.6, 3.6, 1, C("#9b958a")); }
+  return p; }
+/* three jars of paint and a brush */
+const JARS = [[8, 9, 1, "#d2382a"], [23, 8, 3, "#e7b324"], [38, 10, 2, "#2a5fb3"]];
+function mkJars(){ const p = new PX(48, 26);
+  JARS.forEach(([x, y, , c]) => { p.disc(x, y, 7, C("#c9c3b4")); p.ring(x, y, 7, 7, 1, C("#8f897c")); p.disc(x, y, 5.4, C(c)); p.set(x - 2, y - 2, P.w); p.set(x - 1, y - 3, P.w); p.line(x + 4, y + 4, x + 5, y + 7, C(c)); });
+  p.line(4, 23, 30, 16, C("#9a6a3e"), 2); p.line(30, 16, 35, 15, C("#b9b5ad"), 2); p.line(35, 15, 40, 14, P.y, 2); p.set(41, 13, P.y);
+  return p; }
+/* two books: the top one an anatomy book, worn */
+function mkBooks(){ const p = new PX(60, 42);
+  p.poly([[8, 6], [57, 8], [55, 40], [6, 38]], C("#2f5a3a")); p.path([[8, 6], [57, 8], [55, 40], [6, 38]], C("#1c3a24"), 1, null, 0, true);
+  const top = [[2, 3], [50, 0], [53, 32], [5, 35]]; p.poly(top, C("#e7dfc8")); p.path(top, C("#5a5246"), 1, null, 0, true);
+  for (let k = 1; k <= 2; k++) p.line(53 + k * .4, 2 + k, 55, 32 + k, P.w);
+  p.text("ANATOMY", 8, 13, C("#4b3b2c")); p.line(8, 15, 46, 13, C("#4b3b2c"));
+  p.line(14, 26, 34, 22, C("#bdb19a"), 3); p.disc(14, 26, 2.5, C("#bdb19a")); p.disc(34, 22, 2.5, C("#bdb19a")); p.disc(13, 23.5, 2, C("#bdb19a")); p.disc(35, 24.5, 2, C("#bdb19a"));
+  p.line(14, 26, 34, 22, C("#8f8470"), 1);
+  return p; }
+/* a can of spray paint, cap off */
+function mkSpray(){ const p = new PX(20, 20);
+  p.disc(10, 10, 8.5, C("#9aa0a8")); p.ring(10, 10, 8.5, 8.5, 1, C("#5f646b")); p.disc(10, 10, 6, C("#c8ced6")); p.disc(10, 10, 3.2, P.k); p.rect(9, 7, 3, 2, P.w); p.set(8, 5, P.w);
+  p.dith(1, 1, 18, 18, C("#d6392b"), (x, y) => ((x - 10) ** 2 + (y - 10) ** 2) > 64 && ((x - 10) ** 2 + (y - 10) ** 2) < 82 ? .5 : 0);
+  return p; }
+
 /* ==========================================================================
    8. TOOLS — the hand, scissors, glue, oilstick and eraser, as dots
    ========================================================================== */
@@ -18252,10 +18299,40 @@ const AUD = (() => {
   /* a held sound — rubbing, peeling — whose loudness follows the hand */
   function loop(name, f, q){ if (loops[name]) return loops[name]; const s = ctx.createBufferSource(); s.buffer = nb; s.loop = true; const fl = ctx.createBiquadFilter(); fl.type = "bandpass"; fl.frequency.value = f; fl.Q.value = q;
     const g = ctx.createGain(); g.gain.value = 0; s.connect(fl); fl.connect(g); g.connect(master); s.start(); return loops[name] = { s, fl, g }; }
+  /* the radio: a twelve-bar blues in F, walking bass, ride cymbal, a few piano chords — made here, note by note */
+  let mus = null; const BPM = 132, BD = 60 / BPM;
+  const PROG = [[41, 0], [46, 0], [41, 0], [41, 0], [46, 0], [46, 0], [41, 0], [38, 0], [43, 1], [36, 0], [41, 0], [36, 0]];
+  const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+  function bass(t, m){ const o = ctx.createOscillator(); o.type = "triangle"; o.frequency.value = hz(m); const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 700;
+    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, t); a.gain.exponentialRampToValueAtTime(.28, t + .01); a.gain.exponentialRampToValueAtTime(.08, t + .18); a.gain.exponentialRampToValueAtTime(.0001, t + BD * .95);
+    o.connect(f); f.connect(a); a.connect(mus.g); o.start(t); o.stop(t + BD); }
+  function chord(t, notes){ notes.forEach(m => { const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = hz(m); const a = ctx.createGain();
+    a.gain.setValueAtTime(.0001, t); a.gain.exponentialRampToValueAtTime(.035, t + .02); a.gain.exponentialRampToValueAtTime(.0001, t + .55); o.connect(a); a.connect(mus.g); o.start(t); o.stop(t + .6); }); }
+  function hiss(t, dur, f, g){ const s = ctx.createBufferSource(); s.buffer = nb; const fl = ctx.createBiquadFilter(); fl.type = "highpass"; fl.frequency.value = f;
+    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, t); a.gain.exponentialRampToValueAtTime(g, t + .004); a.gain.exponentialRampToValueAtTime(.0001, t + dur); s.connect(fl); fl.connect(a); a.connect(mus.g); s.start(t, Math.random()); s.stop(t + dur + .02); }
+  function beatAt(n, t){
+    const bar = Math.floor(n / 4) % 12, b = n % 4, [root, minor] = PROG[bar], next = PROG[(bar + 1) % 12][0];
+    const third = root + (minor ? 3 : 4), walk = [root, b === 1 ? (Math.random() < .5 ? third : root + 7) : 0, root + (Math.random() < .5 ? 7 : 9), next + (Math.random() < .5 ? 1 : -1)];
+    bass(t, b === 0 ? root : walk[b]);
+    hiss(t, .32, 6500, .035); if (b % 2 === 1){ hiss(t + BD * 2 / 3, .2, 6500, .022); hiss(t, .05, 9000, .03); }
+    if ((b === 1 && Math.random() < .6) || (b === 3 && Math.random() < .35)){ const c = root + 24; chord(t + BD * 2 / 3, [c + (minor ? 3 : 4), c + 10, c + 14]); }
+  }
+  function tick(){ if (!mus) return; while (mus.next < ctx.currentTime + .15){ beatAt(mus.n, mus.next); mus.n++; mus.next += BD; } }
   return {
+    music(on){ if (!ensure()) return;
+      if (on && !mus){ const g = ctx.createGain(); g.gain.value = .0001; g.connect(master); g.gain.setTargetAtTime(.8, ctx.currentTime, .25);
+        mus = { g, n:0, next:ctx.currentTime + .08, t0:ctx.currentTime + .08, timer:setInterval(tick, 25) }; }
+      else if (!on && mus){ const m = mus; mus = null; clearInterval(m.timer); m.g.gain.setTargetAtTime(0, ctx.currentTime, .12); setTimeout(() => { try { m.g.disconnect(); } catch (_){} }, 900); } },
+    beat(){ return mus && ctx ? (((ctx.currentTime - mus.t0) / BD) % 1 + 1) % 1 : 1; },
+    beatN(){ return mus && ctx ? Math.floor((ctx.currentTime - mus.t0) / BD) : -1; },
+    crumple(){ if (!ok()) return; const t = ctx.currentTime; for (let i = 0; i < 14; i++) noise(t + Math.random() * .3, .008 + Math.random() * .02, 1500 + Math.random() * 5000, 1.5 + Math.random() * 3, .04 + Math.random() * .1); tone(t + .28, 120, 80, .08, .05); },
+    spray(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .45, 4200, .4, .09, "highpass"); noise(t, .1, 1200, 2, .04); },
+    click(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .012, 3500, 4, .12); tone(t, 1800, 1200, .02, .03, "square"); },
+    dip(){ if (!ok()) return; const t = ctx.currentTime; noise(t, .18, 500, 1.4, .06, "lowpass"); tone(t + .05, 300, 180, .1, .03); },
+    thump(){ if (!ok()) return; const t = ctx.currentTime; tone(t, 110, 60, .14, .14); noise(t, .06, 500, 1, .08); },
     unlock(){ if (ensure() && ctx.state !== "running") ctx.resume().catch(() => {}); },
     get on(){ return on; }, set on(v){ on = v; if (master) master.gain.setTargetAtTime(v ? .8 : 0, ctx.currentTime, .05); },
-    stop(){ if (!ctx) return; Object.values(loops).forEach(l => { try { l.s.stop(); } catch (_){} }); try { master.disconnect(); } catch (_){} if (!borrowed) try { ctx.close(); } catch (_){} },
+    stop(){ if (!ctx) return; if (mus){ clearInterval(mus.timer); try { mus.g.disconnect(); } catch (_){} mus = null; } Object.values(loops).forEach(l => { try { l.s.stop(); } catch (_){} }); try { master.disconnect(); } catch (_){} if (!borrowed) try { ctx.close(); } catch (_){} },
     rub(name, v, f, q, gmax){ if (!ok()) return; const l = loop(name, f, q), t = ctx.currentTime; l.g.gain.setTargetAtTime(clamp(v, 0, 1) * gmax, t, .03); l.fl.frequency.setTargetAtTime(f * (.85 + v * .3), t, .05); },
     hush(name){ const l = loops[name]; if (l && ctx) l.g.gain.setTargetAtTime(0, ctx.currentTime, .05); },
     /* a page turning: air, then the flutter of the sheet */
@@ -18281,7 +18358,10 @@ const cv = $("cv"), g = cv.getContext("2d");
 let S = 3, LW = 400, LH = 240, single = false;
 const B = { open:0, openT:0, s:0, cp:1, flip:null, x:0, y:0 };          /* the book */
 const PAN = { st:false, mg:false, stPage:0, mgPage:0, taken:{} };      /* the sticker binder and the magazine, opened */
-const OBJ = { binder:{ x:0, y:0, spr:null, set:false }, mag:{ x:0, y:0, spr:null, set:false }, mug:{ x:0, y:0, spr:null, set:false }, sticks:{ x:0, y:0, spr:null, set:false } };
+const OBJ = {}; ["binder", "mag", "mug", "sticks", "lamp", "radio", "bin", "jars", "books", "spray"].forEach(k => OBJ[k] = { x:0, y:0, spr:null, set:false });
+const ROOM = { lamp:true, bin:0, radio:false };     /* this visitor's lamp, music and bin */
+const STACK = ["books", "jars", "spray", "sticks", "mug", "bin", "radio"];      /* drawn under the notebook */
+const PICK = ["lamp", "radio", "bin", "spray", "jars", "books", "binder", "mag", "mug", "sticks"];
 let tool = "hand", ink = 0, size = 1;
 const pointer = { x:-99, y:-99, in:false, fine:false };
 let topPad = 22, botPad = 26;
@@ -18307,11 +18387,17 @@ function layout(){
     const sideY = B.y + Math.floor(CH / 2);
     place("binder", Math.max(6, Math.floor(LW / 2 - PW - 18 - 48 - Math.min(60, (LW / 2 - PW - 66) * .4))), sideY - 36);
     place("mag", Math.min(LW - 62, Math.ceil(LW / 2 + PW + 18 + Math.min(60, (LW / 2 - PW - 74) * .4))), sideY - 30);
-    place("mug", LW - 44, topPad + 4); place("sticks", 14, B.y + CH - 20);
+    place("mug", LW - 44, topPad + 4); place("sticks", 8, B.y + CH - 50);
+    place("lamp", 2, topPad - 6); place("spray", 50, topPad + 22); place("jars", LW - 102, topPad + 2);
+    place("radio", 40, LH - botPad - 28); place("bin", LW - 40, B.y + CH - 44); place("books", LW - 58, LH - botPad - 12);
   } else {
     B.y = topPad + 4;
     const oy = B.y + CH + 12;
-    place("binder", Math.floor(LW * .18), oy); place("mag", Math.floor(LW * .58), oy - 4); place("mug", LW - 38, LH - botPad - 34); place("sticks", 8, LH - botPad - 32);
+    /* below the notebook: two rows of things, then whatever fits */
+    const r2 = oy + 74, r3 = Math.min(r2 + 38, LH - botPad - 40);
+    place("binder", Math.floor(LW * .18), oy); place("mag", Math.floor(LW * .58), oy - 4);
+    place("radio", 6, r2); place("jars", Math.floor(LW * .33), r2 + 4); place("spray", Math.floor(LW * .64), r2 + 6); place("bin", LW - 36, r2 - 2);
+    place("mug", 8, r3 + 2); place("books", Math.floor(LW * .22), r3); place("sticks", Math.floor(LW * .52), r3 + 6); place("lamp", LW - 48, r3 - 2);
   }
   document.documentElement.style.setProperty("--hint-y", (topPad * S + 22) + "px");
   pageCache.clear();
@@ -18354,7 +18440,7 @@ const items = {};                 /* page -> everything on it (shared + this dev
 const hidden = new Set();         /* page things lifted off right now */
 const shared = { items:{}, loose:[], holes:[], objs:null };
 const local = { items:{}, loose:[], holes:[], objs:null, hide:[] };
-const store = { mode:"local", db:null, canWrite:true, subs:new Map(), warned:false };
+const store = { mode:"local", db:null, canWrite:true, subs:new Map(), warned:false, fails:0 };
 const LKEY = "lam.basquiat.v2";
 const num = (v, a, b) => clamp(Math.round(+v || 0), a, b);
 const polyOf = (a) => Array.isArray(a) ? a.slice(0, 400).map(v => num(v, 0, 200)) : [];
@@ -18381,7 +18467,7 @@ function cleanLoose(id, d){
   return o;
 }
 function cleanHole(id, d){ if (!d || typeof d !== "object") return null; const m = d.m | 0, poly = polyOf(d.poly); if (m < 0 || m >= MAGN || poly.length < 6) return null; return { id:String(id), m, poly, t:+d.t || 0 }; }
-function cleanObjs(d){ if (!d || typeof d !== "object") return null; const o = {}; Object.keys(OBJ).forEach(k => { if (Array.isArray(d[k])) o[k] = [clamp(+d[k][0] || 0, -.2, 1), clamp(+d[k][1] || 0, -.2, 1)]; }); return o; }
+function cleanObjs(d){ if (!d || typeof d !== "object") return null; const o = {}; if (d.p && typeof d.p === "object") d = d.p; Object.keys(OBJ).forEach(k => { if (Array.isArray(d[k])) o[k] = [clamp(+d[k][0] || 0, -.2, 1), clamp(+d[k][1] || 0, -.2, 1)]; }); return o; }
 
 /* this device's share */
 function loadLocal(){
@@ -18423,10 +18509,10 @@ function keep(col, rec){
   if (canShare() && rec.src !== "local"){
     const isNew = !rec.id; rec.id = rec.id || BACKEND.newId(COL[col]); rec.src = "db";
     putView(shared, col, rec);
-    BACKEND.set(COL[col], rec.id, bodyOf(rec)).then(() => { if (isNew) noteSaved(); }).catch(e => {
+    BACKEND.set(COL[col], rec.id, bodyOf(rec)).then(() => { store.fails = 0; if (isNew) noteSaved(); }).catch(e => {
       const code = e && e.code; cutView(shared, col, rec);
       if (code === "quota_exceeded") toast(T({ en:"The shared notebook is full — this is kept on your device instead.", ko:"공유 노트가 가득 찼어요 — 대신 이 기기에 저장했어요." }));
-      else { if (code !== "unavailable") store.canWrite = false; warnLocal(); }
+      else { if (code !== "unavailable" && ++store.fails >= 2) store.canWrite = false; warnLocal(); }
       if (!isNew) hideHere(rec.id);
       putView(local, col, { ...rec, id:"l" + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36), src:"local" }); saveLocal();
     });
@@ -18473,9 +18559,9 @@ let objsSent = "";
 function applyObjs(){ const o = local.objs || shared.objs; if (!o) return;
   Object.keys(o).forEach(k => { if (!OBJ[k] || (down && down.act === "obj" && down.obj === k)) return; OBJ[k].x = Math.round(o[k][0] * LW); OBJ[k].y = Math.round(o[k][1] * LH); OBJ[k].set = true; }); }
 function keepObjs(){
-  const rec = {}; Object.keys(OBJ).forEach(k => { if (OBJ[k].set) rec[k] = [+(OBJ[k].x / LW).toFixed(4), +(OBJ[k].y / LH).toFixed(4)]; });
-  const js = JSON.stringify(rec); if (js === objsSent || js === "{}") return; objsSent = js; rec.t = Date.now();
-  if (canShare() && !local.objs){ shared.objs = cleanObjs(rec); BACKEND.set(COL.meta, "objs", rec).catch(e => { if (e && e.code !== "unavailable") store.canWrite = false; local.objs = cleanObjs(rec); saveLocal(); warnLocal(); }); }
+  const pos = {}; Object.keys(OBJ).forEach(k => { if (OBJ[k].set) pos[k] = [+(OBJ[k].x / LW).toFixed(4), +(OBJ[k].y / LH).toFixed(4)]; });
+  const js = JSON.stringify(pos); if (js === objsSent || js === "{}") return; objsSent = js; const rec = { p:pos, t:Date.now() };
+  if (canShare() && !local.objs){ shared.objs = cleanObjs(rec); BACKEND.set(COL.meta, "objs", rec).catch(() => { local.objs = cleanObjs(rec); saveLocal(); }); }
   else { local.objs = cleanObjs(rec); saveLocal(); }
 }
 let savedAt = 0;
@@ -18671,7 +18757,8 @@ function magWithHoles(m){
 /* ==========================================================================
    16. FRAME
    ========================================================================== */
-const crumbs = [];
+const crumbs = [], flyers = [];
+let lastBeat = -1;
 let last = performance.now();
 function frame(now){
   requestAnimationFrame(frame);
@@ -18689,28 +18776,48 @@ function step(dt, now){
     if (f.a === goal){ if (f.commit){ if (single) B.cp = f.dir > 0 ? f.from + 1 : f.from - 1; else B.s = f.dir > 0 ? f.from + 1 : f.from - 1; } B.flip = null; showNav(); watchVisible(); } }
   if (peel && peel.back){ const k = Math.min(1, dt * 14); peel.P[0] = lerp(peel.P[0], peel.G[0], k); peel.P[1] = lerp(peel.P[1], peel.G[1], k);
     if (Math.hypot(peel.P[0] - peel.G[0], peel.P[1] - peel.G[1]) < .4){ if (peel.item){ hidden.delete(peel.item.id); pageCache.delete(peel.item.p); } if (peel.loose){ lifted.delete(peel.loose.id); rebuildLoose(); } peel = null; } }
-  for (let i = crumbs.length - 1; i >= 0; i--){ const c = crumbs[i]; c.t -= dt; c.x += c.vx * dt; c.y += c.vy * dt; c.vy += 30 * dt; c.vx *= .9; if (c.t <= 0) crumbs.splice(i, 1); }
+  for (let i = flyers.length - 1; i >= 0; i--){ const f = flyers[i]; f.t += dt; if (f.t >= f.dur){ flyers.splice(i, 1); intoBin(); } }
+  if (peel && peel.auto) autoPeelStep(dt);
+  if (ROOM.radio){ const b = AUD.beatN(); if (b !== lastBeat){ lastBeat = b; if (b % 2 === 0) crumbs.push({ note:true, x:OBJ.radio.x + (b % 4 ? 41 : 11), y:OBJ.radio.y + 8, vx:(Math.random() - .5) * 8, vy:-14, t:1.4, c:["#f1bf2e", "#f7f3ea", "#ec9aa6"][b % 3] }); } }
+  for (let i = crumbs.length - 1; i >= 0; i--){ const c = crumbs[i]; c.t -= dt; c.x += c.vx * dt; c.y += c.vy * dt; c.vy += (c.note ? -6 : 30) * dt; c.vx *= .9; if (c.t <= 0) crumbs.splice(i, 1); }
 }
 function render(now){
   g.setTransform(1, 0, 0, 1, 0, 0); g.imageSmoothingEnabled = false;
   g.drawImage(DESK, 0, 0);
   /* things on the desk */
-  ["sticks", "mug"].forEach(id => drawObj(id));
+  STACK.forEach(id => drawObj(id));
   if (!PAN.st) drawObj("binder"); if (!PAN.mg) drawObj("mag");
   drawBook(now);
+  drawObj("lamp");
   /* cut-outs lying loose on the open pages */
   loose.filter(o => o.page != null).forEach(o => { const pr = pageOfLoose(o); if (!pr) return; drawItem(g, o.spr, pr.x + o.x, pr.y + o.y, o.r, .32); drawGlue(o, pr.x + o.x, pr.y + o.y); });
   drawPanels(now);
   loose.filter(o => o.page == null).forEach(o => { drawItem(g, o.spr, o.x, o.y, o.r, o.stuck ? .16 : .32); drawGlue(o, o.x, o.y); });
+  flyers.forEach(f => { const k = clamp(f.t / f.dur, 0, 1), e = k * k * (3 - 2 * k), x = lerp(f.x0, f.x1, e), y = lerp(f.y0, f.y1, e) - Math.sin(k * Math.PI) * f.h;
+    g.save(); g.translate(Math.round(x), Math.round(y)); g.rotate(f.r + k * f.spin); const sc = 1 - .45 * k * k; g.scale(sc, sc); g.drawImage(f.spr.cv, -Math.floor(f.spr.w / 2), -Math.floor(f.spr.h / 2)); g.restore(); });
   if (peel) drawPeel(peel);
+  drawLight(now);
   if (held){ g.globalAlpha = .28; g.save(); g.translate(Math.round(held.x) + 3, Math.round(held.y) + 5); g.rotate(held.r); g.drawImage(held.spr.sh, -Math.floor(held.spr.w / 2), -Math.floor(held.spr.h / 2)); g.restore(); g.globalAlpha = 1; drawItem(g, held.spr, held.x, held.y, held.r, 0); }
-  crumbs.forEach(c => { g.fillStyle = c.c; g.fillRect(Math.round(c.x), Math.round(c.y), 1, 1); });
+  crumbs.forEach(c => { g.globalAlpha = c.note ? clamp(c.t, 0, 1) : 1; if (c.note){ g.fillStyle = c.c; g.fillRect(Math.round(c.x), Math.round(c.y), 2, 2); g.fillRect(Math.round(c.x) + 1, Math.round(c.y) - 4, 1, 4); g.fillRect(Math.round(c.x) + 2, Math.round(c.y) - 4, 2, 1); }
+    else { g.fillStyle = c.c; g.fillRect(Math.round(c.x), Math.round(c.y), c.s || 1, c.s || 1); } }); g.globalAlpha = 1;
   /* the caret, blinking */
   if (typing){ const pr = visiblePageRect(typing.p); if (pr && Math.floor(now / 480) % 2 === 0){ const L = layoutStr(typing.s, typing.x, typing.y, typing.z, PW - 3);
       g.fillStyle = INK[typing.c] === "#f6f2e8" ? "#7d776b" : INK[typing.c]; g.fillRect(pr.x + L.cx, pr.y + L.cy - 8 * typing.z, typing.z, 9 * typing.z); } }
   if (pointer.fine && pointer.in){ const t = TOOLSP[tool === "crayon" ? "crayon" + ink : tool]; if (t){ g.save(); g.translate(Math.round(pointer.x), Math.round(pointer.y)); g.drawImage(t.cv, -t.hx, -t.hy); g.restore(); } }
 }
-function drawObj(id){ const o = OBJ[id]; if (!o.spr) return; g.globalAlpha = .35; g.drawImage(o.spr.sh, Math.round(o.x) + 2, Math.round(o.y) + 3); g.globalAlpha = 1; g.drawImage(o.spr.cv, Math.round(o.x), Math.round(o.y)); }
+/* the lamp's warm pool, or the room gone dark */
+function drawLight(now){
+  const L = OBJ.lamp;
+  if (ROOM.lamp){ const cx = L.x + 14 + 70, cy = L.y + 12 + 56, R = Math.max(LW, LH) * .62;
+    g.globalCompositeOperation = "lighter";
+    for (let k = 0; k < 6; k++){ g.fillStyle = "rgba(255,186,104,.03)"; g.beginPath(); g.arc(Math.round(cx), Math.round(cy), Math.round(R * (1 - k / 6.5)), 0, 7); g.fill(); }
+    g.globalCompositeOperation = "source-over"; }
+  else { g.fillStyle = "rgba(6,8,22,.5)"; g.fillRect(0, 0, LW, LH);
+    if (ROOM.radio){ g.fillStyle = "rgba(255,110,80,.5)"; g.fillRect(Math.round(OBJ.radio.x) + 46, Math.round(OBJ.radio.y) + 9, 1, 1); } }
+}
+function drawObj(id){ const o = OBJ[id]; if (!o.spr) return;
+  if (id === "lamp") o.spr = ROOM.lamp ? o.on : o.off;
+  if (id === "radio") o.spr = ROOM.radio && AUD.beat() < .22 ? o.pulse : OBJ.radio.base || o.spr; g.globalAlpha = .35; g.drawImage(o.spr.sh, Math.round(o.x) + 2, Math.round(o.y) + 3); g.globalAlpha = 1; g.drawImage(o.spr.cv, Math.round(o.x), Math.round(o.y)); }
 function drawGlue(o, x, y){ if (!o.glue || o.stuck) return; const k = Math.min(1, o.glue / GLUE_NEED); g.save(); g.translate(Math.round(x), Math.round(y)); g.rotate(o.r);
   g.fillStyle = `rgba(210,235,255,${(.25 + .35 * k).toFixed(2)})`; o.gm.forEach(([u, v]) => g.fillRect(u, v, 1, 1)); g.restore(); }
 function drawPeel(pl){
@@ -18763,7 +18870,7 @@ function looseAt(x, y){
   return null;
 }
 function inRect(x, y, r){ return x >= r.x && y >= r.y && x < r.x + r.w && y < r.y + r.h; }
-function objAt(x, y){ for (const id of ["binder", "mag", "mug", "sticks"]){ if ((id === "binder" && PAN.st) || (id === "mag" && PAN.mg)) continue; const o = OBJ[id]; if (o.spr && hitSprite(o.spr, x - o.x - o.spr.w / 2, y - o.y - o.spr.h / 2)) return id; } return null; }
+function objAt(x, y){ for (const id of PICK){ if ((id === "binder" && PAN.st) || (id === "mag" && PAN.mg)) continue; const o = OBJ[id]; if (o.spr && hitSprite(o.spr, x - o.x - o.spr.w / 2, y - o.y - o.spr.h / 2)) return id; } return null; }
 function coverAt(x, y){ if (B.open > .001) return false; return x >= spineX && x < spineX + CW && y >= B.y - 2 && y < B.y - 2 + CH; }
 function toLocal(x, y, X, Y, r){ const c = Math.cos(-r), s = Math.sin(-r), dx = x - X, dy = y - Y; return [dx * c - dy * s, dx * s + dy * c]; }
 
@@ -18785,6 +18892,19 @@ cv.addEventListener("pointerdown", e => {
     if (Math.hypot(p.x - (r.x + r.w - 4), p.y - (r.y + 2)) < 7){ togglePanel(k, false); down.act = "none"; return; }
     if (inRect(p.x, p.y, r) && p.y > r.y + r.h - 16){ const dir = p.x < r.x + r.w / 2 ? -1 : 1; if (k === "st") PAN.stPage = (PAN.stPage + dir + SHEETS.length) % SHEETS.length; else PAN.mgPage = (PAN.mgPage + dir + MAGN) % MAGN; AUD.flip(); down.act = "none"; return; } }
   const lo = looseAt(p.x, p.y);
+  /* a second click on the same thing, quickly: toss it */
+  if (tool === "hand" || tool === "scissors"){
+    const pa0 = !lo ? pageAt(p.x, p.y) : null, it0 = pa0 ? itemAt(pa0) : null, id0 = lo ? lo.id : it0 ? it0.id : null;
+    const pending = peel && peel.back && (peel.item || peel.loose);
+    const again = lastTap && performance.now() - lastTap.t < 380 && Math.hypot(p.x - lastTap.x, p.y - lastTap.y) < 6;
+    if (again && (id0 || pending) && (it0 || lo || pending) && (!pending || !id0 || (peel.item ? peel.item.id : peel.loose.id) === id0) && (pending || !it0 || it0.k === "st" || it0.k === "cut")){
+      lastTap = null; down.act = "none";
+      if (pending){ const pl = peel; peel = null; if (pl.item) autoPeel({ item:pl.item }); else { lifted.delete(pl.loose.id); autoPeel({ loose:pl.loose }); } }
+      else if (lo) autoPeel({ loose:lo }); else autoPeel({ item:it0 });
+      return; }
+    lastTap = { t:performance.now(), x:p.x, y:p.y };
+  }
+  if (peel && peel.auto){ down.act = "none"; return; }
   if (tool === "glue" && lo && !lo.stuck){ rubbing = { o:lo, lx:p.x, ly:p.y }; down.act = "glue"; return; }
   if (lo && tool !== "eraser" && tool !== "crayon" && !lo.stuck){ pickLoose(lo, p); down.act = "held"; return; }
   if (lo && lo.stuck && (tool === "hand" || tool === "scissors")){ startPeel({ loose:lo }, p); down.act = "peel"; return; }
@@ -18853,7 +18973,7 @@ function endPointer(e){
   if (act === "cover"){ coverDrag = false; if (click){ setOpen(B.open < .5); } else setOpen(B.open > .35); }
   if (act === "flip"){ if (B.flip && B.flip.drag){ const f = B.flip; f.drag = false; const done = f.dir > 0 ? f.a > Math.PI / 2 : f.a < Math.PI / 2; f.commit = done; f.to = done ? (f.dir > 0 ? Math.PI : 0) : (f.dir > 0 ? 0 : Math.PI); if (done) AUD.flip(); }
     else if (click){ turn(down.side === "R" ? 1 : -1); } }
-  if (act === "obj"){ if (click){ if (down.obj === "binder") togglePanel("st", true); else if (down.obj === "mag") togglePanel("mg", true); else AUD.drop(); } else { saveDesk(); AUD.drop(); } }
+  if (act === "obj"){ if (click) useObj(down.obj, p); else { saveDesk(); AUD.drop(); } }
   if (act === "cut") finishCut();
   if (act === "erase" && erasing){ const er = erasing; erasing = null; AUD.hush("erase"); if (er.pts.length >= 4) addItem({ k:"er", p:er.p, pts:er.pts, w:er.w }); else pageCache.delete(er.p); }
   if (act === "glue"){ AUD.hush("glue"); rubbing = null; }
@@ -18884,13 +19004,39 @@ function detachPeel(p){
   held = { ...o, x:p.x, y:p.y, gx:0, gy:0 };
   if (down) down.act = "held";
   if (pl.item) hidden.delete(pl.item.id);
-  if (!seen.peel){ seen.peel = 1; hint(T({ en:"Drop it on a page. Wheel or Q / E turns it", ko:"페이지 위에 놓아 붙이세요. 휠이나 Q / E로 돌릴 수 있어요" }), true); }
+  if (!seen.peel){ seen.peel = 1; hint(T({ en:"Drop it on a page — or in the wastebasket to throw it away. Wheel or Q / E turns it", ko:"페이지에 놓아 붙이거나, 휴지통에 놓아 버리세요. 휠이나 Q / E로 돌릴 수 있어요" }), true); }
 }
 function pickLoose(o, p){ lifted.add(o.id); loose = loose.filter(q => q !== o); const pr = o.page != null ? pageOfLoose(o) : { x:0, y:0 }; const X = o.x + pr.x, Y = o.y + pr.y;
   held = { ...o, from:o, page:null, x:X, y:Y, gx:X - p.x, gy:Y - p.y }; AUD.pick(); }
+/* is (x, y) over the wastebasket? */
+function overBin(x, y){ const b = OBJ.bin; return b.spr && Math.hypot(x - (b.x + 16), y - (b.y + 16)) < 19; }
+function intoBin(){ ROOM.bin++; OBJ.bin.spr = mkSprite(mkBin(ROOM.bin), "st", 7); AUD.crumple(); }
+function toss(spr, x, y, r, quick){ const b = OBJ.bin; flyers.push({ spr, x0:x, y0:y, x1:b.x + 16, y1:b.y + 16, r:r || 0, spin:(Math.random() < .5 ? -1 : 1) * (2 + Math.random() * 3), h:quick ? 6 : 18 + Math.hypot(b.x - x, b.y - y) * .15, t:0, dur:quick ? .2 : .55 }); }
+/* a double-click: the sticker lifts itself from its nearest corner, comes away, and goes in the bin */
+function autoPeel(src){
+  let spr, X, Y, r, item = null, lo = null;
+  if (src.item){ item = src.item; const pr = visiblePageRect(item.p); if (!pr) return; spr = spriteOf(item); X = pr.x + item.x; Y = pr.y + item.y; r = item.r; hidden.add(item.id); pageCache.delete(item.p); }
+  else { lo = src.loose; const pr = lo.page != null ? pageOfLoose(lo) : { x:0, y:0 }; if (!pr) return; spr = lo.spr; X = lo.x + pr.x; Y = lo.y + pr.y; r = lo.r; lifted.add(lo.id); loose = loose.filter(q => q !== lo); }
+  if (src.direct){ toss(spr, X, Y, r); if (item) removeItem(item); if (lo){ unkeep("loose", lo); lifted.delete(lo.id); } return; }
+  /* peel from the corner furthest from the bin, towards it */
+  const b = OBJ.bin, toBin = toLocal(b.x + 16, b.y + 16, X, Y, r), L = Math.hypot(toBin[0], toBin[1]) || 1, dir = [toBin[0] / L, toBin[1] / L];
+  let G = spr.edge[0] || [0, 0], best = -1e9; for (const e of spr.edge){ const d = -(e[0] * dir[0] + e[1] * dir[1]); if (d > best){ best = d; G = e; } }
+  peel = { spr, X, Y, r, G:[G[0], G[1]], P:[G[0], G[1]], L0:[0, 0], fr:0, item, loose:lo, sheet:null, slot:null, back:false, auto:true, dir, span:Math.hypot(spr.w, spr.h) * 1.15, k:0 };
+}
+function autoPeelStep(dt){
+  const pl = peel; pl.k = Math.min(1, pl.k + dt / .5);
+  const e = pl.k * pl.k * (3 - 2 * pl.k); pl.P = [pl.G[0] + pl.dir[0] * pl.span * e, pl.G[1] + pl.dir[1] * pl.span * e];
+  const fr = peeled(pl.spr, pl.G, pl.P); if (fr - pl.fr > .01){ AUD.peel(Math.min(1, (fr - pl.fr) * 12)); pl.fr = fr; }
+  if (pl.k >= 1){ peel = null; AUD.pop(); toss(pl.spr, pl.X, pl.Y, pl.r);
+    if (pl.item){ removeItem(pl.item); hidden.delete(pl.item.id); }
+    if (pl.loose){ unkeep("loose", pl.loose); lifted.delete(pl.loose.id); } }
+}
+let lastTap = null;
 function dropHeld(p){
   const h = held; held = null; const pa = pageAt(h.x, h.y), from = h.from || null;
   const done = () => { if (from) lifted.delete(from.id); rebuildLoose(); };
+  /* into the wastebasket: gone, for everyone */
+  if (overBin(h.x, h.y) || overBin(p.x, p.y)){ if (from) unkeep("loose", from); done(); toss(h.spr, h.x, h.y, h.r, true); if (!seen.bin){ seen.bin = 1; toast(T({ en:"Thrown away. Double-click a sticker to toss it straight in.", ko:"버렸어요. 스티커를 두 번 누르면 바로 휴지통으로 던질 수 있어요." })); } return; }
   /* back into the binder */
   if (PAN.st && h.kind === "st" && inRect(h.x, h.y, panelRect("st"))){ if (from) unkeep("loose", from); done(); AUD.drop(); return; }
   if (pa && pa.p >= 1 && pa.p <= NP){
@@ -18925,6 +19071,23 @@ function finishCut(){
 function drawLasso(now){ const c = cutting; if (!c) return; const off = Math.floor(now / 90) % 4;
   c.pts.forEach((q, i) => { if ((i + off) % 4 < 2){ g.fillStyle = "#17130f"; g.fillRect(Math.round(c.ox + q[0]), Math.round(c.oy + q[1]), 1, 1); } else { g.fillStyle = "#f7f3ea"; g.fillRect(Math.round(c.ox + q[0]), Math.round(c.oy + q[1]), 1, 1); } }); }
 function rubCrumbs(x, y){ if (Math.random() < .5) crumbs.push({ x, y, vx:(Math.random() - .5) * 40, vy:-10 - Math.random() * 20, t:.6 + Math.random() * .6, c:Math.random() < .5 ? "#e88f9a" : "#b9a9a0" }); }
+
+/* what the things on the desk do when you click them */
+function useObj(id, p){
+  const o = OBJ[id];
+  if (id === "binder") togglePanel("st", true);
+  else if (id === "mag") togglePanel("mg", true);
+  else if (id === "lamp"){ ROOM.lamp = !ROOM.lamp; AUD.click(); }
+  else if (id === "radio"){ ROOM.radio = !ROOM.radio; AUD.music(ROOM.radio); AUD.click();
+    if (ROOM.radio && !seen.radio){ seen.radio = 1; hint(T({ en:"A walking bass and a ride cymbal — click the radio again to stop it", ko:"워킹 베이스와 라이드 심벌 — 라디오를 다시 누르면 꺼져요" }), true); } }
+  else if (id === "jars"){ let best = 0, bd = 1e9; JARS.forEach(([x, y], i) => { const d = Math.hypot(p.x - o.x - x, p.y - o.y - y); if (d < bd){ bd = d; best = i; } });
+    pickInk(JARS[best][2]); setTool("crayon"); AUD.dip(); toast(T({ en:"Oilstick dipped — drag on a page to paint with it", ko:"오일스틱에 물감을 묻혔어요 — 페이지를 끌어 칠해 보세요" })); }
+  else if (id === "spray"){ AUD.spray(); const c = ["#d6392b", "#f1bf2e", "#2d62b4", "#f7f3ea"][Math.floor(Math.random() * 4)];
+    for (let i = 0; i < 40; i++){ const a = Math.random() * 6.28, v = 10 + Math.random() * 40; crumbs.push({ x:o.x + 10, y:o.y + 10, vx:Math.cos(a) * v, vy:Math.sin(a) * v - 10, t:.5 + Math.random() * .6, c, s:Math.random() < .3 ? 2 : 1 }); } }
+  else if (id === "bin"){ hint(T({ en:"Drop a sticker or a cut-out here to throw it away — or double-click one", ko:"스티커나 오린 조각을 여기에 놓으면 버려져요 — 두 번 눌러도 돼요" }), true); AUD.crumple(); }
+  else if (id === "books"){ AUD.thump(); }
+  else AUD.drop();
+}
 
 /* the cover, and turning pages */
 function setOpen(v){ if (B.flip) return; const was = B.openT; B.openT = v ? 1 : 0; if (was !== B.openT){ AUD.cover(); if (v && !seen.open){ seen.open = 1; setTimeout(() => hint(T({ en:"Open the sticker binder on the left, the magazine on the right", ko:"왼쪽 스티커 북, 오른쪽 잡지를 눌러 펼쳐 보세요" })), 900); } } showNav(); watchVisible(); }
@@ -18980,6 +19143,8 @@ function togglePanel(k, v){ if (typing) commitTyping();
   if (v && k === "st" && !seen.st){ seen.st = 1; hint(T({ en:"Grab a sticker by its edge and peel it off the sheet", ko:"스티커 가장자리를 잡고 시트에서 떼어 내세요" }), true); }
   if (v && k === "mg" && !seen.mg){ seen.mg = 1; hint(T({ en:"Take the scissors and cut round anything you like", ko:"가위를 들고 마음에 드는 것을 따라 오려 보세요" }), true); flashTool("scissors"); } }
 function flashTool(id){ const b = document.querySelector(`.tool[data-t="${id}"]`); if (!b) return; b.animate([{ transform:"translateY(0)" }, { transform:"translateY(-6px)" }, { transform:"translateY(0)" }], { duration:420, iterations:2 }); }
+function pickInk(i){ ink = i; document.querySelectorAll(".ink").forEach((x, j) => x.setAttribute("aria-pressed", String(j === i))); if (typing){ typing.c = i; pageCache.delete(typing.p); }
+  const im = document.querySelector('.tool[data-t="crayon"] img'); if (im) im.src = TOOLSP["crayon" + i].cv.toDataURL(); }
 function setTool(t){ if (typing && t !== "crayon") commitTyping(); tool = t;
   if (t === "crayon" && !seen.crayon){ seen.crayon = 1; hint(T({ en:"Drag on a page to draw — or click a line and type", ko:"페이지 위를 끌어 그리거나, 줄을 누르고 타자로 써 보세요" }), true); } document.querySelectorAll(".tool").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.t === t)));
   document.body.className = document.body.className.replace(/\bt-\w+/g, "").trim() + " t-" + t; AUD.ui(); }
@@ -19039,9 +19204,11 @@ $("ab-h3").textContent = T({ en:"How to make a mess", ko:"어지르는 법" });
 $("ab-ol").innerHTML = "";
 [{ en:"Click the notebook to open it; drag a page's outer edge to turn it.", ko:"노트를 눌러 펼치고, 페이지 바깥 가장자리를 끌어 넘기세요." },
  { en:"Open the binder. Peel a sticker from its edge and press it onto a page. Peel it off the page the same way.", ko:"스티커 북을 열고 가장자리부터 떼어 페이지에 붙이세요. 붙은 스티커도 같은 방법으로 떼어 낼 수 있어요." },
+ { en:"To get rid of one: peel it and drop it in the wastebasket, or double-click it and it peels itself off into the bin.", ko:"없애려면: 떼어서 휴지통에 놓거나, 두 번 누르면 스스로 떨어져 휴지통으로 날아가요." },
  { en:"Open the magazine, take the scissors and cut round something. Carry it over, then rub glue on it.", ko:"잡지를 열고 가위로 오린 뒤, 노트로 옮겨 풀로 문질러 붙이세요." },
  { en:"Oilstick: drag to draw, click a line to type. Eraser: rub out ink and letters.", ko:"오일스틱: 끌면 그려지고, 줄을 누르면 타자로 써져요. 지우개: 그림과 글씨를 문질러 지우기." },
  { en:"Anything dropped on the desk just lies there. Move the mug. Nobody minds.", ko:"책상에 떨어뜨린 건 그냥 거기 놓여 있어요. 머그잔도 옮겨 보세요. 아무도 뭐라 하지 않아요." },
+ { en:"The lamp switches on and off. The radio plays. A jar of paint loads the oilstick with its colour; the spray can sprays.", ko:"스탠드는 켜고 끌 수 있고, 라디오에서는 음악이 나와요. 물감 병을 누르면 오일스틱에 그 색이 묻고, 스프레이 캔은 뿌려져요." },
  { en:"Everything stays — on the pages, on the desk, in the magazine — and the next person can peel it, move it or rub it out.", ko:"페이지 위, 책상 위, 잡지에 남긴 모든 것이 그대로 남고, 다음 사람이 떼고, 옮기고, 지울 수 있어요." }]
   .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); $("ab-ol").appendChild(li); });
 
@@ -19050,6 +19217,9 @@ $("ab-ol").innerHTML = "";
    ========================================================================== */
 function buildAll(){
   buildStickers(); buildMags(); buildBook();
+  OBJ.lamp.spr = mkSprite(mkLamp(true), "st", 5); OBJ.lamp.on = OBJ.lamp.spr; OBJ.lamp.off = mkSprite(mkLamp(false), "st", 5);
+  OBJ.radio.spr = OBJ.radio.base = mkSprite(mkRadio(false), "st", 6); OBJ.radio.pulse = mkSprite(mkRadio(true), "st", 6);
+  OBJ.bin.spr = mkSprite(mkBin(0), "st", 7); OBJ.jars.spr = mkSprite(mkJars(), "st", 8); OBJ.books.spr = mkSprite(mkBooks(), "st", 9); OBJ.spray.spr = mkSprite(mkSpray(), "st", 10);
   OBJ.binder.spr = mkSprite(mkBinder(), "st", 1); OBJ.mag.spr = mkSprite(mkMagClosed(), "cut", 2); OBJ.mug.spr = mkSprite(mkMug(), "st", 3); OBJ.sticks.spr = mkSprite(mkSticks(), "st", 4);
   TOOLS.forEach(t => { if (t === "crayon") INK.forEach((_, i) => { const r = mkTool("crayon", i); TOOLSP["crayon" + i] = { cv:r.px.canvas(), hx:r.hx, hy:r.hy }; }); else { const r = mkTool(t); TOOLSP[t] = { cv:r.px.canvas(), hx:r.hx, hy:r.hy }; } });
 }
