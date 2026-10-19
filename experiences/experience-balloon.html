@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Love Is in the Bin — Living Art Museum</title>
-<meta name="description" content="The moment after the hammer fell at Sotheby's, 2018: turn the handle and the painting slides down through the shredder in its own frame. The strips hang from the frame — touch them. An experience after Banksy's Girl with Balloon, from the Living Art Museum.">
+<meta name="description" content="A gilt frame on a brick wall at night. Turn the handle and the painting goes down through the shredder in its own frame; the strips hang underneath like real paper — flick them, pull them, tear one off. After Banksy's Girl with Balloon, from the Living Art Museum.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,24 +12,25 @@
 :root{--serif:Fraunces,"Noto Serif KR",Georgia,serif;}
 html[lang="ko"]{--serif:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;}
 /* ==========================================================================
-   LOVE IS IN THE BIN — after Banksy's Girl with Balloon (Sotheby's, 2018).
-   A saleroom wall, a gilt frame, and a handle on its side. Turn it and the
-   canvas goes down through the shredder hidden in the frame; the strips hang
-   underneath and swing when you touch them. Halfway, it jams — as it did.
-   The picture in the frame is a stencil drawn here, not the original image.
+   LOVE IS IN THE BIN — after Banksy's Girl with Balloon (2006 / 2018).
+   A brick wall in a city at night, drawn like a 90s cartoon: thick outlines,
+   flat colour, warm windows. A gilt frame hangs on it with a handle on its
+   side. Turn it and the canvas slides down through the shredder hidden in
+   the frame; the strips hang underneath and behave like paper — they swing,
+   twist to show their backs, flutter, and tear off if you pull too hard.
    ========================================================================== */
 :root{
-  --ink:#17171a; --ink-dim:rgba(23,23,26,.64); --ink-faint:rgba(23,23,26,.44);
-  --glass-a:rgba(255,255,255,.74); --glass-b:rgba(255,255,255,.52); --glass-line:rgba(0,0,0,.09);
-  --chip-on:#17171a; --chip-on-ink:#fff; --accent:#d42a20;
+  --ink:#f4f1ea; --ink-dim:rgba(244,241,234,.7); --ink-faint:rgba(244,241,234,.46);
+  --glass-a:rgba(40,36,72,.62); --glass-b:rgba(30,28,58,.5); --glass-line:rgba(255,255,255,.14);
+  --chip-on:#f4f1ea; --chip-on-ink:#1c1630; --accent:#e5483c;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;}
-body{background:#d9d6cf;color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
+body{background:#1b2350;color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px;}
-.glass{background:linear-gradient(180deg,var(--glass-a),var(--glass-b));backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
-  border:1px solid var(--glass-line);box-shadow:0 24px 60px -30px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.4);}
+.glass{background:linear-gradient(180deg,var(--glass-a),var(--glass-b));backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);
+  border:1px solid var(--glass-line);box-shadow:0 24px 60px -30px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.12);}
 #cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;}
 
 .top{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:20px;right:20px;z-index:10;display:flex;align-items:center;gap:14px;pointer-events:none;}
@@ -40,26 +41,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 .title p{font-size:11.5px;color:var(--ink-dim);margin-top:2px;}
 body.embedded .top{display:none;}
 
-/* the sale label beside the frame */
-#label{position:fixed;z-index:8;width:250px;border-radius:18px;padding:15px 16px 14px;}
-#label .lot{font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);}
-#label h2{font-family:var(--serif);font-size:18px;font-weight:600;line-height:1.2;margin-top:7px;transition:color .4s;}
-#label h2 s{color:var(--ink-faint);text-decoration-thickness:1.5px;font-weight:400;}
-#label h2 .new{display:block;color:var(--accent);max-height:0;overflow:hidden;opacity:0;transition:max-height .6s, opacity .6s;}
-#label.renamed h2 .new{max-height:60px;opacity:1;}
-#label .meta{font-size:11.5px;line-height:1.5;color:var(--ink-dim);margin-top:6px;}
-#label .price{margin-top:10px;padding-top:10px;border-top:1px solid var(--glass-line);font-size:12px;line-height:1.6;}
-#label .price div{display:flex;justify-content:space-between;gap:10px;}
-#label .price b{font-family:"JetBrains Mono",monospace;font-weight:500;}
-#label .price .later{max-height:0;overflow:hidden;opacity:0;transition:max-height .6s, opacity .6s;}
-#label.resold .price .later{max-height:30px;opacity:1;}
-#label .price .later b{color:var(--accent);}
-html[lang="ko"] #label .lot{letter-spacing:.04em;}
-
 #bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:12;display:flex;align-items:center;gap:4px;padding:6px;border-radius:20px;max-width:calc(100% - 20px);}
 .chip{display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:14px;font-size:12.5px;color:var(--ink-dim);white-space:nowrap;transition:background .2s,color .2s;}
 .chip svg{width:18px;height:18px;flex:none;}
-.chip:hover{color:var(--ink);background:rgba(127,127,127,.12);}
+.chip:hover{color:var(--ink);background:rgba(255,255,255,.1);}
 .chip.on{background:var(--chip-on);color:var(--chip-on-ink);}
 .chip.ic{padding:9px 10px;}
 .chip:disabled{opacity:.4;cursor:default;}
@@ -80,15 +65,11 @@ body.about #about{display:block;}
 html[lang="ko"] #about .tag{letter-spacing:.04em;}
 
 @media (max-width:760px){
-  #label{width:auto;left:12px !important;right:12px;top:calc(62px + env(safe-area-inset-top,0px)) !important;padding:10px 13px;border-radius:14px;}
-  #label h2{font-size:14px;margin-top:3px;} #label h2 .new{display:inline;margin-left:6px;}
-  #label .meta{display:none;} #label .price{margin-top:6px;padding-top:6px;font-size:11px;line-height:1.45;}
   .chip{padding:8px 10px;font-size:11.5px;gap:5px;} .chip .lb{display:none;}
   #hint{white-space:normal;text-align:center;border-radius:18px;width:max-content;line-height:1.45;}
   #about{left:10px;right:10px;width:auto;top:calc(64px + env(safe-area-inset-top,0px));}
   .title p{display:none;} .title h1{font-size:13px;}
 }
-body.embedded #label{}
 @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
 </style>
 </head>
@@ -99,16 +80,6 @@ body.embedded #label{}
   <a class="logo" href="#" onclick="return false">Living Art Museum</a>
   <div class="title"><h1 id="t-h"></h1><p id="t-p"></p></div>
 </header>
-
-<aside id="label" class="glass" aria-live="polite">
-  <div class="lot" id="lb-lot"></div>
-  <h2><span id="lb-old"></span><span class="new" id="lb-new"></span></h2>
-  <div class="meta" id="lb-meta"></div>
-  <div class="price">
-    <div><span id="lb-sold-l"></span><b id="lb-sold"></b></div>
-    <div class="later"><span id="lb-re-l"></span><b id="lb-re"></b></div>
-  </div>
-</aside>
 <div id="hint" class="glass off"></div>
 
 <nav id="bar" class="glass">
@@ -145,290 +116,358 @@ if (LANG === "ko") document.title = "러브 이즈 인 더 빈 — Living Art Mu
 const T = (o) => (o && (o[LANG] ?? o.en)) || "";
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t;
-const ease = (x) => 1 - Math.pow(1 - clamp(x, 0, 1), 3);
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 let seed = 3; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const OL = "#1c1530";                                     /* the cartoon's ink line */
 
 /* ==========================================================================
-   1. THE PICTURE — a stencil drawn here: a ladder leaning up towards a red
-      moon, black spray and one red, on a primed canvas. (A stand-in of our
-      own; the plaque carries the real title.)
+   1. THE PICTURE IN THE FRAME
+   ART_URL: put the picture of the work here (a data: URL or a file next to the
+   page) and it fills the frame and every strip. Until then a stencil drawn
+   here stands in: a ladder leaning up towards a red moon.
    ========================================================================== */
+const ART_URL = "";
 const AW = 780, AH = 1000, ART = document.createElement("canvas"); ART.width = AW; ART.height = AH;
-function paintArt(){
+function paintStandIn(){
   const q = ART.getContext("2d");
-  /* primed canvas: warm white, a little uneven */
   q.fillStyle = "#f1eee6"; q.fillRect(0, 0, AW, AH);
   for (let k = 0; k < 9000; k++){ q.fillStyle = rnd() < .5 ? "rgba(0,0,0,.025)" : "rgba(255,255,255,.05)"; q.fillRect(rnd() * AW, rnd() * AH, 2, 2); }
-  const vg = q.createRadialGradient(AW / 2, AH / 2, AH * .2, AW / 2, AH / 2, AH * .75); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(80,70,50,.08)");
-  q.fillStyle = vg; q.fillRect(0, 0, AW, AH);
-  /* a sprayed line: a hard stencil edge, a soft haze of overspray, a few drips */
   const spray = (x0, y0, x1, y1, w, col, drip) => {
     q.strokeStyle = col; q.lineCap = "butt"; q.lineWidth = w; q.beginPath(); q.moveTo(x0, y0); q.lineTo(x1, y1); q.stroke();
-    const L = Math.hypot(x1 - x0, y1 - y0), n = L * 1.6;
-    q.fillStyle = col;
-    for (let i = 0; i < n; i++){ const t = rnd(), a = rnd() * 6.283, r = w * (.5 + Math.pow(rnd(), 2.2) * 1.4);
-      q.globalAlpha = .12 + rnd() * .25; q.fillRect(x0 + (x1 - x0) * t + Math.cos(a) * r, y0 + (y1 - y0) * t + Math.sin(a) * r, 1.6, 1.6); }
+    const L = Math.hypot(x1 - x0, y1 - y0), n = L * 1.6; q.fillStyle = col;
+    for (let i = 0; i < n; i++){ const t = rnd(), a = rnd() * 6.283, r = w * (.5 + Math.pow(rnd(), 2.2) * 1.4); q.globalAlpha = .12 + rnd() * .25; q.fillRect(x0 + (x1 - x0) * t + Math.cos(a) * r, y0 + (y1 - y0) * t + Math.sin(a) * r, 1.6, 1.6); }
     q.globalAlpha = 1;
-    if (drip) for (let k = 0; k < drip; k++){ const t = rnd(), x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t + w * .3, len = 18 + rnd() * 70;
-      q.lineWidth = 2 + rnd() * 2.2; q.lineCap = "round"; q.beginPath(); q.moveTo(x, y); q.lineTo(x + rnd() - .5, y + len); q.stroke();
-      q.beginPath(); q.arc(x, y + len, 2.4, 0, 7); q.fill(); }
+    for (let k = 0; k < (drip || 0); k++){ const t = rnd(), x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t + w * .3, len = 18 + rnd() * 70;
+      q.lineWidth = 2 + rnd() * 2.2; q.lineCap = "round"; q.beginPath(); q.moveTo(x, y); q.lineTo(x + rnd() - .5, y + len); q.stroke(); q.beginPath(); q.arc(x, y + len, 2.4, 0, 7); q.fill(); }
   };
   const ink = "#121214", red = "#d42a20";
-  /* the red moon first, so the ladder's top crosses nothing */
   { const cx = AW * .72, cy = AH * .24, r = AW * .1;
     for (let k = 0; k < 2600; k++){ const a = rnd() * 6.283, d = r * (1 + Math.pow(rnd(), 3) * .25); q.globalAlpha = .1 + rnd() * .2; q.fillStyle = red; q.fillRect(cx + Math.cos(a) * d, cy + Math.sin(a) * d, 1.6, 1.6); }
     q.globalAlpha = 1; q.fillStyle = red; q.beginPath(); q.arc(cx, cy, r, 0, 7); q.fill();
     q.strokeStyle = red; for (let k = 0; k < 3; k++){ const x = cx - r * .5 + rnd() * r, len = 30 + rnd() * 80; q.lineWidth = 2.5; q.lineCap = "round"; q.beginPath(); q.moveTo(x, cy + r * .9); q.lineTo(x, cy + r * .9 + len); q.stroke(); } }
-  /* the ladder, leaning up from the bottom left */
   const r1 = [[.22, .92], [.52, .34]], r2 = [[.31, .94], [.6, .37]], P = ([u, v]) => [u * AW, v * AH];
   { const [a, b] = [P(r1[0]), P(r1[1])]; spray(a[0], a[1], b[0], b[1], 13, ink, 2); }
   { const [a, b] = [P(r2[0]), P(r2[1])]; spray(a[0], a[1], b[0], b[1], 13, ink, 2); }
   for (let t = .06; t < 1; t += .11){
     const a = P([r1[0][0] + (r1[1][0] - r1[0][0]) * t, r1[0][1] + (r1[1][1] - r1[0][1]) * t]), b = P([r2[0][0] + (r2[1][0] - r2[0][0]) * t, r2[0][1] + (r2[1][1] - r2[0][1]) * t]);
     spray(a[0], a[1], b[0], b[1], 9, ink, rnd() < .5 ? 1 : 0); }
-  /* the shadow of the ladder's feet, a smudge on the ground */
-  q.fillStyle = "rgba(18,18,20,.18)"; q.beginPath(); q.ellipse(AW * .27, AH * .95, AW * .1, AH * .012, 0, 0, 7); q.fill();
+}
+function loadArt(){
+  paintStandIn();
+  if (!ART_URL) return;
+  const im = new Image(); im.onload = () => { const q = ART.getContext("2d"), s = Math.max(AW / im.width, AH / im.height);
+    q.fillStyle = "#f1eee6"; q.fillRect(0, 0, AW, AH); q.drawImage(im, (AW - im.width * s) / 2, (AH - im.height * s) / 2, im.width * s, im.height * s); };
+  im.src = ART_URL;
 }
 
 /* ==========================================================================
-   2. LAYOUT — the saleroom wall, the frame, the handle, the strips' anchors
+   2. THE STREET — drawn once per size: night sky, rooftops far off, the brick
+      wall the frame hangs on, a lit window, a drainpipe, a lamp, the pavement
    ========================================================================== */
 const cv = $("cv"), g = cv.getContext("2d");
-let W = 0, H = 0, DPR = 1, small = false;
-const F = {};                                /* frame geometry, screen px */
-const NS = 28;                               /* strips: the shredder's blades across the canvas */
-const JAM = .55;                             /* where it stopped in 2018 */
-const S = { p:0, jam:false, done:false, started:false, crankA:0, crankV:0, auto:false, phones:0, flash:0, shake:0, lastFeed:0, dropT:-1 };
-let WALL = null, FRAME = null;
+let W = 0, H = 0, DPR = 1, small = false, LW = 2;
+const F = {};
+const NS = 28, JAM = .55;
+const S = { p:0, jam:false, done:false, started:false, crankA:0, crankV:0, auto:false, flash:0, shake:0, lastFeed:0 };
+let BG = null, FRAME = null;
+/* a hand-drawn line: a little wobble in the middle */
+function wl(q, x0, y0, x1, y1, w){ const mx = (x0 + x1) / 2 + (rnd() - .5) * w * .9, my = (y0 + y1) / 2 + (rnd() - .5) * w * .9; q.moveTo(x0, y0); q.quadraticCurveTo(mx, my, x1, y1); }
+function inkRect(q, x, y, w, h, fill, lw){ q.fillStyle = fill; q.fillRect(x, y, w, h); q.strokeStyle = OL; q.lineWidth = lw || LW; q.beginPath(); wl(q, x, y, x + w, y, LW); wl(q, x + w, y, x + w, y + h, LW); wl(q, x + w, y + h, x, y + h, LW); wl(q, x, y + h, x, y, LW); q.stroke(); }
 function layout(){
   DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; small = W <= 760;
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
   const embedded = document.body.classList.contains("embedded");
-  const top = small ? (embedded ? 150 : 158) : (embedded ? 78 : 92);
+  const top = small ? (embedded ? 120 : 128) : (embedded ? 84 : 96);
   const a = AW / AH;
-  /* the frame: a canvas window, a carved border, a deep bottom rail with the shredder in it */
-  let artH = Math.min((H * (small ? .6 : .6) - top) / 1.3, (W - (small ? 90 : 520)) / (a + .26), (W - 70) / (a + .4));
+  let artH = Math.min((H * .6 - top) / 1.3, (W - (small ? 90 : 380)) / (a + .26), (W - 70) / (a + .4));
   artH = Math.max(150, artH);
   const artW = artH * a, fb = artH * .12, fbB = artH * .18;
-  F.artW = artW; F.artH = artH; F.fb = fb; F.fbB = fbB;
+  Object.assign(F, { artW, artH, fb, fbB });
   F.x0 = Math.round(W / 2 - (artW + 2 * fb) / 2 - (small ? artH * .06 : 0)); F.x1 = Math.round(F.x0 + artW + 2 * fb);
   F.y0 = Math.round(top); F.y1 = Math.round(F.y0 + fb + artH + fbB);
   F.ax0 = F.x0 + fb; F.ay0 = F.y0 + fb; F.ax1 = F.ax0 + artW; F.ay1 = F.ay0 + artH;
   F.slotY = F.y1 - fbB * .35;
   F.crank = { x:F.x1 + artH * .07, y:F.y1 - fbB * .55, r:artH * .13, knob:Math.max(9, artH * .034) };
-  F.floor = H - (small ? 120 : 100);
-  const lb = $("label");
-  if (!small){ lb.style.left = Math.round(Math.min(W - 270, F.crank.x + F.crank.r + 40)) + "px"; lb.style.top = Math.round(F.y0 + artH * .2) + "px"; }
+  F.floor = H - (small ? 104 : 92);                  /* the foot of the wall, where the pavement starts */
+  F.wallTop = Math.max(46, F.y0 - artH * .3);
+  LW = Math.max(1.6, artH / 190);
   document.documentElement.style.setProperty("--hint-y", Math.round(($("bar").getBoundingClientRect().top || H - 72) - 26) + "px");
-  paintWall(); paintFrame(); placeStrips();
+  paintStreet(); paintFrame(); placeStrips();
 }
-
-/* the wall: a saleroom's pale grey fabric, two spotlights on the frame */
-function paintWall(){
-  WALL = document.createElement("canvas"); WALL.width = cv.width; WALL.height = cv.height; const q = WALL.getContext("2d"); q.scale(DPR, DPR);
-  q.fillStyle = "#d8d5ce"; q.fillRect(0, 0, W, H);
-  for (let y = 0; y < H; y += 3){ q.fillStyle = y % 6 ? "rgba(255,255,255,.035)" : "rgba(0,0,0,.025)"; q.fillRect(0, y, W, 1); }
-  const cx = (F.x0 + F.x1) / 2, cy = (F.y0 + F.y1) / 2;
-  const sp = q.createRadialGradient(cx, cy - F.artH * .1, F.artH * .2, cx, cy, F.artH * 1.25); sp.addColorStop(0, "rgba(255,248,232,.55)"); sp.addColorStop(.6, "rgba(255,248,232,.16)"); sp.addColorStop(1, "rgba(255,248,232,0)");
-  q.fillStyle = sp; q.fillRect(0, 0, W, H);
-  const vg = q.createRadialGradient(W / 2, H * .45, Math.min(W, H) * .3, W / 2, H * .5, Math.max(W, H) * .8); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(40,36,30,.32)");
-  q.fillStyle = vg; q.fillRect(0, 0, W, H);
-  /* a skirting line and the floor */
-  q.fillStyle = "#b9b4aa"; q.fillRect(0, F.floor, W, H - F.floor); q.fillStyle = "rgba(0,0,0,.12)"; q.fillRect(0, F.floor, W, 2);
-  /* the sale board on the left: lot and the hammer price */
+function paintStreet(){
+  BG = document.createElement("canvas"); BG.width = cv.width; BG.height = cv.height; const q = BG.getContext("2d"); q.scale(DPR, DPR);
+  seed = 17;
+  const wt = F.wallTop, fl = F.floor;
+  /* sky: deep night blue, a moon */
+  const sky = q.createLinearGradient(0, 0, 0, wt + 40); sky.addColorStop(0, "#141c46"); sky.addColorStop(1, "#33397a");
+  q.fillStyle = sky; q.fillRect(0, 0, W, wt + 40);
+  for (let k = 0; k < 40; k++){ q.fillStyle = `rgba(255,255,230,${.3 + rnd() * .5})`; q.fillRect(rnd() * W, rnd() * (wt - 10), 1.5, 1.5); }
+  { const mx = small ? W * .5 : W * .62, my = Math.max(22, wt * .45), mr = Math.max(14, F.artH * .07);
+    const glow = q.createRadialGradient(mx, my, mr * .5, mx, my, mr * 4); glow.addColorStop(0, "rgba(255,240,190,.35)"); glow.addColorStop(1, "rgba(255,240,190,0)");
+    q.fillStyle = glow; q.fillRect(mx - mr * 4, my - mr * 4, mr * 8, mr * 8);
+    q.fillStyle = "#f6edc8"; q.strokeStyle = OL; q.lineWidth = LW; q.beginPath(); q.arc(mx, my, mr, 0, 7); q.fill(); q.stroke(); }
+  /* far rooftops: two layers of flat blocks with a few warm windows and a water tower */
+  const roofs = (base, col, hMin, hMax, lit, wob) => {
+    let x = -20;
+    while (x < W + 20){ const w = 40 + rnd() * 90, h = hMin + rnd() * (hMax - hMin), y = base - h;
+      q.fillStyle = col; q.fillRect(x, y, w, h + 60); q.strokeStyle = OL; q.lineWidth = LW * .8; q.beginPath(); wl(q, x, y, x + w, y, wob); wl(q, x, y, x, base + 60, wob); q.stroke();
+      for (let wy = y + 10; wy < base - 6; wy += 16) for (let wx = x + 7; wx < x + w - 10; wx += 14) if (rnd() < lit){ q.fillStyle = "#f3c766"; q.fillRect(wx, wy, 5, 7); }
+      if (rnd() < .18){ const tx = x + w * .3, ty = y; q.fillStyle = "#3a2f55"; q.fillRect(tx, ty - 22, 18, 14); q.fillStyle = "#7b4e33"; q.beginPath(); q.moveTo(tx - 2, ty - 22); q.lineTo(tx + 9, ty - 34); q.lineTo(tx + 20, ty - 22); q.closePath(); q.fill();
+        q.strokeStyle = OL; q.lineWidth = LW * .7; q.stroke(); q.strokeRect(tx, ty - 22, 18, 14); q.beginPath(); q.moveTo(tx + 3, ty - 8); q.lineTo(tx + 3, ty); q.moveTo(tx + 15, ty - 8); q.lineTo(tx + 15, ty); q.stroke(); }
+      x += w + 2; }
+  };
+  roofs(wt + 10, "#2a2a5c", 20, 60, .12, 2);
+  roofs(wt + 24, "#3a2f62", 6, 34, .2, 3);
+  /* the brick wall: flat pink-purple, a cornice on top, bricks drawn in patches */
+  const wall = q.createLinearGradient(0, wt, 0, fl); wall.addColorStop(0, "#7d3c5c"); wall.addColorStop(1, "#5e2c4a");
+  q.fillStyle = wall; q.fillRect(0, wt, W, fl - wt);
+  /* light from the lamp, as a flat pool rather than a soft glow */
+  const lampX = small ? W * .9 : Math.min(W - 60, F.x1 + F.artH * 1.15);
+  q.fillStyle = "rgba(255,190,120,.08)"; q.beginPath(); q.ellipse(lampX, fl - F.artH * .55, F.artH * 1.1, F.artH * .9, 0, 0, 7); q.fill();
+  q.fillStyle = "rgba(255,190,120,.06)"; q.beginPath(); q.ellipse(lampX, fl - F.artH * .4, F.artH * .7, F.artH * .6, 0, 0, 7); q.fill();
+  const bw = Math.max(26, F.artH * .11), bh = bw * .42;
+  const patch = (cx, cy, nx, ny) => { for (let r = 0; r < ny; r++) for (let c = 0; c < nx; c++){ if (rnd() < .3) continue;
+      const x = cx + c * bw + (r % 2 ? bw / 2 : 0) + (rnd() - .5) * 2, y = cy + r * bh, sh = rnd();
+      q.fillStyle = sh < .3 ? "rgba(40,10,30,.18)" : sh > .8 ? "rgba(255,200,220,.07)" : "rgba(0,0,0,0)"; q.fillRect(x, y, bw - 3, bh - 3);
+      q.strokeStyle = "rgba(28,21,48,.75)"; q.lineWidth = LW * .7; q.beginPath(); wl(q, x, y, x + bw - 3, y, 2); wl(q, x + bw - 3, y, x + bw - 3, y + bh - 3, 2); wl(q, x + bw - 3, y + bh - 3, x, y + bh - 3, 2); wl(q, x, y + bh - 3, x, y, 2); q.stroke(); } };
+  for (let k = 0; k < (small ? 8 : 14); k++){ const cx = rnd() * W, cy = wt + 20 + rnd() * (fl - wt - 60);
+    if (cx > F.x0 - bw * 3 && cx < F.x1 + bw && cy > F.y0 - bh * 4 && cy < F.y1 + bh) continue;
+    patch(cx, cy, 2 + Math.floor(rnd() * 4), 2 + Math.floor(rnd() * 3)); }
+  /* scuffs and cracks */
+  q.strokeStyle = "rgba(28,21,48,.45)"; q.lineWidth = LW * .6;
+  for (let k = 0; k < 40; k++){ const x = rnd() * W, y = wt + rnd() * (fl - wt), l = 4 + rnd() * 10; q.beginPath(); q.moveTo(x, y); q.lineTo(x + (rnd() - .5) * l, y + l); q.stroke(); }
+  /* the cornice */
+  inkRect(q, -10, wt - 10, W + 20, 14, "#5f7088"); q.fillStyle = "#7f93a8"; q.fillRect(-10, wt - 10, W + 20, 4);
+  /* the next building on the left: a blue-grey wall in shadow, with a drainpipe */
   if (!small){
-    const bx = Math.max(24, F.x0 - F.artH * .9), by = F.y0 + F.artH * .08, bw = Math.min(F.artH * .62, F.x0 - bx - 40), bh = bw * .62;
-    if (bw > 120){
-      q.fillStyle = "#16171a"; q.fillRect(bx, by, bw, bh); q.fillStyle = "rgba(255,255,255,.06)"; q.fillRect(bx, by, bw, 2);
-      q.fillStyle = "#e9d9a8"; q.font = `500 ${Math.round(bw * .07)}px "JetBrains Mono", monospace`; q.textBaseline = "top";
-      q.fillText("LOT 67", bx + bw * .08, by + bh * .12);
-      q.fillStyle = "#f4efe2"; q.font = `500 ${Math.round(bw * .13)}px "JetBrains Mono", monospace`; q.fillText("£860,000", bx + bw * .08, by + bh * .36);
-      q.fillStyle = "rgba(244,239,226,.55)"; q.font = `400 ${Math.round(bw * .055)}px "JetBrains Mono", monospace`; q.fillText(LANG === "ko" ? "낙찰 · 2018. 10. 5" : "HAMMER · 5.10.2018", bx + bw * .08, by + bh * .72);
-    }
+    const lx = Math.min(F.x0 - F.artH * .55, W * .2);
+    q.fillStyle = "#33405e"; q.beginPath(); q.moveTo(-10, wt - 30); q.lineTo(lx, wt - 4); q.lineTo(lx, fl); q.lineTo(-10, fl); q.closePath(); q.fill();
+    q.strokeStyle = OL; q.lineWidth = LW; q.beginPath(); wl(q, lx, wt - 4, lx, fl, 3); wl(q, -10, wt - 30, lx, wt - 4, 3); q.stroke();
+    for (let k = 0; k < 4; k++){ const x = 10 + rnd() * (lx - 60), y = wt + 30 + rnd() * (fl - wt - 120); patchWin(q, x, y, F.artH * .16, F.artH * .26, rnd() < .5); }
+    const px = lx - 14; q.fillStyle = "#5c6b86"; q.fillRect(px - 5, wt, 10, fl - wt); q.strokeStyle = OL; q.lineWidth = LW * .9; q.strokeRect(px - 5, wt, 10, fl - wt);
+    for (let y = wt + 40; y < fl; y += F.artH * .4){ inkRect(q, px - 7, y, 14, 7, "#6e7d98", LW * .8); }
   }
+  /* a lit window on the right, curtains half drawn */
+  if (!small){ const wx = Math.min(W - F.artH * .55, F.x1 + F.artH * .45), wy = F.y0 + F.artH * .05; patchWin(q, wx, wy, F.artH * .3, F.artH * .46, true); }
+  /* the foot of the wall, the pavement, the kerb */
+  q.fillStyle = "#3a2443"; q.fillRect(0, fl - 8, W, 8);
+  const pv = q.createLinearGradient(0, fl, 0, H); pv.addColorStop(0, "#4c5480"); pv.addColorStop(1, "#353b62");
+  q.fillStyle = pv; q.fillRect(0, fl, W, H - fl);
+  q.strokeStyle = OL; q.lineWidth = LW; q.beginPath(); wl(q, 0, fl, W, fl, 2); q.stroke();
+  q.strokeStyle = "rgba(28,21,48,.6)"; q.lineWidth = LW * .7;
+  for (let x = rnd() * 60; x < W; x += 90 + rnd() * 60){ q.beginPath(); wl(q, x, fl, x - 30, H, 3); q.stroke(); }
+  /* the street lamp */
+  if (!small){ const x = lampX, y0 = fl, y1 = Math.max(wt + 20, fl - F.artH * 1.45);
+    q.fillStyle = "#283152"; q.fillRect(x - 4, y1, 8, y0 - y1); q.strokeStyle = OL; q.lineWidth = LW; q.strokeRect(x - 4, y1, 8, y0 - y1);
+    q.beginPath(); q.moveTo(x, y1); q.quadraticCurveTo(x, y1 - 30, x - 34, y1 - 26); q.lineWidth = LW * 3.2; q.strokeStyle = OL; q.stroke(); q.lineWidth = LW * 1.6; q.strokeStyle = "#283152"; q.stroke();
+    const hx = x - 36, hy = y1 - 24;
+    const glow = q.createRadialGradient(hx, hy + 8, 3, hx, hy + 8, F.artH * .5); glow.addColorStop(0, "rgba(255,220,140,.55)"); glow.addColorStop(1, "rgba(255,220,140,0)");
+    q.fillStyle = glow; q.beginPath(); q.arc(hx, hy + 8, F.artH * .5, 0, 7); q.fill();
+    q.fillStyle = "#283152"; q.beginPath(); q.moveTo(hx - 14, hy + 6); q.lineTo(hx + 14, hy + 6); q.lineTo(hx + 8, hy - 6); q.lineTo(hx - 8, hy - 6); q.closePath(); q.fill(); q.strokeStyle = OL; q.lineWidth = LW; q.stroke();
+    q.fillStyle = "#ffe39a"; q.beginPath(); q.ellipse(hx, hy + 8, 10, 4, 0, 0, 7); q.fill(); q.stroke(); }
+  /* the frame's shadow on the bricks: a flat, offset shape */
+  q.fillStyle = "rgba(40,12,36,.45)"; q.fillRect(F.x0 + F.fb * .35, F.y0 + F.fb * .45, F.x1 - F.x0, F.y1 - F.y0);
+}
+function patchWin(q, x, y, w, h, lit){
+  inkRect(q, x - w * .08, y - h * .1, w * 1.16, h * .1, "#5e7a8c");                       /* the lintel */
+  inkRect(q, x, y, w, h, lit ? "#f6c76c" : "#3e5d97");
+  if (lit){ q.fillStyle = "#e38a3c"; q.beginPath(); q.moveTo(x, y); q.quadraticCurveTo(x + w * .32, y + h * .5, x + w * .12, y + h); q.lineTo(x, y + h); q.closePath(); q.fill();
+    q.beginPath(); q.moveTo(x + w, y); q.quadraticCurveTo(x + w * .7, y + h * .5, x + w * .88, y + h); q.lineTo(x + w, y + h); q.closePath(); q.fill(); }
+  else { q.fillStyle = "rgba(255,255,255,.15)"; q.beginPath(); q.moveTo(x + w * .2, y + h * .1); q.lineTo(x + w * .45, y + h * .1); q.lineTo(x + w * .15, y + h * .55); q.closePath(); q.fill(); }
+  q.strokeStyle = OL; q.lineWidth = LW * .9; q.beginPath(); q.moveTo(x + w / 2, y); q.lineTo(x + w / 2, y + h); q.moveTo(x, y + h / 2); q.lineTo(x + w, y + h / 2); q.stroke();
+  inkRect(q, x - w * .1, y + h, w * 1.2, h * .08, "#6b7f8e");                                /* the sill */
 }
 
-/* the frame: carved, gilded, mitred at the corners; its bottom rail is deep, it hides the blades */
+/* the frame, cartoon-gilt: flat gold, a lighter band, beads and leaves outlined in ink */
 function paintFrame(){
   FRAME = document.createElement("canvas"); FRAME.width = cv.width; FRAME.height = cv.height; const q = FRAME.getContext("2d"); q.scale(DPR, DPR);
+  seed = 29;
   const { x0, y0, x1, y1, fb, fbB } = F, ix0 = F.ax0, iy0 = F.ay0, ix1 = F.ax1, iy1 = F.ay1;
-  const GOLD = [[0, "#4a300a"], [.12, "#9c7224"], [.3, "#f3d886"], [.42, "#c9993b"], [.6, "#8a6219"], [.75, "#e6c463"], [.88, "#a77a26"], [1, "#3e2807"]];
-  const side = (pts, gx0, gy0, gx1, gy1) => { const gr = q.createLinearGradient(gx0, gy0, gx1, gy1); GOLD.forEach(([o, c]) => gr.addColorStop(o, c));
-    q.fillStyle = gr; q.beginPath(); pts.forEach(([x, y], i) => i ? q.lineTo(x, y) : q.moveTo(x, y)); q.closePath(); q.fill(); };
-  /* a soft shadow on the wall */
-  q.save(); q.shadowColor = "rgba(30,24,14,.45)"; q.shadowBlur = fb * .9; q.shadowOffsetY = fb * .35; q.fillStyle = "#6b4a14";
-  q.beginPath(); q.rect(x0, y0, x1 - x0, y1 - y0); q.rect(ix0 + 1, iy0 + 1, ix1 - ix0 - 2, iy1 - iy0 - 2); q.fill("evenodd"); q.restore();
-  side([[x0, y0], [x1, y0], [ix1, iy0], [ix0, iy0]], 0, y0, 0, iy0);
-  side([[x0, y1], [x1, y1], [ix1, iy1], [ix0, iy1]], 0, y1, 0, iy1);
-  side([[x0, y0], [ix0, iy0], [ix0, iy1], [x0, y1]], x0, 0, ix0, 0);
-  side([[x1, y0], [ix1, iy0], [ix1, iy1], [x1, y1]], x1, 0, ix1, 0);
-  /* carving: a row of beads round the outer edge, leaves round the middle, rosettes at the corners */
-  const bead = (x, y, r, light) => { const gr = q.createRadialGradient(x - r * .35, y - r * .35, r * .1, x, y, r); gr.addColorStop(0, light ? "#fff2bf" : "#f0d58a"); gr.addColorStop(.5, "#c4922f"); gr.addColorStop(1, "#5a3b0c");
-    q.fillStyle = gr; q.beginPath(); q.arc(x, y, r, 0, 7); q.fill(); };
-  const leaf = (x, y, r, ang) => { q.save(); q.translate(x, y); q.rotate(ang);
-    const gr = q.createLinearGradient(0, -r, 0, r); gr.addColorStop(0, "#f6de94"); gr.addColorStop(.5, "#b98a2e"); gr.addColorStop(1, "#4f330a");
-    q.fillStyle = gr; q.beginPath(); q.moveTo(-r, r * .6); q.quadraticCurveTo(-r * .9, -r * .9, 0, -r); q.quadraticCurveTo(r * .9, -r * .9, r, r * .6); q.quadraticCurveTo(0, r * .1, -r, r * .6); q.fill();
-    q.strokeStyle = "rgba(70,45,8,.6)"; q.lineWidth = Math.max(.6, r * .08); q.beginPath(); q.moveTo(0, -r * .8); q.lineTo(0, r * .3); q.stroke(); q.restore(); };
-  const along = (ax, ay, bx, by, step, fn) => { const L = Math.hypot(bx - ax, by - ay), n = Math.max(1, Math.round(L / step)); for (let i = 0; i <= n; i++){ const t = i / n; fn(ax + (bx - ax) * t, ay + (by - ay) * t, i); } };
-  const ob = fb * .09, ins = fb * .14;
-  along(x0 + ins, y0 + ins, x1 - ins, y0 + ins, ob * 2.3, (x, y) => bead(x, y, ob, true));
-  along(x0 + ins, y1 - ins, x1 - ins, y1 - ins, ob * 2.3, (x, y) => bead(x, y, ob));
-  along(x0 + ins, y0 + ins, x0 + ins, y1 - ins, ob * 2.3, (x, y) => bead(x, y, ob, true));
-  along(x1 - ins, y0 + ins, x1 - ins, y1 - ins, ob * 2.3, (x, y) => bead(x, y, ob));
-  const lr = fb * .2, m = fb * .52;
-  along(x0 + fb, y0 + m, x1 - fb, y0 + m, lr * 1.7, (x, y) => leaf(x, y, lr, 0));
-  along(x0 + fb, y1 - fbB * .62, x1 - fb, y1 - fbB * .62, lr * 1.7, (x, y) => leaf(x, y, lr, Math.PI));
-  along(x0 + m, y0 + fb, x0 + m, y1 - fbB, lr * 1.7, (x, y) => leaf(x, y, lr, -Math.PI / 2));
-  along(x1 - m, y0 + fb, x1 - m, y1 - fbB, lr * 1.7, (x, y) => leaf(x, y, lr, Math.PI / 2));
+  q.fillStyle = "#d29a38"; q.beginPath(); q.rect(x0, y0, x1 - x0, y1 - y0); q.rect(ix0, iy0, ix1 - ix0, iy1 - iy0); q.fill("evenodd");
+  /* light from upper left: top and left lighter, bottom and right darker */
+  q.fillStyle = "#efc766"; q.beginPath(); q.moveTo(x0, y0); q.lineTo(x1, y0); q.lineTo(ix1, iy0); q.lineTo(ix0, iy0); q.lineTo(ix0, iy1); q.lineTo(x0, y1); q.closePath(); q.globalAlpha = .55; q.fill(); q.globalAlpha = 1;
+  q.fillStyle = "#a66f1e"; q.beginPath(); q.moveTo(x1, y1); q.lineTo(x0, y1); q.lineTo(ix0, iy1); q.lineTo(ix1, iy1); q.lineTo(ix1, iy0); q.lineTo(x1, y0); q.closePath(); q.globalAlpha = .45; q.fill(); q.globalAlpha = 1;
+  /* a darker moulding band round the middle */
+  const m = fb * .5; q.strokeStyle = "#9b661a"; q.lineWidth = fb * .16; q.strokeRect(x0 + m, y0 + m, x1 - x0 - 2 * m, y1 - y0 - m - fbB * .5);
+  /* beads round the outside */
+  const bead = (x, y, r) => { q.fillStyle = "#f2cf74"; q.beginPath(); q.arc(x, y, r, 0, 7); q.fill(); q.strokeStyle = OL; q.lineWidth = LW * .55; q.stroke(); q.fillStyle = "#fff4c9"; q.beginPath(); q.arc(x - r * .3, y - r * .3, r * .3, 0, 7); q.fill(); };
+  const along = (ax, ay, bx, by, step, fn) => { const L = Math.hypot(bx - ax, by - ay), n = Math.max(1, Math.round(L / step)); for (let i = 0; i <= n; i++){ const t = i / n; fn(ax + (bx - ax) * t, ay + (by - ay) * t); } };
+  const ob = fb * .085, ins = fb * .15;
+  along(x0 + ins, y0 + ins, x1 - ins, y0 + ins, ob * 2.6, (x, y) => bead(x, y, ob));
+  along(x0 + ins, y1 - ins, x1 - ins, y1 - ins, ob * 2.6, (x, y) => bead(x, y, ob));
+  along(x0 + ins, y0 + ins, x0 + ins, y1 - ins, ob * 2.6, (x, y) => bead(x, y, ob));
+  along(x1 - ins, y0 + ins, x1 - ins, y1 - ins, ob * 2.6, (x, y) => bead(x, y, ob));
+  /* scalloped leaves on the inner band */
+  const scallop = (x, y, r, ang) => { q.save(); q.translate(x, y); q.rotate(ang); q.fillStyle = "#e4b34f"; q.beginPath(); q.arc(0, 0, r, Math.PI, 0); q.closePath(); q.fill(); q.strokeStyle = OL; q.lineWidth = LW * .5; q.beginPath(); q.arc(0, 0, r, Math.PI, 0); q.stroke(); q.restore(); };
+  const sr = fb * .14, sm = fb * .78;
+  along(ix0 + sr, y0 + sm, ix1 - sr, y0 + sm, sr * 2.1, (x, y) => scallop(x, y, sr, 0));
+  along(ix0 + sr, y1 - fbB * .78, ix1 - sr, y1 - fbB * .78, sr * 2.1, (x, y) => scallop(x, y, sr, Math.PI));
+  along(x0 + sm, iy0 + sr, x0 + sm, iy1 - sr, sr * 2.1, (x, y) => scallop(x, y, sr, -Math.PI / 2));
+  along(x1 - sm, iy0 + sr, x1 - sm, iy1 - sr, sr * 2.1, (x, y) => scallop(x, y, sr, Math.PI / 2));
+  /* rosettes at the corners */
   [[x0 + fb * .5, y0 + fb * .5], [x1 - fb * .5, y0 + fb * .5], [x0 + fb * .5, y1 - fbB * .5], [x1 - fb * .5, y1 - fbB * .5]].forEach(([x, y]) => {
-    for (let k = 0; k < 8; k++){ const a = k / 8 * 6.283; leaf(x + Math.cos(a) * fb * .16, y + Math.sin(a) * fb * .16, fb * .15, a + Math.PI / 2); }
-    bead(x, y, fb * .14, true); });
-  /* the inner lip: a thin bright edge, then the dark slip against the canvas */
-  q.strokeStyle = "#f7e4a4"; q.lineWidth = Math.max(1, fb * .05); q.strokeRect(ix0 - fb * .06, iy0 - fb * .06, ix1 - ix0 + fb * .12, iy1 - iy0 + fb * .12);
-  q.strokeStyle = "#2c1d05"; q.lineWidth = Math.max(1, fb * .04); q.strokeRect(ix0 - fb * .015, iy0 - fb * .015, ix1 - ix0 + fb * .03, iy1 - iy0 + fb * .03);
+    for (let k = 0; k < 6; k++){ const a = k / 6 * 6.283, px = x + Math.cos(a) * fb * .17, py = y + Math.sin(a) * fb * .17;
+      q.fillStyle = "#e9bd5c"; q.beginPath(); q.ellipse(px, py, fb * .11, fb * .07, a, 0, 7); q.fill(); q.strokeStyle = OL; q.lineWidth = LW * .5; q.stroke(); }
+    q.fillStyle = "#f6dc8c"; q.beginPath(); q.arc(x, y, fb * .1, 0, 7); q.fill(); q.strokeStyle = OL; q.lineWidth = LW * .6; q.stroke(); });
+  /* ink outlines: outside, inside, the mitres */
+  q.strokeStyle = OL; q.lineWidth = LW * 1.3; q.lineJoin = "round";
+  q.beginPath(); wl(q, x0, y0, x1, y0, 2); wl(q, x1, y0, x1, y1, 2); wl(q, x1, y1, x0, y1, 2); wl(q, x0, y1, x0, y0, 2); q.stroke();
+  q.lineWidth = LW; q.strokeRect(ix0, iy0, ix1 - ix0, iy1 - iy0);
+  q.lineWidth = LW * .7; q.beginPath(); q.moveTo(x0, y0); q.lineTo(ix0, iy0); q.moveTo(x1, y0); q.lineTo(ix1, iy0); q.moveTo(x0, y1); q.lineTo(ix0, iy1); q.moveTo(x1, y1); q.lineTo(ix1, iy1); q.stroke();
   /* the slot under the bottom rail, where the strips come out */
-  q.fillStyle = "#1b1206"; q.fillRect(ix0 - 2, y1 - 2.5, ix1 - ix0 + 4, 3);
-  /* the handle's brass mount on the right side */
-  const c = F.crank; q.fillStyle = "#7a5718"; q.beginPath(); q.ellipse(x1, c.y, fb * .18, fb * .42, 0, 0, 7); q.fill();
+  q.fillStyle = OL; q.fillRect(ix0 - 2, y1 - 3, ix1 - ix0 + 4, 4);
+  /* the handle's mount */
+  const c = F.crank; q.fillStyle = "#b88428"; q.beginPath(); q.ellipse(x1 + 2, c.y, fb * .2, fb * .44, 0, 0, 7); q.fill(); q.strokeStyle = OL; q.lineWidth = LW; q.stroke();
 }
 
 /* ==========================================================================
-   3. THE STRIPS — each a chain of paper hanging from the slot; each knows
-      which part of the picture it carries
+   3. THE STRIPS — paper. Each is a chain that cannot stretch, resists bending,
+      is slowed by the air, twists to show its blank back, and tears off if
+      pulled too hard. Each link knows which slice of the picture it carries.
    ========================================================================== */
-let strips = [];
-const SEG_ART = 34;                                   /* picture px per link */
-const k2s = () => F.artH / AH;                        /* picture px → screen px */
-function anchorX(i){ return F.ax0 + (i + .5) * F.artW / NS; }
-function makeStrips(){
-  strips = []; if (S.p <= 0) return;
-  const top = (1 - S.p) * AH;
-  for (let i = 0; i < NS; i++){
-    const nodes = [], ax = anchorX(i);
-    for (let ya = top, j = 0; ; j++){ const yy = F.slotY + (ya - top) * k2s(); nodes.push({ x:ax, y:yy, px:ax, py:yy, ya, pin:j === 0 }); if (ya >= AH) break; ya = Math.min(AH, j === 0 ? top + SEG_ART * .5 : ya + SEG_ART); }
-    strips.push({ nodes, tw:rnd() * 6.283, cut:false });
-  }
+let strips = [], fallen = [];
+const SEG_ART = 26;
+const k2s = () => F.artH / AH;
+const anchorX = (i) => F.ax0 + (i + .5) * F.artW / NS;
+function newNode(x, y, ya, pin){ return { x, y, px:x, py:y, ya, pin, tw:0, tv:0 }; }
+function freshStrip(i, top){
+  const ax = anchorX(i), nodes = [newNode(ax, F.slotY, top, true)];
+  let ya = top;
+  while (ya < AH){ ya = Math.min(AH, ya + (nodes.length === 1 ? SEG_ART * .5 : SEG_ART)); nodes.push(newNode(ax, Math.min(F.floor, F.slotY + (ya - top) * k2s()), ya, false)); }
+  return { i, nodes };
 }
-function placeStrips(){ if (!strips.length) return;
-  strips.forEach((s, i) => { const ax = anchorX(i), top = s.nodes[0].ya; s.nodes.forEach(n => { n.x = n.px = ax; n.y = n.py = Math.min(F.floor, F.slotY + (n.ya - top) * k2s()); }); }); }
-/* feed more picture through the blades */
+function makeStrips(){ strips = []; if (S.p <= 0) return; const top = (1 - S.p) * AH; for (let i = 0; i < NS; i++) strips.push(freshStrip(i, top)); }
+function placeStrips(){ strips.forEach(s => { const ax = anchorX(s.i), top = s.nodes[0].ya; s.nodes.forEach(n => { n.x = n.px = ax; n.y = n.py = Math.min(F.floor, F.slotY + (n.ya - top) * k2s()); }); });
+  fallen.forEach(s => s.nodes.forEach(n => { n.y = n.py = Math.min(n.y, F.floor); })); }
 function feed(dp){
   if (S.done || dp <= 0) return;
-  const was = S.p;
-  S.p = Math.min(1, S.p + dp); S.lastFeed = performance.now();
-  if (!S.started){ S.started = true; AUD.alarm(); setTimeout(() => AUD.gasp(1), 500); hint(T({ en:"It's shredding itself — just after the hammer fell", ko:"낙찰되자마자 작품이 스스로 갈리고 있어요" })); }
-  const fresh = !strips.length; if (fresh) makeStrips();
+  const was = S.p; S.p = Math.min(1, S.p + dp); S.lastFeed = performance.now();
+  if (!S.started){ S.started = true; AUD.alarm(); hint(T({ en:"An alarm in the frame — the painting is shredding itself", ko:"액자 속에서 경보음이 울려요 — 그림이 스스로 갈리고 있어요" })); }
   const top = (1 - S.p) * AH;
-  if (!fresh) for (const s of strips){
+  if (!strips.length) makeStrips();
+  else for (const s of strips){
     const n0 = s.nodes[0]; n0.ya = top;
+    if (s.nodes.length === 1){ s.nodes.push(newNode(n0.x, n0.y + 1, Math.min(AH, top + SEG_ART * .5), false)); continue; }
     let n1 = s.nodes[1];
-    while (n1 && n1.ya - top > SEG_ART * 1.5){         /* a whole link has come out: hang a new one under the slot */
-      const ya = n1.ya - SEG_ART, t = (ya - top) / (n1.ya - top);
-      s.nodes.splice(1, 0, { x:lerp(n0.x, n1.x, t), y:lerp(n0.y, n1.y, t), px:lerp(n0.px, n1.px, t), py:lerp(n0.py, n1.py, t), ya, pin:false });
-      n1 = s.nodes[1];
+    while (n1.ya - top > SEG_ART * 1.5){                /* a whole link has come out: hang a new one under the slot */
+      const ya = n1.ya - SEG_ART, t = (ya - top) / (n1.ya - top), n = newNode(lerp(n0.x, n1.x, t), lerp(n0.y, n1.y, t), ya, false);
+      n.px = lerp(n0.px, n1.px, t); n.py = lerp(n0.py, n1.py, t); s.nodes.splice(1, 0, n); n1 = n;
     }
   }
   if (!S.jam && was < JAM && S.p >= JAM){ S.jam = true; S.auto = false; jammed(); }
   if (S.p >= 1) shreddedAll();
 }
 function jammed(){
-  AUD.jam(); S.shake = 1; AUD.gasp(.8);
-  $("label").classList.add("renamed", "resold"); setRemote(); labelText();
-  hint(T({ en:"It jammed halfway, as it did in 2018 — renamed 'Love Is in the Bin', and worth eighteen times more", ko:"2018년처럼 절반에서 멈췄어요 — '러브 이즈 인 더 빈'이 되었고, 값은 18배가 됐어요" }));
+  AUD.jam(); S.shake = 1; setRemote(); S.renamedAt = performance.now();
+  hint(T({ en:"It stopped halfway, as it did in 2018 — and became a new work: Love Is in the Bin", ko:"2018년처럼 절반에서 멈췄어요 — 그리고 새 작품 '러브 이즈 인 더 빈'이 되었어요" }));
 }
 function shreddedAll(){
-  S.done = true; S.dropT = 0; AUD.fall(); AUD.gasp(1);
-  strips.forEach(s => { s.nodes[0].pin = false; s.nodes.forEach(n => { n.py -= (rnd() - .5) * 2; n.px += (rnd() - .5) * 4; }); });
-  $("lb-re-l").textContent = T({ en:"Now worth", ko:"지금의 값" }); $("lb-re").textContent = "?";
+  S.done = true; AUD.fall();
+  strips.forEach(s => { s.nodes[0].pin = false; s.nodes.forEach(n => { n.px += (rnd() - .5) * 3; n.tv += (rnd() - .5) * 20; }); fallen.push(s); });
+  strips = [];
   hint(T({ en:"All the way through. An empty frame on the wall — where is the work now?", ko:"끝까지 갈았어요. 벽엔 빈 액자뿐 — 작품은 이제 어디에 있을까요?" }));
-  $("reset").classList.add("on");
+  $("reset").classList.add("on"); setRemote();
 }
-function stepStrips(dt){
-  if (!strips.length) return;
-  const gS = F.artH * 3.2, damp = Math.pow(.985, dt * 60), dt2 = dt * dt, motor = S.crankV > .2 ? Math.min(1, S.crankV / 3) : 0;
-  for (let si = 0; si < strips.length; si++){
-    const s = strips[si]; s.tw += dt * (.5 + motor * 3);
-    for (const n of s.nodes){
-      if (n.pin){ n.x = n.px = anchorX(si) + (motor ? (rnd() - .5) * motor * 1.2 : 0); n.y = n.py = F.slotY; continue; }
+function tearOff(s, at){
+  /* the strip gives way just under the slot: it falls, and a new end starts from the slot */
+  s.nodes[0].pin = false; fallen.push(s);
+  const k = strips.indexOf(s); strips[k] = { i:s.i, nodes:[newNode(anchorX(s.i), F.slotY, (1 - S.p) * AH, true)] };
+  AUD.tear(); hint(T({ en:"Paper tears — that piece is gone for good", ko:"종이가 찢어졌어요 — 그 조각은 이제 돌아오지 않아요" }), true);
+}
+function physics(dt){
+  const all = strips.concat(fallen); if (!all.length) return;
+  const k = k2s(), gS = F.artH * 2.6, air = Math.exp(-dt * 1.9), dt2 = dt * dt, motor = S.crankV > .2 ? Math.min(1, S.crankV / 3) : 0, breeze = Math.sin(performance.now() / 1700) * .25;
+  for (const s of all){
+    const ns = s.nodes;
+    for (let j = 0; j < ns.length; j++){
+      const n = ns[j];
+      if (n.pin){ n.x = n.px = anchorX(s.i) + (motor ? (rnd() - .5) * motor * 1.2 : 0); n.y = n.py = F.slotY; n.tw = 0; continue; }
       if (n.grab){ n.px = n.x; n.py = n.y; n.x = n.gx; n.y = n.gy; continue; }
-      const vx = (n.x - n.px) * damp, vy = (n.y - n.py) * damp; n.px = n.x; n.py = n.y;
-      n.x += vx + (rnd() - .5) * motor * .6; n.y += vy + gS * dt2;
+      let vx = (n.x - n.px) * air, vy = (n.y - n.py) * air;
+      /* paper is light and broad: fast motion is braked hard, slow motion hardly at all */
+      const sp = Math.hypot(vx, vy), cap = F.artH * .03; if (sp > cap){ vx *= cap / sp; vy *= cap / sp; }
+      n.px = n.x; n.py = n.y;
+      n.x += vx + (breeze + (rnd() - .5) * (motor * .8)) * dt * 6; n.y += vy + gS * dt2;
+      /* twisting: sideways motion turns the strip; it springs back flat; neighbours drag each other along */
+      n.tv += (vx * .9 - n.tw * 14 - n.tv * 2.6) * dt * 6;
+      if (sp > cap * .5) n.tv += (rnd() - .5) * 30 * dt;
+      n.tw += n.tv * dt;
     }
+    for (let j = 1; j < ns.length - 1; j++){ const n = ns[j]; if (!n.pin) n.tw = lerp(n.tw, (ns[j - 1].tw + ns[j + 1].tw) / 2, .25); }
   }
-  const k = k2s();
-  for (let it = 0; it < 6; it++){
-    for (const s of strips){
+  for (let it = 0; it < 10; it++){
+    for (const s of all){
       const ns = s.nodes;
-      for (let j = 0; j < ns.length - 1; j++){
+      for (let j = 0; j < ns.length - 1; j++){                      /* paper does not stretch */
         const a = ns[j], b = ns[j + 1], rest = (b.ya - a.ya) * k;
-        let dx = b.x - a.x, dy = b.y - a.y; const d = Math.hypot(dx, dy) || .0001, diff = (d - rest) / d;
-        const wa = a.pin || a.grab ? 0 : (b.pin || b.grab ? 1 : .5), wb = 1 - wa;
-        if (a.pin && (b.pin || b.grab)) continue;
+        const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || .0001, diff = (d - rest) / d;
+        const fa = a.pin || a.grab, fb2 = b.pin || b.grab; if (fa && fb2) continue;
+        const wa = fa ? 0 : fb2 ? 1 : .5, wb = 1 - wa;
         a.x += dx * diff * wa; a.y += dy * diff * wa; b.x -= dx * diff * wb; b.y -= dy * diff * wb;
       }
-      /* paper is a little stiff: keep every other link roughly straight */
-      for (let j = 0; j < ns.length - 2; j++){
+      for (let j = 0; j < ns.length - 2; j++){                      /* and it resists bending, gently */
         const a = ns[j], c = ns[j + 2]; if (a.grab || c.grab) continue;
-        const rest = (c.ya - a.ya) * k * .985, dx = c.x - a.x, dy = c.y - a.y, d = Math.hypot(dx, dy) || .0001;
-        if (d < rest){ const diff = (d - rest) / d * .38; if (!a.pin){ a.x += dx * diff * .5; a.y += dy * diff * .5; } c.x -= dx * diff * .5; c.y -= dy * diff * .5; }
+        const rest = (c.ya - a.ya) * k * .992, dx = c.x - a.x, dy = c.y - a.y, d = Math.hypot(dx, dy) || .0001, diff = (d - rest) / d * .22;
+        if (!a.pin){ a.x += dx * diff * .5; a.y += dy * diff * .5; } c.x -= dx * diff * .5; c.y -= dy * diff * .5;
       }
-      for (const n of ns) if (n.y > F.floor){ n.y = F.floor; n.px = lerp(n.px, n.x, .6); }
+      for (const n of ns) if (n.y > F.floor){ n.y = F.floor; n.px = lerp(n.px, n.x, .7); n.tv *= .6; }
     }
   }
 }
 
 /* ==========================================================================
-   4. HANDS — turn the handle; touch, push and pull the strips
+   4. HANDS — turn the handle; flick, push, pull and tear the strips
    ========================================================================== */
-const ptr = { x:-999, y:-999, down:false, mode:"", lastA:0, node:null, lastX:0, lastY:0, lastT:0 };
+const ptr = { x:-999, y:-999, down:false, mode:"", lastA:0, node:null, strip:null, lastT:0 };
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const nearCrank = (x, y) => Math.hypot(x - F.crank.x, y - F.crank.y) < F.crank.r + F.crank.knob + 14;
 function nearestNode(x, y, R){
-  let best = null, bd = R * R;
-  for (const s of strips) for (const n of s.nodes){ if (n.pin) continue; const d = (n.x - x) ** 2 + (n.y - y) ** 2; if (d < bd){ bd = d; best = n; } }
-  return best;
+  let best = null, bs = null, bd = R * R;
+  for (const s of strips.concat(fallen)) for (const n of s.nodes){ if (n.pin) continue; const d = (n.x - x) ** 2 + (n.y - y) ** 2; if (d < bd){ bd = d; best = n; bs = s; } }
+  return best ? { n:best, s:bs } : null;
 }
 function turn(da){
-  if (da <= 0){ if (da < -.05) AUD.ratchet(); return; }          /* it only turns one way */
-  S.crankA += da;
-  const per = S.jam ? .024 : .1;                                   /* picture per full turn; after the jam it is hard going */
-  feed(da / 6.283 * per);
+  if (da <= 0){ if (da < -.05) AUD.ratchet(); return; }
+  S.crankA += da; feed(da / 6.283 * (S.jam ? .024 : .1));
 }
 cv.addEventListener("pointerdown", e => {
   AUD.unlock(); hideHint(); const x = e.clientX, y = e.clientY;
-  ptr.down = true; ptr.x = ptr.lastX = x; ptr.y = ptr.lastY = y; ptr.lastT = performance.now();
+  ptr.down = true; ptr.x = x; ptr.y = y; ptr.lastT = performance.now();
   try { cv.setPointerCapture(e.pointerId); } catch (_){}
   if (nearCrank(x, y) && !S.done){ ptr.mode = "crank"; ptr.lastA = Math.atan2(y - F.crank.y, x - F.crank.x); S.auto = false; setRemote(); return; }
-  const n = nearestNode(x, y, Math.max(22, F.artW / NS * 1.2));
-  if (n){ ptr.mode = "grab"; ptr.node = n; n.grab = true; n.gx = x; n.gy = y; AUD.rustle(.6); return; }
+  const hit = nearestNode(x, y, Math.max(22, F.artW / NS * 1.3));
+  if (hit){ ptr.mode = "grab"; ptr.node = hit.n; ptr.strip = hit.s; hit.n.grab = true; hit.n.gx = x; hit.n.gy = y; AUD.rustle(.5); return; }
   ptr.mode = "brush";
 });
 cv.addEventListener("pointermove", e => {
-  const x = e.clientX, y = e.clientY, now = performance.now(), dt = Math.max(1, now - ptr.lastT) / 1000;
-  const dx = x - ptr.x, dy = y - ptr.y;
-  cv.style.cursor = ptr.mode === "crank" ? "grabbing" : nearCrank(x, y) && !S.done ? "grab" : nearestNode(x, y, 20) ? "grab" : "default";
+  const x = e.clientX, y = e.clientY, now = performance.now(), dt = Math.max(1, now - ptr.lastT) / 1000, dx = x - ptr.x, dy = y - ptr.y;
+  cv.style.cursor = ptr.mode === "crank" || ptr.mode === "grab" ? "grabbing" : (nearCrank(x, y) && !S.done) || nearestNode(x, y, 20) ? "grab" : "default";
   if (ptr.mode === "crank"){ const a = Math.atan2(y - F.crank.y, x - F.crank.x), da = wrap(a - ptr.lastA); ptr.lastA = a; turn(da); S.crankV = lerp(S.crankV, Math.max(0, da) / 6.283 / dt, .4); }
-  else if (ptr.mode === "grab" && ptr.node){ ptr.node.gx = x; ptr.node.gy = y; if (Math.hypot(dx, dy) > 3) AUD.rustle(Math.min(1, Math.hypot(dx, dy) / 30)); }
-  else if (strips.length && (ptr.mode === "brush" || e.pointerType === "mouse")){
-    /* a hand passing through the strips sets them swinging */
-    const R = Math.max(26, F.artW / NS * 1.6), k = ptr.down ? .7 : .35; let hit = 0;
-    for (const s of strips) for (const n of s.nodes){ if (n.pin) continue; const d = Math.hypot(n.x - x, n.y - y); if (d < R){ const f = (1 - d / R) * k; n.px -= dx * f; n.py -= dy * f; hit += f; } }
+  else if (ptr.mode === "grab" && ptr.node){
+    ptr.node.gx = x; ptr.node.gy = y; ptr.node.tv += dx * .4;
+    if (Math.hypot(dx, dy) > 3) AUD.rustle(Math.min(1, Math.hypot(dx, dy) / 30));
+    /* pulled further than the paper reaches: it tears off at the slot */
+    const s = ptr.strip, n0 = s.nodes[0];
+    if (n0.pin && strips.includes(s)){ const reach = (ptr.node.ya - n0.ya) * k2s(); if (Math.hypot(x - n0.x, y - n0.y) > reach * 1.18 + 14) tearOff(s); }
+  } else if (ptr.mode === "brush" || e.pointerType === "mouse"){
+    /* a hand passing through: each strip it touches is pushed, and turns */
+    const R = Math.max(26, F.artW / NS * 1.6), kk = ptr.down ? .55 : .3; let hit = 0;
+    for (const s of strips.concat(fallen)) for (const n of s.nodes){ if (n.pin) continue; const d = Math.hypot(n.x - x, n.y - y); if (d < R){ const f = (1 - d / R) * kk; n.px -= dx * f; n.py -= dy * f; n.tv += dx * f * .8; hit += f; } }
     if (hit > .3 && Math.hypot(dx, dy) > 2) AUD.rustle(Math.min(1, hit * Math.hypot(dx, dy) / 60));
   }
   ptr.x = x; ptr.y = y; ptr.lastT = now;
 });
-function up(){ ptr.down = false; if (ptr.node){ ptr.node.grab = false; ptr.node = null; } ptr.mode = ""; }
+function up(){ ptr.down = false; if (ptr.node){ ptr.node.grab = false; ptr.node = null; AUD.flap(); } ptr.strip = null; ptr.mode = ""; }
 cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
 cv.addEventListener("wheel", e => { if (S.done) return; e.preventDefault(); AUD.unlock(); const da = Math.max(0, e.deltaY) * .01; turn(da); S.crankV = lerp(S.crankV, da * 6, .5); }, { passive:false });
 window.addEventListener("keydown", e => { if ((e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === " ") && !S.done){ e.preventDefault(); AUD.unlock(); turn(.5); S.crankV = 2; }
   if (e.key === "Escape") document.body.classList.remove("about"); });
 
 /* ==========================================================================
-   5. SOUND — the saleroom, the alarm, the blades, the crowd, the paper
+   5. SOUND — a city at night, the alarm, the blades, the shutter, paper
    ========================================================================== */
 const AUD = (() => {
-  let ctx = null, master = null, white = null, brown = null, on = true, borrowed = false, amb = null, mot = null, rT = 0;
+  let ctx = null, master = null, white = null, brown = null, on = true, borrowed = false, amb = null, mot = null, rT = 0, fT = 0;
   function ensure(){ if (ctx) return ctx; const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
     try { const host = window.parent !== window && window.parent.__lamAudio && window.parent.__lamAudio(); if (host && host.state === "running"){ ctx = host; borrowed = true; } } catch (_){}
     if (!ctx){ try { ctx = new AC(); } catch (_){ return null; } }
@@ -440,9 +479,9 @@ const AUD = (() => {
   const ok = () => on && ensure() && ctx.state === "running";
   const src = (buf, loop) => { const s = ctx.createBufferSource(); s.buffer = buf; s.loop = !!loop; return s; };
   function start(){ if (amb || !ensure() || ctx.state !== "running") return;
-    /* the room: a murmur of people */
-    const m = src(brown, true), mf = ctx.createBiquadFilter(); mf.type = "bandpass"; mf.frequency.value = 420; mf.Q.value = .9; const mg = ctx.createGain(); mg.gain.value = .045;
-    const lfo = ctx.createOscillator(); lfo.frequency.value = .21; const lg = ctx.createGain(); lg.gain.value = .015; lfo.connect(lg); lg.connect(mg.gain);
+    /* the city far off: a low hum that breathes */
+    const m = src(brown, true), mf = ctx.createBiquadFilter(); mf.type = "lowpass"; mf.frequency.value = 260; const mg = ctx.createGain(); mg.gain.value = .07;
+    const lfo = ctx.createOscillator(); lfo.frequency.value = .09; const lg = ctx.createGain(); lg.gain.value = .025; lfo.connect(lg); lg.connect(mg.gain);
     m.connect(mf); mf.connect(mg); mg.connect(master); m.start(); lfo.start();
     /* the motor and the blades, silent until the handle turns */
     const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = 92; const o2 = ctx.createOscillator(); o2.type = "square"; o2.frequency.value = 184;
@@ -452,7 +491,7 @@ const AUD = (() => {
     const am = ctx.createGain(); am.gain.value = .5; const amo = ctx.createOscillator(); amo.frequency.value = 26; const amg = ctx.createGain(); amg.gain.value = .5; amo.connect(amg); amg.connect(am.gain);
     const ng = ctx.createGain(); ng.gain.value = 0; nb.connect(bp); bp.connect(am); am.connect(ng); ng.connect(master);
     o.start(); o2.start(); nb.start(); amo.start();
-    amb = { mg, src:[m, lfo, o, o2, nb, amo] }; mot = { og, ng, o, o2 }; }
+    amb = { src:[m, lfo, o, o2, nb, amo] }; mot = { og, ng, o, o2 }; }
   function noise(buf, tt, dur, f, q, gg, type){ const s = src(buf), fl = ctx.createBiquadFilter(); fl.type = type || "bandpass"; fl.frequency.value = f; fl.Q.value = q;
     const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(gg, tt + Math.min(.05, dur * .3)); a.gain.exponentialRampToValueAtTime(.0001, tt + dur);
     s.connect(fl); fl.connect(a); a.connect(master); s.start(tt, Math.random() * 2); s.stop(tt + dur + .05); }
@@ -462,21 +501,20 @@ const AUD = (() => {
     unlock(){ if (ensure()){ if (ctx.state !== "running") ctx.resume().then(start).catch(() => {}); else start(); } },
     get on(){ return on; }, set on(v){ on = v; if (master) master.gain.setTargetAtTime(v ? .85 : 0, ctx.currentTime, .05); },
     stop(){ if (!ctx) return; if (amb) amb.src.forEach(n => { try { n.stop(); } catch (_){} }); amb = null; try { master.disconnect(); } catch (_){} if (!borrowed) try { ctx.close(); } catch (_){} },
-    /* the motor follows the handle */
     motor(v, jam){ if (!mot || !ctx) return; const tt = ctx.currentTime, k = clamp(v / 2.5, 0, 1);
       mot.og.gain.setTargetAtTime(on ? k * .06 : 0, tt, .05); mot.ng.gain.setTargetAtTime(on ? k * .075 : 0, tt, .05);
       mot.o.frequency.setTargetAtTime(78 + k * 40 + (jam ? 20 : 0), tt, .1); mot.o2.frequency.setTargetAtTime(156 + k * 80, tt, .1);
-      if (amb) amb.mg.gain.setTargetAtTime(.045 + Math.min(.06, S.phones * .05), tt, .4);
       if (k > .1 && performance.now() - rT > 70 + (1 - k) * 160){ rT = performance.now(); if (ok()) noise(white, tt, .05, 3200 + Math.random() * 1500, 1.4, .05 * k); } },
     alarm(){ if (!ok()) return; const tt = ctx.currentTime; for (let i = 0; i < 4; i++) tone(tt + i * .22, 3100, 3100, .12, .05, "square"); },
-    gasp(k){ if (!ok()) return; const tt = ctx.currentTime; noise(brown, tt, 1.8, 760, .8, .14 * k); noise(white, tt + .05, 1.4, 1500, 1.6, .045 * k);
-      for (let i = 0; i < 5; i++) setTimeout(() => this.shutter(), 200 + Math.random() * 1600); },
+    /* the shutter: a click, and a flash */
     shutter(){ if (!ok()) return; const tt = ctx.currentTime; noise(white, tt, .03, 5200, 1, .05); noise(white, tt + .06, .025, 4300, 1, .04); S.flash = Math.max(S.flash, .5 + Math.random() * .4); },
     jam(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 70, 38, .45, .3); noise(brown, tt, .5, 300, .6, .2, "lowpass"); tone(tt + .05, 420, 900, .25, .03, "sawtooth"); },
     ratchet(){ if (!ok()) return; noise(white, ctx.currentTime, .025, 2400, 2, .05); },
     rustle(k){ if (!ok()) return; if (performance.now() - rT < 60) return; rT = performance.now(); noise(white, ctx.currentTime, .09 + Math.random() * .08, 2600 + Math.random() * 2400, .8, .03 + .07 * k); },
+    /* a flicked strip: two quick slaps of paper on air */
+    flap(){ if (!ok()) return; if (performance.now() - fT < 120) return; fT = performance.now(); const tt = ctx.currentTime; noise(white, tt, .05, 1400, .9, .07); noise(white, tt + .07, .04, 1800, .9, .05); },
+    tear(){ if (!ok()) return; const tt = ctx.currentTime; for (let i = 0; i < 9; i++) noise(white, tt + i * .018, .035, 2200 + i * 260, 2.2, .07); },
     fall(){ if (!ok()) return; const tt = ctx.currentTime; for (let i = 0; i < 14; i++) noise(white, tt + i * .06 + Math.random() * .04, .2, 2000 + Math.random() * 3000, .9, .06); noise(brown, tt + .5, .6, 400, .6, .1, "lowpass"); },
-    gavel(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 190, 120, .16, .3); noise(white, tt, .03, 2000, 1, .12); },
     hang(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 140, 100, .2, .15); noise(white, tt, .04, 1500, 1, .06); },
   };
 })();
@@ -484,77 +522,72 @@ const AUD = (() => {
 /* ==========================================================================
    6. RENDER
    ========================================================================== */
-const crowd = [];
-function makeCrowd(){ crowd.length = 0; seed = 41; const n = small ? 7 : 13;
-  for (let i = 0; i < n; i++) crowd.push({ x:(i + .5) / n + (rnd() - .5) * .04, s:.85 + rnd() * .35, phone:rnd() < .75, ph:rnd() * 6, lift:rnd() * .6 + .4 }); }
-function drawCrowd(t){
-  const base = H + 6, sz = Math.min(W, H) * (small ? .16 : .12);
-  for (const c of crowd){
-    const x = c.x * W, s = sz * c.s, y = base - s * .1;
-    g.fillStyle = "rgba(24,25,29,.94)";
-    g.beginPath(); g.ellipse(x, y, s * .62, s * .42, 0, Math.PI, 0); g.fill();                              /* shoulders */
-    g.beginPath(); g.ellipse(x, y - s * .55, s * .24, s * .3, 0, 0, 7); g.fill();                           /* head */
-    if (c.phone && S.phones > .02){
-      const up = ease(S.phones * c.lift * 1.4), px = x + s * .32, py = y - s * (.25 + up * .75), pw = s * .2, ph = s * .34;
-      g.save(); g.translate(px, py); g.rotate(-.12 + Math.sin(t * 1.3 + c.ph) * .03);
-      g.fillStyle = "rgba(24,25,29,.96)"; g.fillRect(-pw * .7, ph * .2, pw * .5, ph * .9);                 /* the arm */
-      g.fillStyle = "#0d0e10"; g.fillRect(-pw / 2, -ph / 2, pw, ph);
-      g.fillStyle = `rgba(190,215,255,${.55 + .35 * Math.sin(t * 2 + c.ph) ** 2})`; g.fillRect(-pw / 2 + 1.5, -ph / 2 + 1.5, pw - 3, ph - 3);
-      g.restore();
-    }
+const BACK = "#ece6d6";                                     /* the blank back of the canvas */
+function drawStrip(s){
+  const sw = AW / NS, ws = F.artW / NS * .94, ns = s.nodes;
+  for (let j = 0; j < ns.length - 1; j++){
+    const a = ns[j], b = ns[j + 1], dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy); if (len < .2) continue;
+    const c = Math.cos((a.tw + b.tw) / 2), w = ws * Math.max(.1, Math.abs(c));
+    g.save(); g.translate(a.x, a.y); g.rotate(Math.atan2(dy, dx) - Math.PI / 2);
+    if (c >= 0) g.drawImage(ART, s.i * sw, a.ya, sw, b.ya - a.ya, -w / 2, -.4, w, len + .8);
+    else { g.fillStyle = BACK; g.fillRect(-w / 2, -.4, w, len + .8); }
+    g.fillStyle = `rgba(28,21,48,${(1 - Math.abs(c)) * .45})`; g.fillRect(-w / 2, -.4, w, len + .8);
+    g.strokeStyle = "rgba(28,21,48,.7)"; g.lineWidth = Math.max(.8, LW * .45);
+    g.beginPath(); g.moveTo(-w / 2, 0); g.lineTo(-w / 2, len); g.moveTo(w / 2, 0); g.lineTo(w / 2, len); g.stroke();
+    g.restore();
   }
+  const e = ns[ns.length - 1], p = ns[ns.length - 2];               /* the cut end */
+  if (p && !ns[ns.length - 1].pin){ g.save(); g.translate(e.x, e.y); g.rotate(Math.atan2(e.y - p.y, e.x - p.x) - Math.PI / 2);
+    const w = ws * Math.max(.1, Math.abs(Math.cos(e.tw))); g.strokeStyle = "rgba(28,21,48,.7)"; g.lineWidth = Math.max(.8, LW * .45); g.beginPath(); g.moveTo(-w / 2, 0); g.lineTo(w / 2, 0); g.stroke(); g.restore(); }
 }
-function drawStrips(t){
-  const sw = AW / NS, ws = F.artW / NS * .94;
-  strips.forEach((s, i) => {
-    const ns = s.nodes;
-    for (let j = 0; j < ns.length - 1; j++){
-      const a = ns[j], b = ns[j + 1], dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy); if (len < .2) continue;
-      const tw = .86 + .14 * Math.cos(s.tw + j * .07 + Math.sin(t * .7 + i) * .3 + (a.x - a.px) * .04), w = ws * tw;
-      g.save(); g.translate(a.x, a.y); g.rotate(Math.atan2(dy, dx) - Math.PI / 2);
-      g.drawImage(ART, i * sw, a.ya, sw, b.ya - a.ya, -w / 2, -.3, w, len + .9);
-      g.fillStyle = `rgba(40,30,20,${(1 - tw) * .8})`; g.fillRect(-w / 2, -.3, w, len + .9);
-      g.restore();
-    }
-  });
+function drawPlaque(){
+  /* a small card on the wall, to the right of the frame: the title, and what it became */
+  const w = Math.max(116, F.artH * .46), h = w * .5, x = small ? F.x0 : F.x1 + F.artH * .32, y = small ? F.y1 + F.artH * 1.02 : F.y1 - h - F.fbB * .1;
+  if (small) return;
+  g.fillStyle = "rgba(40,12,36,.45)"; g.fillRect(x + 4, y + 5, w, h);
+  g.fillStyle = "#efe8d6"; g.fillRect(x, y, w, h); g.strokeStyle = OL; g.lineWidth = LW; g.strokeRect(x, y, w, h);
+  const pad = w * .09; g.textBaseline = "top"; g.fillStyle = "#1c1530";
+  g.font = `600 ${Math.round(w * .085)}px ${LANG === "ko" ? '"Noto Sans KR"' : "Fraunces"}, serif`;
+  const old = T({ en:"Girl with Balloon", ko:"풍선을 든 소녀" }); g.fillText(old, x + pad, y + pad);
+  if (S.jam){ const tw = g.measureText(old).width; g.strokeStyle = "#1c1530"; g.lineWidth = 1.5; g.beginPath(); g.moveTo(x + pad, y + pad + w * .05); g.lineTo(x + pad + tw, y + pad + w * .05); g.stroke();
+    g.fillStyle = "#d42a20"; g.fillText(T({ en:"Love Is in the Bin", ko:"러브 이즈 인 더 빈" }), x + pad, y + pad + w * .12); }
+  g.fillStyle = "rgba(28,21,48,.7)"; g.font = `500 ${Math.round(w * .062)}px ${LANG === "ko" ? '"Noto Sans KR"' : "Inter"}, sans-serif`;
+  g.fillText(S.jam ? T({ en:"Banksy · 2006 / 2018", ko:"뱅크시 · 2006 / 2018" }) : T({ en:"Banksy · 2006", ko:"뱅크시 · 2006" }), x + pad, y + h - pad - w * .07);
+}
+function drawCrank(t){
+  const c = F.crank, a = S.crankA, kx = c.x + Math.cos(a) * c.r, ky = c.y + Math.sin(a) * c.r;
+  if (!S.started && !S.done){ const pu = .5 + .5 * Math.sin(t * 3.2); g.strokeStyle = `rgba(255,214,120,${.3 + pu * .45})`; g.lineWidth = 2; g.setLineDash([4, 5]);
+    g.beginPath(); g.arc(c.x, c.y, c.r, 0, 7); g.stroke(); g.setLineDash([]); }
+  g.lineCap = "round";
+  g.strokeStyle = OL; g.lineWidth = c.knob * .7 + LW * 2; g.beginPath(); g.moveTo(c.x, c.y); g.lineTo(kx, ky); g.stroke();
+  g.strokeStyle = "#d9a441"; g.lineWidth = c.knob * .7; g.beginPath(); g.moveTo(c.x, c.y); g.lineTo(kx, ky); g.stroke();
+  g.fillStyle = "#e9b94f"; g.beginPath(); g.arc(c.x, c.y, c.knob * 1.35, 0, 7); g.fill(); g.strokeStyle = OL; g.lineWidth = LW; g.stroke();
+  g.fillStyle = "#fff0b8"; g.beginPath(); g.arc(c.x - c.knob * .4, c.y - c.knob * .4, c.knob * .35, 0, 7); g.fill();
+  g.fillStyle = "#6a3c22"; g.beginPath(); g.arc(kx, ky, c.knob, 0, 7); g.fill(); g.strokeStyle = OL; g.lineWidth = LW; g.stroke();
+  g.fillStyle = "#b07a52"; g.beginPath(); g.arc(kx - c.knob * .35, ky - c.knob * .35, c.knob * .3, 0, 7); g.fill();
 }
 function render(t){
-  g.setTransform(1, 0, 0, 1, 0, 0); if (WALL) g.drawImage(WALL, 0, 0);
+  g.setTransform(1, 0, 0, 1, 0, 0); if (BG) g.drawImage(BG, 0, 0);
   g.setTransform(DPR, 0, 0, DPR, 0, 0);
   const sx = S.shake > .01 ? (rnd() - .5) * S.shake * 6 : 0, sy = S.shake > .01 ? (rnd() - .5) * S.shake * 3 : 0;
+  /* the fallen pieces lie on the pavement, in front of the wall */
   g.save(); g.translate(sx, sy);
-  /* the canvas inside the frame: the part not yet shredded, slid down by as much as went through */
-  g.fillStyle = "#cfc9bc"; g.fillRect(F.ax0, F.ay0, F.artW, F.artH);
+  g.fillStyle = "#2e2742"; g.fillRect(F.ax0, F.ay0, F.artW, F.artH);                      /* the empty back of the frame */
   g.save(); g.beginPath(); g.rect(F.ax0, F.ay0, F.artW, F.artH); g.clip();
   const off = S.p * F.artH;
   if (S.p < 1){ g.drawImage(ART, 0, 0, AW, AH * (1 - S.p), F.ax0, F.ay0 + off, F.artW, F.artH - off);
-    if (off > 1){ const sh = g.createLinearGradient(0, F.ay0 + off - 10, 0, F.ay0 + off); sh.addColorStop(0, "rgba(0,0,0,0)"); sh.addColorStop(1, "rgba(0,0,0,.25)"); g.fillStyle = sh; g.fillRect(F.ax0, F.ay0 + off - 10, F.artW, 10); } }
-  const ish = g.createLinearGradient(0, F.ay0, 0, F.ay0 + F.artH * .08); ish.addColorStop(0, "rgba(30,20,8,.35)"); ish.addColorStop(1, "rgba(30,20,8,0)"); g.fillStyle = ish; g.fillRect(F.ax0, F.ay0, F.artW, F.artH * .08);
+    if (off > 1){ g.strokeStyle = OL; g.lineWidth = LW; g.beginPath(); g.moveTo(F.ax0, F.ay0 + off); g.lineTo(F.ax1, F.ay0 + off); g.stroke(); } }
+  g.fillStyle = "rgba(28,21,48,.28)"; g.fillRect(F.ax0, F.ay0, F.artW, Math.max(4, F.artH * .03)); g.fillRect(F.ax0, F.ay0, Math.max(3, F.artW * .025), F.artH);
   g.restore();
-  drawStrips(t);
+  for (const s of strips) drawStrip(s);
   g.restore();
-  /* the frame and the handle */
   g.setTransform(1, 0, 0, 1, sx * DPR, sy * DPR); if (FRAME) g.drawImage(FRAME, 0, 0);
   g.setTransform(DPR, 0, 0, DPR, sx * DPR, sy * DPR);
   drawCrank(t);
   g.setTransform(DPR, 0, 0, DPR, 0, 0);
-  drawCrowd(t);
-  if (S.flash > .01){ g.fillStyle = `rgba(255,255,255,${S.flash * .35})`; g.fillRect(0, 0, W, H); }
-}
-function drawCrank(t){
-  const c = F.crank, a = S.crankA, kx = c.x + Math.cos(a) * c.r, ky = c.y + Math.sin(a) * c.r;
-  if (!S.started && !S.done){ const pu = .5 + .5 * Math.sin(t * 3.2); g.strokeStyle = `rgba(212,42,32,${.25 + pu * .35})`; g.lineWidth = 2; g.setLineDash([4, 5]);
-    g.beginPath(); g.arc(c.x, c.y, c.r, 0, 7); g.stroke(); g.setLineDash([]); }
-  /* hub */
-  const hg = g.createRadialGradient(c.x - c.knob * .4, c.y - c.knob * .4, 1, c.x, c.y, c.knob * 1.5); hg.addColorStop(0, "#fbe7a6"); hg.addColorStop(.6, "#b8892f"); hg.addColorStop(1, "#5b3d0d");
-  g.fillStyle = hg; g.beginPath(); g.arc(c.x, c.y, c.knob * 1.4, 0, 7); g.fill();
-  /* arm */
-  g.strokeStyle = "#8a6219"; g.lineWidth = c.knob * .7; g.lineCap = "round"; g.beginPath(); g.moveTo(c.x, c.y); g.lineTo(kx, ky); g.stroke();
-  g.strokeStyle = "rgba(255,236,170,.6)"; g.lineWidth = c.knob * .2; g.beginPath(); g.moveTo(c.x, c.y - c.knob * .15); g.lineTo(kx, ky - c.knob * .15); g.stroke();
-  /* knob: dark turned wood */
-  const kg = g.createRadialGradient(kx - c.knob * .35, ky - c.knob * .35, 1, kx, ky, c.knob); kg.addColorStop(0, "#7a4a2a"); kg.addColorStop(1, "#24130a");
-  g.fillStyle = kg; g.beginPath(); g.arc(kx, ky, c.knob, 0, 7); g.fill();
-  g.fillStyle = "#3a2508"; g.beginPath(); g.arc(c.x, c.y, c.knob * .35, 0, 7); g.fill();
+  drawPlaque();
+  for (const s of fallen) drawStrip(s);
+  if (S.flash > .01){ g.fillStyle = `rgba(255,255,255,${S.flash * .3})`; g.fillRect(0, 0, W, H); }
 }
 
 /* ==========================================================================
@@ -564,15 +597,14 @@ let last = performance.now(), t = 0;
 function frame(now){
   requestAnimationFrame(frame);
   const dt = Math.min(.04, (now - last) / 1000); last = now; t += dt;
-  /* the remote: Banksy's button in the room — runs the blades by itself, until it jams */
+  /* the remote: Banksy's button — runs the blades by itself, until it jams */
   if (S.auto && !S.jam && !S.done){ const da = dt * 6.283 * 1.1; S.crankA += da; feed(da / 6.283 * .1); S.crankV = lerp(S.crankV, 1.1, .2); }
   if (ptr.mode !== "crank" && !S.auto) S.crankV *= Math.exp(-dt * 6);
   if (now - S.lastFeed > 140 && !S.auto) S.crankV *= Math.exp(-dt * 8);
   AUD.motor(S.crankV, S.jam);
-  S.phones = lerp(S.phones, S.started ? 1 : 0, dt * .8);
   S.flash *= Math.exp(-dt * 9); S.shake *= Math.exp(-dt * 5);
-  if (S.started && !S.done && S.crankV > .3 && rnd() < dt * 1.5) AUD.shutter();
-  const steps = reduce ? 1 : 2; for (let k = 0; k < steps; k++) stepStrips(dt / steps);
+  if (S.started && !S.done && S.crankV > .3 && rnd() < dt * 1.2) AUD.shutter();
+  const steps = reduce ? 1 : 2; for (let k = 0; k < steps; k++) physics(dt / steps);
   render(t);
 }
 
@@ -585,23 +617,14 @@ function hideHint(){ if (performance.now() - hintAt > 1800) $("hint").classList.
 function setRemote(){ const b = $("remote"); b.classList.toggle("on", S.auto); b.disabled = S.jam || S.done; }
 function siteLight(on){ try { if (window.parent !== window){ const ex = window.parent.document.getElementById("s-exp"); if (ex) ex.classList.toggle("light", on); } } catch (_){} }
 function resetWork(){
-  S.p = 0; S.jam = false; S.done = false; S.started = false; S.auto = false; S.crankV = 0; S.dropT = -1; strips = [];
-  $("label").classList.remove("renamed", "resold"); $("reset").classList.remove("on"); setRemote(); labelText();
-  AUD.hang(); setTimeout(() => AUD.gavel(), 380);
-  hint(T({ en:"A new canvas in the frame — the hammer has just fallen. Turn the handle", ko:"액자에 새 그림이 걸렸어요 — 방금 낙찰됐어요. 손잡이를 돌려 보세요" }));
-}
-function labelText(){
-  $("lb-lot").textContent = T({ en:"Lot 67 · Sotheby's London · 5 Oct 2018", ko:"랏 67 · 소더비 런던 · 2018. 10. 5" });
-  $("lb-old").innerHTML = S.jam ? `<s>${T({ en:"Girl with Balloon", ko:"풍선을 든 소녀" })}</s>` : T({ en:"Girl with Balloon", ko:"풍선을 든 소녀" });
-  $("lb-new").textContent = T({ en:"Love Is in the Bin", ko:"러브 이즈 인 더 빈" });
-  $("lb-meta").textContent = T({ en:"Banksy · 2006 · spray paint and acrylic on canvas, in a frame with a shredder · the picture here is our own stencil", ko:"뱅크시 · 2006 · 캔버스에 스프레이 페인트와 아크릴, 파쇄기가 든 액자 · 여기 그림은 새로 그린 스텐실이에요" });
-  $("lb-sold-l").textContent = T({ en:"Sold, 2018", ko:"낙찰, 2018" }); $("lb-sold").textContent = "£1,042,000";
-  $("lb-re-l").textContent = T({ en:"Resold, 2021", ko:"재판매, 2021" }); $("lb-re").textContent = "£18,582,000";
+  Object.assign(S, { p:0, jam:false, done:false, started:false, auto:false, crankV:0 }); strips = []; fallen = [];
+  $("reset").classList.remove("on"); setRemote(); AUD.hang();
+  hint(T({ en:"A new canvas in the frame. Turn the handle", ko:"액자에 새 그림이 걸렸어요. 손잡이를 돌려 보세요" }));
 }
 $("remote").querySelector(".lb").textContent = T({ en:"Remote", ko:"리모컨" });
 $("remote").title = T({ en:"Press the hidden button, as Banksy did", ko:"뱅크시처럼 숨겨진 버튼을 눌러 보세요" });
 $("reset").querySelector(".lb").textContent = T({ en:"Hang a new one", ko:"새 그림 걸기" });
-$("remote").onclick = () => { AUD.unlock(); if (S.jam || S.done) return; S.auto = !S.auto; setRemote(); if (S.auto) hint(T({ en:"Somebody in the room pressed a button…", ko:"누군가 객석에서 버튼을 눌렀어요…" }), true); };
+$("remote").onclick = () => { AUD.unlock(); if (S.jam || S.done) return; S.auto = !S.auto; setRemote(); if (S.auto) hint(T({ en:"Somebody pressed a hidden button…", ko:"누군가 숨겨진 버튼을 눌렀어요…" }), true); };
 $("reset").onclick = () => { AUD.unlock(); resetWork(); };
 $("snd").onclick = () => { AUD.unlock(); AUD.on = !AUD.on; $("snd").setAttribute("aria-pressed", String(AUD.on)); };
 $("info").onclick = () => document.body.classList.toggle("about");
@@ -609,34 +632,34 @@ $("about-x").onclick = () => document.body.classList.remove("about");
 $("snd").setAttribute("aria-label", T({ en:"Sound", ko:"소리" })); $("info").setAttribute("aria-label", T({ en:"About the work", ko:"작품 설명" }));
 $("about-x").setAttribute("aria-label", T({ en:"Close", ko:"닫기" }));
 $("t-h").textContent = T({ en:"Girl with Balloon → Love Is in the Bin", ko:"풍선을 든 소녀 → 러브 이즈 인 더 빈" });
-$("t-p").textContent = T({ en:"Banksy · 2006 / 2018 · the self-destruction at Sotheby's", ko:"뱅크시 · 2006 / 2018 · 소더비 경매장의 자가 파괴" });
-$("ab-tag").textContent = T({ en:"Banksy · 5 October 2018", ko:"뱅크시 · 2018년 10월 5일" });
+$("t-p").textContent = T({ en:"Banksy · 2006 / 2018 · the painting that shredded itself", ko:"뱅크시 · 2006 / 2018 · 스스로를 갈아 버린 그림" });
+$("ab-tag").textContent = T({ en:"Banksy · 2006 / 2018", ko:"뱅크시 · 2006 / 2018" });
 $("ab-h").textContent = T({ en:"The painting that shredded itself", ko:"스스로를 갈아 버린 그림" });
-$("ab-p1").textContent = T({ en:"At Sotheby's in London, moments after the hammer fell at £1,042,000, an alarm sounded inside the frame of Girl with Balloon and the canvas began to slide down through a shredder built into it. It stopped halfway. Banksy later posted a video of building the shredder and said that in rehearsals it had worked every time.",
-  ko:"런던 소더비 경매장. '풍선을 든 소녀'가 104만 2천 파운드에 낙찰된 직후 액자 속에서 경보음이 울렸고, 그림이 액자에 숨겨진 파쇄기를 지나 아래로 미끄러져 내려가며 갈렸어요. 파쇄는 절반에서 멈췄어요. 뱅크시는 나중에 파쇄기를 만드는 영상을 공개하며, 리허설에서는 매번 끝까지 갈렸다고 했어요." });
-$("ab-p2").textContent = T({ en:"The buyer kept it. Renamed Love Is in the Bin, it was called the first artwork made live during an auction — and in 2021 it sold again for £18,582,000. Destroying it made it worth more. Turn the handle further than 2018 did, and ask what is left.",
-  ko:"낙찰자는 그 작품을 그대로 가졌어요. '러브 이즈 인 더 빈'이라는 새 이름을 얻었고, 경매 도중에 생겨난 첫 작품이라 불렸어요. 2021년에는 1,858만 2천 파운드에 다시 팔렸어요 — 파괴가 값을 올린 거예요. 2018년보다 더 돌려 끝까지 갈아 보고, 무엇이 남는지 생각해 보세요." });
-$("ab-p3").textContent = T({ en:"The picture in the frame is a stencil drawn for this room — a ladder towards a red moon — not the original image; the frame and the event are what is recreated.",
-  ko:"액자 속 그림은 원작 이미지가 아니라 이 전시실을 위해 새로 그린 스텐실(붉은 달로 기댄 사다리)이에요. 다시 만든 것은 액자와 그날의 사건이에요." });
+$("ab-p1").textContent = T({ en:"In October 2018, moments after it was sold in London, an alarm sounded inside the frame of Girl with Balloon and the canvas slid down through a shredder Banksy had built into it years before. It stopped halfway, hanging in strips.",
+  ko:"2018년 10월 런던, '풍선을 든 소녀'가 팔린 직후 액자 속에서 경보음이 울렸고, 그림은 뱅크시가 몇 년 전 액자에 숨겨 둔 파쇄기를 지나 아래로 미끄러지며 갈렸어요. 파쇄는 절반에서 멈췄고, 그림은 가닥가닥 매달렸어요." });
+$("ab-p2").textContent = T({ en:"Half destroyed, it became a new work, Love Is in the Bin. Turn the handle further than 2018 did — and ask what is left.",
+  ko:"절반이 부서진 그림은 '러브 이즈 인 더 빈'이라는 새 작품이 되었어요. 2018년보다 더 돌려 끝까지 갈아 보고, 무엇이 남는지 생각해 보세요." });
+$("ab-p3").textContent = T({ en:"The street is drawn like a 90s cartoon. The strips behave like paper: they cannot stretch, they bend, twist to show their blank backs, flutter — and tear if you pull too hard.",
+  ko:"거리는 90년대 만화처럼 그렸어요. 매달린 종이는 실제 종이처럼 늘어나지 않고, 휘고, 뒤집히며 하얀 뒷면을 보이고, 팔랑거려요. 너무 세게 당기면 찢어져요." });
 $("ab-h3").textContent = T({ en:"Try", ko:"해 보기" });
 [{ en:"Turn the brass handle on the frame — clockwise. It only turns one way.", ko:"액자 옆 놋쇠 손잡이를 시계 방향으로 돌려요. 한쪽으로만 돌아가요." },
- { en:"Or press Remote, as someone did in the room.", ko:"또는 '리모컨'을 눌러 보세요. 그날 누군가 객석에서 그랬듯이." },
- { en:"Touch the strips: push them, pull one, let it swing.", ko:"갈린 종이를 만져 보세요. 밀고, 하나를 잡아당기고, 흔들리게 두세요." },
+ { en:"Or press Remote, as Banksy did.", ko:"또는 뱅크시처럼 '리모컨'을 눌러 보세요." },
+ { en:"Flick the strips; grab one and swing it; pull hard and it tears off.", ko:"종이 가닥을 튕기고, 잡아서 흔들고, 세게 당겨 찢어 보세요." },
  { en:"After the jam it is hard going — keep turning to finish what 2018 didn't.", ko:"멈춘 뒤에는 무거워요. 계속 돌리면 2018년에 못 끝낸 걸 끝낼 수 있어요." }]
  .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); $("ab-ol").appendChild(li); });
 
 /* ==========================================================================
    9. START
    ========================================================================== */
-paintArt(); labelText(); setRemote(); makeCrowd(); layout(); siteLight(true);
+loadArt(); setRemote(); layout(); siteLight(false);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
-window.addEventListener("resize", () => { const was = small; layout(); if (was !== small) makeCrowd(); });
+window.addEventListener("resize", layout);
 ["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
 window.addEventListener("pagehide", () => AUD.stop());
 AUD.unlock(); setTimeout(() => AUD.unlock(), 150);
-hint(T({ en:"The hammer has just fallen. Turn the handle on the frame", ko:"방금 낙찰됐어요. 액자 옆 손잡이를 돌려 보세요" }));
+hint(T({ en:"Turn the handle on the frame", ko:"액자 옆 손잡이를 돌려 보세요" }));
 requestAnimationFrame(frame);
-window.__bal = { S, F, feed, turn, get strips(){ return strips; }, step:(n, dt) => { for (let i = 0; i < n; i++){ stepStrips(dt || 1 / 60); } render(t); }, resetWork };
+window.__bal = { S, F, feed, turn, get strips(){ return strips; }, get fallen(){ return fallen; }, tearOff, step:(n, dt) => { for (let i = 0; i < n; i++) physics(dt || 1 / 60); render(t); }, resetWork };
 </script>
 </body>
 </html>
