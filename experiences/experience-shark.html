@@ -187,7 +187,7 @@ const SHARK = [
   [70, 204],
 ];
 /* the jaw hinges at the corner of the mouth; it hangs a little open, and gapes when it lunges */
-const JAW_C = [60, 196], JAW_REST = .12, JAW_WIDE = .52, JAW_N = 5;
+const JAW_C = [60, 196], JAW_REST = .12, JAW_WIDE = .52, JAW_N = 8;
 const JAW_AT = (k) => .015 + (JAW_WIDE - .015) * k / (JAW_N - 1);      /* frame k of the jaw: nearly shut … wide open */
 const JAW_UNDER = [[45, 204], [22, 203], [8, 200], [5, 197]];          /* underside, back to front */
 const JAW_INNER = [[7, 196], [12, 196.5], [24, 197], [40, 197], [56, 196.5]];  /* its upper edge, front to back */
@@ -261,14 +261,14 @@ function paintShark(jaw, keepExtents){
     q.globalCompositeOperation = "destination-out";
     q.beginPath(); poly.forEach(([x, y], i) => { const [a, b] = PS(x, y); i ? q.lineTo(a, b) : q.moveTo(a, b); }); q.closePath(); q.fill();
     q.globalCompositeOperation = "source-over";
-    q.fillStyle = "#f1eee4";
-    /* upper teeth: small, pointed, raked back */
-    for (let x = 9; x < 55; x += 3.3){ const y0 = along(UPPER_EDGE, x), h = 2.4 + (x < 40 ? .8 : 0);
-      const a = PS(x - 1.3, y0 - .3), b = PS(x + 1.3, y0 - .3), cc = PS(x + .7, y0 + h); q.beginPath(); q.moveTo(a[0], a[1]); q.lineTo(b[0], b[1]); q.lineTo(cc[0], cc[1]); q.fill(); }
-    /* lower teeth, on the hinged jaw */
-    for (let x = 9; x < 54; x += 3.5){ const y0 = along(JAW_INNER, x), h = 2.1;
-      const pts = [[x - 1.2, y0 + .3], [x + 1.2, y0 + .3], [x + .5, y0 - h]].map(turn);
-      q.beginPath(); pts.forEach(([px, py], i) => { const [a, b] = PS(px, py); i ? q.lineTo(a, b) : q.moveTo(a, b); }); q.fill(); }
+    q.fillStyle = "#f4f1e8";
+    const tooth = (pts) => { q.beginPath(); pts.forEach(([px, py], i) => { const [a, b] = PS(px, py); i ? q.lineTo(a, b) : q.moveTo(a, b); }); q.closePath(); q.fill(); };
+    /* upper teeth: broad triangles, edges a little hollow, points raked back */
+    for (let x = 10; x < 54; x += 4.1){ const y0 = along(UPPER_EDGE, x) - .2, h = x < 40 ? 3.4 : 2.6, hw = 1.75;
+      tooth([[x - hw, y0], [x - hw * .35, y0 + h * .55], [x + .45, y0 + h], [x + hw * .55, y0 + h * .5], [x + hw, y0]]); }
+    /* lower teeth: slimmer, upright points on the hinged jaw */
+    for (let x = 12; x < 53; x += 4.3){ const y0 = along(JAW_INNER, x) + .2, h = 2.6, hw = 1.15;
+      tooth([[x - hw, y0], [x - hw * .3, y0 - h * .6], [x + .1, y0 - h], [x + hw * .35, y0 - h * .55], [x + hw, y0]].map(turn)); }
     /* the lips */
     q.strokeStyle = "rgba(24,30,36,.7)"; q.lineWidth = .0028 * SC; q.lineCap = "round";
     q.beginPath(); UPPER_EDGE.forEach(([x, y], i) => { const [a, b] = PS(x, y - .4); i ? q.lineTo(a, b) : q.moveTo(a, b); }); q.stroke();
@@ -320,8 +320,8 @@ vec4 picX(vec2 p, float ph, float A, vec3 fr){
   float u = .5 + rx / (uSh.z * uSh.w), v = ry / uSh.z - sway(u, ph, A);
   vec2 t = vec2((u - MU0) / (MU1 - MU0), (v + MV) / (2. * MV));
   if (t.x < 0. || t.x > 1. || t.y < 0. || t.y > 1.) return vec4(0.);
-  float fj = clamp(uGape, 0., 1.) * 4., f0 = floor(fj), f1 = min(f0 + 1., 4.);
-  vec4 col = mix(texture2D(uTex, vec2(t.x, (f0 + t.y) / 5.)), texture2D(uTex, vec2(t.x, (f1 + t.y) / 5.)), fj - f0);
+  float fj = floor(clamp(uGape, 0., 1.) * 7. + .5);
+  vec4 col = texture2D(uTex, vec2(t.x, (fj + clamp(t.y, .002, .998)) / 8.));
   float g = 1. - smoothstep(uGlint.z * .55, uGlint.z, distance(p, uGlint.xy));
   col.rgb = mix(col.rgb, vec3(1.), g * step(.5, col.a));
   return col;

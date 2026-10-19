@@ -358,9 +358,13 @@ function nearestNode(x, y, R){
   for (const s of strips.concat(fallen)) for (const n of s.nodes){ if (n.pin) continue; const d = (n.x - x) ** 2 + (n.y - y) ** 2; if (d < bd){ bd = d; best = n; bs = s; } }
   return best ? { n:best, s:bs } : null;
 }
+const TEETH = 12; let lastTooth = 0;
+function ticks(){ const n = Math.floor(S.crankA / (6.283 / TEETH)); if (n !== lastTooth){ const d = Math.min(3, n - lastTooth); lastTooth = n;
+    for (let i = 0; i < d; i++) setTimeout(() => AUD.click(S.jam ? 1.25 : .9), i * 14);
+    if (rnd() < (S.jam ? .35 : .12)) AUD.creak(S.jam ? 1.3 : .8); } }
 function turn(da){
   if (da <= 0){ if (da < -.05) AUD.ratchet(); return; }
-  S.crankA += da; feed(da / 6.283 * (S.jam ? .024 : .1));
+  S.crankA += da; ticks(); feed(da / 6.283 * (S.jam ? .024 : .1));
 }
 cv.addEventListener("pointerdown", e => {
   AUD.unlock(); hideHint(); const x = e.clientX, y = e.clientY;
@@ -396,7 +400,7 @@ window.addEventListener("keydown", e => { if ((e.key === "ArrowRight" || e.key =
   if (e.key === "Escape") document.body.classList.remove("about"); });
 
 /* ==========================================================================
-   5. SOUND — a city at night, the alarm, the blades, the shutter, paper
+   5. SOUND — the room, the alarm, the handle and its ratchet, the blades, paper
    ========================================================================== */
 const AUD = (() => {
   let ctx = null, master = null, white = null, brown = null, on = true, borrowed = false, amb = null, mot = null, rT = 0, fT = 0;
@@ -434,14 +438,22 @@ const AUD = (() => {
     get on(){ return on; }, set on(v){ on = v; if (master) master.gain.setTargetAtTime(v ? .85 : 0, ctx.currentTime, .05); },
     stop(){ if (!ctx) return; if (amb) amb.src.forEach(n => { try { n.stop(); } catch (_){} }); amb = null; try { master.disconnect(); } catch (_){} if (!borrowed) try { ctx.close(); } catch (_){} },
     motor(v, jam){ if (!mot || !ctx) return; const tt = ctx.currentTime, k = clamp(v / 2.5, 0, 1);
-      mot.og.gain.setTargetAtTime(on ? k * .06 : 0, tt, .05); mot.ng.gain.setTargetAtTime(on ? k * .075 : 0, tt, .05);
+      mot.og.gain.setTargetAtTime(on ? k * .012 : 0, tt, .05); mot.ng.gain.setTargetAtTime(on ? k * .06 : 0, tt, .05);
       mot.o.frequency.setTargetAtTime(78 + k * 40 + (jam ? 20 : 0), tt, .1); mot.o2.frequency.setTargetAtTime(156 + k * 80, tt, .1);
       if (k > .1 && performance.now() - rT > 70 + (1 - k) * 160){ rT = performance.now(); if (ok()) noise(white, tt, .05, 3200 + Math.random() * 1500, 1.4, .05 * k); } },
     alarm(){ if (!ok()) return; const tt = ctx.currentTime; for (let i = 0; i < 4; i++) tone(tt + i * .22, 3100, 3100, .12, .05, "square"); },
-    /* the shutter: a click, and a flash */
-    shutter(){ if (!ok()) return; const tt = ctx.currentTime; noise(white, tt, .03, 5200, 1, .05); noise(white, tt + .06, .025, 4300, 1, .04); S.flash = Math.max(S.flash, .5 + Math.random() * .4); },
+    /* the handle: a brass pawl dropping into each tooth of the ratchet — tick, with a little ring */
+    click(k){ if (!ok()) return; const tt = ctx.currentTime; k = k ?? 1;
+      noise(white, tt, .018, 3800 + Math.random() * 600, 3.5, .09 * k); tone(tt, 2350 + Math.random() * 120, 2300, .05, .018 * k, "triangle"); noise(brown, tt, .04, 520, 1.2, .05 * k); },
+    /* the spindle turning in its bushing: a dry wooden creak, now and then */
+    creak(k){ if (!ok()) return; const tt = ctx.currentTime, f = 140 + Math.random() * 60, o = ctx.createOscillator(); o.type = "sawtooth";
+      o.frequency.setValueAtTime(f, tt); o.frequency.linearRampToValueAtTime(f * (1.15 + Math.random() * .2), tt + .18);
+      const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 900; bp.Q.value = 6; const a = ctx.createGain();
+      const am = ctx.createOscillator(); am.type = "square"; am.frequency.value = 38 + Math.random() * 20; const amg = ctx.createGain(); amg.gain.value = .5; am.connect(amg); amg.connect(a.gain);
+      a.gain.setValueAtTime(.0001, tt); a.gain.linearRampToValueAtTime(.03 * k, tt + .04); a.gain.linearRampToValueAtTime(.0001, tt + .2);
+      o.connect(bp); bp.connect(a); a.connect(master); o.start(tt); am.start(tt); o.stop(tt + .22); am.stop(tt + .22); },
     jam(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 70, 38, .45, .3); noise(brown, tt, .5, 300, .6, .2, "lowpass"); tone(tt + .05, 420, 900, .25, .03, "sawtooth"); },
-    ratchet(){ if (!ok()) return; noise(white, ctx.currentTime, .025, 2400, 2, .05); },
+    ratchet(){ if (!ok()) return; const tt = ctx.currentTime; noise(white, tt, .02, 2600, 2.5, .08); noise(brown, tt, .06, 380, 1, .08); },
     rustle(k){ if (!ok()) return; if (performance.now() - rT < 60) return; rT = performance.now(); noise(white, ctx.currentTime, .09 + Math.random() * .08, 2600 + Math.random() * 2400, .8, .03 + .07 * k); },
     /* a flicked strip: two quick slaps of paper on air */
     flap(){ if (!ok()) return; if (performance.now() - fT < 120) return; fT = performance.now(); const tt = ctx.currentTime; noise(white, tt, .05, 1400, .9, .07); noise(white, tt + .07, .04, 1800, .9, .05); },
@@ -519,7 +531,6 @@ function render(t){
   g.setTransform(DPR, 0, 0, DPR, 0, 0);
   drawPlaque();
   for (const s of fallen) drawStrip(s);
-  if (S.flash > .01){ g.fillStyle = `rgba(255,255,255,${S.flash * .3})`; g.fillRect(0, 0, W, H); }
 }
 
 /* ==========================================================================
@@ -530,12 +541,11 @@ function frame(now){
   requestAnimationFrame(frame);
   const dt = Math.min(.04, (now - last) / 1000); last = now; t += dt;
   /* the remote: Banksy's button — runs the blades by itself, until it jams */
-  if (S.auto && !S.jam && !S.done){ const da = dt * 6.283 * 1.1; S.crankA += da; feed(da / 6.283 * .1); S.crankV = lerp(S.crankV, 1.1, .2); }
+  if (S.auto && !S.jam && !S.done){ const da = dt * 6.283 * 1.1; S.crankA += da; ticks(); feed(da / 6.283 * .1); S.crankV = lerp(S.crankV, 1.1, .2); }
   if (ptr.mode !== "crank" && !S.auto) S.crankV *= Math.exp(-dt * 6);
   if (now - S.lastFeed > 140 && !S.auto) S.crankV *= Math.exp(-dt * 8);
   AUD.motor(S.crankV, S.jam);
   S.flash *= Math.exp(-dt * 9); S.shake *= Math.exp(-dt * 5);
-  if (S.started && !S.done && S.crankV > .3 && rnd() < dt * 1.2) AUD.shutter();
   const steps = reduce ? 1 : 2; for (let k = 0; k < steps; k++) physics(dt / steps);
   render(t);
 }
