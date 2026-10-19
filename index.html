@@ -18877,6 +18877,7 @@ function step(dt, now){
   if (B.openT !== B.open && !coverDrag){ const d = B.openT - B.open, sp = reduce ? 1 : dt * 2.4; B.open = Math.abs(d) < sp ? B.openT : B.open + Math.sign(d) * sp;
     if (B.open === B.openT) pageCache.clear(); }
   const ts = targetSpine(); spineX = Math.abs(ts - spineX) < 1 ? ts : Math.round(lerp(spineX, ts, Math.min(1, dt * 9)));
+  keepClear(dt);
   /* a page turning on its own */
   const f = B.flip;
   if (f && !f.drag){ const goal = f.to, sp = reduce ? 9 : dt * 5.2; const d = goal - f.a; f.a = Math.abs(d) < sp ? goal : f.a + Math.sign(d) * sp;
@@ -18892,14 +18893,17 @@ function render(now){
   g.setTransform(1, 0, 0, 1, 0, 0); g.imageSmoothingEnabled = false;
   g.drawImage(DESK, 0, 0);
   /* things on the desk */
-  STACK.forEach(id => drawObj(id));
-  if (!PAN.st) drawObj("binder"); if (!PAN.mg) drawObj("mag");
+  const dragging = down && down.act === "obj" ? down.obj : null;
+  STACK.forEach(id => id !== dragging && drawObj(id));
+  if (!PAN.st && dragging !== "binder") drawObj("binder"); if (!PAN.mg && dragging !== "mag") drawObj("mag");
   drawBook(now);
-  drawObj("lamp");
+  if (dragging !== "lamp") drawObj("lamp");
   /* cut-outs lying loose on the open pages */
   loose.filter(o => o.page != null).forEach(o => { const pr = pageOfLoose(o); if (!pr) return; drawItem(g, o.spr, pr.x + o.x, pr.y + o.y, o.r, .32); drawGlue(o, pr.x + o.x, pr.y + o.y); });
   drawPanels(now);
   loose.filter(o => o.page == null).forEach(o => { drawItem(g, o.spr, o.x, o.y, o.r, o.stuck ? .16 : .32); drawGlue(o, o.x, o.y); });
+  /* whatever is being carried rides above everything, the notebook included */
+  if (dragging) drawObj(dragging);
   flyers.forEach(f => { const k = clamp(f.t / f.dur, 0, 1), e = k * k * (3 - 2 * k), x = lerp(f.x0, f.x1, e), y = lerp(f.y0, f.y1, e) - Math.sin(k * Math.PI) * f.h;
     g.save(); g.translate(Math.round(x), Math.round(y)); g.rotate(f.r + k * f.spin); const sc = 1 - .45 * k * k; g.scale(sc, sc); g.drawImage(f.spr.cv, -Math.floor(f.spr.w / 2), -Math.floor(f.spr.h / 2)); g.restore(); });
   if (peel) drawPeel(peel);
@@ -18921,6 +18925,34 @@ function drawLight(now){
     g.globalCompositeOperation = "source-over"; }
   else { g.fillStyle = "rgba(6,8,22,.5)"; g.fillRect(0, 0, LW, LH);
     if (ROOM.radio){ g.fillStyle = "rgba(255,110,80,.5)"; g.fillRect(Math.round(OBJ.radio.x) + 46, Math.round(OBJ.radio.y) + 9, 1, 1); } }
+}
+/* the notebook's footprint on the desk, open or closed */
+function bookRect(){ const open = B.open > .001 || B.openT > 0, x0 = open ? spineX - CW : spineX; return { x:x0 - 3, y:B.y - 5, w:spineX + CW - x0 + 8, h:CH + 11 }; }
+/* the nearest place for o that is clear of r (null if it already is) */
+function clearOf(o, r){
+  const w = o.spr.w, h = o.spr.h, off = (x, y) => x + w <= r.x || x >= r.x + r.w || y + h <= r.y || y >= r.y + r.h;
+  if (off(o.x, o.y)) return null;
+  const fit = ([x, y]) => [Math.round(clamp(x, -Math.floor(w * .35), LW - Math.ceil(w * .65))), Math.round(clamp(y, topPad - Math.floor(h * .4), LH - botPad - Math.ceil(h * .35)))];
+  /* places along each side of the notebook, near where it was let go */
+  const c = [];
+  for (let k = 0; k <= 12; k++) for (const d of k ? [-1, 1] : [1]){ const s = d * k * 9;
+    c.push([r.x - w, o.y + s], [r.x + r.w, o.y + s], [o.x + s, r.y - h], [o.x + s, r.y + r.h]); }
+  /* …preferring a spot nothing else is lying on */
+  const others = Object.keys(OBJ).map(k => OBJ[k]).filter(q => q !== o && q.spr && !((q === OBJ.binder && PAN.st) || (q === OBJ.mag && PAN.mg)))
+    .map(q => ({ x:q.slide ? q.slide.x : q.x, y:q.slide ? q.slide.y : q.y, w:q.spr.w, h:q.spr.h }));
+  const crowd = (x, y) => others.reduce((n, q) => n + Math.max(0, Math.min(x + w, q.x + q.w) - Math.max(x, q.x)) * Math.max(0, Math.min(y + h, q.y + q.h) - Math.max(y, q.y)), 0);
+  let best = null, bs = Infinity;
+  c.map(fit).filter(([x, y]) => off(x, y)).forEach(([x, y]) => { const sc = Math.hypot(x - o.x, y - o.y) + crowd(x, y) * .6; if (sc < bs){ bs = sc; best = [x, y]; } });
+  return best || fit([o.x < r.x + r.w / 2 ? r.x - w : r.x + r.w, o.y]);
+}
+/* nothing stays hidden under the notebook: if it moves over something (a panel opens, the cover opens), that thing slides out */
+function keepClear(dt){
+  const r = bookRect();
+  Object.keys(OBJ).forEach(k => { const o = OBJ[k];
+    if (!o.spr || (down && down.act === "obj" && down.obj === k) || (k === "binder" && PAN.st) || (k === "mag" && PAN.mg)) return;
+    if (!o.slide){ const t = clearOf(o, r); if (t) o.slide = { x:t[0], y:t[1], save:false }; }
+    if (o.slide){ const f = Math.min(1, dt * 12); o.x = lerp(o.x, o.slide.x, f); o.y = lerp(o.y, o.slide.y, f);
+      if (Math.hypot(o.x - o.slide.x, o.y - o.slide.y) < .5){ o.x = Math.round(o.slide.x); o.y = Math.round(o.slide.y); const sv = o.slide.save; o.slide = null; if (sv) saveDesk(); } } });
 }
 function drawObj(id){ const o = OBJ[id]; if (!o.spr) return;
   if (id === "lamp") o.spr = ROOM.lamp ? o.on : o.off;
@@ -19055,7 +19087,7 @@ cv.addEventListener("pointermove", e => {
     if (fr > .72) detachPeel(p); return; }
   if (act === "cover"){ const a = Math.acos(clamp((p.x - spineX) / CW, -1, 1)); B.open = B.openT = clamp(a / Math.PI, 0, .998); return; }
   if (act === "flip" && down.moved){ if (!B.flip) startFlip(down.side === "R" ? 1 : -1, true); if (B.flip){ B.flip.a = Math.acos(clamp((p.x - spineX) / PW, -1, 1)); } return; }
-  if (act === "obj"){ const o = OBJ[down.obj]; o.x = p.x + down.ox; o.y = p.y + down.oy; o.set = true; if (down.moved && !down.slid){ down.slid = true; AUD.slide(); } return; }
+  if (act === "obj"){ const o = OBJ[down.obj]; o.slide = null; o.x = p.x + down.ox; o.y = p.y + down.oy; o.set = true; if (down.moved && !down.slid){ down.slid = true; AUD.slide(); } return; }
   if (act === "cut" && cutting){ const q = cutting.pts[cutting.pts.length - 1], lx = clamp(p.x - cutting.ox, 0, MW - 1), ly = clamp(p.y - cutting.oy, 0, MH - 1), d = Math.hypot(lx - q[0], ly - q[1]);
     if (d >= 1.5 && cutting.pts.length < 400){ cutting.pts.push([lx, ly]); cutting.len += d; if (cutting.len - cutting.snipAt > 7){ cutting.snipAt = cutting.len; AUD.snip(); } } return; }
   if (act === "erase" && erasing){ const pa = pageAt(p.x, p.y); if (pa && pa.p === erasing.p){ const n = erasing.pts.length, lx = Math.round(pa.lx), ly = Math.round(pa.ly);
@@ -19080,7 +19112,10 @@ function endPointer(e){
   if (act === "cover"){ coverDrag = false; if (click){ setOpen(B.open < .5); } else setOpen(B.open > .35); }
   if (act === "flip"){ if (B.flip && B.flip.drag){ const f = B.flip; f.drag = false; const done = f.dir > 0 ? f.a > Math.PI / 2 : f.a < Math.PI / 2; f.commit = done; f.to = done ? (f.dir > 0 ? Math.PI : 0) : (f.dir > 0 ? 0 : Math.PI); if (done) AUD.flip(); }
     else if (click){ turn(down.side === "R" ? 1 : -1); } }
-  if (act === "obj"){ if (click) useObj(down.obj, p); else { saveDesk(); AUD.drop(); } }
+  if (act === "obj"){ if (click) useObj(down.obj, p);
+    else { const o = OBJ[down.obj], t = clearOf(o, bookRect()); AUD.drop();
+      /* let go over the notebook: it slides back out beside it, never underneath */
+      if (t){ o.slide = { x:t[0], y:t[1], save:true }; setTimeout(() => AUD.slide(), 60); } else saveDesk(); } }
   if (act === "cut") finishCut();
   if (act === "erase" && erasing){ const er = erasing; erasing = null; AUD.hush("erase"); if (er.pts.length >= 4) addItem({ k:"er", p:er.p, pts:er.pts, w:er.w }); else pageCache.delete(er.p); }
   if (act === "glue"){ AUD.hush("glue"); rubbing = null; }
