@@ -157,20 +157,18 @@ const mix3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], 
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ==========================================================================
-   1. THE SHARK — a tiger shark painted here from scratch, side on: slate back,
-      dark tiger bars, a white belly with a wavy line, grey fins, five gill
-      slits, the open eye, a mouth with small teeth. u: tail 0 → nose 1.
+   1. THE SHARK — a tiger shark painted here from scratch, side on, kept
+      simple: slate back, a few soft tiger bars, a white belly, one dorsal fin,
+      pectoral fin and tail, three gill slits, the open eye, the mouth.
+      u: tail 0 → nose 1.
    ========================================================================== */
 const SHARK = [
   [1.00, .020], [.975, -.030], [.93, -.062], [.86, -.088], [.76, -.108], [.665, -.118],
   [.615, -.205], [.585, -.285], [.565, -.312], [.548, -.300], [.545, -.200], [.53, -.118],
-  [.43, -.098], [.335, -.078], [.312, -.112], [.296, -.128], [.285, -.075],
-  [.21, -.052], [.145, -.036], [.11, -.058], [.06, -.150], [.025, -.262], [.008, -.300], [.002, -.288], [.03, -.150], [.062, -.020],
+  [.43, -.098], [.33, -.076], [.21, -.052], [.145, -.036], [.11, -.058], [.06, -.150], [.025, -.262], [.008, -.300], [.002, -.288], [.03, -.150], [.062, -.020],
   [.055, .040], [.025, .135], [.012, .172], [.03, .168], [.085, .065], [.14, .033],
-  [.22, .046], [.255, .052], [.236, .100], [.248, .104], [.29, .062],
-  [.38, .075], [.435, .086], [.418, .135], [.43, .140], [.485, .096],
-  [.585, .102], [.665, .104], [.62, .190], [.575, .262], [.59, .272], [.64, .232], [.74, .112],
-  [.82, .102], [.875, .090], [.94, .072], [.955, .068], [.90, .055], [.985, .040],
+  [.24, .05], [.38, .075], [.5, .094], [.585, .102], [.665, .104], [.62, .190], [.575, .262], [.59, .272], [.64, .232], [.74, .112],
+  [.82, .102], [.875, .090], [.94, .070], [.985, .040],
 ];
 const MU0 = -.04, MU1 = 1.04, MV = .36, TW = 1024, TH = Math.round(TW * (2 * MV) / (MU1 - MU0)), EXTW = 512;
 const EYE = [.905, -.018], MOUTH = [.955, .05];
@@ -197,23 +195,21 @@ function buildPicture(){
   const hl = q.createLinearGradient(0, y(-.1), 0, y(0));
   hl.addColorStop(0, "rgba(255,255,255,0)"); hl.addColorStop(.55, "rgba(220,232,238,.16)"); hl.addColorStop(1, "rgba(255,255,255,0)");
   q.fillStyle = hl; q.fillRect(0, y(-.1), TW, y(0) - y(-.1));
-  /* tiger bars: dark, slanted, fading towards the belly; blotches towards the tail */
-  for (let u = .2; u < .84; u += .026 + rnd() * .01){
+  /* a few tiger bars: soft, slanted, fading towards the belly */
+  for (let u = .24; u < .8; u += .05 + rnd() * .012){
     const w = (.006 + rnd() * .004) * (1.15 - u * .4), sl = .012 + rnd() * .01;
-    const g2 = q.createLinearGradient(0, y(-.13), 0, y(.03)); g2.addColorStop(0, "rgba(18,26,32,.62)"); g2.addColorStop(.7, "rgba(18,26,32,.42)"); g2.addColorStop(1, "rgba(18,26,32,0)");
+    const g2 = q.createLinearGradient(0, y(-.13), 0, y(.03)); g2.addColorStop(0, "rgba(18,26,32,.42)"); g2.addColorStop(.7, "rgba(18,26,32,.24)"); g2.addColorStop(1, "rgba(18,26,32,0)");
     q.fillStyle = g2; q.beginPath();
     const a = PX(u, -.135), b = PX(u + w, -.135), cc = PX(u + w - sl, .03), d = PX(u - sl, .03);
     q.moveTo(a[0], a[1]); q.lineTo(b[0], b[1]); q.lineTo(cc[0], cc[1]); q.lineTo(d[0], d[1]); q.fill();
   }
-  for (let k = 0; k < 26; k++){ const u = .05 + rnd() * .2, v = -.06 + rnd() * .08, [x0, y0] = PX(u, v);
-    q.fillStyle = "rgba(18,26,32,.4)"; q.beginPath(); q.ellipse(x0, y0, (.004 + rnd() * .006) * SC, (.003 + rnd() * .004) * SC, rnd() * 3, 0, 7); q.fill(); }
   /* the tail and the dorsal fins a little darker at their tips */
   const tg = q.createLinearGradient(PX(.16, 0)[0], 0, PX(0, 0)[0], 0); tg.addColorStop(0, "rgba(14,20,25,0)"); tg.addColorStop(1, "rgba(14,20,25,.45)");
   q.fillStyle = tg; q.fillRect(0, 0, PX(.16, 0)[0], TH);
   /* the belly: a white underside with a wavy line, as on a real shark */
   q.beginPath(); { const [sx, sy] = PX(-.05, .4); q.moveTo(sx, sy); }
   for (let u = -.05; u <= 1.06; u += .01){
-    const v = .03 + .009 * Math.sin(u * 23) + .004 * Math.sin(u * 61) + (u > .8 ? (u - .8) * .045 : 0) - (u < .2 ? (.2 - u) * .02 : 0);
+    const v = .03 + .006 * Math.sin(u * 14) + (u > .8 ? (u - .8) * .045 : 0) - (u < .2 ? (.2 - u) * .02 : 0);
     const [x0, y0] = PX(u, v); q.lineTo(x0, y0); }
   { const [ex, ey] = PX(1.06, .4); q.lineTo(ex, ey); } q.closePath();
   const bg = q.createLinearGradient(0, y(.03), 0, y(.12)); bg.addColorStop(0, "#dfe5e7"); bg.addColorStop(1, "#f6f7f5");
@@ -221,24 +217,17 @@ function buildPicture(){
   /* the fins below: grey on top, darker at the leading edge */
   const fin = (pts, col) => { q.fillStyle = col; q.beginPath(); pts.forEach(([u, v], i) => { const [x0, y0] = PX(u, v); i ? q.lineTo(x0, y0) : q.moveTo(x0, y0); }); q.closePath(); q.fill(); };
   fin([[.70, .102], [.665, .106], [.62, .190], [.575, .262], [.59, .272], [.64, .232], [.74, .112]], "rgba(64,79,89,.86)");
-  fin([[.46, .093], [.435, .09], [.418, .135], [.43, .140], [.485, .098]], "rgba(84,98,107,.72)");
-  fin([[.27, .06], [.255, .056], [.236, .100], [.248, .104], [.29, .064]], "rgba(84,98,107,.72)");
-  fin([[.07, .0], [.055, .040], [.025, .135], [.012, .172], [.03, .168], [.085, .065], [.15, .02], [.15, .0]], "rgba(52,64,73,.88)");
+  fin([[.065, .03], [.055, .040], [.025, .135], [.012, .172], [.03, .168], [.085, .065], [.14, .036]], "rgba(52,64,73,.88)");
   /* gill slits */
   q.strokeStyle = "rgba(20,28,34,.8)"; q.lineCap = "round";
-  for (let k = 0; k < 5; k++){ const a = PX(.802 - k * .02, -.048 + k * .003), m = PX(.79 - k * .02, .004), b = PX(.796 - k * .02, .056 - k * .002);
+  for (let k = 0; k < 3; k++){ const a = PX(.802 - k * .02, -.048 + k * .003), m = PX(.79 - k * .02, .004), b = PX(.796 - k * .02, .056 - k * .002);
     q.lineWidth = (.0045 - k * .0003) * SC; q.beginPath(); q.moveTo(a[0], a[1]); q.quadraticCurveTo(m[0], m[1], b[0], b[1]); q.stroke(); }
-  /* the mouth, a little open, with small teeth */
+  /* the mouth */
   q.strokeStyle = "#141b20"; q.lineWidth = .006 * SC; q.beginPath();
   { const a = PX(.988, .036), b = PX(.945, .05), cc = PX(.893, .061); q.moveTo(a[0], a[1]); q.quadraticCurveTo(b[0], b[1], cc[0], cc[1]); q.stroke(); }
-  q.fillStyle = "rgba(250,250,245,.9)";
-  for (let u = .9; u < .975; u += .009){ const v = .036 + (.988 - u) / .095 * .025, [x0, y0] = PX(u, v); q.beginPath(); q.moveTo(x0 - 2, y0 + 1); q.lineTo(x0 + 2, y0 + 1); q.lineTo(x0, y0 + 5); q.fill(); }
-  /* nostril and the open eye */
-  { const [nx, ny] = PX(.975, .006); q.fillStyle = "#141b20"; q.beginPath(); q.ellipse(nx, ny, 4, 2, -.2, 0, 7); q.fill(); }
+  /* the open eye */
   { const [ex, ey] = PX(EYE[0], EYE[1]); q.fillStyle = "#06090b"; q.beginPath(); q.arc(ex, ey, .0105 * SC, 0, 7); q.fill();
     q.strokeStyle = "rgba(190,205,212,.55)"; q.lineWidth = .0024 * SC; q.beginPath(); q.arc(ex, ey, .0118 * SC, 0, 7); q.stroke(); }
-  /* the skin: fine speckle */
-  for (let k = 0; k < 2600; k++){ const u = rnd(), v = -.14 + rnd() * .2, [x0, y0] = PX(u, v); q.fillStyle = rnd() < .5 ? "rgba(0,0,0,.08)" : "rgba(255,255,255,.06)"; q.fillRect(x0, y0, 2, 2); }
   q.restore();
   PIC = c;
   /* per column of the body: where it starts and ends (for the drips) */
@@ -353,10 +342,7 @@ void main(){
     float w = gap, ci = floor((p.x - uTank.x) / w), hj = hash(ci);
     float k = mod(ci, 6.);
     k = mod(k + floor(hj * 6.) * step(1. - dec * .7, hash(ci + 9.)), 6.);
-    /* each frame: a full tail beat, the body surging forward and back, rising, pitching */
-    float fp = k / 6. * 2. * PI;
-    vec3 fr = vec3(cos(fp) * .05 * L, sin(fp) * .055 * L, sin(fp + .9) * .085);
-    vec4 c = picX(vec2(p.x, p.y - dec * hj * hj * L * .07), fp, A, fr);
+    vec4 c = pic(vec2(p.x, p.y - dec * hj * hj * L * .07), k / 6. * 2. * PI, A);
     vec3 base = mix(uBg, c.rgb * .36, c.a);
     col = base;
     float fy = uTank.y + uFilm.y;
@@ -599,7 +585,7 @@ function clampShark(){
 
 /* the shark's pose as the shader sees it (the scanimation hangs it, centred, still) */
 function pose(){
-  if (style === "slits") return { x:tank.x + tank.w * .5, y:tank.y + tank.h * .5, len:Math.min(tank.w * (small ? .8 : .58), tank.h * 1.9), sx:1, tilt:0, A:.14 * (1 - decay * .5), phase:0 };
+  if (style === "slits") return { x:tank.x + tank.w * .5, y:tank.y + tank.h * .5, len:Math.min(tank.w * (small ? .86 : .64), tank.h * 2.2), sx:1, tilt:0, A:.08 * (1 - decay * .5), phase:0 };
   return { x:SH.x, y:SH.y, len:SH.len, sx:SH.sx, tilt:SH.tilt, A:SH.A, phase:SH.phase };
 }
 function swayJS(u, P){ const k = Math.max(0, 1 - u); return P.A * Math.sin(P.phase - (1 - u) * 5.2) * Math.pow(k, 1.7) + P.A * .15 * Math.sin(P.phase * .5 + 1.3) * (u - .5); }
@@ -639,10 +625,8 @@ function step(dt){
   if (!ptr.down) SH.life *= Math.exp(-dt * .9);
   /* the film moves by itself only when the shark is alive */
   const cyc = gapPx() * 6;
-  if (state === "alive") film.x += dt * cyc * 1.7;
+  if (state === "alive") film.x += dt * cyc * 1.15;
   if (state === "decay") film.x += dt * cyc * .5 * (1 - decay) * (Math.sin(t * 7) > -.2 ? 1 : 0);
-  /* a flicked film keeps sliding, then slows: the swim runs down with it */
-  if (!ptr.down && Math.abs(film.v) > 1){ film.x += film.v * dt; film.v *= Math.exp(-dt * (state === "decay" ? 4 : 1.3)); HEART.pulse = Math.min(1, HEART.pulse + Math.abs(film.v) * dt / 900); } else if (!ptr.down) film.v = 0;
   heartStep(dt); mirrorFrame();
   const L = tank, cx = L.x + L.w / 2, cy = L.y + L.h / 2;
   if (state === "kept"){
