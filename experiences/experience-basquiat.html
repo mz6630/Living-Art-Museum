@@ -416,7 +416,7 @@ const SHEETS = [["crown", "head", "copy", "teeth", "aaa", "halo", "eye", "bone"]
 /* ==========================================================================
    5. THE MAGAZINE — six pages printed here, ready to be cut up
    ========================================================================== */
-const MW = 100, MH = 134, MAGN = 6;
+const MW = 100, MH = 134;
 function squiggle(p, x, y, w, n, c, R, step){ step = step || 5;
   for (let l = 0; l < n; l++){ let cx = x; const yy = y + l * step, end = x + w - (l === n - 1 ? Math.floor(w * .4 * R()) : 0);
     while (cx < end){ const len = 3 + Math.floor(R() * 9); for (let i = 0; i < len && cx + i < end; i++) p.set(cx + i, yy - ((i + l) % 3 === 0 && R() < .6 ? 1 : 0), c); cx += len + 2; } } }
@@ -447,7 +447,7 @@ const MAGS = [
     p.disc(37, 66, 11, P.r); p.dith(26, 55, 22, 22, P.r2, (x, y) => clamp(((x - 32) + (y - 60)) / 24, 0, .8)); p.rect(32, 60, 3, 3, C("#f6c4bc")); p.line(37, 55, 39, 50, P.n2, 2); p.ell(43, 52, 4, 2, P.g);
     /* pear */
     p.disc(64, 70, 9, C("#9bbf3c")); p.disc(62, 59, 6, C("#9bbf3c")); p.dith(54, 52, 22, 28, C("#6f9a22"), (x, y) => clamp((x - 62) / 12, 0, .7)); p.line(62, 53, 64, 49, P.n2, 1);
-    p.rect(8, 96, 34, 14, P.y); p.text("$1", 13, 107, P.k, 1); p.text("A LB", 23, 107, P.k);
+    p.rect(8, 96, 34, 14, P.y); p.text("$1/LB", 12, 107, P.k);
     squiggle(p, 48, 98, 44, 6, C("#8a8478"), R);
     return p; },
   /* 2: the big fight */
@@ -496,7 +496,114 @@ const MAGS = [
     for (let x = 6; x < 94; x += 3){ p.set(x, 104, P.k); p.set(x, 130, P.k); } for (let y = 104; y < 131; y += 3){ p.set(6, y, P.k); p.set(93, y, P.k); }
     p.text("COUPON", 10, 114, P.k); squiggle(p, 10, 120, 78, 2, C("#8a8478"), R);
     return p; },
+  /* 6: a subway car, tagged end to end */
+  (R) => { const p = magBase(R), G = C("#8a8478");
+    p.rect(0, 0, MW, 64, C("#2f333c")); p.dith(0, 0, MW, 64, C("#3d424d"), (x, y) => y < 14 ? .6 : .15);
+    for (let x = 6; x < MW; x += 22) p.rect(x, 4, 8, 2, C("#f3ecc4"));
+    p.rect(3, 16, 94, 38, C("#b9bec6")); p.rect(3, 16, 94, 2, C("#e3e6ea")); p.rect(3, 52, 94, 2, C("#6d727a")); p.box(3, 16, 94, 38, C("#5d6168"));
+    for (let x = 8; x < 92; x += 17) if (x < 42 || x > 56){ p.rect(x, 21, 11, 9, C("#1d2230")); p.rect(x, 21, 11, 1, C("#596178")); p.set(x + 2, 23, C("#8fa3c7")); }
+    p.rect(44, 21, 12, 30, C("#a3a9b1")); p.line(50, 21, 50, 50, C("#6d727a")); p.rect(45, 23, 4, 7, C("#1d2230")); p.rect(51, 23, 4, 7, C("#1d2230"));
+    const cols = [P.r, P.y, P.b, C("#3fb36b"), P.pk, P.o];
+    for (let k = 0; k < 9; k++){ let x = 5 + R() * 86, y = 34 + R() * 14; const c = cols[k % cols.length];
+      for (let i = 0; i < 10; i++){ const nx = clamp(x + 2 + R() * 3, 4, 95), ny = clamp(y + (R() - .5) * 7, 33, 51); p.line(x, y, nx, ny, c, 2); x = nx; y = ny; } }
+    p.text("ZAP", 10, 47, P.k); p.text("AAA", 64, 44, P.w);
+    p.disc(89, 24, 4, C("#3fb36b")); p.text("6", 88, 27, P.w);
+    p.rect(0, 56, MW, 2, C("#55585e")); p.rect(0, 60, MW, 1, C("#6c6f75")); [14, 28, 72, 86].forEach(x => { p.disc(x, 56, 3.2, C("#1a1a1d")); p.set(x, 56, C("#77777f")); });
+    p.text("SUBWAY", 6, 80, P.k, 2); p.text("ART THAT RIDES", 6, 91, P.r);
+    squiggle(p, 6, 99, 88, 7, G, R);
+    return p; },
+  /* 7: the funnies — three panels */
+  (R) => { const p = magBase(R), G = C("#8a8478");
+    p.text("COMICS", 6, 16, P.r, 2);
+    p.rect(4, 21, 44, 44, P.w); p.box(4, 21, 44, 44, P.k); p.rect(52, 21, 44, 44, C("#fde9a8")); p.box(52, 21, 44, 44, P.k); p.rect(4, 69, 92, 42, C("#d9ecf7")); p.box(4, 69, 92, 42, P.k);
+    /* a robot says hi */
+    p.rect(14, 42, 18, 18, C("#a7b0bd")); p.box(14, 42, 18, 18, P.k); p.rect(17, 46, 4, 4, P.r); p.rect(25, 46, 4, 4, P.r); p.line(18, 55, 28, 55, P.k); p.line(23, 42, 23, 37, P.k); p.disc(23, 36, 1.6, P.y);
+    p.ell(36, 29, 9, 6, P.w); p.ring(36, 29, 9, 6, 1, P.k); p.line(30, 34, 27, 39, P.k); p.text("HI!", 31, 32, P.k);
+    /* pow */
+    const st = []; for (let i = 0; i < 16; i++){ const a = i / 16 * Math.PI * 2, r = i % 2 ? 9 : 19; st.push([74 + Math.cos(a) * r, 43 + Math.sin(a) * r * .9]); }
+    p.poly(st, P.y); p.path(st, P.k, 1, null, 0, true); p.text("POW!", 63, 47, P.r);
+    /* a cat asleep */
+    p.disc(36, 92, 12, P.o); p.poly([[26, 84], [27, 74], [33, 81]], P.o); p.poly([[46, 84], [45, 74], [39, 81]], P.o); p.ring(36, 92, 12, 12, 1, P.k);
+    p.line(29, 90, 33, 90, P.k); p.line(39, 90, 43, 90, P.k); p.set(36, 94, P.pk); p.line(22, 95, 30, 94, P.k); p.line(42, 94, 50, 95, P.k);
+    p.text("Z", 54, 86, P.b); p.text("Z", 62, 80, P.b); p.text("Z", 70, 75, P.b);
+    p.rect(74, 90, 18, 14, C("#c98b5e")); p.box(74, 90, 18, 14, P.k); p.text("ZZZ", 76, 100, P.w);
+    squiggle(p, 6, 120, 88, 2, G, R);
+    return p; },
+  /* 8: a breakfast cereal ad */
+  (R) => { const p = magBase(R), G = C("#8a8478");
+    p.rect(0, 0, MW, MH, C("#fbe7ae")); p.dith(0, 0, MW, MH, C("#f6d98a"), (x, y) => (x + y) % 9 === 0 ? 1 : 0);
+    p.rect(7, 20, 44, 60, P.r); p.rect(7, 20, 44, 4, P.r2); p.box(7, 20, 44, 60, P.r2); p.rect(10, 28, 38, 10, P.w); p.text("CRUNCH", 12, 36, P.r);
+    [[18, 50], [29, 46], [38, 56], [22, 63], [34, 68]].forEach(([x, y]) => { p.ring(x, y, 4, 4, 2, P.y); p.ring(x, y, 4, 4, 1, P.y2); });
+    p.text("O'S", 18, 77, P.w);
+    p.ell(72, 88, 24, 10, P.w); p.ring(72, 88, 24, 10, 1, P.lg); p.ell(72, 86, 20, 7, C("#f7f6f0"));
+    for (let i = 0; i < 9; i++){ const x = 56 + R() * 32, y = 82 + R() * 7; p.ring(x, y, 2.4, 2, 1, i % 3 ? P.y : P.o); }
+    p.line(86, 70, 74, 85, C("#c9c9cf"), 2); p.ell(86, 68, 4, 2.5, C("#c9c9cf"));
+    const st = []; for (let i = 0; i < 18; i++){ const a = i / 18 * Math.PI * 2, r = i % 2 ? 8 : 14; st.push([78 + Math.cos(a) * r, 26 + Math.sin(a) * r]); }
+    p.poly(st, P.y); p.path(st, P.r, 1, null, 0, true); p.text("NEW", 70, 29, P.r);
+    p.text("CRUNCHY O'S", 6, 108, P.r2); squiggle(p, 6, 116, 88, 3, G, R);
+    return p; },
+  /* 9: records — a bebop sale */
+  (R) => { const p = magBase(R), G = C("#8a8478");
+    p.rect(0, 0, MW, 70, C("#2b1d3d"));
+    p.disc(62, 34, 21, C("#111014")); for (let r = 6; r < 21; r += 2.5) p.ring(62, 34, r, r, 1, C("#26242c")); p.disc(62, 34, 6, P.r); p.set(62, 34, P.k); p.line(50, 22, 54, 26, C("#55535c"));
+    p.rect(6, 12, 42, 42, P.b); p.box(6, 12, 42, 42, P.k); p.disc(20, 26, 8, P.y); p.rect(28, 36, 16, 14, P.r); p.line(10, 50, 44, 16, P.w);
+    p.text("BEBOP", 8, 52, P.w);
+    p.disc(86, 60, 8, C("#111014")); p.disc(86, 60, 3, P.y); p.ring(86, 60, 6, 6, 1, C("#26242c"));
+    p.text("RECORDS", 6, 84, P.k, 2); p.rect(62, 88, 34, 12, P.r); p.text("$3.99", 65, 97, P.w);
+    squiggle(p, 6, 106, 56, 6, G, R); squiggle(p, 66, 108, 28, 5, G, R);
+    return p; },
+  /* 10: dinosaurs, from the natural history pages */
+  (R) => { const p = magBase(R), G = C("#8a8478"), Bn = C("#f6f0e0"), Bd = C("#6e6350");
+    p.text("DINOSAURS", 6, 16, P.k, 1); p.text("FIG. 12", 62, 16, P.r);
+    p.rect(0, 22, MW, 64, C("#cdbf9f")); p.rect(0, 80, MW, 2, C("#9c8d6c"));
+    const sp = []; for (let i = 0; i <= 24; i++){ const t = i / 24; sp.push([10 + t * 78, 44 - Math.sin(t * Math.PI) * 10 + (t > .8 ? (t - .8) * 30 : 0)]); }
+    p.path(sp, Bn, 3); p.path(sp, Bd, 1);
+    for (let i = 6; i < 16; i++){ const [x, y] = sp[i]; p.line(x, y, x - 2, y + 12, Bn, 1); p.line(x, y + 1, x - 2, y + 12, Bd, 1); }
+    p.poly([[84, 40], [96, 36], [98, 44], [92, 50], [84, 48]], Bn); p.path([[84, 40], [96, 36], [98, 44], [92, 50], [84, 48]], Bd, 1, null, 0, true); p.set(92, 40, P.k);
+    for (let x = 88; x < 97; x += 2) p.set(x, 47, P.k);
+    [[34, 48, 30, 78], [58, 47, 62, 78]].forEach(([a, b, c, d]) => { p.line(a, b, c, d, Bn, 3); p.line(a, b, c, d, Bd, 1); p.rect(c - 3, d - 1, 7, 2, Bn); });
+    p.line(76, 46, 80, 56, Bn, 2); p.line(80, 56, 83, 54, Bn, 1);
+    p.text("THE BIG ONES", 6, 96, P.k); squiggle(p, 6, 104, 88, 6, G, R);
+    return p; },
+  /* 11: sneakers that make you jump */
+  (R) => { const p = magBase(R), G = C("#8a8478");
+    p.text("JUMP", 6, 18, P.k, 2); p.text("HIGHER", 60, 18, P.r);
+    for (let k = 0; k < 4; k++) p.line(8, 50 + k * 6, 24, 50 + k * 6, C("#c9c1ad"), 1);
+    const up = [[30, 70], [32, 34], [48, 30], [56, 42], [82, 50], [92, 58], [92, 70]];
+    p.poly(up, P.r); p.path(up, P.r2, 1, null, 0, true);
+    p.rect(28, 70, 66, 7, P.w); p.box(28, 70, 66, 7, P.lg); p.line(30, 73, 92, 73, C("#c9c1ad"));
+    p.poly([[76, 52], [92, 58], [92, 70], [78, 70]], P.w); p.path([[76, 52], [92, 58], [92, 70], [78, 70]], P.lg, 1, null, 0, true);
+    for (let i = 0; i < 6; i++){ const x = 48 + i * 4; p.line(x, 38 + i * 1.5, x + 3, 44 + i * 1.5, P.w); }
+    p.poly([[40, 48], [46, 48], [42, 56], [48, 56], [38, 66], [41, 58], [36, 58]], P.y); p.path([[40, 48], [46, 48], [42, 56], [48, 56], [38, 66], [41, 58], [36, 58]], P.k, 1, null, 0, true);
+    p.disc(34, 38, 3, P.w); p.ring(34, 38, 3, 3, 1, P.k);
+    p.rect(8, 84, 26, 12, P.y); p.text("$29", 11, 93, P.k); p.text("HI-TOPS", 40, 93, P.k);
+    squiggle(p, 6, 104, 88, 6, G, R);
+    return p; },
+  /* 12: money */
+  (R) => { const p = magBase(R), G = C("#8a8478"), Gn = C("#6f9a5a"), Gd = C("#3e6a33");
+    p.text("CASH", 6, 18, Gd, 2); p.text("$$$", 60, 18, P.k, 1);
+    for (let k = 0; k < 5; k++){ const x = 8 + k * 3, y = 28 + k * 4; p.rect(x, y, 54, 24, Gn); p.box(x, y, 54, 24, Gd); }
+    const x = 20, y = 44; p.box(x + 3, y + 3, 48, 18, C("#a9c99a")); p.disc(x + 27, y + 12, 6, C("#a9c99a")); p.ring(x + 27, y + 12, 6, 6, 1, Gd); p.text("$", x + 25, y + 15, Gd); p.text("1", x + 5, y + 10, Gd); p.text("1", x + 45, y + 20, Gd);
+    [[76, 40], [84, 52], [72, 58], [88, 32]].forEach(([cx, cy]) => { p.disc(cx, cy, 6, P.y); p.ring(cx, cy, 6, 6, 1, P.y2); p.ring(cx, cy, 4, 4, 1, C("#e8b62a")); });
+    p.text("GOLD", 6, 84, P.y2, 2); p.text("& GEMS", 58, 84, P.k);
+    p.poly([[80, 92], [86, 92], [89, 96], [83, 103], [77, 96]], C("#bfe4f2")); p.path([[80, 92], [86, 92], [89, 96], [83, 103], [77, 96]], P.b, 1, null, 0, true);
+    squiggle(p, 6, 98, 66, 7, G, R);
+    return p; },
+  /* 13: a map of the city */
+  (R) => { const p = magBase(R), G = C("#8a8478");
+    p.text("MAP", 6, 16, P.k, 2); p.text("THE CITY", 44, 16, P.r);
+    p.rect(4, 22, 92, 92, C("#ece4cf")); p.box(4, 22, 92, 92, P.k);
+    p.poly([[4, 22], [16, 22], [12, 60], [18, 114], [4, 114]], C("#8fb8e0")); p.poly([[84, 22], [96, 22], [96, 114], [90, 114], [88, 70]], C("#8fb8e0"));
+    for (let y = 28; y < 112; y += 6) p.line(16, y, 86, y - 3, C("#cfc5ad"));
+    for (let x = 22; x < 86; x += 12) p.line(x, 22, x - 4, 114, C("#b9ad92"), 1);
+    p.rect(40, 44, 14, 30, C("#8cc07a")); p.box(40, 44, 14, 30, C("#5b8a4c")); p.ell(47, 52, 3, 2, C("#8fb8e0"));
+    p.line(18, 100, 84, 30, P.y, 1);
+    [[30, 90, P.r], [62, 40, P.r], [70, 96, P.b]].forEach(([x, y, c]) => { p.disc(x, y - 3, 2.5, c); p.line(x, y - 1, x, y + 2, P.k); });
+    p.text("UPTOWN", 58, 30, P.k); p.text("DOWNTOWN", 24, 110, P.k);
+    squiggle(p, 6, 122, 88, 2, G, R);
+    return p; },
 ];
+const MAGN = MAGS.length;
 const MAGPX = [], MAGCV = [];
 function buildMags(){ MAGS.forEach((f, i) => { MAGPX[i] = f(rng(100 + i)); MAGCV[i] = MAGPX[i].canvas(); }); }
 /* a piece cut from page m along polygon poly (in that page's dots) */
