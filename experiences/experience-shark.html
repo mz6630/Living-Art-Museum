@@ -47,6 +47,8 @@ body.embedded .top{display:none;}
 
 .mono{position:fixed;z-index:6;font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mono b{color:var(--ink);font-weight:500;}
+#clock span{display:inline;} #clock .g::before{content:" · ";}
+@media (max-width:760px){ #clock span{display:block;line-height:18px;} #clock .g::before{content:"";} }
 #clock{text-align:right;}
 html[lang="ko"] .mono{letter-spacing:.03em;}
 
@@ -119,6 +121,7 @@ html[lang="ko"] #about .tag{letter-spacing:.04em;}
   <span class="sep"></span>
   <div class="grp" id="states" role="group"></div>
   <span class="sep"></span>
+  <button class="chip ic" id="mir" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7.5 19c.8-3 2.5-4.5 4.5-4.5s3.7 1.5 4.5 4.5"/></svg></button>
   <button class="chip ic" id="snd" aria-pressed="true"><svg class="ico on" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg><svg class="ico off" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
   <button class="chip ic" id="info"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
 </nav>
@@ -265,14 +268,15 @@ uniform vec4 uTank; uniform vec4 uSh; uniform vec4 uSh2; uniform vec2 uFocus;
 uniform float uStyle, uGap, uTime, uWaveT, uDecay, uDrip, uPing, uKept;
 uniform vec4 uPtr; uniform vec3 uRip[6]; uniform vec4 uFilm; uniform vec2 uSonar; uniform vec4 uGlint;
 uniform vec3 uBg, uRoom;
-uniform sampler2D uTex, uExt;
+uniform sampler2D uTex, uExt, uCam;
+uniform float uCamOn; uniform vec2 uCamS, uCamLv;
 const float MU0 = -.04, MU1 = 1.04, MV = .36, PI = 3.14159265;
 float hash(float n){ return fract(sin(mod(n, 997.) * 12.9898 + 1.7) * 43758.5453); }
 float sway(float u, float ph, float A){ float k = max(0., 1. - u); return A * sin(ph - (1. - u) * 5.2) * pow(k, 1.7) + A * .15 * sin(ph * .5 + 1.3) * (u - .5); }
-vec4 pic(vec2 p, float ph, float A){
+vec4 picX(vec2 p, float ph, float A, vec3 fr){
   if (abs(uSh.w) < .04) return vec4(0.);
-  vec2 z = uFocus + (p - uFocus) / uSh2.w;
-  vec2 d = z - uSh.xy; float c = cos(-uSh2.x), s = sin(-uSh2.x);
+  vec2 z = uFocus + (p - uFocus) / uSh2.w - fr.xy;
+  vec2 d = z - uSh.xy; float c = cos(-uSh2.x - fr.z), s = sin(-uSh2.x - fr.z);
   float rx = d.x * c - d.y * s, ry = d.x * s + d.y * c;
   float u = .5 + rx / (uSh.z * uSh.w), v = ry / uSh.z - sway(u, ph, A);
   vec2 t = vec2((u - MU0) / (MU1 - MU0), (v + MV) / (2. * MV));
@@ -282,6 +286,7 @@ vec4 pic(vec2 p, float ph, float A){
   col.rgb = mix(col.rgb, vec3(1.), g * step(.5, col.a));
   return col;
 }
+vec4 pic(vec2 p, float ph, float A){ return picX(p, ph, A, vec3(0.)); }
 vec2 disp(vec2 p){
   vec2 o = vec2(0.);
   vec2 d = p - uPtr.xy; float R = max(30., uTank.w * .09);
@@ -348,7 +353,10 @@ void main(){
     float w = gap, ci = floor((p.x - uTank.x) / w), hj = hash(ci);
     float k = mod(ci, 6.);
     k = mod(k + floor(hj * 6.) * step(1. - dec * .7, hash(ci + 9.)), 6.);
-    vec4 c = pic(vec2(p.x, p.y - dec * hj * hj * L * .07), k / 6. * 2. * PI, A);
+    /* each frame: a full tail beat, the body surging forward and back, rising, pitching */
+    float fp = k / 6. * 2. * PI;
+    vec3 fr = vec3(cos(fp) * .05 * L, sin(fp) * .055 * L, sin(fp + .9) * .085);
+    vec4 c = picX(vec2(p.x, p.y - dec * hj * hj * L * .07), fp, A, fr);
     vec3 base = mix(uBg, c.rgb * .36, c.a);
     col = base;
     float fy = uTank.y + uFilm.y;
@@ -390,12 +398,24 @@ void main(){
     lc = mix(lc, vec3(lum(lc)) * vec3(1.1, .95, .65), dec * .7);
     col = mix(col, lc, cov * (.55 + .45 * c.a + wave * .4));
   }
+  /* the glass: your own reflection, drawn in the same vertical lines */
+  if (uCamOn > .01){
+    float rg = max(uGap * 1.45, 5.), cj = floor((p.x - uTank.x) / rg), xc2 = uTank.x + (cj + .5) * rg;
+    vec2 uv = (vec2(xc2, p.y) - uTank.xy) / uTank.zw;
+    vec2 cuv = .5 + (vec2(1. - uv.x, uv.y) - .5) * uCamS;
+    float lv = lum(texture2D(uCam, cuv).rgb);
+    float dk = smoothstep(.12, .95, 1. - clamp((lv - uCamLv.x) / max(.05, uCamLv.y - uCamLv.x), 0., 1.));
+    float vg = smoothstep(0., .16, uv.x) * smoothstep(1., .84, uv.x) * smoothstep(0., .1, uv.y) * smoothstep(1., .9, uv.y);
+    float cov = clamp((dk * .82 * rg * .5 - abs(p.x - xc2)) * uDPR + .5, 0., 1.);
+    vec3 rc = lum(col) < .35 ? vec3(.8, .92, .92) : vec3(.1, .13, .15);
+    col = mix(col, rc, cov * uCamOn * .4 * vg);
+  }
   gl_FragColor = vec4(col, 1.);
 }`;
 const VERT = `attribute vec2 aP; void main(){ gl_Position = vec4(aP, 0., 1.); }`;
 const glc = $("gl"), ovc = $("ov"), o2 = ovc.getContext("2d");
 const gl = glc.getContext("webgl", { antialias:false, alpha:false, premultipliedAlpha:false, preserveDrawingBuffer:true });
-let prog = null, U = {}, texPic = null, texExt = null;
+let prog = null, U = {}, texPic = null, texExt = null, texCam = null;
 function initGL(){
   if (!gl) return false;
   const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)){ console.error(gl.getShaderInfoLog(s)); return null; } return s; };
@@ -405,7 +425,7 @@ function initGL(){
   gl.useProgram(prog);
   const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
   const loc = gl.getAttribLocation(prog, "aP"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-  ["uRes", "uDPR", "uTank", "uSh", "uSh2", "uFocus", "uStyle", "uGap", "uTime", "uWaveT", "uDecay", "uDrip", "uPing", "uKept", "uPtr", "uRip", "uFilm", "uSonar", "uGlint", "uBg", "uRoom", "uTex", "uExt"]
+  ["uRes", "uDPR", "uTank", "uSh", "uSh2", "uFocus", "uStyle", "uGap", "uTime", "uWaveT", "uDecay", "uDrip", "uPing", "uKept", "uPtr", "uRip", "uFilm", "uSonar", "uGlint", "uBg", "uRoom", "uTex", "uExt", "uCam", "uCamOn", "uCamS", "uCamLv"]
     .forEach(n => U[n] = gl.getUniformLocation(prog, n));
   const mk = (unit, src, w, h, filter) => { const t = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -413,10 +433,123 @@ function initGL(){
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
     if (w) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, src); else gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
     return t; };
-  texPic = mk(0, PIC, 0, 0, gl.LINEAR); texExt = mk(1, EXT, EXTW, 1, gl.NEAREST);
-  gl.uniform1i(U.uTex, 0); gl.uniform1i(U.uExt, 1);
+  texPic = mk(0, PIC, 0, 0, gl.LINEAR); texExt = mk(1, EXT, EXTW, 1, gl.NEAREST); texCam = mk(2, MIR.cv, 0, 0, gl.LINEAR);
+  gl.uniform1i(U.uTex, 0); gl.uniform1i(U.uExt, 1); gl.uniform1i(U.uCam, 2);
   return true;
 }
+
+/* ==========================================================================
+   2b. THE MIRROR — the front glass gives back your own face, in lines.
+       The camera picture never leaves this device: it is shrunk to 160×120,
+       turned into line widths and thrown away every frame. Without a camera,
+       a figure stands where you would.
+   ========================================================================== */
+const MIR = { cv:document.createElement("canvas"), on:false, mode:"", vid:null, stream:null, k:0, lv:[0, 1], gx:.5, n:0 };
+MIR.cv.width = 160; MIR.cv.height = 120;
+const mq = MIR.cv.getContext("2d", { willReadFrequently:true });
+function ghost(){
+  /* a visitor's head and shoulders, standing a little off where your hand is */
+  MIR.gx = lerp(MIR.gx, ptr.in ? clamp(1 - (ptr.x - tank.x) / tank.w, .2, .8) : .5, .05);
+  const w = 160, h = 120, x = MIR.gx * w;
+  mq.fillStyle = "#e8e8e8"; mq.fillRect(0, 0, w, h);
+  const gr = mq.createRadialGradient(x, h * .42, 4, x, h * .5, h * .8); gr.addColorStop(0, "#9a9a9a"); gr.addColorStop(1, "#e8e8e8");
+  mq.fillStyle = gr; mq.fillRect(0, 0, w, h);
+  mq.fillStyle = "#3a3a3a";
+  mq.beginPath(); mq.ellipse(x, h * .4, w * .12, h * .2, 0, 0, 7); mq.fill();
+  mq.beginPath(); mq.moveTo(x - w * .05, h * .56); mq.lineTo(x + w * .05, h * .56); mq.lineTo(x + w * .06, h * .66);
+  mq.quadraticCurveTo(x + w * .3, h * .7, x + w * .34, h * 1.02); mq.lineTo(x - w * .34, h * 1.02); mq.quadraticCurveTo(x - w * .3, h * .7, x - w * .06, h * .66); mq.closePath(); mq.fill();
+  mq.fillStyle = "#c9c9c9"; mq.beginPath(); mq.ellipse(x - w * .04, h * .38, w * .02, h * .012, 0, 0, 7); mq.ellipse(x + w * .04, h * .38, w * .02, h * .012, 0, 0, 7); mq.fill();
+  MIR.lv = [.2, .9];
+}
+function mirrorFrame(){
+  if (!MIR.on) return;
+  if (MIR.mode === "cam" && MIR.vid && MIR.vid.readyState >= 2){
+    const vw = MIR.vid.videoWidth || 160, vh = MIR.vid.videoHeight || 120, sc = Math.max(160 / vw, 120 / vh);
+    mq.drawImage(MIR.vid, (160 - vw * sc) / 2, (120 - vh * sc) / 2, vw * sc, vh * sc);
+    if (++MIR.n % 12 === 0){ const d = mq.getImageData(0, 0, 160, 120).data; let lo = 1, hi = 0;
+      for (let i = 0; i < d.length; i += 16){ const l = (d[i] * .299 + d[i + 1] * .587 + d[i + 2] * .114) / 255; if (l < lo) lo = l; if (l > hi) hi = l; }
+      MIR.lv = [lerp(MIR.lv[0], lo + .04, .5), lerp(MIR.lv[1], hi - .04, .5)]; }
+  } else ghost();
+  if (gl && texCam){ gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, texCam); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, MIR.cv); }
+}
+async function mirrorOn(){
+  MIR.on = true; $("mir").setAttribute("aria-pressed", "true"); AUD.ui();
+  if (!MIR.mode){
+    MIR.mode = "ghost";
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("no camera api");
+      const st = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user", width:{ ideal:320 }, height:{ ideal:240 } }, audio:false });
+      if (!MIR.on){ st.getTracks().forEach(tr => tr.stop()); MIR.mode = ""; return; }
+      const v = document.createElement("video"); v.muted = true; v.playsInline = true; v.setAttribute("playsinline", ""); v.srcObject = st; await v.play().catch(() => {});
+      MIR.vid = v; MIR.stream = st; MIR.mode = "cam";
+      hint(T({ en:"The glass gives you back — in the same lines as the shark. (The camera stays on this device; nothing is saved or sent.)", ko:"유리에 당신이 비쳐요 — 상어와 같은 선으로. (카메라 영상은 이 기기 안에서만 쓰이고, 저장·전송되지 않아요)" }));
+    } catch (_){
+      MIR.mode = "ghost";
+      hint(T({ en:"No camera here — a visitor's reflection stands in for yours", ko:"카메라를 쓸 수 없어 관람객의 그림자가 대신 비쳐요" }));
+    }
+  } else hint(T({ en:"Your reflection, in the same lines as the shark", ko:"상어와 같은 선으로 비친 당신" }), true);
+}
+function mirrorOff(){
+  MIR.on = false; $("mir").setAttribute("aria-pressed", "false"); AUD.ui();
+  if (MIR.stream){ MIR.stream.getTracks().forEach(tr => tr.stop()); MIR.stream = null; MIR.vid = null; MIR.mode = ""; }
+}
+
+/* ==========================================================================
+   2c. THE HEART — a pulse that beats only while you keep it going.
+       Stop, and it slows, and the line under the tank goes flat.
+   ========================================================================== */
+const HEART = { pulse:0, ph:0, flat:false, beaten:false, last:-9, buf:new Float32Array(360), bi:0, acc:0, flatHint:0 };
+function ecg(s){            /* one beat, s seconds after it starts: P, QRS, T */
+  const g = (m, w, a) => a * Math.exp(-Math.pow((s - m) / w, 2));
+  return g(.04, .025, .12) + g(.12, .008, -.15) + g(.14, .012, 1) + g(.165, .01, -.3) + g(.32, .05, .25);
+}
+function heartStep(dt){
+  const H_ = HEART;
+  if (state === "alive") H_.pulse = lerp(H_.pulse, .55, dt * .8);
+  else if (state === "decay") H_.pulse = Math.max(0, H_.pulse - dt * .25);
+  else H_.pulse = Math.max(0, H_.pulse - dt * .065);
+  const bpm = H_.pulse > .015 ? 34 + 96 * H_.pulse : 0;
+  if (bpm > 0){ H_.flat = false; H_.ph += dt * bpm / 60; if (H_.ph >= 1){ H_.ph -= 1; H_.last = t; H_.beaten = true; AUD.heart(H_.pulse); } }
+  else if (H_.beaten && !H_.flat && t - H_.last > 1.4){ H_.flat = true; AUD.flat();
+    if (t - H_.flatHint > 20){ H_.flatHint = t; hint(T({ en:"The pulse stopped. A flat line — drag again and it beats", ko:"맥박이 멈췄어요. 평평한 선 — 다시 드래그하면 뛰어요" }), true); } }
+  /* the trace scrolls at 60 samples a second */
+  H_.acc += dt; while (H_.acc >= 1 / 60){ H_.acc -= 1 / 60; H_.buf[H_.bi] = ecg(t - H_.last) * (.35 + .65 * Math.min(1, H_.pulse * 1.6)); H_.bi = (H_.bi + 1) % H_.buf.length; }
+  return bpm;
+}
+
+/* ==========================================================================
+   2d. EVERYONE WHO LOOKED — each visit keeps how long it stood here;
+       the shark collects all of them. (Shared through the museum's store;
+       on this device only when there is none.)
+   ========================================================================== */
+const GAZE = { db:null, id:"", list:[], seen:0, lastVis:performance.now(), saved:-1, mode:"local", warned:false };
+GAZE.id = "v" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const GKEY = "lam.shark.gaze.v1", GCOL = "sharkGaze";
+function gazeLocal(){ try { return JSON.parse(localStorage.getItem(GKEY) || "[]").filter(o => o && o.id && +o.s >= 0).slice(-300); } catch (_){ return []; } }
+async function gazeOpen(){
+  try { const api = window.claude || (window.parent !== window && window.parent.claude); if (api && api.use) GAZE.db = await api.use("db"); } catch (_){ GAZE.db = null; }
+  if (!GAZE.db){ GAZE.list = gazeLocal(); return; }
+  try {
+    GAZE.db.collection(GCOL).limit(2000).onSnapshot(sn => {
+      GAZE.mode = "shared";
+      GAZE.list = sn.docs.map(d => { const o = d.data() || {}; return { id:d.id, s:clamp(+o.s || 0, 0, 86400), t:+o.t || 0 }; }).filter(o => o.t > 0);
+    }, () => { GAZE.mode = "local"; GAZE.list = gazeLocal(); });
+  } catch (_){ GAZE.mode = "local"; GAZE.list = gazeLocal(); }
+}
+function gazeTick(){
+  const now = performance.now(); if (!document.hidden) GAZE.seen += (now - GAZE.lastVis) / 1000; GAZE.lastVis = now;
+}
+async function gazeSave(force){
+  const s = Math.floor(GAZE.seen); if (s < 6 || (!force && GAZE.saved >= 0 && s - GAZE.saved < 20) || s === GAZE.saved) return;
+  GAZE.saved = s; const rec = { s, t:STARTED_AT };
+  if (GAZE.db && GAZE.mode !== "local"){ try { await GAZE.db.collection(GCOL).doc(GAZE.id).set(rec); return; } catch (_){ GAZE.mode = "local"; } }
+  try { const L = gazeLocal().filter(o => o.id !== GAZE.id); L.push({ id:GAZE.id, ...rec }); localStorage.setItem(GKEY, JSON.stringify(L.slice(-300))); if (!GAZE.db) GAZE.list = L; } catch (_){}
+}
+function gazeAll(){            /* everyone's visits, with this one live */
+  const mine = { id:GAZE.id, s:Math.floor(GAZE.seen), t:STARTED_AT, me:true };
+  const L = GAZE.list.filter(o => o.id !== GAZE.id); L.push(mine); L.sort((a, b) => a.t - b.t); return L;
+}
+const STARTED_AT = Date.now();
 
 /* ==========================================================================
    3. STATE — the tank, the shark, the film, and the three states of the work
@@ -430,12 +563,11 @@ const STYLE_DENS = { lines:.1, slits:.25, taper:.62, rings:.55 };   /* each styl
 let style = "lines", state = "kept", dens = .1;
 const MIXS = { alive:0, kept:1, decay:0 };
 let decay = 0, t = 0, waveT = 0;
-const film = { x:0, y:0 };
+const film = { x:0, y:0, v:0 };
 const ptr = { x:-999, y:-999, in:false, down:false, energy:0, sx:0, sy:0, moved:0, t0:0, mode:"", anchorX:-999, anchorY:-999, still:0 };
 const rip = [];                       /* water rings: {x, y, age} */
 let ping = -1, sonar = null;
 const lunge = { t:-1, cool:0, fx:0, fy:0, hold:0, done:false };
-let started = performance.now();
 const gapPx = () => STYLE_BASE[style] * lerp(.62, 2.5, dens) * (small ? .7 : 1);
 const isDark = () => style === "rings";
 
@@ -445,7 +577,7 @@ function layout(){
   if (gl) gl.viewport(0, 0, glc.width, glc.height);
   const embedded = document.body.classList.contains("embedded");
   const barTop = $("bar").getBoundingClientRect().top || (H - 72);
-  const topM = small ? (embedded ? 98 : 104) : (embedded ? 96 : 100), botM = (H - barTop) + (small ? 62 : 58);
+  const topM = small ? (embedded ? 112 : 118) : (embedded ? 96 : 100), botM = (H - barTop) + (small ? 74 : 70);
   const availW = W - (small ? 24 : 80), availH = H - topM - botM;
   const asp = clamp(availW / availH, small ? .85 : 1.6, 2.6);
   let w = availW, h = w / asp; if (h > availH){ h = availH; w = h * asp; }
@@ -454,10 +586,10 @@ function layout(){
   if (!SH.x){ SH.x = tank.x + tank.w * .5; SH.y = tank.y + tank.h * .5; }
   clampShark();
   const pl = $("plaque"), ck = $("clock");
-  if (small){ pl.style.left = ck.style.left = tank.x + "px"; pl.style.right = ck.style.right = "auto"; pl.style.top = (tank.y - 42) + "px"; ck.style.top = (tank.y - 24) + "px"; ck.style.textAlign = "left"; }
+  if (small){ pl.style.left = ck.style.left = tank.x + "px"; pl.style.right = ck.style.right = "auto"; pl.style.top = (tank.y - 58) + "px"; ck.style.top = (tank.y - 40) + "px"; ck.style.textAlign = "left"; }
   else { pl.style.left = tank.x + "px"; pl.style.top = ck.style.top = (tank.y - 26) + "px"; ck.style.left = "auto"; ck.style.right = (W - tank.x - tank.w) + "px"; ck.style.textAlign = "right"; }
-  pl.style.maxWidth = ck.style.maxWidth = (small ? tank.w : tank.w / 2 - 10) + "px";
-  document.documentElement.style.setProperty("--hint-y", (barTop - 28) + "px");
+  pl.style.maxWidth = (small ? tank.w : tank.w * .36) + "px"; ck.style.maxWidth = (small ? tank.w : tank.w * .62) + "px";
+  document.documentElement.style.setProperty("--hint-y", (barTop - 22) + "px");
   document.documentElement.style.setProperty("--rep-y", (tank.y + tank.h * .2) + "px");
 }
 function clampShark(){
@@ -467,7 +599,7 @@ function clampShark(){
 
 /* the shark's pose as the shader sees it (the scanimation hangs it, centred, still) */
 function pose(){
-  if (style === "slits") return { x:tank.x + tank.w * .5, y:tank.y + tank.h * .5, len:Math.min(tank.w * (small ? .86 : .64), tank.h * 2.2), sx:1, tilt:0, A:.08 * (1 - decay * .5), phase:0 };
+  if (style === "slits") return { x:tank.x + tank.w * .5, y:tank.y + tank.h * .5, len:Math.min(tank.w * (small ? .8 : .58), tank.h * 1.9), sx:1, tilt:0, A:.14 * (1 - decay * .5), phase:0 };
   return { x:SH.x, y:SH.y, len:SH.len, sx:SH.sx, tilt:SH.tilt, A:SH.A, phase:SH.phase };
 }
 function swayJS(u, P){ const k = Math.max(0, 1 - u); return P.A * Math.sin(P.phase - (1 - u) * 5.2) * Math.pow(k, 1.7) + P.A * .15 * Math.sin(P.phase * .5 + 1.3) * (u - .5); }
@@ -507,8 +639,11 @@ function step(dt){
   if (!ptr.down) SH.life *= Math.exp(-dt * .9);
   /* the film moves by itself only when the shark is alive */
   const cyc = gapPx() * 6;
-  if (state === "alive") film.x += dt * cyc * 1.15;
+  if (state === "alive") film.x += dt * cyc * 1.7;
   if (state === "decay") film.x += dt * cyc * .5 * (1 - decay) * (Math.sin(t * 7) > -.2 ? 1 : 0);
+  /* a flicked film keeps sliding, then slows: the swim runs down with it */
+  if (!ptr.down && Math.abs(film.v) > 1){ film.x += film.v * dt; film.v *= Math.exp(-dt * (state === "decay" ? 4 : 1.3)); HEART.pulse = Math.min(1, HEART.pulse + Math.abs(film.v) * dt / 900); } else if (!ptr.down) film.v = 0;
+  heartStep(dt); mirrorFrame();
   const L = tank, cx = L.x + L.w / 2, cy = L.y + L.h / 2;
   if (state === "kept"){
     SH.A = lerp(SH.A, .012 + .075 * SH.life, dt * 3);
@@ -578,6 +713,9 @@ function render(){
     let dx = .35, dy = -.6; if (ptr.in){ const d = Math.hypot(ptr.x - ex, ptr.y - ey) || 1; dx = (ptr.x - ex) / d; dy = (ptr.y - ey) / d; }
     gl.uniform4f(U.uGlint, ex + shx + dx * er * .45, ey + shy + dy * er * .45, Math.max(1.6, er * .42), 0);
     gl.uniform3f(U.uBg, bg[0], bg[1], bg[2]); gl.uniform3f(U.uRoom, room[0], room[1], room[2]);
+    MIR.k = lerp(MIR.k, MIR.on ? 1 : 0, .08); gl.uniform1f(U.uCamOn, MIR.k);
+    { const ta = tank.w / tank.h, ca = 4 / 3; gl.uniform2f(U.uCamS, ta > ca ? 1 : ta / ca, ta > ca ? ca / ta : 1); }
+    gl.uniform2f(U.uCamLv, MIR.lv[0], MIR.lv[1]);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
   document.body.style.background = `rgb(${room.map(v => v * 255 | 0).join(",")})`;
@@ -587,11 +725,22 @@ function render(){
   o2.strokeStyle = dark ? "rgba(236,240,242,.92)" : "rgba(38,41,48,.92)";
   o2.lineWidth = small ? 3 : 4; o2.strokeRect(x - 2, y - 2, w + 4, h + 4);
   if (!small){ o2.lineWidth = 3; [1, 2].forEach(k => { const xx = Math.round(x + w * k / 3); o2.beginPath(); o2.moveTo(xx, y - 2); o2.lineTo(xx, y + h + 2); o2.stroke(); }); }
-  for (let k = 0; k <= 3; k++){ o2.lineWidth = 1; o2.strokeStyle = dark ? `rgba(255,255,255,${.32 - k * .07})` : `rgba(0,0,0,${.24 - k * .05})`;
-    o2.beginPath(); o2.moveTo(x - 10 - k * 6, y + h + 12 + k * 5); o2.lineTo(x + w + 10 + k * 6, y + h + 12 + k * 5); o2.stroke(); }
+  /* the plinth's top edge is a heart monitor: your pulse, or a flat line */
+  { const base = y + h + 15, buf = HEART.buf, n = buf.length, ink = dark ? "236,240,242" : "28,31,36";
+    o2.strokeStyle = `rgba(${ink},${HEART.flat ? .45 : .8})`; o2.lineWidth = 1.2; o2.lineJoin = "round"; o2.beginPath();
+    for (let i = 0; i < n; i++){ const v = buf[(HEART.bi + i) % n], xx = x - 10 + (w + 20) * i / (n - 1); const yy = base - v * 13; i ? o2.lineTo(xx, yy) : o2.moveTo(xx, yy); }
+    o2.stroke();
+    const bpm = HEART.pulse > .015 ? Math.round(34 + 96 * HEART.pulse) : 0;
+    o2.font = '500 9.5px "JetBrains Mono", monospace'; o2.fillStyle = `rgba(${ink},.6)`; o2.textAlign = "right"; o2.textBaseline = "bottom";
+    o2.fillText(bpm ? `♥ ${bpm}` : "— 0", x + w + 10, base - 3); o2.textAlign = "left"; }
+  /* everyone who stood here: one line each, as long as they looked */
+  { const all = gazeAll(), n = all.length, top = y + h + 22, ink = dark ? "236,240,242" : "28,31,36", acc = dark ? "120,240,225" : "27,154,170";
+    for (let i = 0; i < n; i++){ const o = all[i], xx = Math.round(x + (n === 1 ? w - 2 : (w - 2) * i / (n - 1))) + .5, hh = clamp(2 + Math.log2(1 + o.s / 8) * 1.6, 2, 12);
+      o2.strokeStyle = o.me ? `rgba(${acc},1)` : `rgba(${ink},${n > 400 ? .22 : .38})`; o2.lineWidth = o.me ? 2 : 1;
+      o2.beginPath(); o2.moveTo(xx, top); o2.lineTo(xx, top + hh); o2.stroke(); } }
   if (style === "slits"){
     /* the film's pull tab, hanging just inside its top edge */
-    const tx = x + w / 2, ty = y + film.y + 24;
+    const tx = x + w / 2, ty = Math.min(y + film.y + 24, y + h - 6);
     o2.fillStyle = "rgba(246,247,245,.94)"; o2.beginPath(); o2.roundRect ? o2.roundRect(tx - 46, ty - 20, 92, 22, 11) : o2.rect(tx - 46, ty - 20, 92, 22); o2.fill();
     o2.strokeStyle = "#16181b"; o2.lineWidth = 1.6; o2.lineCap = "round"; o2.lineJoin = "round";
     o2.beginPath(); o2.moveTo(tx - 30, ty - 9); o2.lineTo(tx - 12, ty - 9); o2.moveTo(tx - 24, ty - 14); o2.lineTo(tx - 30, ty - 9); o2.lineTo(tx - 24, ty - 4);
@@ -612,7 +761,7 @@ function addRipple(x, y){ rip.push({ x, y, age:0 }); if (rip.length > 6) rip.shi
 function lend(dx, dy){
   const sp = Math.abs(dx) + Math.abs(dy) * .3;
   if (state === "decay"){ SH.phase += sp * .004; if (sp > 3 && Math.random() < .03) hint(T({ en:"It does not come back", ko:"다시 돌아오지 않아요" }), true); return; }
-  SH.life = Math.min(1, SH.life + sp / 150); hadLife = true;
+  SH.life = Math.min(1, SH.life + sp / 150); hadLife = true; HEART.pulse = Math.min(1, HEART.pulse + sp / 650);
   SH.phase += sp * .045 * Math.sign(dx || 1) * SH.dir * (state === "kept" ? 1 : .4);
   if (state === "kept"){
     if (!SH.turning && dx && Math.sign(dx) === -SH.dir){ SH.against += Math.abs(dx); if (SH.against > 70){ SH.turning = true; SH.against = 0; AUD.swish(.6); } }
@@ -635,8 +784,9 @@ glc.addEventListener("pointermove", e => {
   if (ptr.down){
     ptr.moved += Math.hypot(dx, dy);
     if (style === "slits"){
-      if (ptr.mode === "lift"){ film.y = clamp(film.y + dy, 0, tank.h); if (film.y > tank.h * .3 && !liftHinted){ liftHinted = true; hint(T({ en:"Under the film: six pictures woven into stripes. Slide it back down", ko:"필름 아래엔 여섯 장의 그림이 띠로 엮여 있어요. 다시 내려 보세요" })); } }
-      else { film.x += dx; if (Math.abs(dx) > .5) SH.life = Math.min(1, SH.life + Math.abs(dx) / 150); }
+      if (ptr.mode === "lift"){ film.y = clamp(film.y + dy, 0, tank.h - 28); if (film.y > tank.h * .3 && !liftHinted){ liftHinted = true; hint(T({ en:"Under the film: six pictures woven into stripes. Slide it back down", ko:"필름 아래엔 여섯 장의 그림이 띠로 엮여 있어요. 다시 내려 보세요" })); } }
+      else { film.x += dx; const dtm = Math.max(8, (e.timeStamp - (ptr.ts || e.timeStamp)) || 16) / 1000; film.v = lerp(film.v, dx / dtm, .5);
+        if (Math.abs(dx) > .5){ SH.life = Math.min(1, SH.life + Math.abs(dx) / 150); HEART.pulse = Math.min(1, HEART.pulse + Math.abs(dx) / 700); } }
     } else lend(dx, dy);
     ptr.energy = Math.min(1, ptr.energy + Math.hypot(dx, dy) / 70);
     const now = performance.now();
@@ -734,6 +884,17 @@ const AUD = (() => {
     seal(){ if (!ok()) return; const tt = ctx.currentTime; noise(brown, tt, 1.6, 180, .5, .1, "lowpass"); bubble(.6); },
     splash(){ if (!ok()) return; const tt = ctx.currentTime; noise(white, tt, 1.2, 1100, .5, .12); noise(brown, tt, 1.6, 300, .5, .12, "lowpass"); for (let i = 0; i < 12; i++) setTimeout(() => bubble(.9), 60 + i * 55); },
     ui(){ bubble(.5); },
+    /* a heartbeat heard through water: lub — dub */
+    heart(k){ if (!ok()) return; const tt = ctx.currentTime;
+      [[0, 58, .26], [.16, 47, .18]].forEach(([d, f, g]) => { const o = ctx.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(f * 1.4, tt + d); o.frequency.exponentialRampToValueAtTime(f, tt + d + .06);
+        const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 160; const a = ctx.createGain();
+        a.gain.setValueAtTime(.0001, tt + d); a.gain.exponentialRampToValueAtTime(g * (.45 + .55 * k), tt + d + .015); a.gain.exponentialRampToValueAtTime(.0001, tt + d + .22);
+        o.connect(lp); lp.connect(a); a.connect(master); o.start(tt + d); o.stop(tt + d + .3); }); },
+    /* the flat line: one long, low, muffled tone */
+    flat(){ if (!ok()) return; const tt = ctx.currentTime; const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = 196;
+      const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 500; const a = ctx.createGain();
+      a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(.035, tt + .08); a.gain.setValueAtTime(.035, tt + 1.6); a.gain.exponentialRampToValueAtTime(.0001, tt + 3.2);
+      o.connect(lp); lp.connect(a); a.connect(master); o.start(tt); o.stop(tt + 3.3); },
   };
 })();
 
@@ -766,8 +927,14 @@ $("replace").onclick = () => { AUD.unlock(); AUD.splash(); state = "decay"; setS
   hint(T({ en:"Same tank, another shark. Is it still the same work?", ko:"같은 수조, 다른 상어. 이것은 여전히 같은 작품일까요?" })); };
 function siteLight(on){ try { if (window.parent !== window){ const ex = window.parent.document.getElementById("s-exp"); if (ex) ex.classList.toggle("light", on); } } catch (_){} }
 function plaque(){ $("plaque").innerHTML = `<b>${T({ en:"Tiger shark, glass, steel, formaldehyde", ko:"뱀상어 · 유리 · 강철 · 포름알데히드" })}</b> · ${T(STATE_UI[state])}`; }
-function clock(){ const yrs = new Date().getFullYear() - 1991, s = Math.floor((performance.now() - started) / 1000), mm = String(Math.floor(s / 60)).padStart(2, "0"), ss = String(s % 60).padStart(2, "0");
-  $("clock").innerHTML = T({ en:`Eyes open since 1991 · ${yrs} years · <b>you: ${mm}:${ss}</b>`, ko:`1991년부터 ${yrs}년째 눈을 뜬 채 · <b>당신은 ${mm}:${ss}째</b>` }); }
+function clock(){
+  gazeTick(); gazeSave(false);
+  const yrs = new Date().getFullYear() - 1991, s = Math.floor(GAZE.seen), mm = String(Math.floor(s / 60)).padStart(2, "0"), ss = String(s % 60).padStart(2, "0");
+  const all = gazeAll(), tot = all.reduce((a, o) => a + o.s, 0), hh = Math.floor(tot / 3600), mi = Math.floor(tot % 3600 / 60), n = all.length.toLocaleString(LANG === "ko" ? "ko-KR" : "en-US");
+  const where = GAZE.mode === "shared" ? "" : T({ en:" (this device)", ko:" (이 기기)" });
+  const sum = hh ? T({ en:`${hh} h ${mi} min`, ko:`${hh}시간 ${mi}분` }) : T({ en:`${mi} min ${tot % 60} s`, ko:`${mi}분 ${tot % 60}초` });
+  $("clock").innerHTML = `<span>${T({ en:`Eyes open since 1991 · ${yrs} years · <b>you ${mm}:${ss}</b>`, ko:`1991년부터 ${yrs}년째 눈을 뜬 채 · <b>당신 ${mm}:${ss}</b>` })}</span>`
+    + `<span class="g">${T({ en:`${n} ${all.length === 1 ? "visitor" : "visitors"}, ${sum} in all${where}`, ko:`${n}명이 모두 ${sum}${where}` })}</span>`; }
 let hintT = 0, hintAt = 0;
 function hint(s, brief){ const h = $("hint"); h.textContent = s; h.classList.remove("off"); hintAt = performance.now(); clearTimeout(hintT); hintT = setTimeout(() => h.classList.add("off"), brief ? 3600 : 6500); }
 function hideHint(){ if (performance.now() - hintAt > 1800) $("hint").classList.add("off"); }
@@ -784,6 +951,8 @@ function buildUI(){
   $("replace").innerHTML = `<b>2006</b> ${T({ en:"Put in a new shark", ko:"새 상어로 교체하기" })}`;
 }
 $("dens").addEventListener("input", e => { dens = e.target.value / 100; });
+$("mir").onclick = () => { AUD.unlock(); MIR.on ? mirrorOff() : mirrorOn(); };
+$("mir").setAttribute("aria-label", T({ en:"Reflection in the glass", ko:"유리에 비친 나" })); $("mir").title = T({ en:"Reflection in the glass", ko:"유리에 비친 나" });
 $("snd").onclick = () => { AUD.unlock(); AUD.on = !AUD.on; $("snd").setAttribute("aria-pressed", String(AUD.on)); };
 $("info").onclick = () => document.body.classList.toggle("about");
 $("about-x").onclick = () => document.body.classList.remove("about");
@@ -804,13 +973,18 @@ $("ab-h3").textContent = T({ en:"Try", ko:"해 보기" });
  { en:"Scanimation: slide the black film; lift its tab to see the woven picture underneath.", ko:"스캐니메이션: 검은 필름을 밀어 보세요. 손잡이를 내리면 아래에 엮인 그림이 보여요." },
  { en:"Spacing slider: dense, detailed lines ↔ loose, gestural ones.", ko:"간격 슬라이더: 촘촘하고 사실적인 선 ↔ 느슨하고 감각적인 선." },
  { en:"Hold still in front of its mouth. Watch its eye — it follows you.", ko:"입 앞에 가만히 손을 대 보세요. 눈을 보세요 — 당신을 따라와요." },
- { en:"Decay, then replace it (2006). The clock above counts its years and your minutes.", ko:"부패시킨 뒤 교체해 보세요(2006). 위의 시계는 상어의 햇수와 당신의 시간을 세요." }]
+ { en:"Decay, then replace it (2006). The clock above counts its years and your minutes.", ko:"부패시킨 뒤 교체해 보세요(2006). 위의 시계는 상어의 햇수와 당신의 시간을 세요." },
+ { en:"Mirror: the glass reflects your own face in the same lines — a body as fragile as its. The camera never leaves your device.", ko:"거울: 유리에 당신 얼굴이 같은 선으로 비쳐요 — 상어만큼 연약한 몸. 카메라 영상은 기기 밖으로 나가지 않아요." },
+ { en:"The line under the tank is a pulse you keep going by moving. Stop, and it slows to a flat line.", ko:"수조 아래 선은 당신이 움직여야 뛰는 맥박이에요. 멈추면 느려지다 평평한 선이 돼요." },
+ { en:"The small marks below it are everyone who has stood here — one line each, as long as they looked.", ko:"그 아래 작은 눈금은 이 앞에 섰던 모든 사람이에요 — 한 사람에 한 줄, 바라본 시간만큼." }]
  .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); $("ab-ol").appendChild(li); });
 
 /* ==========================================================================
    10. START
    ========================================================================== */
-buildPicture(); buildUI(); setStyle("lines", true); layout(); plaque(); clock(); setInterval(clock, 1000);
+buildPicture(); buildUI(); setStyle("lines", true); layout(); plaque(); clock(); setInterval(clock, 1000); gazeOpen();
+document.addEventListener("visibilitychange", () => { gazeTick(); if (document.hidden) gazeSave(true); });
+window.addEventListener("pagehide", () => { gazeTick(); gazeSave(true); mirrorOff(); });
 if (!initGL()){ $("nogl").style.display = "grid"; $("nogl").textContent = T({ en:"This room needs WebGL, which this browser has turned off.", ko:"이 전시실은 WebGL이 필요한데, 이 브라우저에서 꺼져 있어요." }); }
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
 window.addEventListener("resize", layout);
@@ -821,7 +995,7 @@ window.addEventListener("keydown", e => { const k = e.key; if (k >= "1" && k <= 
 AUD.unlock(); setTimeout(() => AUD.unlock(), 150);
 hint(T({ en:"Kept, eyes open. Drag across the tank to lend it life", ko:"눈을 뜬 채 박제된 상어예요. 수조를 드래그해 숨을 불어넣어 보세요" }));
 requestAnimationFrame(frame);
-window.__shark = { setStyle, setState, SH, tank, ptr, film, lunge, lend, get style(){ return style; }, get state(){ return state; }, get decay(){ return decay; },
+window.__shark = { setStyle, setState, SH, tank, ptr, film, lunge, lend, HEART, GAZE, MIR, mirrorOn, mirrorOff, gazeAll, get style(){ return style; }, get state(){ return state; }, get decay(){ return decay; },
   setDens:(v) => { dens = v; $("dens").value = Math.round(v * 100); }, pose, zoomNow,
   step:(n, dt) => { for (let i = 0; i < n; i++) step(dt || 1 / 60); render(); } };
 </script>
