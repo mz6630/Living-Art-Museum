@@ -1056,7 +1056,7 @@ function watchVisible(){ const v = single ? [B.cp - 1, B.cp, B.cp + 1, B.cp + 2]
 /* the binder, magazine, mug and sticks: wherever the last person left them */
 let objsSent = "";
 function applyObjs(){ const o = local.objs || shared.objs; if (!o) return;
-  Object.keys(o).forEach(k => { if (!OBJ[k] || (down && down.act === "obj" && down.obj === k)) return; OBJ[k].x = Math.round(o[k][0] * LW); OBJ[k].y = Math.round(o[k][1] * LH); OBJ[k].set = true; }); }
+  Object.keys(o).forEach(k => { if (!OBJ[k] || (down && down.act === "obj" && down.obj === k)) return; OBJ[k].x = Math.round(o[k][0] * LW); OBJ[k].y = Math.round(o[k][1] * LH); OBJ[k].set = true; }); clearDesk(); }
 function keepObjs(){
   const pos = {}; Object.keys(OBJ).forEach(k => { if (OBJ[k].set) pos[k] = [+(OBJ[k].x / LW).toFixed(4), +(OBJ[k].y / LH).toFixed(4)]; });
   const js = JSON.stringify(pos); if (js === objsSent || js === "{}") return; objsSent = js; const rec = { p:pos, t:Date.now() };
@@ -1343,18 +1343,23 @@ function clearOf(o, r){
   c.map(fit).filter(([x, y]) => off(x, y)).forEach(([x, y]) => { const sc = Math.hypot(x - o.x, y - o.y) + crowd(x, y) * .6; if (sc < bs){ bs = sc; best = [x, y]; } });
   return best || fit([o.x < r.x + r.w / 2 ? r.x - w : r.x + r.w, o.y]);
 }
-/* nothing stays hidden under the notebook: if it moves over something (a panel opens, the cover opens), that thing slides out */
+/* nothing stays hidden under the notebook — but things only move when they have to:
+   when you let one go over it, and once when the desk is set out (or someone else's mess arrives).
+   Opening a panel or the cover never pushes anything about. */
 function keepClear(dt){
-  const r = bookRect();
-  Object.keys(OBJ).forEach(k => { const o = OBJ[k];
-    if (!o.spr || (down && down.act === "obj" && down.obj === k) || (k === "binder" && PAN.st) || (k === "mag" && PAN.mg)) return;
-    /* the wastebasket also stays out from under an open binder or magazine, so there is always somewhere to throw things */
-    if (!o.slide){ let t = clearOf(o, r);
-      if (!t && k === "bin") for (const pk of ["st", "mg"]) if (PAN[pk] && !t){ const q = panelRect(pk); t = clearOf(o, { x:q.x - 3, y:q.y - 3, w:q.w + 6, h:q.h + 8 }); }
-      if (t) o.slide = { x:t[0], y:t[1], save:false }; }
-    if (o.slide){ const f = Math.min(1, dt * 12); o.x = lerp(o.x, o.slide.x, f); o.y = lerp(o.y, o.slide.y, f);
-      if (Math.hypot(o.x - o.slide.x, o.y - o.slide.y) < .5){ o.x = Math.round(o.slide.x); o.y = Math.round(o.slide.y); const sv = o.slide.save; o.slide = null; if (sv) saveDesk(); } } });
+  Object.keys(OBJ).forEach(k => { const o = OBJ[k]; if (!o.slide || (down && down.act === "obj" && down.obj === k)) return;
+    const f = Math.min(1, dt * 12); o.x = lerp(o.x, o.slide.x, f); o.y = lerp(o.y, o.slide.y, f);
+    if (Math.hypot(o.x - o.slide.x, o.y - o.slide.y) < .5){ o.x = Math.round(o.slide.x); o.y = Math.round(o.slide.y); const sv = o.slide.save; o.slide = null; if (sv) saveDesk(); } });
 }
+/* set out the desk: anything under the open notebook is placed beside it, at once */
+function clearDesk(){
+  const sp = spineX; spineX = targetSpineRest(); const r = bookRect(); r.x = spineX - CW - 3; r.w = CW * 2 + 8;
+  Object.keys(OBJ).forEach(k => { const o = OBJ[k]; if (!o.spr || o.slide || (down && down.act === "obj" && down.obj === k)) return;
+    const t = clearOf(o, r); if (t){ o.x = t[0]; o.y = t[1]; } });
+  spineX = sp;
+}
+/* where the spine sits with nothing open beside it */
+function targetSpineRest(){ const st = PAN.st, mg = PAN.mg, op = B.open; PAN.st = PAN.mg = false; B.open = 1; const x = targetSpine(); PAN.st = st; PAN.mg = mg; B.open = op; return x; }
 function drawObj(id){ const o = OBJ[id]; if (!o.spr) return;
   if (id === "lamp") o.spr = ROOM.lamp ? o.on : o.off;
   if (id === "radio") o.spr = ROOM.radio && AUD.beat() < .22 ? o.pulse : OBJ.radio.base || o.spr; g.globalAlpha = .35; g.drawImage(o.spr.sh, Math.round(o.x) + 2, Math.round(o.y) + 3); g.globalAlpha = 1; g.drawImage(o.spr.cv, Math.round(o.x), Math.round(o.y)); }
@@ -1804,12 +1809,12 @@ function buildAll(){
   TOOLS.forEach(t => { if (t === "crayon") INK.forEach((_, i) => { const r = mkTool("crayon", i); TOOLSP["crayon" + i] = { cv:r.px.canvas(), hx:r.hx, hy:r.hy }; }); else { const r = mkTool(t); TOOLSP[t] = { cv:r.px.canvas(), hx:r.hx, hy:r.hy }; } });
 }
 setInterval(() => { if (PAN.mg) rebuildHoles(); }, 20000);
-buildAll(); layout(); spineX = targetSpine(); buildUI(); showNav(); openStore();
+buildAll(); layout(); spineX = targetSpine(); clearDesk(); buildUI(); showNav(); openStore();
 let laidW = innerWidth;
 window.addEventListener("resize", () => {
   /* a phone's keyboard coming up only shortens the window: keep the desk as it is and move the text box instead */
   if ((typing && touchType) || (document.activeElement === ime && Math.abs(innerWidth - laidW) < 2)){ placeIme(); return; }
-  laidW = innerWidth; layout(); applyObjs(); spineX = targetSpine(); rebuildLoose(); setBarH(); });
+  laidW = innerWidth; layout(); applyObjs(); spineX = targetSpine(); clearDesk(); rebuildLoose(); setBarH(); });
 function setBarH(){ document.documentElement.style.setProperty("--bar-h", ($("bar").offsetHeight || 60) + "px"); }
 new ResizeObserver(setBarH).observe($("bar"));
 hintShown = performance.now(); hint(T({ en:"Click the notebook to open it", ko:"노트를 눌러 펼쳐 보세요" }));
