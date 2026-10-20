@@ -1,6 +1,6 @@
 # Living Art Museum · 살아있는 미술관
 
-Web Design II (김건우 교수) 기획 프로젝트 — 현대미술 작품 열한 점을 직접 만지고 바꿔 보는 인터랙티브 웹사이트.
+Web Design II (김건우 교수) 기획 프로젝트 — 현대미술 작품 열두 점을 직접 만지고 바꿔 보는 인터랙티브 웹사이트.
 
 **사이트:** https://mz6630.github.io/Living-Art-Museum/
 
@@ -8,8 +8,8 @@ Web Design II (김건우 교수) 기획 프로젝트 — 현대미술 작품 열
 
 | 경로 | 내용 |
 | --- | --- |
-| `index.html` | 사이트 전체(3D · 카드 · 전시 보기). 열한 개의 체험이 이 파일 안에 들어 있어 사이트 안에서 바로 열립니다. |
-| `experiences/` | 체험 하나하나를 따로 연 파일 (호박, 마릴린, 코미디언, 몬드리안, 두들, 뱅크시, 쿤스, 상어, 수프, 바스키아, 풍선을 든 소녀) |
+| `index.html` | 사이트 전체(3D · 카드 · 전시 보기). 열두 개의 체험이 이 파일 안에 들어 있어 사이트 안에서 바로 열립니다. |
+| `experiences/` | 체험 하나하나를 따로 연 파일 (호박, 마릴린, 코미디언, 몬드리안, 두들, 뱅크시, 쿤스, 상어, 수프, 바스키아, 풍선을 든 소녀, 신의 사랑을 위하여) |
 | `src/` | 사이트 원본 (`main.html` + `tail.html`) |
 | `scripts/build-site.py` | `src/` + `experiences/` → `index.html` 빌드 |
 | `scripts/make-config.mjs` | `.env`(또는 GitHub Secrets) → `firebase-config.js` 생성 |
