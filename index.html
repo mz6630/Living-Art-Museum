@@ -21064,7 +21064,7 @@ void main(){
 const VERT = `attribute vec2 aP; void main(){ gl_Position = vec4(aP, 0., 1.); }`;
 
 const glc = $("gl"), ovc = $("ov"), o2 = ovc.getContext("2d");
-const gl = glc.getContext("webgl", { antialias:false, alpha:false, preserveDrawingBuffer:true });
+const gl = glc.getContext("webgl", { antialias:false, alpha:false, preserveDrawingBuffer:false, powerPreference:"high-performance" });
 let prog = null, U = {};                                     /* the fallback: everything in one pass, every frame */
 const P = {};                                               /* the fast path: geometry, surface, light */
 let FT = null, texA = null, texB = null, texC = null, fbA = null, fbB = null, fbC = null, fast = false;
@@ -21106,7 +21106,7 @@ function initGL(){
 /* ==========================================================================
    2. STATE — the skull's turn, the light, the loupe
    ========================================================================== */
-let W = 0, H = 0, DPR = 1, small = false, scale = 1, MAXS = 1;
+let W = 0, H = 0, DPR = 1, small = false, scale = 1, MAXS = 1, moving = false, settleT = 0;
 const S = { yaw:-.55, pitch:.06, vy:0, vp:0, tYaw:0, tPitch:0 };
 const LIGHT = { x:.55, y:.45, tx:.55, ty:.45, moved:0 };           /* where the light is, as a point on the screen (0..1) */
 const LOUPE = { x:-999, y:-999, r:0, on:false };
@@ -21116,13 +21116,14 @@ const tilt = { on:false, b0:null, g0:null, yaw:0, pitch:0 };
 
 function layout(){
   DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; small = W <= 760;
-  MAXS = Math.min(1, (small ? 900000 : 1600000) / (W * H * DPR * DPR)); scale = Math.min(scale, MAXS);
+  MAXS = Math.min(1, (small ? 520000 : 950000) / (W * H * DPR * DPR)); scale = Math.min(scale, MAXS);
   VIEW = W / H < .8 ? [3.1, -.12] : [2.5, -.07];
   resize();
   ovc.width = Math.round(W * DPR); ovc.height = Math.round(H * DPR);
   document.documentElement.style.setProperty("--hint-y", Math.round(($("bar").getBoundingClientRect().top || H - 72) - 26) + "px");
 }
-function resize(){ glc.width = Math.max(2, Math.round(W * DPR * scale)); glc.height = Math.max(2, Math.round(H * DPR * scale)); if (gl){ gl.viewport(0, 0, glc.width, glc.height); if (fast) makeTargets(); } geomDirty = true; }
+function effScale(){ return moving ? scale * .62 : scale; }
+function resize(){ const sc = effScale(); glc.width = Math.max(2, Math.round(W * DPR * sc)); glc.height = Math.max(2, Math.round(H * DPR * sc)); if (gl){ gl.viewport(0, 0, glc.width, glc.height); if (fast) makeTargets(); } geomDirty = true; }
 
 function rotMat(yaw, pitch){
   const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
@@ -21224,8 +21225,8 @@ function frame(now){
   const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt; idle += dt;
   /* keep the frame rate: render fewer pixels when it struggles, more when it can */
   if (dt > .034){ slowFrames++; fastFrames = 0; } else if (dt < .02){ fastFrames++; slowFrames = 0; }
-  if (slowFrames > 10 && scale > .5){ scale = Math.max(.5, scale - .1); resize(); slowFrames = 0; }
-  if (fastFrames > 150 && scale < MAXS){ scale = Math.min(MAXS, scale + .1); resize(); fastFrames = 0; }
+  if (slowFrames > 8 && scale > .35){ scale = Math.max(.35, scale - .1); resize(); slowFrames = 0; }
+  if (fastFrames > 180 && scale < MAXS && !moving){ scale = Math.min(MAXS, scale + .1); resize(); fastFrames = 0; }
   /* the turn: inertia, and the tilt */
   if (!ptr.down || mode !== "rotate"){ S.yaw += S.vy * dt; S.pitch = clamp(S.pitch + S.vp * dt, -.6, .6); S.vy *= Math.exp(-dt * 2.5); S.vp *= Math.exp(-dt * 2.5); }
   S.tYaw = lerp(S.tYaw, tilt.on ? tilt.yaw : 0, dt * 6); S.tPitch = lerp(S.tPitch, tilt.on ? tilt.pitch : 0, dt * 6);
@@ -21235,8 +21236,17 @@ function frame(now){
   LIGHT.x = lerp(LIGHT.x, LIGHT.tx, Math.min(1, dt * 10)); LIGHT.y = lerp(LIGHT.y, LIGHT.ty, Math.min(1, dt * 10));
   const sp = Math.hypot(LIGHT.x - lx0, LIGHT.y - ly0) / Math.max(dt, .001) + Math.abs(S.vy) * .3;
   if (sp > .15 && Math.random() < dt * Math.min(14, sp * 10)) AUD.glint(Math.min(1, sp));
+  /* turning? drop to a coarser picture until it settles */
+  const turning = (ptr.down && mode === "rotate") || Math.abs(S.vy) > .03 || Math.abs(S.vp) > .03 || (tilt.on && (Math.abs(S.tYaw - tilt.yaw) > .003 || Math.abs(S.tPitch - tilt.pitch) > .003));
+  if (turning){ settleT = 0; if (!moving){ moving = true; resize(); } } else if (moving && (settleT += dt) > .18){ moving = false; resize(); }
+  /* nothing changed: draw nothing. The slow idle drift only needs 30 frames a second */
+  const key = [S.yaw + S.tYaw, S.pitch + S.tPitch, LIGHT.x, LIGHT.y, dark, LOUPE.on, LOUPE.x, LOUPE.y, ptr.in, mode, glc.width].map(v => typeof v === "number" ? v.toFixed(4) : v).join();
+  if (key === lastKey){ return; }
+  if (idle > 4 && !turning && now - lastDraw < 32) return;
+  lastKey = key; lastDraw = now;
   render();
 }
+let lastKey = "", lastDraw = 0;
 let lastView = "", lastLoupe = null;
 function setCommon(u, m, mi){
   gl.uniform2f(u.uRes, glc.width, glc.height);
@@ -21248,7 +21258,7 @@ function setCommon(u, m, mi){
   gl.uniform3f(u.uCam, CAM[0], CAM[1], CAM[2]); gl.uniform2f(u.uView, VIEW[0], VIEW[1]);
   gl.uniform1f(u.uRoom, dark ? .03 : 1); gl.uniform1f(u.uDark, dark ? 1 : 0);
   gl.uniform1f(u.uTime, t); gl.uniform1f(u.uZoom, 3.2);
-  gl.uniform3f(u.uLoupe, LOUPE.x * DPR * scale, LOUPE.y * DPR * scale, LOUPE.r * DPR * scale);
+  const es = effScale(); gl.uniform3f(u.uLoupe, LOUPE.x * DPR * es, LOUPE.y * DPR * es, LOUPE.r * DPR * es);
 }
 function render(){
   if (!gl) return;
@@ -21259,7 +21269,7 @@ function render(){
   /* the shape only needs working out again when the skull turns, the window changes, or the loupe moves */
   const view = `${yaw.toFixed(4)},${pitch.toFixed(4)},${glc.width},${glc.height}`;
   if (view !== lastView){ lastView = view; geomDirty = true; }
-  const k = DPR * scale, lp = LOUPE.r ? [LOUPE.x * k, LOUPE.y * k, (LOUPE.r + 2) * k] : null;
+  const k = DPR * effScale(), lp = LOUPE.r ? [LOUPE.x * k, LOUPE.y * k, (LOUPE.r + 2) * k] : null;
   let box = null;
   if (!geomDirty && JSON.stringify(lp) !== JSON.stringify(lastLoupe)){
     /* only the loupe moved: redo just the square around where it was and where it is */
