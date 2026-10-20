@@ -325,28 +325,429 @@ void main(){
   col = pow(col, vec3(1. / 2.2));
   gl_FragColor = vec4(col, 1.);
 }`;
+const GEOM = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform vec2 uRes; uniform mat3 uR, uRi;
+uniform vec3 uL, uLc, uBeam, uCam;
+uniform float uRoom, uDark, uTime, uZoom;
+uniform vec3 uLoupe; uniform vec2 uView;
+#define FREQ 30.0
+#define PI 3.14159265
+
+float sdE(vec3 p, vec3 r){ float k0 = length(p / r), k1 = length(p / (r * r)); return k0 * (k0 - 1.) / k1; }
+float smin(float a, float b, float k){ float h = clamp(.5 + .5 * (b - a) / k, 0., 1.); return mix(b, a, h) - k * h * (1. - h); }
+float smax(float a, float b, float k){ return -smin(-a, -b, k); }
+float sdCap(vec3 p, vec3 a, vec3 b, float r){ vec3 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0., 1.); return length(pa - ba * h) - r; }
+float sdRB(vec3 p, vec3 b, float r){ vec3 q = abs(p) - b; return length(max(q, 0.)) + min(max(q.x, max(q.y, q.z)), 0.) - r; }
+vec3 hash3(vec3 p){ p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6))); return fract(sin(p) * 43758.5453); }
+
+float seg2(vec2 p, vec2 a, vec2 b){ vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0., 1.); return length(pa - ba * h); }
+float plate(float d2, float dy, float r){ return length(max(vec2(d2, dy), 0.)) + min(max(d2, dy), 0.) - r; }
+
+#define O vec3(0., -.02, 0.)
+float bone(vec3 p){
+  vec3 q = vec3(abs(p.x), p.y, p.z);
+  /* the vault: long front to back, a little narrower at the brow */
+  float d = sdE(p - vec3(0., .14, -.06), vec3(.58, .64, .74));
+  d = smin(d, sdE(q - vec3(.28, -.16, -.12), vec3(.3, .28, .36)), .12);           /* the sides, wide down by the ears */
+  d = smin(d, sdE(p - vec3(0., .12, .24), vec3(.5, .55, .5)), .16);
+  /* the face: a flat-fronted upper jaw, cheekbones either side */
+  float face = sdRB(p - vec3(0., -.38, .45), vec3(.17 - (p.y + .38) * .14, .14, .1), .09);
+  face = smin(face, sdE(q - vec3(.35, -.26, .45), vec3(.13, .1, .11)), .08);
+  d = smin(d, face, .1);
+  d = smin(d, sdE(q - vec3(.42, -.36, -.18), vec3(.055, .085, .055)), .08);         /* behind the ears */
+  /* the hollow of the temples, then the arch that bridges it */
+  d = smax(d, -sdE(q - vec3(.58, -.12, .12), vec3(.1, .15, .18)), .07);
+  d = smin(d, sdCap(q, vec3(.42, -.28, .38), vec3(.54, -.26, .04), .038), .04);
+  d = smin(d, sdCap(q, vec3(.54, -.26, .04), vec3(.5, -.29, -.1), .034), .05);
+  /* brow ridge */
+  d = smin(d, sdCap(q, vec3(0., -.0, .69), vec3(.37, -.02, .57), .046), .07);
+  /* eye sockets: deep */
+  d = smax(d, -sdE(q - vec3(.225, -.14, .64), vec3(.135, .115, .46)), .03);
+  /* the nose: a pear-shaped hole, a thin bridge of bone above it */
+  vec3 n = p - vec3(0., -.36, .64); float wn = .033 + max(0., -n.y) * .3;
+  d = smax(d, -sdE(vec3(n.x * .07 / wn, n.y, n.z), vec3(.07, .11, .3)), .02);
+  d = smin(d, sdCap(p, vec3(0., -.07, .69), vec3(0., -.2, .68), .028), .04);
+  /* the lower jaw: one horseshoe plate under the teeth … */
+  vec2 xz = q.xz;
+  float hs = min(min(seg2(xz, vec2(0., .58), vec2(.17, .52)), seg2(xz, vec2(.17, .52), vec2(.33, .33))), seg2(xz, vec2(.33, .33), vec2(.43, .04)));
+  float m = plate(hs - .022, abs(p.y + .83) - .07, .032);
+  /* … rising at the back, a plate up to the joint by the ear, and the point that tucks under the arch */
+  float ra = plate(abs(q.x - .44) - .018, seg2(q.yz, vec2(-.86, .03), vec2(-.38, -.07)) - .075, .015);
+  float co = plate(abs(q.x - .43) - .016, seg2(q.yz, vec2(-.78, .1), vec2(-.4, .13)) - .04, .012);
+  m = smin(m, smin(ra, co, .06), .06);
+  m = smin(m, sdE(p - vec3(0., -.93, .58), vec3(.09, .05, .05)), .04);                /* the chin */
+  return smin(d, m, .02);
+}
+float teeth(vec3 p){
+  vec3 c = p - vec3(0., 0., .26);
+  float a = atan(c.x, c.z), s = .135, i = clamp(floor(a / s + .5), -5., 5.), th = i * s;
+  vec3 q = vec3(c.x * cos(th) - c.z * sin(th), c.y, c.z * cos(th) + c.x * sin(th));
+  float R = .355 - abs(i) * .008, h = .042 - abs(i) * .0025, w = .02;
+  float up = sdRB(q - vec3(0., -.615, R), vec3(w * .8, h * .85, .016), .014);
+  float lo = sdRB(q - vec3(0., -.705, R - .02), vec3(w * .7, h * .7, .015), .013);
+  return min(up, lo);
+}
+
+/* the skull alone (the plinth is a box, hit exactly) — in the skull's own space */
+vec2 mapL(vec3 l){ float b = bone(l), t = teeth(l); return t < b ? vec2(t, 2.) : vec2(b, 1.); }
+vec2 map(vec3 p){ return mapL(uRi * (p - O)); }
+vec3 calcN(vec3 p){ const vec2 e = vec2(.0009, -.0009);
+  return normalize(e.xyy * map(p + e.xyy).x + e.yyx * map(p + e.yyx).x + e.yxy * map(p + e.yxy).x + e.xxx * map(p + e.xxx).x); }
+vec2 viewUV(out float inL){
+  vec2 uv = (gl_FragCoord.xy - .5 * uRes) / (.5 * min(uRes.x, uRes.y));
+  vec2 px = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y); inL = 0.;
+  if (uLoupe.z > 0. && distance(px, uLoupe.xy) < uLoupe.z){ vec2 lc = (vec2(uLoupe.x, uRes.y - uLoupe.y) - .5 * uRes) / (.5 * min(uRes.x, uRes.y)); uv = lc + (uv - lc) / uZoom; inL = 1.; }
+  return uv;
+}
+vec3 viewRay(vec2 uv){ return normalize(vec3(uv.x, uv.y + uView.y, -uView.x)); }
+/* the plinth: a box, hit exactly */
+const vec3 PC = vec3(0., -1.62, 0.), PH = vec3(.86, .59, .86);
+float boxHit(vec3 ro, vec3 rd){ vec3 m = 1. / rd, n = m * (ro - PC), k = abs(m) * PH, t1 = -n - k, t2 = -n + k;
+  float tN = max(max(t1.x, t1.y), t1.z), tF = min(min(t2.x, t2.y), t2.z); return (tN > tF || tF < 0.) ? -1. : tN; }
+
+/* pass 1: where every pixel lands — run only when the view changes */
+void main(){
+  float inL; vec2 uv = viewUV(inL); vec3 ro = uCam, rd = viewRay(uv);
+  float tb = boxHit(ro, rd), hit = 0., t = 0.;
+  vec3 oc = ro - vec3(0., -.1, 0.); float bb = dot(oc, rd), cc = dot(oc, oc) - 1.36 * 1.36, disc = bb * bb - cc;
+  if (disc > 0.){
+    t = max(.05, -bb - sqrt(disc)); float tmax = -bb + sqrt(disc); if (tb > 0.) tmax = min(tmax, tb);
+    for (int i = 0; i < 110; i++){ vec2 h = map(ro + rd * t); if (h.x < .0005 * t){ hit = h.y; break; } t += h.x; if (t > tmax) break; }
+  }
+  if (hit > 0.) gl_FragColor = vec4(uRi * (ro + rd * t - O), hit);
+  else if (tb > 0.) gl_FragColor = vec4(ro + rd * tb, 3.);
+  else gl_FragColor = vec4(0.);
+}`;
+const NORM = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform vec2 uRes; uniform mat3 uR, uRi;
+uniform vec3 uL, uLc, uBeam, uCam;
+uniform float uRoom, uDark, uTime, uZoom;
+uniform vec3 uLoupe; uniform vec2 uView;
+#define FREQ 30.0
+#define PI 3.14159265
+
+float sdE(vec3 p, vec3 r){ float k0 = length(p / r), k1 = length(p / (r * r)); return k0 * (k0 - 1.) / k1; }
+float smin(float a, float b, float k){ float h = clamp(.5 + .5 * (b - a) / k, 0., 1.); return mix(b, a, h) - k * h * (1. - h); }
+float smax(float a, float b, float k){ return -smin(-a, -b, k); }
+float sdCap(vec3 p, vec3 a, vec3 b, float r){ vec3 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0., 1.); return length(pa - ba * h) - r; }
+float sdRB(vec3 p, vec3 b, float r){ vec3 q = abs(p) - b; return length(max(q, 0.)) + min(max(q.x, max(q.y, q.z)), 0.) - r; }
+vec3 hash3(vec3 p){ p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6))); return fract(sin(p) * 43758.5453); }
+
+float seg2(vec2 p, vec2 a, vec2 b){ vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0., 1.); return length(pa - ba * h); }
+float plate(float d2, float dy, float r){ return length(max(vec2(d2, dy), 0.)) + min(max(d2, dy), 0.) - r; }
+
+#define O vec3(0., -.02, 0.)
+float bone(vec3 p){
+  vec3 q = vec3(abs(p.x), p.y, p.z);
+  /* the vault: long front to back, a little narrower at the brow */
+  float d = sdE(p - vec3(0., .14, -.06), vec3(.58, .64, .74));
+  d = smin(d, sdE(q - vec3(.28, -.16, -.12), vec3(.3, .28, .36)), .12);           /* the sides, wide down by the ears */
+  d = smin(d, sdE(p - vec3(0., .12, .24), vec3(.5, .55, .5)), .16);
+  /* the face: a flat-fronted upper jaw, cheekbones either side */
+  float face = sdRB(p - vec3(0., -.38, .45), vec3(.17 - (p.y + .38) * .14, .14, .1), .09);
+  face = smin(face, sdE(q - vec3(.35, -.26, .45), vec3(.13, .1, .11)), .08);
+  d = smin(d, face, .1);
+  d = smin(d, sdE(q - vec3(.42, -.36, -.18), vec3(.055, .085, .055)), .08);         /* behind the ears */
+  /* the hollow of the temples, then the arch that bridges it */
+  d = smax(d, -sdE(q - vec3(.58, -.12, .12), vec3(.1, .15, .18)), .07);
+  d = smin(d, sdCap(q, vec3(.42, -.28, .38), vec3(.54, -.26, .04), .038), .04);
+  d = smin(d, sdCap(q, vec3(.54, -.26, .04), vec3(.5, -.29, -.1), .034), .05);
+  /* brow ridge */
+  d = smin(d, sdCap(q, vec3(0., -.0, .69), vec3(.37, -.02, .57), .046), .07);
+  /* eye sockets: deep */
+  d = smax(d, -sdE(q - vec3(.225, -.14, .64), vec3(.135, .115, .46)), .03);
+  /* the nose: a pear-shaped hole, a thin bridge of bone above it */
+  vec3 n = p - vec3(0., -.36, .64); float wn = .033 + max(0., -n.y) * .3;
+  d = smax(d, -sdE(vec3(n.x * .07 / wn, n.y, n.z), vec3(.07, .11, .3)), .02);
+  d = smin(d, sdCap(p, vec3(0., -.07, .69), vec3(0., -.2, .68), .028), .04);
+  /* the lower jaw: one horseshoe plate under the teeth … */
+  vec2 xz = q.xz;
+  float hs = min(min(seg2(xz, vec2(0., .58), vec2(.17, .52)), seg2(xz, vec2(.17, .52), vec2(.33, .33))), seg2(xz, vec2(.33, .33), vec2(.43, .04)));
+  float m = plate(hs - .022, abs(p.y + .83) - .07, .032);
+  /* … rising at the back, a plate up to the joint by the ear, and the point that tucks under the arch */
+  float ra = plate(abs(q.x - .44) - .018, seg2(q.yz, vec2(-.86, .03), vec2(-.38, -.07)) - .075, .015);
+  float co = plate(abs(q.x - .43) - .016, seg2(q.yz, vec2(-.78, .1), vec2(-.4, .13)) - .04, .012);
+  m = smin(m, smin(ra, co, .06), .06);
+  m = smin(m, sdE(p - vec3(0., -.93, .58), vec3(.09, .05, .05)), .04);                /* the chin */
+  return smin(d, m, .02);
+}
+float teeth(vec3 p){
+  vec3 c = p - vec3(0., 0., .26);
+  float a = atan(c.x, c.z), s = .135, i = clamp(floor(a / s + .5), -5., 5.), th = i * s;
+  vec3 q = vec3(c.x * cos(th) - c.z * sin(th), c.y, c.z * cos(th) + c.x * sin(th));
+  float R = .355 - abs(i) * .008, h = .042 - abs(i) * .0025, w = .02;
+  float up = sdRB(q - vec3(0., -.615, R), vec3(w * .8, h * .85, .016), .014);
+  float lo = sdRB(q - vec3(0., -.705, R - .02), vec3(w * .7, h * .7, .015), .013);
+  return min(up, lo);
+}
+
+/* the skull alone (the plinth is a box, hit exactly) — in the skull's own space */
+vec2 mapL(vec3 l){ float b = bone(l), t = teeth(l); return t < b ? vec2(t, 2.) : vec2(b, 1.); }
+vec2 map(vec3 p){ return mapL(uRi * (p - O)); }
+vec3 calcN(vec3 p){ const vec2 e = vec2(.0009, -.0009);
+  return normalize(e.xyy * map(p + e.xyy).x + e.yyx * map(p + e.yyx).x + e.yxy * map(p + e.yxy).x + e.xxx * map(p + e.xxx).x); }
+vec2 viewUV(out float inL){
+  vec2 uv = (gl_FragCoord.xy - .5 * uRes) / (.5 * min(uRes.x, uRes.y));
+  vec2 px = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y); inL = 0.;
+  if (uLoupe.z > 0. && distance(px, uLoupe.xy) < uLoupe.z){ vec2 lc = (vec2(uLoupe.x, uRes.y - uLoupe.y) - .5 * uRes) / (.5 * min(uRes.x, uRes.y)); uv = lc + (uv - lc) / uZoom; inL = 1.; }
+  return uv;
+}
+vec3 viewRay(vec2 uv){ return normalize(vec3(uv.x, uv.y + uView.y, -uView.x)); }
+/* the plinth: a box, hit exactly */
+const vec3 PC = vec3(0., -1.62, 0.), PH = vec3(.86, .59, .86);
+float boxHit(vec3 ro, vec3 rd){ vec3 m = 1. / rd, n = m * (ro - PC), k = abs(m) * PH, t1 = -n - k, t2 = -n + k;
+  float tN = max(max(t1.x, t1.y), t1.z), tF = min(min(t2.x, t2.y), t2.z); return (tN > tF || tF < 0.) ? -1. : tN; }
+
+uniform sampler2D uA;
+vec2 oct(vec3 n){ n /= abs(n.x) + abs(n.y) + abs(n.z); vec2 o = n.xz; if (n.y < 0.) o = (1. - abs(o.yx)) * vec2(n.x >= 0. ? 1. : -1., n.z >= 0. ? 1. : -1.); return o; }
+float shadow(vec3 ro, vec3 rd, float tmax){ float r = 1., t = .03;
+  for (int i = 0; i < 22; i++){ float h = map(ro + rd * t).x; r = min(r, 9. * h / t); t += clamp(h, .02, .14); if (r < .004 || t > tmax) break; }
+  return clamp(r, 0., 1.); }
+float ao(vec3 p, vec3 n){ float o = 0., s = 1.; for (int i = 1; i <= 5; i++){ float h = .045 * float(i); o += (h - map(p + n * h).x) * s; s *= .72; } return clamp(1. - 2.2 * o, 0., 1.); }
+/* pass 2: the surface there — normal, how hidden it is, the room light's shadow — also only when the view changes */
+void main(){
+  vec4 a = texture2D(uA, gl_FragCoord.xy / uRes);
+  if (a.w < .5){ gl_FragColor = vec4(0.); return; }
+  vec3 p, N;
+  if (a.w > 2.5){ p = a.xyz; vec3 q = (p - PC) / PH; N = abs(q.y) > max(abs(q.x), abs(q.z)) ? vec3(0., sign(q.y), 0.) : abs(q.x) > abs(q.z) ? vec3(sign(q.x), 0., 0.) : vec3(0., 0., sign(q.z)); }
+  else { p = uR * a.xyz + O; N = calcN(p); }
+  vec3 K = normalize(vec3(-.3, 1., .45));
+  gl_FragColor = vec4(oct(N), shadow(p + N * .004, K, 3.), ao(p, N));
+}`;
+const SHADE = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform vec2 uRes; uniform mat3 uR, uRi;
+uniform vec3 uL, uLc, uBeam, uCam;
+uniform float uRoom, uDark, uTime, uZoom;
+uniform vec3 uLoupe; uniform vec2 uView;
+#define FREQ 30.0
+#define PI 3.14159265
+
+float sdE(vec3 p, vec3 r){ float k0 = length(p / r), k1 = length(p / (r * r)); return k0 * (k0 - 1.) / k1; }
+float smin(float a, float b, float k){ float h = clamp(.5 + .5 * (b - a) / k, 0., 1.); return mix(b, a, h) - k * h * (1. - h); }
+float smax(float a, float b, float k){ return -smin(-a, -b, k); }
+float sdCap(vec3 p, vec3 a, vec3 b, float r){ vec3 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0., 1.); return length(pa - ba * h) - r; }
+float sdRB(vec3 p, vec3 b, float r){ vec3 q = abs(p) - b; return length(max(q, 0.)) + min(max(q.x, max(q.y, q.z)), 0.) - r; }
+vec3 hash3(vec3 p){ p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6))); return fract(sin(p) * 43758.5453); }
+
+float seg2(vec2 p, vec2 a, vec2 b){ vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0., 1.); return length(pa - ba * h); }
+float plate(float d2, float dy, float r){ return length(max(vec2(d2, dy), 0.)) + min(max(d2, dy), 0.) - r; }
+
+#define O vec3(0., -.02, 0.)
+uniform sampler2D uA, uB, uC;
+vec3 unoct(vec2 o){ vec3 n = vec3(o.x, 1. - abs(o.x) - abs(o.y), o.y); if (n.y < 0.) n.xz = (1. - abs(n.zx)) * vec2(n.x >= 0. ? 1. : -1., n.z >= 0. ? 1. : -1.); return normalize(n); }
+vec2 viewUV(out float inL){
+  vec2 uv = (gl_FragCoord.xy - .5 * uRes) / (.5 * min(uRes.x, uRes.y));
+  vec2 px = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y); inL = 0.;
+  if (uLoupe.z > 0. && distance(px, uLoupe.xy) < uLoupe.z){ vec2 lc = (vec2(uLoupe.x, uRes.y - uLoupe.y) - .5 * uRes) / (.5 * min(uRes.x, uRes.y)); uv = lc + (uv - lc) / uZoom; inL = 1.; }
+  return uv;
+}
+/* the room as the stones see it: dark, two soft lights, the floor */
+vec3 env(vec3 r, float rough){
+  vec3 c = vec3(.006, .006, .008) + vec3(.012, .011, .010) * max(r.y, 0.);
+  float w = 1. + rough * 6.;
+  c += uRoom * vec3(1., .96, .9) * 2.6 * smoothstep(.93 - .05 * w, .965, dot(r, normalize(vec3(-.45, .85, .35)))) / w;
+  c += uRoom * vec3(.82, .88, 1.) * 1.3 * smoothstep(.95 - .04 * w, .98, dot(r, normalize(vec3(.85, .25, -.4)))) / w;
+  c += uRoom * vec3(.9, .9, .95) * .7 * smoothstep(.9 - .05 * w, .97, dot(r, normalize(vec3(.1, .2, 1.)))) / w;
+  return c;
+}
+
+
+/* pass 3, every frame: only the light — cheap */
+void main(){
+  vec2 st = gl_FragCoord.xy / uRes;
+  vec4 a = texture2D(uA, st), b = texture2D(uB, st);
+  float inL; vec2 uv = viewUV(inL); vec2 px = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y);
+  vec3 ro = uCam, rd = normalize(vec3(uv.x, uv.y + uView.y, -uView.x));
+  vec3 bg = vec3(.012, .012, .014) + vec3(.05, .046, .042) * uRoom * smoothstep(1.6, .0, length(uv - vec2(0., .5)));
+  if (uDark > .5) bg += uLc * .025 * smoothstep(.96, .995, dot(rd, uBeam));
+  vec3 col;
+  float hit = a.w;
+  if (hit < .5){ col = bg; }
+  else {
+    vec3 pl = a.xyz, p = hit > 2.5 ? a.xyz : uR * a.xyz + O;
+    rd = normalize(p - ro);
+    vec3 N = unoct(b.xy), V = -rd; float kSh = uRoom > .2 ? b.z : 0., occ = b.w, t = length(p - ro);
+    vec3 Lp = uDark > .5 ? ro + vec3(.08, .05, 0.) : uL * 5.;
+    vec3 Ld = normalize(Lp - p);
+    vec3 Li = uLc;
+    if (uDark > .5) Li *= smoothstep(.955, .985, dot(rd, uBeam)) * 1.6;
+    /* the skull's own shadow from your light: a soft disc on the plinth; on the skull, the hollows already hide it */
+    float sh = 1.;
+    if (hit > 2.5){ vec3 c = vec3(0., -.15, -.05) - p; float tc = max(dot(c, Ld), 0.), dd = length(c - Ld * tc); sh = smoothstep(.45, .8, dd); }
+    else sh = mix(.35, 1., smoothstep(.0, .5, occ));
+    vec3 K = normalize(vec3(-.3, 1., .45));
+    if (hit > 2.5){
+      vec3 R = reflect(rd, N);
+      col = vec3(.006) + env(R, .3) * .03 + Li * .02 * max(dot(N, Ld), 0.) * sh + uRoom * .025 * kSh * max(dot(N, K), 0.);
+      col *= occ;
+    } else if (hit > 1.5){
+      vec3 alb = vec3(.56, .49, .37);
+      float dif = max(dot(N, Ld), 0.) * sh, kd = max(dot(N, K), 0.) * kSh;
+      vec3 H = normalize(Ld + V);
+      col = alb * (Li * dif * .9 + uRoom * (.55 * kd + .05)) + Li * .25 * pow(max(dot(N, H), 0.), 40.) * sh;
+      col *= occ * occ;
+    } else {
+      vec3 Nl = normalize(uRi * N), Vl = normalize(uRi * V);
+      vec4 cs = texture2D(uC, st);
+      vec3 T = normalize(cross(Nl, abs(Nl.y) < .92 ? vec3(0., 1., 0.) : vec3(1., 0., 0.))), B = cross(Nl, T);
+      vec3 Lw = Ld;
+      float sa = cs.x, tilt = cs.y, metal = cs.z, pr = cs.w > 1.5 ? 0. : 9.;
+      vec3 hid = cs.w > 1.5 ? vec3(.37, .71, .13) : fract(vec3(cs.w, cs.w * 7.31, cs.w * 13.17) + vec3(0., .3, .6));
+      vec3 fd = cos(sa) * T + sin(sa) * B;
+      vec3 wob = (hid - .5) * .16;
+      vec3 fN = normalize(Nl * cos(tilt) + fd * sin(tilt) + wob);
+      vec3 fO = normalize(Nl * cos(tilt) - fd * sin(tilt) + wob);
+      vec3 tint = pr < 1.06 ? vec3(1., .42, .62) : vec3(1.);
+      /* each colour leaves the stone at its own angle: fire */
+      vec3 dia = vec3(0.);
+      for (int ch = 0; ch < 3; ch++){
+        float disp = (float(ch) - 1.) * .035;
+        vec3 nc = normalize(fN + fd * disp), R = reflect(-Vl, nc), R2 = reflect(-Vl, normalize(fO - fd * disp));
+        vec3 Rw = uR * R, R2w = uR * R2;
+        vec3 e = env(Rw, 0.) + .55 * env(R2w, 0.);
+        float sp = pow(max(dot(Rw, Lw), 0.), 900.) * 70. + pow(max(dot(R2w, Lw), 0.), 500.) * 18. + pow(max(dot(Rw, Lw), 0.), 24.) * .55 + pow(max(dot(R2w, Lw), 0.), 12.) * .25;
+        vec3 v = e * 1.6 + Li * sp * sh + .03 + .05 * uRoom * pow(1. - abs(dot(Vl, Nl)), 2.);
+        dia[ch] = ch == 0 ? v.r : ch == 1 ? v.g : v.b;
+      }
+      dia *= tint;
+      if (pr < 1.06) dia += tint * vec3(.08, .02, .04) * (uRoom + Li.r * .5);
+      /* platinum between the stones */
+      vec3 Rm = reflect(-Vl, Nl), Rmw = uR * Rm;
+      vec3 met = vec3(.78, .8, .83) * (env(Rmw, .5) * 1.4 + Li * (.05 * max(dot(N, Ld), 0.) + .7 * pow(max(dot(Rmw, Lw), 0.), 60.)) * sh + uRoom * .06 * kSh);
+      vec3 qa = vec3(abs(pl.x), pl.y, pl.z);
+      float cav = max(smoothstep(.02, -.07, sdE(qa - vec3(.225, -.14, .61), vec3(.15, .13, .4))),
+                      smoothstep(.01, -.05, sdE(pl - vec3(0., -.37, .6), vec3(.07, .12, .3))));
+      col = mix(dia, met, metal) * mix(.04, 1., occ * occ) * mix(1., .1, cav);
+    }
+    col = mix(col, bg, smoothstep(5., 7., t));
+  }
+  if (inL > .5){ float dl = distance(px, uLoupe.xy) / uLoupe.z; col *= 1. - .35 * smoothstep(.75, 1., dl); }
+  col = 1. - exp(-col * 1.35);
+  col = pow(col, vec3(1. / 2.2));
+  gl_FragColor = vec4(col, 1.);
+}`;
+const STONE = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform vec2 uRes; uniform mat3 uR, uRi;
+uniform vec3 uL, uLc, uBeam, uCam;
+uniform float uRoom, uDark, uTime, uZoom;
+uniform vec3 uLoupe; uniform vec2 uView;
+#define FREQ 30.0
+#define PI 3.14159265
+
+float sdE(vec3 p, vec3 r){ float k0 = length(p / r), k1 = length(p / (r * r)); return k0 * (k0 - 1.) / k1; }
+float smin(float a, float b, float k){ float h = clamp(.5 + .5 * (b - a) / k, 0., 1.); return mix(b, a, h) - k * h * (1. - h); }
+float smax(float a, float b, float k){ return -smin(-a, -b, k); }
+float sdCap(vec3 p, vec3 a, vec3 b, float r){ vec3 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0., 1.); return length(pa - ba * h) - r; }
+float sdRB(vec3 p, vec3 b, float r){ vec3 q = abs(p) - b; return length(max(q, 0.)) + min(max(q.x, max(q.y, q.z)), 0.) - r; }
+vec3 hash3(vec3 p){ p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6))); return fract(sin(p) * 43758.5453); }
+
+float seg2(vec2 p, vec2 a, vec2 b){ vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0., 1.); return length(pa - ba * h); }
+float plate(float d2, float dy, float r){ return length(max(vec2(d2, dy), 0.)) + min(max(d2, dy), 0.) - r; }
+
+#define O vec3(0., -.02, 0.)
+uniform sampler2D uA, uB;
+vec3 unoct(vec2 o){ vec3 n = vec3(o.x, 1. - abs(o.x) - abs(o.y), o.y); if (n.y < 0.) n.xz = (1. - abs(n.zx)) * vec2(n.x >= 0. ? 1. : -1., n.z >= 0. ? 1. : -1.); return normalize(n); }
+
+/* pass 2b: which stone each pixel belongs to, and which facet faces it — only when the view changes */
+void main(){
+  vec2 st = gl_FragCoord.xy / uRes; vec4 a = texture2D(uA, st), b = texture2D(uB, st);
+  if (a.w < .5 || a.w > 1.5){ gl_FragColor = vec4(0.); return; }
+  vec3 pl = a.xyz, Nl = normalize(uRi * unoct(b.xy));
+      vec3 T = normalize(cross(Nl, abs(Nl.y) < .92 ? vec3(0., 1., 0.) : vec3(1., 0., 0.))), B = cross(Nl, T);
+      /* the pink diamond: a pear, point up, in the middle of the brow */
+      vec2 f = vec2(pl.x, pl.y - .405);
+      float pw = f.y > 0. ? .072 * (1. - clamp(f.y / .14, 0., 1.) * .8) : .072;
+      float pr = pl.z > .4 ? length(vec2(f.x / pw, f.y / (f.y > 0. ? .14 : .085))) : 9.;
+      vec3 c1; float d1 = 9., d2 = 9.; vec3 hid = vec3(0.);
+      float metal, rr, sectors; vec3 dv;
+      if (pr < 1.06){
+        rr = pr; metal = smoothstep(.93, 1., pr); dv = vec3(f, 0.); hid = vec3(.37, .71, .13); sectors = 16.;
+        dv = T * dot(vec3(f.x, f.y, 0.), T) + B * dot(vec3(f.x, f.y, 0.), B);
+      } else {
+        vec3 g = pl * FREQ, ip = floor(g), fp = fract(g);
+        for (int k = -1; k <= 1; k++) for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++){
+          vec3 o = vec3(float(i), float(j), float(k)), hh = hash3(ip + o), r = o + .1 + .8 * hh - fp; float dd = dot(r, r);
+          if (dd < d1){ d2 = d1; d1 = dd; c1 = ip + o + .1 + .8 * hh; hid = hh; } else if (dd < d2) d2 = dd;
+        }
+        d1 = sqrt(d1); d2 = sqrt(d2);
+        rr = d1 / (.5 * (d1 + d2) + .0001);
+        metal = 1. - smoothstep(.03, .07, d2 - d1);
+        dv = g - c1; sectors = 8.;
+      }
+      vec3 tv = dv - Nl * dot(dv, Nl);
+      float ang = atan(dot(tv, B), dot(tv, T)) + hid.x * 6.283;
+      float sec = floor(ang / (6.283 / sectors)), sa = (sec + .5) * (6.283 / sectors) - hid.x * 6.283;
+      float tilt = rr < .4 ? .0 : rr < .62 ? .45 : .75;
+      if (pr < 1.06) tilt = rr < .35 ? 0. : rr < .7 ? .45 : .8;
+
+  gl_FragColor = vec4(sa, tilt, metal, pr < 1.06 ? 2. : hid.x);
+}`;
 const VERT = `attribute vec2 aP; void main(){ gl_Position = vec4(aP, 0., 1.); }`;
 
 const glc = $("gl"), ovc = $("ov"), o2 = ovc.getContext("2d");
 const gl = glc.getContext("webgl", { antialias:false, alpha:false, preserveDrawingBuffer:true });
-let prog = null, U = {};
+let prog = null, U = {};                                     /* the fallback: everything in one pass, every frame */
+const P = {};                                               /* the fast path: geometry, surface, light */
+let FT = null, texA = null, texB = null, texC = null, fbA = null, fbB = null, fbC = null, fast = false;
+let geomDirty = true, scis = null;
+function compile(src){
+  const sh = (type, code) => { const s = gl.createShader(type); gl.shaderSource(s, code); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)){ console.error(gl.getShaderInfoLog(s)); return null; } return s; };
+  const vs = sh(gl.VERTEX_SHADER, VERT), fs = sh(gl.FRAGMENT_SHADER, src); if (!vs || !fs) return null;
+  const pr = gl.createProgram(); gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.bindAttribLocation(pr, 0, "aP"); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)){ console.error(gl.getProgramInfoLog(pr)); return null; }
+  const u = {}; ["uRes", "uR", "uRi", "uL", "uLc", "uBeam", "uCam", "uRoom", "uDark", "uTime", "uZoom", "uLoupe", "uView", "uA", "uB", "uC"].forEach(n => u[n] = gl.getUniformLocation(pr, n));
+  return { pr, u };
+}
+function makeTargets(){
+  if (!fast) return;
+  const w = glc.width, h = glc.height;
+  [texA, texB, texC].forEach(t => t && gl.deleteTexture(t)); [fbA, fbB, fbC].forEach(f => f && gl.deleteFramebuffer(f));
+  const mk = () => { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, FT, null);
+    const f = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, f); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+    const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE; gl.bindFramebuffer(gl.FRAMEBUFFER, null); return ok ? [t, f] : null; };
+  const a = mk(), b = mk(), c = mk(); if (!a || !b || !c){ fast = false; return; }
+  [texA, fbA] = a; [texB, fbB] = b; [texC, fbC] = c; geomDirty = true; scis = null;
+}
 function initGL(){
   if (!gl) return false;
-  const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)){ console.error(gl.getShaderInfoLog(s)); return null; } return s; };
-  const vs = sh(gl.VERTEX_SHADER, VERT), fs = sh(gl.FRAGMENT_SHADER, FRAG); if (!vs || !fs) return false;
-  prog = gl.createProgram(); gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
-  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)){ console.error(gl.getProgramInfoLog(prog)); return false; }
-  gl.useProgram(prog);
   const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-  const loc = gl.getAttribLocation(prog, "aP"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-  ["uRes", "uR", "uRi", "uL", "uLc", "uBeam", "uCam", "uRoom", "uDark", "uTime", "uZoom", "uLoupe", "uView"].forEach(n => U[n] = gl.getUniformLocation(prog, n));
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  /* float render targets: full floats if the card can draw into them, else half floats */
+  const tf = gl.getExtension("OES_texture_float"), hf = gl.getExtension("OES_texture_half_float");
+  gl.getExtension("WEBGL_color_buffer_float"); gl.getExtension("EXT_color_buffer_half_float");
+  const cands = []; if (tf) cands.push(gl.FLOAT); if (hf) cands.push(hf.HALF_FLOAT_OES);
+  P.g = compile(GEOM); P.n = compile(NORM); P.c = compile(STONE); P.s = compile(SHADE);
+  if (P.g && P.n && P.c && P.s) for (const c of cands){ FT = c; fast = true; makeTargets(); if (fast) break; }
+  if (!fast){ const f = compile(FRAG); if (!f) return false; prog = f.pr; U = f.u; }
   return true;
 }
-
 /* ==========================================================================
    2. STATE — the skull's turn, the light, the loupe
    ========================================================================== */
-let W = 0, H = 0, DPR = 1, small = false, scale = 1;
+let W = 0, H = 0, DPR = 1, small = false, scale = 1, MAXS = 1;
 const S = { yaw:-.55, pitch:.06, vy:0, vp:0, tYaw:0, tPitch:0 };
 const LIGHT = { x:.55, y:.45, tx:.55, ty:.45, moved:0 };           /* where the light is, as a point on the screen (0..1) */
 const LOUPE = { x:-999, y:-999, r:0, on:false };
@@ -356,12 +757,13 @@ const tilt = { on:false, b0:null, g0:null, yaw:0, pitch:0 };
 
 function layout(){
   DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; small = W <= 760;
+  MAXS = Math.min(1, (small ? 900000 : 1600000) / (W * H * DPR * DPR)); scale = Math.min(scale, MAXS);
   VIEW = W / H < .8 ? [3.1, -.12] : [2.5, -.07];
   resize();
   ovc.width = Math.round(W * DPR); ovc.height = Math.round(H * DPR);
   document.documentElement.style.setProperty("--hint-y", Math.round(($("bar").getBoundingClientRect().top || H - 72) - 26) + "px");
 }
-function resize(){ glc.width = Math.max(2, Math.round(W * DPR * scale)); glc.height = Math.max(2, Math.round(H * DPR * scale)); if (gl) gl.viewport(0, 0, glc.width, glc.height); }
+function resize(){ glc.width = Math.max(2, Math.round(W * DPR * scale)); glc.height = Math.max(2, Math.round(H * DPR * scale)); if (gl){ gl.viewport(0, 0, glc.width, glc.height); if (fast) makeTargets(); } geomDirty = true; }
 
 function rotMat(yaw, pitch){
   const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
@@ -463,8 +865,8 @@ function frame(now){
   const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt; idle += dt;
   /* keep the frame rate: render fewer pixels when it struggles, more when it can */
   if (dt > .034){ slowFrames++; fastFrames = 0; } else if (dt < .02){ fastFrames++; slowFrames = 0; }
-  if (slowFrames > 8 && scale > .45){ scale = Math.max(.45, scale - .1); resize(); slowFrames = 0; }
-  if (fastFrames > 90 && scale < 1){ scale = Math.min(1, scale + .1); resize(); fastFrames = 0; }
+  if (slowFrames > 10 && scale > .5){ scale = Math.max(.5, scale - .1); resize(); slowFrames = 0; }
+  if (fastFrames > 150 && scale < MAXS){ scale = Math.min(MAXS, scale + .1); resize(); fastFrames = 0; }
   /* the turn: inertia, and the tilt */
   if (!ptr.down || mode !== "rotate"){ S.yaw += S.vy * dt; S.pitch = clamp(S.pitch + S.vp * dt, -.6, .6); S.vy *= Math.exp(-dt * 2.5); S.vp *= Math.exp(-dt * 2.5); }
   S.tYaw = lerp(S.tYaw, tilt.on ? tilt.yaw : 0, dt * 6); S.tPitch = lerp(S.tPitch, tilt.on ? tilt.pitch : 0, dt * 6);
@@ -476,22 +878,50 @@ function frame(now){
   if (sp > .15 && Math.random() < dt * Math.min(14, sp * 10)) AUD.glint(Math.min(1, sp));
   render();
 }
+let lastView = "", lastLoupe = null;
+function setCommon(u, m, mi){
+  gl.uniform2f(u.uRes, glc.width, glc.height);
+  gl.uniformMatrix3fv(u.uR, false, m); gl.uniformMatrix3fv(u.uRi, false, mi);
+  const nx = LIGHT.x * 2 - 1, ny = -(LIGHT.y * 2 - 1), L = [nx * 1.7, ny * 1.5 + .25, 1.1], ll = Math.hypot(...L);
+  gl.uniform3f(u.uL, L[0] / ll, L[1] / ll, L[2] / ll);
+  const beam = screenRay(LIGHT.x * W, LIGHT.y * H); gl.uniform3f(u.uBeam, beam[0], beam[1], beam[2]);
+  gl.uniform3f(u.uLc, dark ? 2.4 : 1.9, dark ? 2.3 : 1.86, dark ? 2.1 : 1.78);
+  gl.uniform3f(u.uCam, CAM[0], CAM[1], CAM[2]); gl.uniform2f(u.uView, VIEW[0], VIEW[1]);
+  gl.uniform1f(u.uRoom, dark ? .03 : 1); gl.uniform1f(u.uDark, dark ? 1 : 0);
+  gl.uniform1f(u.uTime, t); gl.uniform1f(u.uZoom, 3.2);
+  gl.uniform3f(u.uLoupe, LOUPE.x * DPR * scale, LOUPE.y * DPR * scale, LOUPE.r * DPR * scale);
+}
 function render(){
-  if (!gl || !prog){ return; }
-  const [m, mi] = rotMat(S.yaw + S.tYaw, S.pitch + S.tPitch);
-  gl.uniform2f(U.uRes, glc.width, glc.height);
-  gl.uniformMatrix3fv(U.uR, false, m); gl.uniformMatrix3fv(U.uRi, false, mi);
-  const nx = LIGHT.x * 2 - 1, ny = -(LIGHT.y * 2 - 1);
-  const L = [nx * 1.7, ny * 1.5 + .25, 1.1], ll = Math.hypot(...L);
-  gl.uniform3f(U.uL, L[0] / ll, L[1] / ll, L[2] / ll);
-  const beam = screenRay(LIGHT.x * W, LIGHT.y * H); gl.uniform3f(U.uBeam, beam[0], beam[1], beam[2]);
-  gl.uniform3f(U.uLc, dark ? 2.4 : 1.9, dark ? 2.3 : 1.86, dark ? 2.1 : 1.78);
-  gl.uniform3f(U.uCam, CAM[0], CAM[1], CAM[2]); gl.uniform2f(U.uView, VIEW[0], VIEW[1]);
-  gl.uniform1f(U.uRoom, dark ? .03 : 1); gl.uniform1f(U.uDark, dark ? 1 : 0);
-  gl.uniform1f(U.uTime, t); gl.uniform1f(U.uZoom, 3.2);
+  if (!gl) return;
+  const yaw = S.yaw + S.tYaw, pitch = S.pitch + S.tPitch, [m, mi] = rotMat(yaw, pitch);
   const lr = Math.max(64, Math.min(W, H) * .17);
   LOUPE.r = LOUPE.on && LOUPE.x > -900 ? lr : 0;
-  gl.uniform3f(U.uLoupe, LOUPE.x * DPR * scale, LOUPE.y * DPR * scale, LOUPE.r * DPR * scale);
+  if (!fast){ if (!prog) return; gl.useProgram(prog); setCommon(U, m, mi); gl.drawArrays(gl.TRIANGLES, 0, 3); overlay(); return; }
+  /* the shape only needs working out again when the skull turns, the window changes, or the loupe moves */
+  const view = `${yaw.toFixed(4)},${pitch.toFixed(4)},${glc.width},${glc.height}`;
+  if (view !== lastView){ lastView = view; geomDirty = true; }
+  const k = DPR * scale, lp = LOUPE.r ? [LOUPE.x * k, LOUPE.y * k, (LOUPE.r + 2) * k] : null;
+  let box = null;
+  if (!geomDirty && JSON.stringify(lp) !== JSON.stringify(lastLoupe)){
+    /* only the loupe moved: redo just the square around where it was and where it is */
+    const rects = [lp, lastLoupe].filter(Boolean).map(([x, y, r]) => [x - r, y - r, x + r, y + r]);
+    box = [Math.min(...rects.map(r => r[0])), Math.min(...rects.map(r => r[1])), Math.max(...rects.map(r => r[2])), Math.max(...rects.map(r => r[3]))];
+  }
+  lastLoupe = lp;
+  if (geomDirty || box){
+    if (box){ gl.enable(gl.SCISSOR_TEST); const x0 = Math.max(0, Math.floor(box[0])), y1 = Math.min(glc.height, Math.ceil(box[3])), x1 = Math.min(glc.width, Math.ceil(box[2])), y0 = Math.max(0, Math.floor(box[1]));
+      gl.scissor(x0, glc.height - y1, Math.max(0, x1 - x0), Math.max(0, y1 - y0)); }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbA); gl.useProgram(P.g.pr); setCommon(P.g.u, m, mi); gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbB); gl.useProgram(P.n.pr); setCommon(P.n.u, m, mi);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texA); gl.uniform1i(P.n.u.uA, 0); gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbC); gl.useProgram(P.c.pr); setCommon(P.c.u, m, mi);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, texB); gl.uniform1i(P.c.u.uA, 0); gl.uniform1i(P.c.u.uB, 1); gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.disable(gl.SCISSOR_TEST); geomDirty = false;
+  }
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.useProgram(P.s.pr); setCommon(P.s.u, m, mi);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texA); gl.uniform1i(P.s.u.uA, 0);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, texB); gl.uniform1i(P.s.u.uB, 1);
+  gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, texC); gl.uniform1i(P.s.u.uC, 2);
   gl.drawArrays(gl.TRIANGLES, 0, 3);
   overlay();
 }
@@ -561,7 +991,6 @@ $("ab-h3").textContent = T({ en:"Try", ko:"해 보기" });
    7. START
    ========================================================================== */
 document.body.classList.add("m-light");
-if (small) scale = .7;
 layout();
 if (!initGL()){ $("nogl").style.display = "grid"; $("nogl").textContent = T({ en:"This room needs WebGL, which this browser has turned off.", ko:"이 전시실은 WebGL이 필요한데, 이 브라우저에서 꺼져 있어요." }); }
 siteLight(false);
@@ -572,7 +1001,7 @@ window.addEventListener("keydown", e => { if (e.key === "1") setMode("light"); i
 AUD.unlock(); setTimeout(() => AUD.unlock(), 150);
 hint(T({ en:"Move the light — the stones answer", ko:"빛을 움직여 보세요 — 다이아몬드가 반응해요" }));
 requestAnimationFrame(frame);
-window.__sk = { S, LIGHT, LOUPE, setMode, get dark(){ return dark; }, set dark(v){ dark = v; }, render, setScale:(v) => { scale = v; resize(); } };
+window.__sk = { get fast(){ return fast; }, S, LIGHT, LOUPE, setMode, get dark(){ return dark; }, set dark(v){ dark = v; }, render, setScale:(v) => { scale = v; resize(); } };
 </script>
 </body>
 </html>
