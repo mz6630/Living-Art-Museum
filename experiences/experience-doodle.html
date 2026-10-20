@@ -1872,9 +1872,9 @@ function drawSparkle(o, t, a){
 /* ==========================================================================
    6. the crowd comes alive
    ========================================================================== */
-const ptr = { x:-1e4, y:-1e4, on:false };
+const ptr = { x:-1e4, y:-1e4, on:false, mouse:false };
 const panOf = (o) => (o.hx / Math.max(1, W)) * 1.6 - 0.8;
-function setPtr(e){ ptr.x = e.clientX; ptr.y = e.clientY; ptr.on = true; if (torch.down){ torch.x = e.clientX; torch.y = e.clientY; } }
+function setPtr(e){ ptr.x = e.clientX; ptr.y = e.clientY; ptr.on = true; ptr.mouse = e.pointerType === "mouse"; if (torch.down){ torch.x = e.clientX; torch.y = e.clientY; } }
 cv.addEventListener("pointermove", e => { crayonMove(e); setPtr(e); });
 cv.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") ptr.on = false; });
 let touchOff = 0, down = null;
@@ -1911,7 +1911,7 @@ function poke(x, y){
     if (o.special) continue;
     const cx = o.hx + o.ox, cy = o.hy + o.oy, d = Math.hypot(cx - x, cy - y), reach = o.r + unit * 5;
     if (d < reach && d > 0.1){
-      const kk = (1 - d / reach) * unit * 22, push = o.temper === "shy" || o.temper === "skit" ? 1.4 : 0.5;
+      const kk = (1 - d / reach) * unit * (ptr.mouse ? 12 : 22), push = o.temper === "shy" || o.temper === "skit" ? (ptr.mouse ? .8 : 1.4) : 0.5;
       o.vx += (cx - x) / d * kk * push; o.vy += (cy - y) / d * kk * push;
       if (o.temper === "shy" || o.temper === "skit") o.fearKick = Math.max(o.fearKick, 1 - d / reach);
       if (o.temper === "grump") o.angKick = Math.max(o.angKick, (1 - d / reach) * 0.8);
@@ -1982,7 +1982,11 @@ function update(dt, t){
       const dx = cx - ptr.x, dy = cy - ptr.y, d = Math.hypot(dx, dy) || 1, reach = o.r + near;
       if (d < reach){
         const k = 1 - d / reach;
-        if (o.temper === "shy" || o.temper === "skit"){ fear = Math.min(1, k * 1.7); const push = k * unit * (o.fx ? 3 : 4.2); tx = dx / d * push; ty = dy / d * push; }
+        if (o.temper === "shy" || o.temper === "skit"){
+          if (ptr.mouse){                                                          /* a mouse: a nervous lean, then it holds still to be caught */
+            const on = d < o.r * 1.15, kk = on ? 0 : Math.max(0, (d - o.r * 1.15) / (reach - o.r * 1.15)) * (1 - d / reach) * 4;
+            fear = on ? .45 : Math.min(.5, k * 1.1); const push = kk * unit * (o.fx ? .5 : .7); tx = dx / d * push; ty = dy / d * push; }
+          else { fear = Math.min(1, k * 1.7); const push = k * unit * (o.fx ? 3 : 4.2); tx = dx / d * push; ty = dy / d * push; } }
         else if (o.temper === "grump"){ ang = Math.min(1, k * 1.9); }
         else if (o.temper === "spin"){ spinWant = k; }
         else { joy = Math.min(1, k * 1.6); if (!o.fx){ tx = -dx / d * k * unit * 0.9; ty = -dy / d * k * unit * 0.9; } }
@@ -1993,7 +1997,7 @@ function update(dt, t){
     const ease = (cur, tgt, up, dn) => cur + (tgt - cur) * Math.min(1, dt * (tgt > cur ? up : dn));
     o.fear = ease(o.fear, fear, 10, 2.5); o.ang = ease(o.ang, ang, 7, 1.8); o.joy = ease(o.joy, joy, 8, 2.5);
     o.lookX = ease(o.lookX, lx, 9, 9); o.lookY = ease(o.lookY, ly, 9, 9);
-    if (o.fear > 0.4 && !o.fearOn){ o.fearOn = true; o.vx += (Math.random() - 0.5) * unit * 8; o.vy -= unit * 6; }
+    if (o.fear > 0.4 && !o.fearOn){ o.fearOn = true; const j = ptr.mouse ? 0 : 1; o.vx += (Math.random() - 0.5) * unit * 8 * j; o.vy -= unit * 6 * j; }
     if (o.fear < 0.15) o.fearOn = false;
     if (o.ang > 0.45 && !o.angOn){ o.angOn = true; o.sq = -0.2; }
     if (o.ang < 0.2) o.angOn = false;
