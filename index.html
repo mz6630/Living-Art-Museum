@@ -1054,7 +1054,7 @@ const I18N = {
     "disp.fit":"Fit", "disp.in":"Zoom in", "disp.out":"Zoom out",
     "disp.foot":"Drag to pan · scroll to zoom · click a work",
     "salon.q":"Twelve works,<br>one wall",
-    "salon.p":"Hung as a salon would: close together, floor to ceiling. Come closer and each one opens.",
+    "salon.p":"Hung in order of date, 1930 to today — close together, as a salon would. Come closer and each one opens.",
     "hud.move":"<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move", "hud.look":"drag to look",
     "hud.run":"<kbd>shift</kbd> run", "hud.tools":"Tools",
     "hud.lights":"Lights", "hud.sound":"Sound", "hud.reset":"Reset view",
@@ -1095,7 +1095,7 @@ const I18N = {
     "disp.fit":"맞춤", "disp.in":"확대", "disp.out":"축소",
     "disp.foot":"드래그로 이동 · 스크롤로 확대 · 작품을 클릭",
     "salon.q":"열두 작품,<br>한 벽",
-    "salon.p":"살롱처럼 걸었습니다. 바닥부터 천장까지 촘촘하게. 가까이 다가가면 하나씩 열립니다.",
+    "salon.p":"1930년부터 오늘까지, 시간 순서대로 살롱처럼 촘촘하게 걸었습니다. 가까이 다가가면 하나씩 열립니다.",
     "hud.move":"<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 이동", "hud.look":"드래그해 둘러보기",
     "hud.run":"<kbd>shift</kbd> 달리기", "hud.tools":"도구",
     "hud.lights":"조명", "hud.sound":"소리", "hud.reset":"시점 초기화",
@@ -2786,7 +2786,7 @@ function openWork(id, title){
   show("exp");
 }
 
-const SHOW_IDS = ["marilyn", "comedian", "koons", "pumpkin", "mondrian", "shark", "soup", "basquiat", "doodle", "banksy", "balloon", "skull"];
+const SHOW_IDS = ["mondrian", "soup", "marilyn", "basquiat", "shark", "pumpkin", "koons", "banksy", "balloon", "skull", "comedian", "doodle"];   /* in order of date: 1930 → today */
 const SHOW = SHOW_IDS.map(id => WORKS.find(w => w.id === id) || WORKS_EXTRA[id]);
 
 /* the works themselves, one picture each, for the wheel, the card and the salon wall */
@@ -3071,19 +3071,19 @@ dial.addEventListener("pointerup", endWheelDrag);
 dial.addEventListener("pointercancel", endWheelDrag);
 
 /* ---------------- display: the salon wall ---------------- */
-const SALON = [
-  { id:"marilyn",  x:110, y:160, w:350, h:350 },
-  { id:"comedian", x:515, y:215, w:230, h:230 },
-  { id:"koons",    x:790, y:215, w:230, h:230 },
-  { id:"pumpkin",  x:1070, y:160, w:320, h:320 },
-  { id:"doodle",   x:1440, y:200, w:240, h:240 },
-  { id:"banksy",   x:555, y:615, w:220, h:220 },
-  { id:"shark",    x:810, y:630, w:380, h:190 },
-  { id:"skull",    x:1225, y:595, w:200, h:250 },
-  { id:"mondrian", x:1460, y:610, w:220, h:220 },
-  { id:"soup",     x:1715, y:615, w:215, h:215 },
-  { id:"basquiat", x:1725, y:150, w:230, h:300 },
-  { id:"balloon",  x:330, y:560, w:200, h:260 },
+const SALON = [                                              /* left to right, top row then bottom: oldest to newest */
+  { id:"mondrian", x:80, y:210, w:250, h:250 },
+  { id:"soup",     x:354, y:218, w:235, h:235 },
+  { id:"marilyn",  x:613, y:170, w:330, h:330 },
+  { id:"basquiat", x:967, y:188, w:225, h:295 },
+  { id:"shark",    x:1216, y:238, w:390, h:195 },
+  { id:"pumpkin",  x:1630, y:190, w:290, h:290 },
+  { id:"koons",    x:330, y:605, w:230, h:230 },
+  { id:"banksy",   x:615, y:608, w:225, h:225 },
+  { id:"balloon",  x:895, y:592, w:195, h:255 },
+  { id:"skull",    x:1145, y:592, w:205, h:255 },
+  { id:"comedian", x:1405, y:608, w:225, h:225 },
+  { id:"doodle",   x:1685, y:602, w:235, h:235 },
 ];
 const salon = $("salon"), wall3 = $("wall3");
 let V = { s:1, x:0, y:0 }, fitS = 1, salonBuilt = false, dpanelOpen = false;
@@ -3094,7 +3094,7 @@ function buildSalon(){
     const w = loc(SHOW.find(x => x.id === f.id));
     return `<button class="fr3" data-id="${f.id}" style="left:${f.x}px;top:${f.y}px;width:${f.w}px;height:${f.h}px"
       aria-label="${w.title}, ${w.artist}"><span class="im" style="${photoCss(f.id)}"></span><span class="cap">${w.title} · ${w.year}</span></button>`;
-  }).join("") + `<div class="plaque3" style="left:110px;top:600px;width:190px;">
+  }).join("") + `<div class="plaque3" style="left:80px;top:600px;width:200px;">
       <div class="q">${t("salon.q")}</div>
       <p>${t("salon.p")}</p>
     </div>`;
