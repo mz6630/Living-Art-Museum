@@ -1113,7 +1113,6 @@ const WORKS_KO = {
   comedian: { title:"코미디언", artist:"마우리치오 카텔란", medium:"바나나, 덕트 테이프", room:"팝 아트" },
   marilyn: { title:"마릴린 두 폭화", artist:"앤디 워홀", medium:"캔버스에 아크릴, 실크스크린", room:"팝 아트" },
   tears: { title:"행복한 눈물", artist:"로이 리히텐슈타인", medium:"캔버스에 유채, 마그나", room:"팝 아트" },
-  flower: { title:"러브 이즈 인 디 에어", artist:"뱅크시", medium:"벽에 스텐실", room:"스트리트 아트" },
   companion: { title:"컴패니언", artist:"카우스", medium:"채색한 비닐 캐스팅", room:"스트리트 아트" },
   pumpkin: { title:"호박", artist:"쿠사마 야요이", medium:"채색한 섬유 강화 플라스틱", room:"설치 미술" },
   mirror: { title:"무한 거울 방", artist:"쿠사마 야요이", medium:"거울, 바느질한 천, 빛", room:"설치 미술" },
@@ -1129,7 +1128,6 @@ const WORKS_KO = {
   paik: { title:"다다익선", artist:"백남준", medium:"TV 모니터 1,003대, 철골", room:"미디어 아트" },
   kabakov: { title:"자기 아파트에서 우주로 날아간 남자", artist:"일리야 카바코프", medium:"토털 설치: 방, 포스터, 투석기, 석고 잔해", room:"설치 미술" },
   varini: { title:"착시 회화 연작", artist:"펠리체 바리니", year:"1979–", medium:"건축 위에 칠한 페인트", room:"설치 미술" },
-  devolved: { title:"퇴화된 의회", artist:"뱅크시", medium:"캔버스에 유채", room:"스트리트 아트" },
   basquiat: { title:"페즈 디스펜서", artist:"장 미쉘 바스키아", medium:"캔버스에 아크릴, 오일 스틱", room:"신표현주의" },
   clouds: { title:"은빛 구름", artist:"앤디 워홀", medium:"금속 코팅 플라스틱 필름, 헬륨, 공기", room:"설치 미술" },
   koons: { title:"풍선 개", artist:"제프 쿤스", medium:"투명 코팅한 거울 연마 스테인리스 스틸 · 5가지 에디션", room:"팝 아트" },
@@ -1798,8 +1796,6 @@ const WORKS_EXTRA = {
   kabakov:{ id:"kabakov", title:"The Man Who Flew into Space from His Apartment", artist:"Ilya Kabakov", year:"1985", medium:"Total installation: room, posters, catapult, plaster debris", room:"Installation" },
   varini: { id:"varini", title:"Anamorphic Paintings (series)", artist:"Felice Varini", year:"1979–", medium:"Paint on architecture", room:"Installation" },
   shark:  { id:"shark",  title:"The Physical Impossibility of Death in the Mind of Someone Living", artist:"Damien Hirst", year:"1991", medium:"Tiger shark, glass, steel, formaldehyde", room:"Installation" },
-  flower:   { id:"flower",   title:"Love Is in the Air",  artist:"Banksy", year:"2003", medium:"Stencil on wall", room:"Street Art" },
-  devolved: { id:"devolved", title:"Devolved Parliament", artist:"Banksy", year:"2009", medium:"Oil on canvas",   room:"Street Art" },
   clouds: { id:"clouds", title:"Silver Clouds", artist:"Andy Warhol", year:"1966", medium:"Metallised plastic film, helium, air", room:"Installation" },
   tbd:    { id:"tbd",    title:"To be announced",               artist:"—",           year:"—",    medium:"In preparation",                         room:"Coming soon" },
 };
@@ -1820,9 +1816,6 @@ const WORKS_3D = [
   { id:"mondrian",   w:WM("mondrian"), x:-13.6, y:2.20, z:-0.28 },
   { id:"soup",       w:WM("soup"),     x:ROOM_L.x0 + 0.42, y:2.35, z:5.4 },
   { id:"doodle",     w:WM("doodle"),   x:(ROOM_L.x0 + ROOM_L.x1) / 2, y:3.0, z:RM.z1 - 0.6 },
-  /* Banksy, three canvases along the south face of the display wall */
-  { id:"flower",     w:WM("flower"),   x:-15.1, y:2.0,  z:0.28 + 0.42 },
-  { id:"devolved",   w:WM("devolved"), x:-12.1, y:2.0,  z:0.28 + 0.42 },
   { id:"basquiat",   w:WM("basquiat"), x:ROOM_L.x1 - 0.42, y:2.25, z:3.0 },
   /* Warhol — Silver Clouds: floating up under the ceiling of the passage that joins the two rooms */
   { id:"clouds",     w:WM("clouds"),   x:(ROOM_L.x1 + ROOM_R.x0) / 2, y:5.7, z:(RM.z0 + LINK_Z) / 2 },
@@ -1834,7 +1827,7 @@ const MOODS = [
   { id:0, name:"gallery light", roof:true,  amb:0.34, gain:0.85, sky:null, tint:0,
     lights:[ {x:8.2,z:-6.6,r:5.2,fam:2}, {x:14.8,z:-9.6,r:5.8,fam:1}, {x:16.9,z:-3.75,r:5.2,fam:1}, {x:8.2,z:-2.4,r:3.6,fam:1},
              {x:LOBBY.x,z:LOBBY.z,r:6.5,fam:1}, {x:13.1,z:10.2,r:5.6,fam:2},
-             {x:-13,z:-10,r:5,fam:2}, {x:-17.6,z:-5.4,r:6.2,fam:2}, {x:-13.6,z:-2.2,r:4.8,fam:2}, {x:-15.1,z:2.5,r:3.4,fam:1}, {x:-12.1,z:2.6,r:3.4,fam:2},
+             {x:-13,z:-10,r:5,fam:2}, {x:-17.6,z:-5.4,r:6.2,fam:2}, {x:-13.6,z:-2.2,r:4.8,fam:2},
              {x:-17.6,z:5.4,r:5.4,fam:2}, {x:-11,z:9.6,r:7.5,fam:2}, {x:-4,z:3,r:4.2,fam:1}, {x:0.3,z:-8.3,r:5.5,fam:1} ] },
   { id:1, name:"morning · after Seurat and Monet", roof:false, amb:0.58, gain:0.95, sky:"day", tint:14,
     lights:[ {x:-5,z:-7,r:6.2,fam:9}, {x:5.6,z:-16,r:5.4,fam:9}, {x:0,z:0,r:9,fam:1}, {x:0,z:-12,r:8,fam:14} ] },
@@ -2173,35 +2166,6 @@ function buildWorld(){
     for (let i = 0; i <= n; i++){ const t = i / n, u = a[0] + (b[0] - a[0]) * t, v = a[1] + (b[1] - a[1]) * t;
       for (let k = 0; k < 2; k++){ const p = P(u + (rnd() - 0.5) * thick, v + (rnd() - 0.5) * thick * 1.3, lift); put(p[0], p[1], p[2], bb + rnd() * 0.06, fam); } }
   };
-
-  /* Banksy room: two original stencils on white canvases */
-  { const W = 1.3, H = 1.0, AR = W / H;
-    const canvas = (P) => { for (let u = 0; u <= 1; u += 0.011) for (let v = 0; v <= 1; v += 0.015){ const p = P(u, v); put(p[0], p[1], p[2], 0.84 + rnd() * 0.06, 28); } };
-    const blob = (P, cu, cv, ru, rv, fam, bb) => { for (let u = cu - ru; u <= cu + ru; u += 0.006) for (let v = cv - rv; v <= cv + rv; v += 0.009)
-      if (((u - cu) / ru) ** 2 + ((v - cv) / rv) ** 2 <= 1){ const p = P(u, v, 0.013); put(p[0], p[1], p[2], bb + rnd() * 0.05, fam); } };
-    const drips = (P, u0, u1, v0, fam, bb) => { for (let k = 0; k < 4; k++){ const u = u0 + rnd() * (u1 - u0), len = 0.04 + rnd() * 0.1;
-      for (let d = 0; d < len; d += 0.012){ const p = P(u, v0 + d, 0.012); put(p[0], p[1], p[2], bb * (1 - d / len * 0.4), fam); } } };
-    const face = (id) => { const o = { ...W3(id), z:DWALL.z1 + 0.02 }; return onWall(o, "+z", W, H); };
-    /* an open birdcage, a red bird already out */
-    { const P = face("flower"); canvas(P);
-      const cx = 0.4, top = 0.3, bot = 0.84, hw = 0.16;
-      for (let k = 0; k <= 8; k++){ const u = cx - hw + k * hw / 4; const dome = top + 0.12 * (1 - Math.cos((k / 8 - 0.5) * Math.PI)) ;
-        seg(P, [u, dome], [u, bot], 0.004, 5, 0.2); }
-      for (let a = 0; a <= Math.PI; a += 0.03) seg(P, [cx - Math.cos(a) * hw, top + 0.12 - Math.sin(a) * 0.12], [cx - Math.cos(a + 0.03) * hw, top + 0.12 - Math.sin(a + 0.03) * 0.12], 0.005, 5, 0.18);
-      seg(P, [cx - hw - 0.02, bot], [cx + hw + 0.02, bot], 0.012, 5, 0.16); seg(P, [cx, top - 0.02], [cx, top - 0.08], 0.006, 5, 0.2);
-      seg(P, [cx + hw, 0.62], [cx + hw + 0.1, 0.56], 0.005, 5, 0.2); seg(P, [cx + hw + 0.1, 0.56], [cx + hw + 0.1, 0.78], 0.005, 5, 0.2);   /* the door, swung out */
-      blob(P, 0.76, 0.3, 0.045, 0.03 * AR, 25, 0.9);
-      seg(P, [0.76, 0.3], [0.7, 0.18], 0.03, 25, 0.82); seg(P, [0.77, 0.3], [0.84, 0.2], 0.03, 25, 0.82); seg(P, [0.8, 0.31], [0.83, 0.33], 0.01, 25, 0.9);
-      drips(P, cx - hw, cx + hw, bot + 0.01, 5, 0.25); frame(P, W, H, 5); }
-    /* a paper boat with a red sail on a sea of drips */
-    { const P = face("devolved"); canvas(P);
-      for (let row = 0; row < 3; row++) for (let u = 0.08; u < 0.92; u += 0.006){ const v = 0.74 + row * 0.07 + Math.sin(u * 30 + row) * 0.012; const p = P(u, v, 0.012); put(p[0], p[1], p[2], 0.18 + row * 0.05, 5); }
-      for (let u = 0.3; u <= 0.7; u += 0.005){ const d = Math.abs(u - 0.5) / 0.2, vTop = 0.62, vBot = 0.72 - d * 0.0;
-        for (let v = vTop + d * 0.06; v <= vBot; v += 0.008){ const p = P(u, v, 0.013); put(p[0], p[1], p[2], 0.2 + rnd() * 0.05, 5); } }
-      for (let v = 0.2; v <= 0.6; v += 0.008){ const half = (v - 0.2) / 0.4 * 0.14; for (let u = 0.5 - half; u <= 0.5 + half * 0.3; u += 0.005){ const p = P(u, v, 0.013); put(p[0], p[1], p[2], 0.86 + rnd() * 0.06, 25); } }
-      seg(P, [0.5, 0.18], [0.5, 0.62], 0.004, 5, 0.2);
-      drips(P, 0.1, 0.9, 0.9, 5, 0.25); frame(P, W, H, 5); }
-  }
 
   /* Warhol — Silver Clouds: silver pillows drifting under the passage ceiling; each point a bit of mirror,
      bright where it faces the lights above, darker where it looks down at the floor */
