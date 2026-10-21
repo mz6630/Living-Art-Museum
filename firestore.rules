@@ -57,6 +57,16 @@ service cloud.firestore {
                     && d().s >= resource.data.s;
       allow delete: if false;
     }
+    // ---- Paik: visitors on air — a small photo or a 15-frame clip (120×90 JPEGs), added, never edited ----
+    match /paikClips/{id} {
+      allow read: if true;
+      allow create: if d().keys().hasOnly(['k', 'f', 't', 'w', 'h'])
+                    && d().k in ['p', 'v'] && d().t is number
+                    && d().w == 120 && d().h == 90
+                    && d().f is list && d().f.size() >= 1 && d().f.size() <= 16
+                    && str(d().f[0], 40000);
+      allow update, delete: if false;
+    }
     // where the binder, magazine, mug and oilsticks were left
     match /basquiatMeta/{id} {
       allow read: if true;

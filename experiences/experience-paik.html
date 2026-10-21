@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>The More, the Better — Living Art Museum</title>
+<meta name="description" content="A pagoda of television sets. Click one to bring it close, switch it on and off, turn its channel dial — and put yourself on air: take a photo or a short clip with your camera and it plays on one of the screens. After Nam June Paik's Dadaikseon (1988), from the Living Art Museum.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--serif:Fraunces,"Noto Serif KR",Georgia,serif;}
+html[lang="ko"]{--serif:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;}
+/* ==========================================================================
+   THE MORE, THE BETTER — after Nam June Paik's Dadaikseon (1988).
+   A tower of television sets stacked in tiers like a pagoda. Every set can be
+   brought close, switched on and off, and its channel turned. And you can go
+   on air: a photo or a short clip from your camera takes over one of the
+   screens — for everyone, or only on this device, as you choose.
+   ========================================================================== */
+:root{
+  --ink:#f2f1ee; --ink-dim:rgba(242,241,238,.68); --ink-faint:rgba(242,241,238,.42);
+  --glass-a:rgba(255,255,255,.12); --glass-b:rgba(255,255,255,.05); --glass-line:rgba(255,255,255,.15);
+  --chip-on:rgba(255,255,255,.92); --chip-on-ink:#0b0b0d; --accent:#ff5a3c;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{background:#0c0c0f;color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px;}
+.glass{background:linear-gradient(180deg,var(--glass-a),var(--glass-b));backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
+  border:1px solid var(--glass-line);box-shadow:0 24px 60px -30px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.1);}
+#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+
+.top{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:20px;right:20px;z-index:10;display:flex;align-items:center;gap:14px;pointer-events:none;}
+.top > *{pointer-events:auto;}
+.logo{font-size:19px;font-weight:600;letter-spacing:-.018em;line-height:1;white-space:nowrap;text-decoration:none;color:var(--ink);}
+.title{margin-left:auto;text-align:right;max-width:46vw;}
+.title h1{font-family:var(--serif);font-size:16px;font-weight:600;line-height:1.25;}
+.title p{font-size:11.5px;color:var(--ink-dim);margin-top:2px;}
+body.embedded .top{display:none;}
+
+#bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:12;display:flex;align-items:center;gap:4px;padding:6px;border-radius:20px;max-width:calc(100% - 20px);}
+.chip{display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:14px;font-size:12.5px;color:var(--ink-dim);white-space:nowrap;transition:background .2s,color .2s;}
+.chip svg{width:18px;height:18px;flex:none;}
+.chip:hover{color:var(--ink);background:rgba(255,255,255,.08);}
+.chip[aria-pressed="true"],.chip.hot{background:var(--chip-on);color:var(--chip-on-ink);}
+.chip.ic{padding:9px 10px;}
+.sep{width:1px;align-self:stretch;margin:6px 4px;background:var(--glass-line);}
+#back{display:none;} body.zoomed #back{display:flex;} body.zoomed .tw{display:none;}
+#snd[aria-pressed="false"] .on, #snd[aria-pressed="true"] .off{display:none;}
+.ico{stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+#hint{position:fixed;left:50%;top:var(--hint-y,90px);transform:translate(-50%,-50%);z-index:11;padding:9px 15px;border-radius:999px;font-size:12.5px;color:var(--ink);white-space:nowrap;pointer-events:none;transition:opacity .5s;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;}
+#hint.off{opacity:0;}
+
+/* going on air */
+#cam{position:fixed;inset:0;z-index:30;display:none;place-items:center;background:rgba(0,0,0,.55);}
+body.camopen #cam{display:grid;} body.camopen #hint{opacity:0;}
+#cam .box{width:min(440px,calc(100% - 24px));border-radius:24px;padding:16px;}
+#cam h2{font-family:var(--serif);font-size:18px;font-weight:600;}
+#cam .sub{font-size:12px;color:var(--ink-dim);margin-top:4px;line-height:1.5;}
+#cam .view{position:relative;margin-top:12px;max-height:44vh;margin-inline:auto;border-radius:16px;overflow:hidden;aspect-ratio:4/3;background:#000;}
+#cam video,#cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+#cam video{transform:scaleX(-1);}
+#cam .rec{position:absolute;left:10px;top:10px;padding:4px 9px;border-radius:999px;background:#e5322d;color:#fff;font-size:11px;font-weight:600;display:none;}
+#cam.recording .rec{display:block;}
+#cam .row{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;}
+#cam .row .chip{flex:1;justify-content:center;border:1px solid var(--glass-line);}
+#cam .shoot{background:#e5322d;color:#fff;}
+#cam .note{font-size:11px;color:var(--ink-faint);margin-top:10px;line-height:1.5;}
+#cam .stage-pick,#cam.picked .stage-shoot{display:none;}
+#cam.picked .stage-pick{display:flex;}
+
+#about{position:fixed;right:20px;top:calc(76px + env(safe-area-inset-top,0px));width:350px;max-height:calc(100% - 170px);overflow:auto;z-index:20;border-radius:22px;padding:20px 20px 18px;display:none;}
+body.about #about{display:block;}
+#about .tag{font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);}
+#about h2{font-family:var(--serif);font-size:20px;font-weight:600;line-height:1.25;margin-top:8px;padding-right:24px;}
+#about p{font-size:12.5px;line-height:1.65;color:var(--ink-dim);margin-top:9px;}
+#about h3{font-size:12px;font-weight:600;margin-top:16px;padding-top:14px;border-top:1px solid var(--glass-line);}
+#about ol{margin:8px 0 0 18px;font-size:12.5px;line-height:1.6;color:var(--ink-dim);}
+#about .x{position:absolute;right:12px;top:12px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--ink-dim);}
+#about .x svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;}
+html[lang="ko"] #about .tag{letter-spacing:.04em;}
+@media (max-width:760px){
+  .chip{padding:8px 10px;font-size:11.5px;gap:5px;} #bar .chip .lb{display:none;}
+  #hint{white-space:normal;text-align:center;border-radius:18px;width:max-content;line-height:1.45;}
+  #about{left:10px;right:10px;width:auto;top:calc(64px + env(safe-area-inset-top,0px));}
+  .title p{display:none;} .title h1{font-size:13px;}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<header class="top">
+  <a class="logo" href="#" onclick="return false">Living Art Museum</a>
+  <div class="title"><h1 id="t-h"></h1><p id="t-p"></p></div>
+</header>
+<div id="hint" class="glass off"></div>
+
+<nav id="bar" class="glass">
+  <button class="chip" id="back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg><span class="lb"></span></button>
+  <button class="chip hot" id="onair"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 10.5l5-3v9l-5-3z"/></svg><span class="lb"></span></button>
+  <button class="chip tw" id="allpow"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.3 7.2a8 8 0 1011.4 0"/></svg><span class="lb"></span></button>
+  <button class="chip tw" id="sync"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="6" rx="1"/><rect x="14" y="4" width="7" height="6" rx="1"/><rect x="3" y="14" width="7" height="6" rx="1"/><rect x="14" y="14" width="7" height="6" rx="1"/></svg><span class="lb"></span></button>
+  <span class="sep"></span>
+  <button class="chip ic" id="snd" aria-pressed="true"><svg class="ico on" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg><svg class="ico off" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
+  <button class="chip ic" id="info"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
+</nav>
+
+<section id="cam" aria-modal="true" role="dialog">
+  <div class="box glass">
+    <h2 id="cam-h"></h2>
+    <p class="sub" id="cam-sub"></p>
+    <div class="view"><video id="vid" playsinline muted></video><canvas id="prev"></canvas><span class="rec" id="rec">REC</span></div>
+    <div class="row stage-shoot">
+      <button class="chip" id="m-photo" aria-pressed="true"></button>
+      <button class="chip" id="m-clip" aria-pressed="false"></button>
+      <button class="chip shoot" id="shoot"></button>
+    </div>
+    <div class="row stage-pick">
+      <button class="chip shoot" id="put-all"></button>
+      <button class="chip" id="put-me"></button>
+      <button class="chip" id="again"></button>
+    </div>
+    <div class="row"><button class="chip" id="cam-tab" hidden></button><button class="chip" id="cam-x"></button></div>
+    <p class="note" id="cam-note"></p>
+  </div>
+</section>
+
+<section id="about" class="glass" aria-labelledby="ab-h">
+  <button class="x" id="about-x" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="tag" id="ab-tag"></div>
+  <h2 id="ab-h"></h2>
+  <p id="ab-p1"></p>
+  <p id="ab-p2"></p>
+  <h3 id="ab-h3"></h3>
+  <ol id="ab-ol"></ol>
+</section>
+
+<script>
+"use strict";
+/* ==========================================================================
+   0. BASICS
+   ========================================================================== */
+const LANG = (() => {
+  let l = (document.documentElement.lang || "en").slice(0, 2);
+  try { const q = new URLSearchParams(location.search).get("lang"); if (q) l = q; } catch (_){}
+  return l === "ko" ? "ko" : "en";
+})();
+document.documentElement.lang = LANG;
+if (LANG === "ko") document.title = "다다익선 — Living Art Museum";
+const T = (o) => (o && (o[LANG] ?? o.en)) || "";
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t;
+const ease = (x) => { x = clamp(x, 0, 1); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let seed = 1988; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const hashS = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) / 4294967296; };
+
+/* ==========================================================================
+   1. CHANNELS — eleven little broadcasts, each painted once a frame onto its
+      own small screen and shared by every set tuned to it
+   ========================================================================== */
+const CW = 96, CH = 72;
+const CHN = [
+  { en:"Snow", ko:"지직" }, { en:"Colour bars", ko:"컬러바" }, { en:"Magnet", ko:"자석 TV" }, { en:"Fish", ko:"물고기" },
+  { en:"Candle", ko:"촛불" }, { en:"Dancers", ko:"춤" }, { en:"Countdown", ko:"카운트다운" }, { en:"Moon", ko:"달" },
+  { en:"Zen", ko:"선(禪)" }, { en:"Feedback", ko:"되먹임" }, { en:"Weather", ko:"날씨" },
+];
+const NCH = CHN.length, VIS = NCH;                        /* channel NCH: a visitor's clip, only on the sets that hold one */
+const chans = CHN.map(() => { const c = document.createElement("canvas"); c.width = CW; c.height = CH; return c; });
+const fish = Array.from({ length:5 }, () => ({ x:rnd() * CW, y:12 + rnd() * (CH - 24), v:(rnd() < .5 ? -1 : 1) * (6 + rnd() * 10), s:5 + rnd() * 6, c:`hsl(${20 + rnd() * 40},90%,55%)` }));
+const snowImg = (() => { const q = chans[0].getContext("2d"); return q.createImageData(CW, CH); })();
+function paintChannels(t){
+  /* 0 · snow */
+  { const q = chans[0].getContext("2d"), d = snowImg.data; for (let i = 0; i < d.length; i += 4){ const v = Math.random() * 255 | 0; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; } q.putImageData(snowImg, 0, 0); }
+  /* 1 · colour bars, with a bar of tone */
+  { const q = chans[1].getContext("2d"), cols = ["#c0c0c0", "#c0c000", "#00c0c0", "#00c000", "#c000c0", "#c00000", "#0000c0"];
+    cols.forEach((c, i) => { q.fillStyle = c; q.fillRect(i * CW / 7, 0, CW / 7 + 1, CH * .68); });
+    ["#0000c0", "#131313", "#c000c0", "#131313", "#00c0c0", "#131313", "#c0c0c0"].forEach((c, i) => { q.fillStyle = c; q.fillRect(i * CW / 7, CH * .68, CW / 7 + 1, CH * .08); });
+    q.fillStyle = "#0a0a0a"; q.fillRect(0, CH * .76, CW, CH); q.fillStyle = "#fff"; q.fillRect(CW * .14, CH * .78, CW * .14, CH * .2); q.fillStyle = "#2a0f6a"; q.fillRect(CW * .32, CH * .78, CW * .14, CH * .2); }
+  /* 2 · a magnet on the tube: the picture pulled into loops */
+  { const q = chans[2].getContext("2d"); q.fillStyle = "rgba(4,6,14,.35)"; q.fillRect(0, 0, CW, CH);
+    q.lineWidth = 1.6; q.strokeStyle = `hsl(${(t * 40) % 360},90%,65%)`; q.beginPath();
+    for (let k = 0; k <= 220; k++){ const a = k / 220 * Math.PI * 2, r = 22 + 8 * Math.sin(a * 3 + t * 1.7);
+      const x = CW / 2 + Math.sin(a * 2 + t) * r * 1.3, y = CH / 2 + Math.sin(a * 3 + t * .7) * r * .8; k ? q.lineTo(x, y) : q.moveTo(x, y); } q.stroke(); }
+  /* 3 · fish */
+  { const q = chans[3].getContext("2d"), g = q.createLinearGradient(0, 0, 0, CH); g.addColorStop(0, "#0b4f7a"); g.addColorStop(1, "#05253a"); q.fillStyle = g; q.fillRect(0, 0, CW, CH);
+    for (const f of fish){ f.x += f.v / 60; if (f.x < -12) f.x = CW + 12; if (f.x > CW + 12) f.x = -12; const y = f.y + Math.sin(t * 2 + f.s) * 3, d = Math.sign(f.v);
+      q.fillStyle = f.c; q.beginPath(); q.ellipse(f.x, y, f.s, f.s * .5, 0, 0, 7); q.fill(); q.beginPath(); q.moveTo(f.x - d * f.s * .8, y); q.lineTo(f.x - d * f.s * 1.7, y - f.s * .5); q.lineTo(f.x - d * f.s * 1.7, y + f.s * .5); q.fill();
+      q.fillStyle = "#fff"; q.beginPath(); q.arc(f.x + d * f.s * .5, y - 1, 1.1, 0, 7); q.fill(); }
+    q.fillStyle = "rgba(255,255,255,.25)"; for (let k = 0; k < 5; k++){ const bx = (k * 23 + t * 3) % CW, by = CH - ((t * 12 + k * 17) % CH); q.beginPath(); q.arc(bx, by, 1.2, 0, 7); q.fill(); } }
+  /* 4 · a candle */
+  { const q = chans[4].getContext("2d"); q.fillStyle = "#050505"; q.fillRect(0, 0, CW, CH);
+    const fl = 1 + Math.sin(t * 13) * .08 + Math.sin(t * 7.3) * .06, sway = Math.sin(t * 2.1) * 2;
+    const glow = q.createRadialGradient(CW / 2, CH * .42, 1, CW / 2, CH * .42, 40); glow.addColorStop(0, "rgba(255,170,60,.45)"); glow.addColorStop(1, "rgba(255,120,30,0)"); q.fillStyle = glow; q.fillRect(0, 0, CW, CH);
+    q.fillStyle = "#e8dcc4"; q.fillRect(CW / 2 - 6, CH * .55, 12, CH * .45);
+    const fg = q.createLinearGradient(0, CH * .25, 0, CH * .56); fg.addColorStop(0, "#fff6c8"); fg.addColorStop(.6, "#ffb030"); fg.addColorStop(1, "#c04010");
+    q.fillStyle = fg; q.beginPath(); q.moveTo(CW / 2 + sway, CH * (.55 - .3 * fl)); q.quadraticCurveTo(CW / 2 + 6, CH * .5, CW / 2, CH * .56); q.quadraticCurveTo(CW / 2 - 6, CH * .5, CW / 2 + sway, CH * (.55 - .3 * fl)); q.fill(); }
+  /* 5 · dancers: figures jumping in colour */
+  { const q = chans[5].getContext("2d"); q.fillStyle = `hsl(${(t * 30) % 360},70%,22%)`; q.fillRect(0, 0, CW, CH);
+    for (let k = 0; k < 3; k++){ const x = 20 + k * 28, j = Math.abs(Math.sin(t * 4 + k)) * 10, y = CH - 14 - j, a = Math.sin(t * 6 + k * 2);
+      q.strokeStyle = `hsl(${(k * 120 + t * 60) % 360},95%,65%)`; q.lineWidth = 3; q.lineCap = "round"; q.beginPath();
+      q.moveTo(x, y - 22); q.lineTo(x, y - 6); q.moveTo(x, y - 6); q.lineTo(x - 6 - a * 3, y + 6); q.moveTo(x, y - 6); q.lineTo(x + 6 + a * 3, y + 6);
+      q.moveTo(x, y - 18); q.lineTo(x - 10, y - 26 - a * 6); q.moveTo(x, y - 18); q.lineTo(x + 10, y - 26 + a * 6); q.stroke();
+      q.fillStyle = q.strokeStyle; q.beginPath(); q.arc(x, y - 27, 4.5, 0, 7); q.fill(); } }
+  /* 6 · countdown leader */
+  { const q = chans[6].getContext("2d"), n = 9 - Math.floor(t % 9), f = t % 1; q.fillStyle = "#c9c4b6"; q.fillRect(0, 0, CW, CH);
+    q.fillStyle = "#8a8578"; q.beginPath(); q.moveTo(CW / 2, CH / 2); q.arc(CW / 2, CH / 2, 60, -Math.PI / 2, -Math.PI / 2 + f * Math.PI * 2); q.closePath(); q.fill();
+    q.strokeStyle = "#222"; q.lineWidth = 1.5; q.beginPath(); q.arc(CW / 2, CH / 2, 26, 0, 7); q.arc(CW / 2, CH / 2, 21, 0, 7); q.moveTo(0, CH / 2); q.lineTo(CW, CH / 2); q.moveTo(CW / 2, 0); q.lineTo(CW / 2, CH); q.stroke();
+    q.fillStyle = "#111"; q.font = "bold 30px Inter, sans-serif"; q.textAlign = "center"; q.textBaseline = "middle"; q.fillText(String(n), CW / 2, CH / 2 + 2); }
+  /* 7 · the moon, through its phases */
+  { const q = chans[7].getContext("2d"); q.fillStyle = "#04050a"; q.fillRect(0, 0, CW, CH);
+    const ph = (t * .15) % 1, r = 20, cx = CW / 2, cy = CH / 2;
+    q.fillStyle = "#f2efe2"; q.beginPath(); q.arc(cx, cy, r, 0, 7); q.fill();
+    q.fillStyle = "rgba(4,5,10,.94)"; q.beginPath(); q.arc(cx + lerp(-2.1, 2.1, ph) * r, cy - 1, r * 1.02, 0, 7); q.fill();
+    q.fillStyle = "rgba(255,255,255,.6)"; for (let i = 0; i < 9; i++) q.fillRect((i * 37) % CW, (i * 23) % CH, 1, 1); }
+  /* 8 · zen: one white line through the dark */
+  { const q = chans[8].getContext("2d"); q.fillStyle = "#020202"; q.fillRect(0, 0, CW, CH); q.fillStyle = "#f4f4ee"; q.fillRect(CW / 2 - .8 + Math.sin(t * 9) * .3, 4, 1.6, CH - 8); }
+  /* 9 · feedback: the screen filmed by itself, spinning into colour */
+  { const q = chans[9].getContext("2d"); q.save(); q.globalAlpha = .9; q.translate(CW / 2, CH / 2); q.rotate(.06); q.scale(.94, .94); q.drawImage(chans[9], -CW / 2, -CH / 2); q.restore();
+    q.fillStyle = `hsl(${(t * 90) % 360},100%,60%)`; q.fillRect(CW / 2 - 3 + Math.sin(t * 2) * 20, CH / 2 - 3 + Math.cos(t * 1.7) * 14, 6, 6); }
+  /* 10 · the weather map */
+  { const q = chans[10].getContext("2d"); q.fillStyle = "#1a4d8f"; q.fillRect(0, 0, CW, CH);
+    q.fillStyle = "#3f8d4a"; q.beginPath(); q.moveTo(40, 6); q.quadraticCurveTo(58, 12, 52, 30); q.quadraticCurveTo(60, 48, 46, 66); q.quadraticCurveTo(34, 60, 38, 40); q.quadraticCurveTo(30, 22, 40, 6); q.fill();
+    q.font = "bold 11px Inter, sans-serif"; q.textAlign = "center"; const icons = ["☀", "☁", "☂"];
+    [[46, 20], [48, 44], [64, 58]].forEach(([x, y], i) => { q.fillStyle = "#fff"; q.fillText(icons[(i + Math.floor(t / 2)) % 3], x, y); q.fillText(String(12 + ((i * 5 + Math.floor(t)) % 9)) + "°", x + 16, y); });
+    q.fillStyle = "#e33"; q.fillRect(0, CH - 10, CW, 10); q.fillStyle = "#fff"; q.font = "bold 7px Inter, sans-serif"; q.textAlign = "left"; q.fillText("NEWS · 1988 · SEOUL", CW - ((t * 30) % (CW + 90)), CH - 2.5); }
+}
+
+/* ==========================================================================
+   2. THE TOWER — tiers of sets, widest at the bottom, like a pagoda. Each
+      tier shows its front and, angled back, a side either way.
+   ========================================================================== */
+const TW_ = 60, TH_ = 46, GAP = 3;                         /* a set: width, height (in tower units) */
+const SIDE = 2, SK = .42, SY = -.22;                       /* sets per side face; how far a side is foreshortened and lifted */
+const TIERS = [[13, 2], [12, 2], [11, 2], [10, 2], [9, 2], [8, 2], [7, 2], [6, 2], [5, 1], [4, 1], [3, 1]];
+const CASES = [["#3b2a1f", "#5a4130"], ["#d9d2c3", "#b9b0a0"], ["#1e1f22", "#34363b"], ["#7d1f1f", "#a52c2a"], ["#c9c6be", "#9d9a92"], ["#2c3d4f", "#40566c"]];
+let tvs = [], BOX = { x0:0, x1:0, y0:0, y1:0 };
+function buildTower(){
+  tvs = []; seed = 1988;
+  let y = 0;                                                /* y grows downwards; the base sits at 0 */
+  const rowH = TH_ + GAP;
+  TIERS.forEach(([cols, rows], ti) => {
+    const fw = cols * (TW_ + GAP);
+    for (let r = 0; r < rows; r++){
+      const yy = y - (r + 1) * rowH;
+      for (let c = 0; c < cols; c++) tvs.push(mk(-fw / 2 + c * (TW_ + GAP), yy, "f", ti));
+      for (const side of [-1, 1]) for (let k = 0; k < SIDE; k++) tvs.push(mk(side < 0 ? -fw / 2 - (k + 1) * (TW_ + GAP) * SK : fw / 2 + k * (TW_ + GAP) * SK, yy, side < 0 ? "l" : "r", ti, k));
+    }
+    y -= rows * rowH + 8;                                   /* a ledge between tiers */
+  });
+  const xs = tvs.map(v => v.x), ys = tvs.map(v => v.y);
+  BOX = { x0:Math.min(...xs) - 30, x1:Math.max(...xs) + TW_ * SK + 30, y0:Math.min(...ys) - 140, y1:60 };
+}
+function mk(x, y, face, tier, k){
+  const ch = Math.floor(rnd() * NCH), on = rnd() > .12;
+  const tv = { x, y, face, tier, k:k || 0, ch, on, pw:on ? 1 : 0, cs:CASES[Math.floor(rnd() * CASES.length)], ph:rnd() * 10, clip:null, dial:ch, flash:0 };
+  /* the set's own transform: front faces are flat; side faces lean back and lift */
+  const sk = face === "f" ? 1 : SK, sy = face === "l" ? -SY : face === "r" ? SY : 0;
+  const lift = face === "l" ? (tv.k + 1) * (TW_ + GAP) * SK * SY * -1 : face === "r" ? tv.k * (TW_ + GAP) * SK * SY * -1 : 0;
+  tv.m = [sk, sy * sk, 0, 1, x, y + (face === "f" ? 0 : -Math.abs(lift))];
+  tv.shade = face === "f" ? 1 : .62;
+  return tv;
+}
+
+/* ==========================================================================
+   3. VIEW — the whole tower, or one set brought close
+   ========================================================================== */
+const cv = $("cv"), g = cv.getContext("2d");
+let W = 0, H = 0, DPR = 1;
+const camv = { x:0, y:0, s:1, tx:0, ty:0, ts:1 };
+let zoomed = null;
+function fitTower(){ const bw = BOX.x1 - BOX.x0, bh = BOX.y1 - BOX.y0, mb = W <= 760 ? 150 : 110;
+  const s = Math.min((W - 30) / bw, (H - 80 - mb) / bh); return { x:(BOX.x0 + BOX.x1) / 2, y:(BOX.y0 + BOX.y1) / 2 + (mb - 70) / 2 / s, s }; }
+function layout(){
+  DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  const f = zoomed ? zoomOf(zoomed) : fitTower(); Object.assign(camv, { tx:f.x, ty:f.y, ts:f.s }); if (!camv.s || camv.s === 1){ camv.x = f.x; camv.y = f.y; camv.s = f.s; }
+  document.documentElement.style.setProperty("--hint-y", Math.round(($("bar").getBoundingClientRect().top || H - 72) - 26) + "px");
+}
+function zoomOf(tv){ const cx = tv.m[4] + TW_ / 2 * tv.m[0], cy = tv.m[5] + TH_ / 2 + tv.m[1] * TW_ / 2;
+  const fr = W <= 760 ? .8 : .4, s = Math.min(W * fr / (TW_ * tv.m[0]), (H - 260) / TH_, W * fr / TW_); return { x:cx, y:cy + 6 / s, s }; }
+const toWorld = (sx, sy) => [(sx - W / 2) / camv.s + camv.x, (sy - H / 2) / camv.s + camv.y];
+/* which set is under a point, and where on it (in the set's own 0..TW, 0..TH) */
+function tvAt(wx, wy){
+  for (let i = tvs.length - 1; i >= 0; i--){ const v = tvs[i], [a, b, c, d, e, f] = v.m, det = a * d - b * c;
+    const lx = ((wx - e) * d - (wy - f) * c) / det, ly = ((wy - f) * a - (wx - e) * b) / det;
+    if (lx >= 0 && lx <= TW_ && ly >= 0 && ly <= TH_) return { v, lx, ly }; }
+  return null;
+}
+/* parts of a set, in its own units */
+const SCR = { x:3.5, y:3.5, w:42, h:39 }, PWR = { x:52.5, y:11, r:3.6 }, DIAL = { x:52.5, y:25, r:4.6 };
+
+/* ==========================================================================
+   4. DRAWING
+   ========================================================================== */
+const overlay = (() => { const c = document.createElement("canvas"); c.width = 168; c.height = 156; const q = c.getContext("2d");
+  /* scanlines, the curve of the glass, a soft glare */
+  for (let y = 0; y < 156; y += 3){ q.fillStyle = "rgba(0,0,0,.22)"; q.fillRect(0, y, 168, 1); }
+  const v = q.createRadialGradient(84, 78, 30, 84, 78, 110); v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(1, "rgba(0,0,0,.55)"); q.fillStyle = v; q.fillRect(0, 0, 168, 156);
+  const gl = q.createLinearGradient(0, 0, 168, 156); gl.addColorStop(0, "rgba(255,255,255,.22)"); gl.addColorStop(.35, "rgba(255,255,255,.04)"); gl.addColorStop(.36, "rgba(255,255,255,0)"); q.fillStyle = gl; q.fillRect(0, 0, 168, 156);
+  return c; })();
+function rr(q, x, y, w, h, r){ q.beginPath(); q.moveTo(x + r, y); q.arcTo(x + w, y, x + w, y + h, r); q.arcTo(x + w, y + h, x, y + h, r); q.arcTo(x, y + h, x, y, r); q.arcTo(x, y, x + w, y, r); q.closePath(); }
+function drawTV(v, t, detail){
+  const [a, b, c, d, e, f] = v.m;
+  g.setTransform(DPR * camv.s * a, DPR * camv.s * b, DPR * camv.s * c, DPR * camv.s * d, DPR * ((e - camv.x) * camv.s + W / 2), DPR * ((f - camv.y) * camv.s + H / 2));
+  /* the cabinet */
+  g.fillStyle = v.cs[0]; rr(g, 0, 0, TW_, TH_, 4); g.fill();
+  g.fillStyle = v.cs[1]; g.fillRect(48, 3, 9.5, TH_ - 6);
+  /* the screen */
+  g.fillStyle = "#0b0c0d"; rr(g, SCR.x - 1, SCR.y - 1, SCR.w + 2, SCR.h + 2, 6); g.fill();
+  g.save(); rr(g, SCR.x, SCR.y, SCR.w, SCR.h, 5.5); g.clip();
+  if (v.pw > .01){
+    const sh = Math.max(.012, v.pw < .5 ? v.pw * 2 * .04 : (v.pw - .5) * 2), sw = v.pw < .5 ? Math.max(.03, v.pw * 2) : 1;      /* a CRT warming up: a dot, a line, the picture */
+    const cx = SCR.x + SCR.w / 2, cy = SCR.y + SCR.h / 2, w = SCR.w * sw, h = SCR.h * sh;
+    let src = chans[v.ch];
+    if (v.ch === VIS && v.clip){ const fr = v.clip.imgs; src = fr[Math.floor((t * (v.clip.k === "v" ? 5 : 0)) % fr.length) | 0] || fr[0]; }
+    if (src && (src.complete === undefined || src.complete)) g.drawImage(src, cx - w / 2, cy - h / 2, w, h);
+    if (v.flash > 0){ g.globalAlpha = v.flash; g.drawImage(chans[0], SCR.x, SCR.y, SCR.w, SCR.h); g.globalAlpha = 1; }
+    if (v.pw < 1){ g.fillStyle = `rgba(230,240,255,${(1 - v.pw) * .8})`; g.fillRect(cx - w / 2, cy - h / 2, w, h); }
+  } else { g.fillStyle = "#151719"; g.fillRect(SCR.x, SCR.y, SCR.w, SCR.h); }
+  if (detail) g.drawImage(overlay, SCR.x, SCR.y, SCR.w, SCR.h);
+  g.restore();
+  /* power button and channel dial */
+  g.fillStyle = v.on ? "#ff5a3c" : "#2a2a2a"; g.beginPath(); g.arc(PWR.x, PWR.y - 6, .9, 0, 7); g.fill();
+  g.fillStyle = "#cfcac0"; g.beginPath(); g.arc(PWR.x, PWR.y, PWR.r, 0, 7); g.fill(); g.fillStyle = "#77736b"; g.fillRect(PWR.x - .5, PWR.y - 2.5, 1, 2.2);
+  g.fillStyle = "#1c1c1c"; g.beginPath(); g.arc(DIAL.x, DIAL.y, DIAL.r, 0, 7); g.fill();
+  if (detail){ for (let k = 0; k < 12; k++){ const an = k / 12 * Math.PI * 2; g.fillStyle = "#8b877e"; g.fillRect(DIAL.x + Math.cos(an) * (DIAL.r + 1.4) - .25, DIAL.y + Math.sin(an) * (DIAL.r + 1.4) - .25, .5, .5); } }
+  const an = v.dial / (NCH + 1) * Math.PI * 2 - Math.PI / 2; g.strokeStyle = "#e8e2d4"; g.lineWidth = 1; g.beginPath(); g.moveTo(DIAL.x, DIAL.y); g.lineTo(DIAL.x + Math.cos(an) * DIAL.r * .85, DIAL.y + Math.sin(an) * DIAL.r * .85); g.stroke();
+  /* speaker grille */
+  g.fillStyle = "rgba(0,0,0,.35)"; for (let k = 0; k < 3; k++) g.fillRect(50, 34 + k * 2.4, 5.5, .9);
+  /* side faces sit in shadow */
+  if (v.shade < 1){ g.fillStyle = `rgba(0,0,0,${1 - v.shade})`; rr(g, 0, 0, TW_, TH_, 4); g.fill(); }
+}
+function drawRoom(){
+  g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const bg = g.createRadialGradient(W / 2, H * .45, 40, W / 2, H * .5, Math.max(W, H) * .8); bg.addColorStop(0, "#1b1c22"); bg.addColorStop(1, "#08080a"); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  /* the stepped base and the floor */
+  const k = camv.s, ox = W / 2 - camv.x * k, oy = H / 2 - camv.y * k, bw = (TIERS[0][0] * (TW_ + GAP) + 2 * SIDE * (TW_ + GAP) * SK);
+  g.fillStyle = "#2a2a2e"; g.fillRect(ox - bw / 2 * k - 20 * k, oy + 2 * k, (bw + 40) * k, 16 * k);
+  g.fillStyle = "#212125"; g.fillRect(ox - bw / 2 * k - 44 * k, oy + 18 * k, (bw + 88) * k, 16 * k);
+  g.fillStyle = "rgba(255,255,255,.04)"; g.fillRect(0, oy + 34 * k, W, H);
+  /* the ledges between tiers */
+  let y = 0; const rowH = TH_ + GAP;
+  TIERS.forEach(([cols, rows]) => { const fw = cols * (TW_ + GAP) + SIDE * 2 * (TW_ + GAP) * SK; g.fillStyle = "#3a3a40"; g.fillRect(ox - fw / 2 * k - 4 * k, oy + (y + 1) * k, (fw + 8) * k, 5 * k); y -= rows * rowH + 8; });
+  /* the spire */
+  g.strokeStyle = "#55555c"; g.lineWidth = 3 * k; g.beginPath(); g.moveTo(ox, oy + (y + 8) * k); g.lineTo(ox, oy + (y - 110) * k); g.stroke();
+  for (let i = 0; i < 4; i++){ g.lineWidth = 1.5 * k; g.beginPath(); g.moveTo(ox - (26 - i * 6) * k, oy + (y - 10 - i * 22) * k); g.lineTo(ox + (26 - i * 6) * k, oy + (y - 10 - i * 22) * k); g.stroke(); }
+  g.fillStyle = "#ff5a3c"; g.beginPath(); g.arc(ox, oy + (y - 112) * k, 3.5 * k, 0, 7); g.fill();
+}
+function render(t){
+  drawRoom();
+  const detail = camv.s > 2.2;
+  /* only what is on screen */
+  const [x0, y0] = toWorld(-80, -80), [x1, y1] = toWorld(W + 80, H + 80);
+  for (const v of tvs){ if (v.m[4] > x1 || v.m[4] + TW_ < x0 || v.m[5] > y1 || v.m[5] + TH_ < y0) continue; drawTV(v, t, detail); }
+  /* the channel number, as the set shows it */
+  if (zoomed && camv.s > 4){ const v = zoomed; if (v.osd > 0){
+    const [a, b, c, d, e, f] = v.m; g.setTransform(DPR * camv.s * a, DPR * camv.s * b, DPR * camv.s * c, DPR * camv.s * d, DPR * ((e - camv.x) * camv.s + W / 2), DPR * ((f - camv.y) * camv.s + H / 2));
+    g.globalAlpha = Math.min(1, v.osd); g.fillStyle = "#4dff7a"; g.font = "600 4px 'JetBrains Mono', monospace"; g.textAlign = "left"; g.textBaseline = "top";
+    g.fillText(v.on ? (v.ch === VIS ? (LANG === "ko" ? "CH ★ 방문객" : "CH ★ VISITOR") : `CH ${String(v.ch + 1).padStart(2, "0")} ${T(CHN[v.ch]).toUpperCase()}`) : "", SCR.x + 2.5, SCR.y + 2.5); g.globalAlpha = 1; } }
+}
+
+/* ==========================================================================
+   5. HANDS — click a set to bring it close; then its knobs work
+   ========================================================================== */
+function zoomTo(v){ zoomed = v; document.body.classList.toggle("zoomed", !!v); const f = v ? zoomOf(v) : fitTower(); Object.assign(camv, { tx:f.x, ty:f.y, ts:f.s }); AUD.whoosh(); if (v) v.osd = 2.5;
+  if (v && !seenZoom){ seenZoom = true; hint(T({ en:"Red button: power · the dial: change channel (or scroll)", ko:"빨간 불 옆 버튼: 전원 · 다이얼: 채널 돌리기 (스크롤도 돼요)" })); } }
+let seenZoom = false;
+function setPower(v, on){ if (v.on === on) return; v.on = on; v.osd = 2; on ? AUD.on() : AUD.off(); }
+function nextChannel(v, dir){
+  if (!v.on){ setPower(v, true); return; }
+  const list = []; for (let i = 0; i < NCH; i++) list.push(i); if (v.clip) list.push(VIS);
+  const i = list.indexOf(v.ch); v.ch = list[(i + (dir || 1) + list.length) % list.length]; v.dial = v.ch === VIS ? NCH : v.ch; v.flash = .9; v.osd = 2; AUD.dial();
+}
+const ptr = { x:0, y:0, down:false, moved:0, t0:0 };
+cv.addEventListener("pointerdown", e => { AUD.unlock(); hideHint(); ptr.down = true; ptr.x = e.clientX; ptr.y = e.clientY; ptr.moved = 0; ptr.t0 = performance.now(); });
+cv.addEventListener("pointermove", e => { if (ptr.down) ptr.moved += Math.hypot(e.clientX - ptr.x, e.clientY - ptr.y); ptr.x = e.clientX; ptr.y = e.clientY;
+  const [wx, wy] = toWorld(e.clientX, e.clientY), h = tvAt(wx, wy); cv.style.cursor = h ? "pointer" : zoomed ? "zoom-out" : "default"; });
+cv.addEventListener("pointerup", e => {
+  if (!ptr.down) return; ptr.down = false; if (ptr.moved > 10) return;
+  const [wx, wy] = toWorld(e.clientX, e.clientY), h = tvAt(wx, wy);
+  if (!h){ if (zoomed) zoomTo(null); return; }
+  if (zoomed !== h.v){ zoomTo(h.v); return; }
+  /* close up: the knobs */
+  const v = h.v, near = (p, r) => Math.hypot(h.lx - p.x, h.ly - p.y) < r;
+  if (near(PWR, PWR.r + 3)) setPower(v, !v.on);
+  else if (near(DIAL, DIAL.r + 3)) nextChannel(v, h.ly < DIAL.y ? -1 : 1);
+  else if (h.lx < 48) nextChannel(v, 1);
+});
+cv.addEventListener("wheel", e => { if (!zoomed) return; e.preventDefault(); const now = performance.now(); if (now - wheelT < 160) return; wheelT = now; nextChannel(zoomed, e.deltaY > 0 ? 1 : -1); }, { passive:false });
+let wheelT = 0;
+window.addEventListener("keydown", e => {
+  if (document.body.classList.contains("camopen")) return;
+  if (zoomed){ if (e.key === "ArrowUp" || e.key === "ArrowRight"){ nextChannel(zoomed, 1); e.preventDefault(); } if (e.key === "ArrowDown" || e.key === "ArrowLeft"){ nextChannel(zoomed, -1); e.preventDefault(); }
+    if (e.key === " " || e.key === "p"){ setPower(zoomed, !zoomed.on); e.preventDefault(); } if (e.key === "Escape") zoomTo(null); }
+  else if (e.key === "Escape") document.body.classList.remove("about");
+});
+
+/* ==========================================================================
+   6. ON AIR — your camera, a photo or a three-second clip, onto one of the
+      sets. The picture is made small here (120×90) and nothing else is kept.
+      Shared through the museum's store only if you choose "for everyone".
+   ========================================================================== */
+const FW = 120, FH = 90, CLIP_N = 15, COL = "paikClips", LKEY = "lam.paik.v1";
+let camStream = null, camMode = "photo", shot = null;
+const store = { db:null, shared:[], local:[], tried:false };
+const vid = $("vid"), prev = $("prev");
+async function openCam(){
+  document.body.classList.add("camopen"); $("cam").classList.remove("picked", "recording"); prev.style.display = "none"; shot = null;
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw 0;
+    camStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user", width:{ ideal:640 }, height:{ ideal:480 } }, audio:false });
+    vid.srcObject = camStream; await vid.play().catch(() => {});
+    $("cam-note").textContent = T({ en:"Your picture is shrunk to a small TV image here, on your device. Nothing is recorded until you press the red button.", ko:"사진은 이 기기에서 작은 TV 화면 크기로 줄여져요. 빨간 버튼을 누르기 전에는 아무것도 저장되지 않아요." });
+  } catch (_){
+    const tab = canOpenTab(); $("cam-tab").hidden = !tab;
+    $("cam-note").textContent = tab ? T({ en:"The camera is not available inside this frame. Open the work in a new tab, allow the camera, and go on air there.", ko:"이 화면 안에서는 카메라를 쓸 수 없어요. 새 탭에서 열고 카메라를 허용한 뒤 출연해 보세요." })
+      : T({ en:"The camera is not available here. Allow camera access in your browser and try again.", ko:"여기서는 카메라를 쓸 수 없어요. 브라우저에서 카메라 권한을 허용하고 다시 해 보세요." });
+  }
+}
+function closeCam(){ document.body.classList.remove("camopen"); if (camStream){ camStream.getTracks().forEach(tr => tr.stop()); camStream = null; } vid.srcObject = null; }
+function grab(){ const c = document.createElement("canvas"); c.width = FW; c.height = FH; const q = c.getContext("2d");
+  const vw = vid.videoWidth || FW, vh = vid.videoHeight || FH, s = Math.max(FW / vw, FH / vh);
+  q.translate(FW, 0); q.scale(-1, 1); q.drawImage(vid, (FW - vw * s) / 2, (FH - vh * s) / 2, vw * s, vh * s);
+  /* a little broadcast colour: lifted blacks, warmer */
+  q.setTransform(1, 0, 0, 1, 0, 0); q.globalCompositeOperation = "soft-light"; q.fillStyle = "rgba(255,190,140,.35)"; q.fillRect(0, 0, FW, FH); q.globalCompositeOperation = "source-over";
+  return c.toDataURL("image/jpeg", .62); }
+async function shoot(){
+  if (!camStream || !vid.videoWidth){ hint(T({ en:"No camera picture yet", ko:"아직 카메라 화면이 없어요" }), true); return; }
+  AUD.shutter();
+  if (camMode === "photo"){ shot = { k:"p", f:[grab()] }; }
+  else { $("cam").classList.add("recording"); const f = []; for (let i = 0; i < CLIP_N; i++){ f.push(grab()); await new Promise(r => setTimeout(r, 200)); } $("cam").classList.remove("recording"); shot = { k:"v", f }; AUD.shutter(); }
+  /* show what was taken, playing */
+  prev.width = FW; prev.height = FH; prev.style.display = "block"; const imgs = await loadImgs(shot.f); let i = 0;
+  clearInterval(prevT); prevT = setInterval(() => { const q = prev.getContext("2d"); q.drawImage(imgs[i++ % imgs.length], 0, 0, FW, FH); }, 200);
+  $("cam").classList.add("picked");
+}
+let prevT = 0;
+function loadImgs(list){ return Promise.all(list.map(src => new Promise(r => { const im = new Image(); im.onload = () => r(im); im.onerror = () => r(im); im.src = src; }))); }
+async function putOnAir(shared){
+  if (!shot) return; clearInterval(prevT);
+  const rec = { k:shot.k, f:shot.f, t:Date.now(), w:FW, h:FH };
+  let id = "me-" + Date.now().toString(36);
+  if (shared){
+    await openStore();
+    if (store.db){ try { const ref = store.db.collection(COL).doc(); id = ref.id; await ref.set(rec); } catch (_){ shared = false; hint(T({ en:"Could not share it — kept on this device", ko:"공유하지 못해 이 기기에만 저장했어요" }), true); } }
+    else shared = false;
+  }
+  if (!shared){ store.local.push({ id, ...rec }); try { localStorage.setItem(LKEY, JSON.stringify(store.local.slice(-8))); } catch (_){} }
+  closeCam();
+  const v = await placeClip({ id, ...rec }, true);
+  if (v){ v.on = true; v.ch = VIS; v.dial = NCH; v.pw = 0; zoomTo(v); AUD.on(); }
+  hint(shared ? T({ en:"You are on air — on every visitor's tower", ko:"방송 중이에요 — 모든 방문객의 탑에 나와요" }) : T({ en:"You are on air — on this device", ko:"방송 중이에요 — 이 기기에서만 보여요" }));
+}
+/* each clip takes a set by its id, so it is in the same place for everyone */
+async function placeClip(rec, fresh){
+  const front = tvs.filter(v => v.face === "f"), free = front.filter(v => !v.clip);
+  if (!free.length) return null;
+  let v = free[Math.floor(hashS(rec.id) * free.length)];
+  if (fresh){ const mid = free.filter(x => x.tier >= 2 && x.tier <= 6); if (mid.length) v = mid[Math.floor(hashS(rec.id) * mid.length)]; }
+  v.clip = { id:rec.id, k:rec.k, imgs:await loadImgs(rec.f) };
+  if (!fresh){ v.ch = VIS; v.dial = NCH; v.on = true; }
+  return v;
+}
+async function openStore(){
+  if (store.tried) return; store.tried = true;
+  try { const api = window.claude || (window.parent !== window && window.parent.claude); if (api && api.use) store.db = await api.use("db"); } catch (_){ store.db = null; }
+  if (!store.db) return;
+  try { store.db.collection(COL).limit(80).onSnapshot(async sn => {
+      const docs = sn.docs.map(d => ({ id:d.id, ...(d.data() || {}) })).filter(r => (r.k === "p" || r.k === "v") && Array.isArray(r.f) && r.f.length && r.f.length <= 16 && r.f.every(x => typeof x === "string" && x.startsWith("data:image/jpeg"))).sort((a, b) => (b.t || 0) - (a.t || 0)).slice(0, 60);
+      for (const r of docs) if (!tvs.some(v => v.clip && v.clip.id === r.id)) await placeClip(r, false);
+    }, () => {}); } catch (_){}
+}
+(async () => { try { store.local = JSON.parse(localStorage.getItem(LKEY) || "[]").filter(r => r && Array.isArray(r.f)); } catch (_){ store.local = []; } })();
+
+/* ==========================================================================
+   7. SOUND — the hiss of many tubes, the thunk of a set, the dial's click
+   ========================================================================== */
+const AUD = (() => {
+  let ctx = null, master = null, white = null, on = true, borrowed = false, amb = null, hissG = null;
+  function ensure(){ if (ctx) return ctx; const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+    try { const host = window.parent !== window && window.parent.__lamAudio && window.parent.__lamAudio(); if (host && host.state === "running"){ ctx = host; borrowed = true; } } catch (_){}
+    if (!ctx){ try { ctx = new AC(); } catch (_){ return null; } }
+    master = ctx.createGain(); master.gain.value = on ? .85 : 0; master.connect(ctx.destination);
+    const n = ctx.sampleRate * 2; white = ctx.createBuffer(1, n, ctx.sampleRate); const w = white.getChannelData(0); for (let i = 0; i < n; i++) w[i] = Math.random() * 2 - 1;
+    return ctx; }
+  const ok = () => on && ensure() && ctx.state === "running";
+  function start(){ if (amb || !ensure() || ctx.state !== "running") return;
+    const s = ctx.createBufferSource(); s.buffer = white; s.loop = true; const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 5200; f.Q.value = .7;
+    hissG = ctx.createGain(); hissG.gain.value = 0; s.connect(f); f.connect(hissG); hissG.connect(master); s.start(); amb = { s }; }
+  function burst(tt, dur, f, q, gg, type){ const s = ctx.createBufferSource(); s.buffer = white; const fl = ctx.createBiquadFilter(); fl.type = type || "bandpass"; fl.frequency.value = f; fl.Q.value = q;
+    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(gg, tt + Math.min(.005, dur * .2)); a.gain.exponentialRampToValueAtTime(.0001, tt + dur);
+    s.connect(fl); fl.connect(a); a.connect(master); s.start(tt, Math.random()); s.stop(tt + dur + .03); }
+  function tone(tt, f0, f1, dur, gg, type){ const o = ctx.createOscillator(); o.type = type || "sine"; o.frequency.setValueAtTime(f0, tt); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, tt + dur);
+    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(gg, tt + .01); a.gain.exponentialRampToValueAtTime(.0001, tt + dur); o.connect(a); a.connect(master); o.start(tt); o.stop(tt + dur + .05); }
+  return {
+    unlock(){ if (ensure()){ if (ctx.state !== "running") ctx.resume().then(start).catch(() => {}); else start(); } },
+    get on_(){ return on; }, set on_(v){ on = v; if (master) master.gain.setTargetAtTime(v ? .85 : 0, ctx.currentTime, .05); },
+    stop(){ if (!ctx) return; if (amb) try { amb.s.stop(); } catch (_){} amb = null; try { master.disconnect(); } catch (_){} if (!borrowed) try { ctx.close(); } catch (_){} },
+    /* how loud the tubes hiss: more sets on, closer in, louder */
+    hiss(k){ if (hissG && ctx) hissG.gain.setTargetAtTime(on ? k : 0, ctx.currentTime, .2); },
+    on(){ if (!ok()) return; const tt = ctx.currentTime; burst(tt, .03, 2600, 2, .12); tone(tt + .02, 900, 2400, .35, .025, "sine"); burst(tt + .05, .4, 6000, .6, .05); },
+    off(){ if (!ok()) return; const tt = ctx.currentTime; burst(tt, .03, 2600, 2, .1); tone(tt, 2200, 700, .25, .02, "sine"); },
+    dial(){ if (!ok()) return; const tt = ctx.currentTime; burst(tt, .02, 3200, 3, .12); burst(tt + .015, .015, 1800, 3, .06); burst(tt + .03, .18, 5000, .7, .05); },
+    shutter(){ if (!ok()) return; const tt = ctx.currentTime; burst(tt, .03, 3600, 1.2, .18); burst(tt + .07, .03, 2900, 1.2, .12); },
+    whoosh(){ if (!ok()) return; const tt = ctx.currentTime, s = ctx.createBufferSource(); s.buffer = white; const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.Q.value = .8;
+      f.frequency.setValueAtTime(700, tt); f.frequency.exponentialRampToValueAtTime(2600, tt + .3); const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(.035, tt + .05); a.gain.exponentialRampToValueAtTime(.0001, tt + .4);
+      s.connect(f); f.connect(a); a.connect(master); s.start(tt, Math.random()); s.stop(tt + .45); },
+    click(){ if (!ok()) return; burst(ctx.currentTime, .02, 3600, 3, .06); },
+  };
+})();
+
+/* ==========================================================================
+   8. LOOP
+   ========================================================================== */
+let last = performance.now(), t = 0, chT = 0;
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt;
+  const k = 1 - Math.exp(-dt * 5.5);
+  camv.s = Math.exp(lerp(Math.log(camv.s), Math.log(camv.ts), k)); camv.x = lerp(camv.x, camv.tx, k); camv.y = lerp(camv.y, camv.ty, k);
+  chT += dt; if (chT > 1 / 30){ chT = 0; paintChannels(t); }
+  let onN = 0;
+  for (const v of tvs){ v.pw = lerp(v.pw, v.on ? 1 : 0, Math.min(1, dt * (v.on ? 4 : 9))); v.flash = Math.max(0, v.flash - dt * 3); if (v.osd) v.osd = Math.max(0, v.osd - dt); if (v.on) onN++; }
+  AUD.hiss(zoomed ? (zoomed.on && zoomed.ch === 0 ? .05 : .01) : .002 + .012 * onN / tvs.length);
+  render(t);
+}
+
+/* ==========================================================================
+   9. UI
+   ========================================================================== */
+let hintT = 0, hintAt = 0;
+function hint(s, brief){ const h = $("hint"); h.textContent = s; h.classList.remove("off"); hintAt = performance.now(); clearTimeout(hintT); hintT = setTimeout(() => h.classList.add("off"), brief ? 3600 : 6500); }
+function hideHint(){ if (performance.now() - hintAt > 1800) $("hint").classList.add("off"); }
+function siteLight(on){ try { if (window.parent !== window){ const ex = window.parent.document.getElementById("s-exp"); if (ex) ex.classList.toggle("light", on); } } catch (_){} }
+const lb = (id, o) => $(id).querySelector(".lb").textContent = T(o);
+lb("back", { en:"Back to the tower", ko:"탑으로" }); lb("onair", { en:"Go on air", ko:"출연하기" }); lb("allpow", { en:"All on / off", ko:"전체 켜기·끄기" }); lb("sync", { en:"One channel", ko:"한 채널로" });
+$("back").onclick = () => { AUD.unlock(); zoomTo(null); };
+$("onair").onclick = () => { AUD.unlock(); openCam(); };
+let allOn = true;
+$("allpow").onclick = () => { AUD.unlock(); allOn = !allOn; tvs.forEach((v, i) => setTimeout(() => { v.on = allOn; }, (allOn ? i : tvs.length - i) * 4)); allOn ? AUD.on() : AUD.off(); };
+let syncCh = -1;
+$("sync").onclick = () => { AUD.unlock(); syncCh = (syncCh + 1) % (NCH + 1);
+  if (syncCh === NCH){ tvs.forEach(v => { v.ch = v.clip ? VIS : Math.floor(rnd() * NCH); v.dial = v.ch === VIS ? NCH : v.ch; v.flash = .6; }); hint(T({ en:"Every set on its own channel", ko:"모든 TV가 제각각의 채널로" }), true); }
+  else { tvs.forEach((v, i) => setTimeout(() => { if (!v.clip){ v.ch = syncCh; v.dial = syncCh; v.flash = .7; v.on = true; } }, (v.tier * 40 + Math.abs(v.x) * .3))); hint(T(CHN[syncCh]) + T({ en:" — on every set", ko:" — 모든 TV에" }), true); }
+  AUD.dial(); };
+$("m-photo").textContent = T({ en:"Photo", ko:"사진" }); $("m-clip").textContent = T({ en:"3-second clip", ko:"영상 3초" }); $("shoot").textContent = T({ en:"● Record", ko:"● 촬영" });
+$("put-all").textContent = T({ en:"Show it to everyone", ko:"모두에게 방송하기" }); $("put-me").textContent = T({ en:"Only on this device", ko:"이 기기에서만" }); $("again").textContent = T({ en:"Retake", ko:"다시 찍기" });
+$("cam-x").textContent = T({ en:"Close", ko:"닫기" }); $("cam-tab").textContent = T({ en:"Open in a new tab", ko:"새 탭에서 열기" });
+const canOpenTab = () => { try { return !!(window.parent && window.parent !== window && window.parent.__openStandalone); } catch (_){ return false; } };
+$("cam-tab").onclick = () => { try { window.parent.__openStandalone("paik"); } catch (_){} closeCam(); };
+$("cam-h").textContent = T({ en:"Go on air", ko:"출연하기" });
+$("cam-sub").textContent = T({ en:"Take a photo or a three-second clip; it plays on one of the sets in the tower.", ko:"사진이나 3초 영상을 찍으면 탑의 TV 한 대에서 방송돼요." });
+$("m-photo").onclick = () => { camMode = "photo"; $("m-photo").setAttribute("aria-pressed", "true"); $("m-clip").setAttribute("aria-pressed", "false"); AUD.click(); };
+$("m-clip").onclick = () => { camMode = "clip"; $("m-clip").setAttribute("aria-pressed", "true"); $("m-photo").setAttribute("aria-pressed", "false"); AUD.click(); };
+$("shoot").onclick = () => shoot();
+$("again").onclick = () => { clearInterval(prevT); prev.style.display = "none"; shot = null; $("cam").classList.remove("picked"); };
+$("put-all").onclick = () => putOnAir(true);
+$("put-me").onclick = () => putOnAir(false);
+$("cam-x").onclick = () => { clearInterval(prevT); closeCam(); };
+$("snd").onclick = () => { AUD.unlock(); AUD.on_ = !AUD.on_; $("snd").setAttribute("aria-pressed", String(AUD.on_)); };
+$("info").onclick = () => document.body.classList.toggle("about");
+$("about-x").onclick = () => document.body.classList.remove("about");
+$("snd").setAttribute("aria-label", T({ en:"Sound", ko:"소리" })); $("info").setAttribute("aria-label", T({ en:"About the work", ko:"작품 설명" }));
+$("t-h").textContent = T({ en:"The More, the Better (Dadaikseon)", ko:"다다익선" });
+$("t-p").textContent = T({ en:"Nam June Paik · 1988 · 1,003 television sets", ko:"백남준 · 1988 · TV 1,003대" });
+$("ab-tag").textContent = T({ en:"Nam June Paik · 1988", ko:"백남준 · 1988" });
+$("ab-h").textContent = T({ en:"A pagoda of televisions", ko:"TV로 쌓은 탑" });
+$("ab-p1").textContent = T({ en:"Made for the 1988 Seoul Olympics, Dadaikseon — 'the more, the better' — stands about 18.5 metres high in the round hall of the National Museum of Modern and Contemporary Art at Gwacheon. It is built of 1,003 television sets: the number stands for 3 October, Korea's National Foundation Day.",
+  ko:"1988년 서울 올림픽을 기념해 만든 〈다다익선〉은 국립현대미술관 과천관 원형 홀에 약 18.5m 높이로 서 있어요. TV 1,003대로 쌓았는데, 이 숫자는 개천절인 10월 3일을 뜻해요." });
+$("ab-p2").textContent = T({ en:"Paik, the father of video art, turned the television — the box everyone watched — into a material: something to stack, bend with magnets and fill with pictures of his own. Here the sets are yours: switch them, tune them, and put yourself on one.",
+  ko:"비디오 아트의 아버지 백남준은 모두가 바라보던 TV라는 상자를 재료로 바꿨어요. 쌓고, 자석으로 화면을 휘고, 자신만의 영상으로 채웠죠. 여기서는 TV가 당신 것이에요. 켜고, 채널을 돌리고, 직접 출연해 보세요." });
+$("ab-h3").textContent = T({ en:"Try", ko:"해 보기" });
+[{ en:"Click any set to bring it close.", ko:"아무 TV나 눌러 가까이 불러오세요." },
+ { en:"Close up: the button turns it on and off; the dial (or scroll, or the arrow keys) changes channel.", ko:"가까이서: 버튼으로 켜고 끄고, 다이얼(스크롤, 방향키)로 채널을 돌려요." },
+ { en:"One channel tunes the whole tower to the same broadcast; All on / off sweeps through every set.", ko:"'한 채널로'는 탑 전체를 같은 방송으로 맞추고, '전체 켜기·끄기'는 모든 TV를 차례로 켜고 꺼요." },
+ { en:"Go on air: a photo or a 3-second clip from your camera plays on one of the sets — for everyone, or only on this device.", ko:"출연하기: 카메라로 찍은 사진이나 3초 영상이 TV 한 대에서 방송돼요 — 모두에게, 또는 이 기기에서만." }]
+ .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); $("ab-ol").appendChild(li); });
+
+/* ==========================================================================
+   10. START
+   ========================================================================== */
+buildTower(); layout(); const f0 = fitTower(); Object.assign(camv, { x:f0.x, y:f0.y, s:f0.s, tx:f0.x, ty:f0.y, ts:f0.s });
+paintChannels(0); siteLight(false);
+(async () => { for (const r of store.local) await placeClip(r, false); openStore(); })();
+window.addEventListener("resize", layout);
+["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
+window.addEventListener("pagehide", () => { AUD.stop(); closeCam(); });
+AUD.unlock(); setTimeout(() => AUD.unlock(), 150);
+hint(T({ en:"Click a television to bring it close", ko:"TV를 눌러 가까이 불러오세요" }));
+requestAnimationFrame(frame);
+window.__pk = { get tvs(){ return tvs; }, zoomTo, setPower, nextChannel, camv, placeClip, toWorld, tvAt, render:() => render(t), store };
+</script>
+</body>
+</html>

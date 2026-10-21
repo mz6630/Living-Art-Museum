@@ -13,7 +13,7 @@
 html[lang="ko"]{--serif:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;}
 /* ==========================================================================
    SILVER CLOUDS — after Andy Warhol (1966).
-   A white gallery with silver pillows floating in it, filled with helium and
+   White space with silver pillows floating in it, filled with helium and
    air so they neither rise nor fall for long. They are mirrors: each one
    shows the room and the others. Push them, flick them, drag them; they
    bump, dent and spring back, crackling like foil.
@@ -25,7 +25,7 @@ html[lang="ko"]{--serif:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;}
-body{background:#eceae6;color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
+body{background:radial-gradient(ellipse at 50% 38%, #ffffff 0%, #f4f3f0 55%, #e6e4df 100%);color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px;}
 .glass{background:linear-gradient(180deg,var(--glass-a),var(--glass-b));backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
@@ -295,7 +295,7 @@ void main(){
    3. GL SETUP
    ========================================================================== */
 const glc = $("gl");
-const gl = glc.getContext("webgl", { antialias:true, alpha:false, powerPreference:"high-performance" });
+const gl = glc.getContext("webgl", { antialias:true, alpha:true, premultipliedAlpha:true, powerPreference:"high-performance" });
 let P = {}, envTex = null, meshBuf = null, meshN = 0, quadBuf = null;
 const NBMAX = 18;
 function prog(vs, fs){
@@ -542,14 +542,9 @@ function render(){
   gl.viewport(0, 0, glc.width, glc.height);
   const b = basis(), B = new Float32Array(NBMAX * 4);
   clouds.forEach((c, i) => { if (i < NBMAX){ B[i * 4] = c.p[0]; B[i * 4 + 1] = c.p[1]; B[i * 4 + 2] = c.p[2]; B[i * 4 + 3] = RAD * 1.25; } });
-  /* the room */
-  gl.disable(gl.DEPTH_TEST); gl.useProgram(P.bg.p); gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-  gl.uniform2f(P.bg.u.uRes, glc.width, glc.height); gl.uniform3f(P.bg.u.uCam, ...cam.p);
-  gl.uniformMatrix3fv(P.bg.u.uBasis, false, new Float32Array([...b.r, ...b.u, ...mul(b.f, -1)])); gl.uniform1f(P.bg.u.uFocal, focal); gl.uniform1f(P.bg.u.uFace, -1);
-  gl.uniform4fv(P.bg.u.uB, B); gl.uniform1f(P.bg.u.uShadow, 1);
-  gl.drawArrays(gl.TRIANGLES, 0, 3);
-  /* the pillows */
-  gl.enable(gl.DEPTH_TEST); gl.clear(gl.DEPTH_BUFFER_BIT);
+  /* a plain white ground — the room only exists in the mirrors */
+  gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.DEPTH_TEST);
   gl.useProgram(P.pil.p); gl.bindBuffer(gl.ARRAY_BUFFER, meshBuf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
   gl.uniformMatrix4fv(P.pil.u.uVP, false, viewProj()); gl.uniform3f(P.pil.u.uCam, ...cam.p); gl.uniform4fv(P.pil.u.uB, B); gl.uniform1f(P.pil.u.uTime, t);
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_CUBE_MAP, envTex); gl.uniform1i(P.pil.u.uEnv, 0);
