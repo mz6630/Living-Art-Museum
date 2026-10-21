@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Silver Clouds — Living Art Museum</title>
+<meta name="description" content="A white room of floating mirror-silver pillows. Push them, flick them, drag them through the air; they drift, bump into each other, dent and spring back. After Andy Warhol's Silver Clouds (1966), from the Living Art Museum.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--serif:Fraunces,"Noto Serif KR",Georgia,serif;}
+html[lang="ko"]{--serif:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;}
+/* ==========================================================================
+   SILVER CLOUDS — after Andy Warhol (1966).
+   A white gallery with silver pillows floating in it, filled with helium and
+   air so they neither rise nor fall for long. They are mirrors: each one
+   shows the room and the others. Push them, flick them, drag them; they
+   bump, dent and spring back, crackling like foil.
+   ========================================================================== */
+:root{
+  --ink:#17171a; --ink-dim:rgba(23,23,26,.64); --ink-faint:rgba(23,23,26,.44);
+  --glass-a:rgba(255,255,255,.72); --glass-b:rgba(255,255,255,.5); --glass-line:rgba(0,0,0,.09);
+  --chip-on:#17171a; --chip-on-ink:#fff; --accent:#8a96a8;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{background:#eceae6;color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px;}
+.glass{background:linear-gradient(180deg,var(--glass-a),var(--glass-b));backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
+  border:1px solid var(--glass-line);box-shadow:0 24px 60px -30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.5);}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab;}
+body.dragging #gl{cursor:grabbing;}
+
+.top{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:20px;right:20px;z-index:10;display:flex;align-items:center;gap:14px;pointer-events:none;}
+.top > *{pointer-events:auto;}
+.logo{font-size:19px;font-weight:600;letter-spacing:-.018em;line-height:1;white-space:nowrap;text-decoration:none;color:var(--ink);}
+.title{margin-left:auto;text-align:right;max-width:46vw;}
+.title h1{font-family:var(--serif);font-size:16px;font-weight:600;line-height:1.25;}
+.title p{font-size:11.5px;color:var(--ink-dim);margin-top:2px;}
+body.embedded .top{display:none;}
+
+#bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:12;display:flex;align-items:center;gap:4px;padding:6px;border-radius:20px;max-width:calc(100% - 20px);}
+.chip{display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:14px;font-size:12.5px;color:var(--ink-dim);white-space:nowrap;transition:background .2s,color .2s;}
+.chip svg{width:18px;height:18px;flex:none;}
+.chip:hover{color:var(--ink);background:rgba(127,127,127,.12);}
+.chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink);}
+.chip.ic{padding:9px 10px;}
+.sep{width:1px;align-self:stretch;margin:6px 4px;background:var(--glass-line);}
+#snd[aria-pressed="false"] .on, #snd[aria-pressed="true"] .off{display:none;}
+.ico{stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+#hint{position:fixed;left:50%;top:var(--hint-y,90px);transform:translate(-50%,-50%);z-index:11;padding:9px 15px;border-radius:999px;font-size:12.5px;color:var(--ink);white-space:nowrap;pointer-events:none;transition:opacity .5s;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;}
+#hint.off{opacity:0;}
+#about{position:fixed;right:20px;top:calc(76px + env(safe-area-inset-top,0px));width:350px;max-height:calc(100% - 170px);overflow:auto;z-index:20;border-radius:22px;padding:20px 20px 18px;display:none;}
+body.about #about{display:block;}
+#about .tag{font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);}
+#about h2{font-family:var(--serif);font-size:20px;font-weight:600;line-height:1.25;margin-top:8px;padding-right:24px;}
+#about p{font-size:12.5px;line-height:1.65;color:var(--ink-dim);margin-top:9px;}
+#about h3{font-size:12px;font-weight:600;margin-top:16px;padding-top:14px;border-top:1px solid var(--glass-line);}
+#about ol{margin:8px 0 0 18px;font-size:12.5px;line-height:1.6;color:var(--ink-dim);}
+#about .x{position:absolute;right:12px;top:12px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--ink-dim);}
+#about .x svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;}
+html[lang="ko"] #about .tag{letter-spacing:.04em;}
+#nogl{position:fixed;inset:0;display:none;place-items:center;text-align:center;padding:30px;font-size:14px;color:var(--ink-dim);}
+@media (max-width:760px){
+  .chip{padding:8px 10px;font-size:11.5px;gap:5px;} .chip .lb{display:none;}
+  #hint{white-space:normal;text-align:center;border-radius:18px;width:max-content;line-height:1.45;}
+  #about{left:10px;right:10px;width:auto;top:calc(64px + env(safe-area-inset-top,0px));}
+  .title p{display:none;} .title h1{font-size:13px;}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="nogl"></div>
+
+<header class="top">
+  <a class="logo" href="#" onclick="return false">Living Art Museum</a>
+  <div class="title"><h1 id="t-h"></h1><p id="t-p"></p></div>
+</header>
+<div id="hint" class="glass off"></div>
+
+<nav id="bar" class="glass">
+  <button class="chip" id="fan" aria-pressed="true"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M12 10c0-4 1-7 4-7 2 0 2.5 3 0 5.5M14 12c4 0 7 1 7 4 0 2-3 2.5-5.5 0M12 14c0 4-1 7-4 7-2 0-2.5-3 0-5.5M10 12c-4 0-7-1-7-4 0-2 3-2.5 5.5 0"/></svg><span class="lb"></span></button>
+  <button class="chip" id="add"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="10" rx="5"/><path d="M12 9.5v5M9.5 12h5"/></svg><span class="lb"></span></button>
+  <button class="chip" id="shake"><svg class="ico" viewBox="0 0 24 24"><path d="M3 12c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/><path d="M3 7c2-3 4-3 6 0s4 3 6 0 4-3 6 0" opacity=".5"/></svg><span class="lb"></span></button>
+  <span class="sep"></span>
+  <button class="chip ic" id="snd" aria-pressed="true"><svg class="ico on" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg><svg class="ico off" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
+  <button class="chip ic" id="info"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
+</nav>
+
+<section id="about" class="glass" aria-labelledby="ab-h">
+  <button class="x" id="about-x" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="tag" id="ab-tag"></div>
+  <h2 id="ab-h"></h2>
+  <p id="ab-p1"></p>
+  <p id="ab-p2"></p>
+  <h3 id="ab-h3"></h3>
+  <ol id="ab-ol"></ol>
+</section>
+
+<script>
+"use strict";
+/* ==========================================================================
+   0. BASICS
+   ========================================================================== */
+const LANG = (() => {
+  let l = (document.documentElement.lang || "en").slice(0, 2);
+  try { const q = new URLSearchParams(location.search).get("lang"); if (q) l = q; } catch (_){}
+  return l === "ko" ? "ko" : "en";
+})();
+document.documentElement.lang = LANG;
+if (LANG === "ko") document.title = "은빛 구름 — Living Art Museum";
+const T = (o) => (o && (o[LANG] ?? o.en)) || "";
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+/* tiny vector kit */
+const v3 = (x = 0, y = 0, z = 0) => [x, y, z];
+const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const mul = (a, s) => [a[0] * s, a[1] * s, a[2] * s], dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const len = (a) => Math.hypot(a[0], a[1], a[2]), norm = (a) => { const l = len(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+/* quaternions [x, y, z, w] */
+const qmul = (a, b) => [a[3] * b[0] + a[0] * b[3] + a[1] * b[2] - a[2] * b[1], a[3] * b[1] - a[0] * b[2] + a[1] * b[3] + a[2] * b[0], a[3] * b[2] + a[0] * b[1] - a[1] * b[0] + a[2] * b[3], a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2]];
+const qnorm = (q) => { const l = Math.hypot(...q) || 1; return q.map(c => c / l); };
+const qmat = (q) => { const [x, y, z, w] = q; return [1 - 2 * (y * y + z * z), 2 * (x * y + z * w), 2 * (x * z - y * w), 2 * (x * y - z * w), 1 - 2 * (x * x + z * z), 2 * (y * z + x * w), 2 * (x * z + y * w), 2 * (y * z - x * w), 1 - 2 * (x * x + y * y)]; };
+const mvec = (m, v) => [m[0] * v[0] + m[3] * v[1] + m[6] * v[2], m[1] * v[0] + m[4] * v[1] + m[7] * v[2], m[2] * v[0] + m[5] * v[1] + m[8] * v[2]];
+const mtvec = (m, v) => [m[0] * v[0] + m[1] * v[1] + m[2] * v[2], m[3] * v[0] + m[4] * v[1] + m[5] * v[2], m[6] * v[0] + m[7] * v[1] + m[8] * v[2]];
+
+/* ==========================================================================
+   1. THE ROOM — a white gallery: pale floorboards, white walls, a door,
+      a tall window, long lights in the ceiling. Drawn by one shader, which
+      also paints the mirror world the pillows reflect.
+   ========================================================================== */
+const ROOM = { x0:-4.6, x1:4.6, y0:0, y1:3.6, z0:-5.2, z1:6.4 };
+const SHARED = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+const vec3 R0 = vec3(${ROOM.x0.toFixed(2)}, ${ROOM.y0.toFixed(2)}, ${ROOM.z0.toFixed(2)}), R1 = vec3(${ROOM.x1.toFixed(2)}, ${ROOM.y1.toFixed(2)}, ${ROOM.z1.toFixed(2)});
+#define NB 18
+uniform vec4 uB[NB];        /* each pillow: centre, radius (0 = none) */
+uniform float uShadow;
+float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+/* what a ray from o in direction d sees of the room */
+vec3 room(vec3 o, vec3 d){
+  vec3 inv = 1. / d, t0 = (R0 - o) * inv, t1 = (R1 - o) * inv, tf = max(t0, t1);
+  float t = min(min(tf.x, tf.y), tf.z); vec3 p = o + d * t;
+  vec3 c;
+  float wall = smoothstep(0., 1.6, p.y);
+  if (t == tf.y && d.y < 0.){                                         /* the floor: pale oak boards */
+    float b = floor(p.x / .16), seam = smoothstep(.0, .012, abs(fract(p.x / .16) - .5) - .47);
+    float g = hash(vec2(b, floor((p.z + hash(vec2(b, 3.)) * 3.) / 1.6)));
+    c = mix(vec3(.46, .42, .37), vec3(.58, .53, .46), g) * (1. - .3 * (1. - seam));
+    float sh = 0.;
+    for (int i = 0; i < NB; i++){ vec4 s = uB[i]; if (s.w <= 0.) continue;
+      float h = max(s.y - p.y, .01), dd = length(p.xz - s.xz), rr = s.w * (1.1 + h * .35);
+      sh = max(sh, (1. - smoothstep(rr * .25, rr, dd)) * .42 / (1. + h * .45)); }
+    c *= 1. - sh * uShadow;
+    c *= .82 + .18 * smoothstep(0., 3., min(min(p.x - R0.x, R1.x - p.x), p.z - R0.z));
+  } else if (t == tf.y){                                                /* the ceiling: white, three long lights */
+    c = vec3(.86, .86, .84);
+    for (int k = -1; k <= 1; k++){ float lx = float(k) * 2.6;
+      float on = (1. - smoothstep(.17, .2, abs(p.x - lx))) * (1. - smoothstep(4.0, 4.05, abs(p.z - .6)));
+      c = mix(c, vec3(3.4, 3.3, 3.1), on); }
+  } else {
+    c = vec3(.9, .895, .88) * (.82 + .18 * wall);
+    vec3 n = t == tf.x ? vec3(-sign(d.x), 0., 0.) : vec3(0., 0., -sign(d.z));
+    if (p.y < .12) c = vec3(.94, .93, .91) * .92;                      /* skirting */
+    if (abs(p.y - .12) < .006) c *= .8;
+    if (n.x > .5){                                                      /* left wall: a doorway */
+      if (abs(p.z + 1.6) < .55 && p.y < 2.2) c = vec3(.16, .155, .15) * (1. - .4 * smoothstep(1.4, 2.2, p.y));
+      if (abs(abs(p.z + 1.6) - .58) < .03 && p.y < 2.25) c = vec3(.78, .77, .75);
+    }
+    if (n.x < -.5){                                                     /* right wall: a tall window */
+      vec2 w = vec2(p.z + .4, p.y - 1.75);
+      if (abs(w.x) < 1.25 && abs(w.y) < 1.15){
+        vec3 sky = mix(vec3(1.6, 1.62, 1.66), vec3(1.15, 1.25, 1.45), clamp(w.y * .4 + .5, 0., 1.));
+        float bar = max(1. - smoothstep(.015, .03, abs(w.x)), 1. - smoothstep(.015, .03, abs(w.y + .35)));
+        c = mix(sky, vec3(.55, .55, .56), bar);
+      }
+    }
+    if (n.z > .5){                                                      /* back wall: a white label, nothing else */
+      vec2 q = vec2(p.x - 2.6, p.y - 1.5); if (abs(q.x) < .12 && abs(q.y) < .07) c = vec3(.97);
+    }
+    if (n.z < -.5){                                                     /* behind you: the doorway, and you standing in it */
+      if (abs(p.x) < 1.5 && p.y < 2.6) c = vec3(.34, .34, .36);
+      vec2 f = vec2(p.x + .2, p.y);
+      float body = length(vec2(f.x / .23, (f.y - 1.12) / .5)) < 1. || (abs(f.x) < .12 && f.y < .8) ? 1. : 0.;
+      float head = length(vec2(f.x, f.y - 1.72) / vec2(.12, .15)) < 1. ? 1. : 0.;
+      if (max(body, head) > .5) c = vec3(.09, .085, .09);
+      vec2 f2 = vec2(p.x - 2.9, p.y);                                    /* another visitor further along */
+      if (length(vec2(f2.x / .2, (f2.y - 1.05) / .46)) < 1. || length(vec2(f2.x, f2.y - 1.62) / vec2(.11, .14)) < 1. || (abs(f2.x) < .1 && f2.y < .7)) c = vec3(.42, .2, .18);
+    }
+    /* ambient darkening into the corners */
+    float e = min(min(p.x - R0.x, R1.x - p.x), min(p.z - R0.z, R1.z - p.z));
+    c *= .8 + .2 * smoothstep(0., .8, min(e + (n.x != 0. ? 9. : 0.), 9.));
+    c *= .9 + .1 * smoothstep(0., .5, R1.y - p.y);
+  }
+  return c;
+}
+`;
+const BG = SHARED + `
+uniform vec2 uRes; uniform vec3 uCam; uniform mat3 uBasis; uniform float uFocal;
+uniform float uFace;      /* < 0: the screen. 0..5: a face of the mirror world */
+void main(){
+  vec3 d;
+  if (uFace < -.5){ vec2 uv = (gl_FragCoord.xy - .5 * uRes) / (.5 * uRes.y); d = normalize(uBasis * vec3(uv, -uFocal)); }
+  else { vec2 st = gl_FragCoord.xy / uRes * 2. - 1.; float sc = st.x, tc = st.y; int f = int(uFace + .5);
+    if (f == 0) d = vec3(1., -tc, -sc); else if (f == 1) d = vec3(-1., -tc, sc); else if (f == 2) d = vec3(sc, 1., tc);
+    else if (f == 3) d = vec3(sc, -1., -tc); else if (f == 4) d = vec3(sc, -tc, 1.); else d = vec3(-sc, -tc, -1.); d = normalize(d); }
+  vec3 c = room(uCam, d);
+  if (uFace < -.5){ c = 1. - exp(-c * 1.25); c = pow(c, vec3(1. / 2.2)); }
+  else c = c / 3.5;                                                     /* stored compressed, lifted again when read */
+  gl_FragColor = vec4(c, 1.);
+}`;
+
+/* ==========================================================================
+   2. A PILLOW — two sheets of metallised film sealed round the edge and
+      blown up: a puffy rectangle with a thin flat seam, corners pinched in.
+      Its shape lives in the vertex shader, so it can be dented anywhere.
+   ========================================================================== */
+const PW = .56, PD = .38, PH = .27;          /* half width, half depth, how far each face bulges */
+const VS = `
+attribute vec3 aG;                          /* u, v in -1.07..1.07, and which face (+1 top, -1 bottom) */
+uniform mat4 uVP; uniform mat3 uRot; uniform vec3 uPos; uniform vec4 uSq; uniform vec4 uSq2; uniform float uSeed, uTime;
+varying vec3 vN, vP; varying vec2 vUV; varying float vSide, vEdge;
+vec3 shape(vec2 uv, float side){
+  vec2 q = clamp(abs(uv), 0., 1.);
+  float h = ${PH} * sqrt(max(0., 1. - q.x * q.x)) * sqrt(max(0., 1. - q.y * q.y));
+  h = h * (.75 + .25 * sqrt(max(0., 1. - q.x * q.x)));
+  h *= 1. + .06 * sin(uv.x * 9. + uSeed * 7.) * sin(uv.y * 7. + uSeed * 3.) + .02 * sin((uv.x + uv.y) * 23. + uSeed * 11.);
+  /* blown up, the edges pull in at their middles and the corners stay out */
+  float px = uv.x * ${PW} * (1. - .085 * (1. - q.y * q.y) * q.x * q.x);
+  float pz = uv.y * ${PD} * (1. - .1 * (1. - q.x * q.x) * q.y * q.y);
+  vec3 p = vec3(px, side * h, pz);
+  /* a dent where something hit it, with the bulge pushed out round the sides */
+  for (int k = 0; k < 2; k++){
+    vec4 s = k == 0 ? uSq : uSq2; if (abs(s.w) < .0005) continue;
+    vec3 d = s.xyz; float a = s.w, al = dot(p, d);
+    p += -d * al * a + (p - d * al) * a * .45;
+  }
+  return p;
+}
+void main(){
+  float side = aG.z; vec2 uv = aG.xy;
+  vec3 p = shape(uv, side);
+  float e = .02;
+  vec3 du = shape(uv + vec2(e, 0.), side) - shape(uv - vec2(e, 0.), side), dv = shape(uv + vec2(0., e), side) - shape(uv - vec2(0., e), side);
+  vec3 n = normalize(cross(dv, du)); if (dot(n, vec3(0., side, 0.)) < 0.) n = -n;
+  if (length(du) + length(dv) < 1e-5) n = vec3(0., side, 0.);
+  vec3 w = uRot * p + uPos;
+  vP = w; vN = uRot * n; vUV = uv; vSide = side; vEdge = max(abs(uv.x), abs(uv.y));
+  gl_Position = uVP * vec4(w, 1.);
+}`;
+const FS = SHARED + `
+uniform samplerCube uEnv; uniform vec3 uCam; uniform float uSelf, uSeed, uLift;
+varying vec3 vN, vP; varying vec2 vUV; varying float vSide, vEdge;
+vec3 envC(vec3 d){ return textureCube(uEnv, d).rgb * 3.5; }
+void main(){
+  vec3 N = normalize(vN), V = normalize(uCam - vP);
+  if (dot(N, V) < 0.) N = -N;
+  /* the film is never smooth: fine crinkles, stronger near the seam */
+  float cr = smoothstep(.75, 1., vEdge) * .9 + .25;
+  vec2 g = vUV * 24. + uSeed * 17.;
+  vec3 wob = vec3(sin(g.x + sin(g.y * 1.3)), sin(g.y * 1.1 + sin(g.x * .7)), sin(g.x * .9 - g.y)) * .032 * cr;
+  N = normalize(N + wob);
+  vec3 R = reflect(-V, N);
+  /* the mirror: the room, or another pillow if one is in the way */
+  vec3 c = envC(R);
+  float best = 1e9;
+  for (int i = 0; i < NB; i++){ vec4 s = uB[i]; if (s.w <= 0. || abs(float(i) - uSelf) < .5) continue;
+    vec3 oc = vP - s.xyz; float b = dot(oc, R), cc = dot(oc, oc) - s.w * s.w * .62, h = b * b - cc;
+    if (h > 0.){ float t = -b - sqrt(h); if (t > .02 && t < best){ best = t; vec3 n2 = normalize(vP + R * t - s.xyz); n2.y *= 1.8; n2 = normalize(n2);
+      c = envC(reflect(R, n2)) * .86 * vec3(.96, .965, .975) + .02; } } }
+  /* silver: very high reflectance, a little cooler at grazing angles */
+  float fr = pow(1. - max(dot(N, V), 0.), 5.);
+  c *= mix(vec3(.86, .875, .9), vec3(1.), fr);
+  c = pow(c, vec3(1.18)) * 1.06;                                          /* a mirror shows everything harder than the room itself */
+  /* the heat-sealed seam: a dull flat rim */
+  float seam = smoothstep(1.0, 1.02, vEdge);
+  c = mix(c, c * .6 + vec3(.06), seam);
+  c *= uLift;
+  c = 1. - exp(-c * 1.25); c = pow(c, vec3(1. / 2.2));
+  gl_FragColor = vec4(c, 1.);
+}`;
+
+/* ==========================================================================
+   3. GL SETUP
+   ========================================================================== */
+const glc = $("gl");
+const gl = glc.getContext("webgl", { antialias:true, alpha:false, powerPreference:"high-performance" });
+let P = {}, envTex = null, meshBuf = null, meshN = 0, quadBuf = null;
+const NBMAX = 18;
+function prog(vs, fs){
+  const sh = (type, code) => { const s = gl.createShader(type); gl.shaderSource(s, code); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)){ console.error(gl.getShaderInfoLog(s)); return null; } return s; };
+  const a = sh(gl.VERTEX_SHADER, vs), b = sh(gl.FRAGMENT_SHADER, fs); if (!a || !b) return null;
+  const p = gl.createProgram(); gl.attachShader(p, a); gl.attachShader(p, b); gl.bindAttribLocation(p, 0, "aP"); gl.bindAttribLocation(p, 0, "aG"); gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)){ console.error(gl.getProgramInfoLog(p)); return null; }
+  const u = {}; const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
+  for (let i = 0; i < n; i++){ const info = gl.getActiveUniform(p, i), name = info.name.replace(/\[0\]$/, ""); u[name] = gl.getUniformLocation(p, name); }
+  return { p, u };
+}
+function initGL(){
+  if (!gl) return false;
+  P.bg = prog(`attribute vec2 aP; void main(){ gl_Position = vec4(aP, 0., 1.); }`, BG);
+  P.pil = prog(VS, FS);
+  if (!P.bg || !P.pil) return false;
+  quadBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  /* the pillow mesh: a grid per face, out past the edge for the flat seam */
+  const G = 30, E = 1.07, v = [];
+  for (const side of [1, -1]) for (let j = 0; j < G; j++) for (let i = 0; i < G; i++){
+    const u0 = -E + 2 * E * i / G, u1 = -E + 2 * E * (i + 1) / G, w0 = -E + 2 * E * j / G, w1 = -E + 2 * E * (j + 1) / G;
+    const q = side > 0 ? [[u0, w0], [u1, w0], [u1, w1], [u0, w0], [u1, w1], [u0, w1]] : [[u0, w0], [u1, w1], [u1, w0], [u0, w0], [u0, w1], [u1, w1]];
+    q.forEach(([a, b]) => v.push(a, b, side));
+  }
+  meshBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, meshBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW); meshN = v.length / 3;
+  /* the mirror world: the empty room, seen from the middle, once */
+  const S = 256; envTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_CUBE_MAP, envTex);
+  for (let f = 0; f < 6; f++) gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + f, 0, gl.RGBA, S, S, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  const fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+  gl.useProgram(P.bg.p); gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.uniform4fv(P.bg.u.uB, new Float32Array(NBMAX * 4)); gl.uniform1f(P.bg.u.uShadow, 0);
+  for (let f = 0; f < 6; f++){
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_X + f, envTex, 0);
+    gl.viewport(0, 0, S, S); gl.uniform2f(P.bg.u.uRes, S, S); gl.uniform3f(P.bg.u.uCam, 0, 1.7, .4); gl.uniform1f(P.bg.u.uFace, f);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.deleteFramebuffer(fb);
+  return true;
+}
+
+/* ==========================================================================
+   4. THE CLOUDS — rigid pillows in the air: nearly weightless, slowed hard by
+      the air, nudged by a fan; they bounce off each other and the walls, and
+      every knock leaves a dent that springs back
+   ========================================================================== */
+const RAD = .44;                            /* how near two pillows come before they touch */
+let clouds = [], fanOn = true, t = 0;
+function newCloud(p){
+  const q = qnorm([rnd() - .5, rnd() - .5, rnd() - .5, rnd() - .5]);
+  return { p:p || v3(lerp(-3, 3, rnd()), lerp(.9, 2.7, rnd()), lerp(-2.6, 2.2, rnd())), v:v3((rnd() - .5) * .2, 0, (rnd() - .5) * .2), q, w:v3((rnd() - .5) * .6, (rnd() - .5) * .6, (rnd() - .5) * .6),
+    dent:[{ d:v3(0, 1, 0), a:0, va:0 }, { d:v3(1, 0, 0), a:0, va:0 }], seed:rnd() * 10, grab:null, lift:.97 + rnd() * .05 };
+}
+function addDent(c, dirWorld, amount){
+  const m = qmat(c.q), dl = norm(mtvec(m, dirWorld));
+  const slot = c.dent[0].a <= c.dent[1].a ? c.dent[0] : c.dent[1];
+  slot.d = dl; slot.va += amount;
+}
+const BOUNDS = { x0:ROOM.x0 + .6, x1:ROOM.x1 - .6, y0:.55, y1:ROOM.y1 - .32, z0:ROOM.z0 + .6, z1:3.0 };
+function physics(dt){
+  const N = clouds.length;
+  for (const c of clouds){
+    /* air: nearly weightless, helium and air balanced, settling slowly towards the middle height */
+    let f = v3(0, (1.9 - c.p[1]) * .06 - .015, 0);
+    if (fanOn){                                                                /* a fan in the corner keeps the air turning */
+      const k = .16, ph = t * .21 + c.seed;
+      f = add(f, v3(Math.sin(c.p[2] * .7 + ph) * k - c.p[0] * .02, Math.sin(c.p[0] * .8 + ph * 1.3) * k * .5, Math.cos(c.p[0] * .6 - ph) * k * .9 - (c.p[2] + 1) * .015));
+    }
+    if (!c.grab){ c.v = add(c.v, mul(f, dt)); }
+    else {                                                                     /* held: a soft spring to your hand */
+      const pull = sub(c.grab.target, c.p); c.v = add(mul(c.v, Math.exp(-dt * 9)), mul(pull, dt * 60));
+      c.w = add(c.w, mul(cross(c.grab.off, mul(pull, 1)), dt * 5));
+    }
+    const drag = Math.exp(-dt * (c.grab ? 0 : .55)); c.v = mul(c.v, drag);
+    const sp = len(c.v); if (sp > 6) c.v = mul(c.v, 6 / sp);
+    c.p = add(c.p, mul(c.v, dt));
+    /* turning: the air slows it; it drifts towards lying flat, as a pillow does */
+    c.w = mul(c.w, Math.exp(-dt * .9));
+    const up = mvec(qmat(c.q), v3(0, 1, 0)), flat = cross(up, v3(0, Math.sign(up[1]) || 1, 0));
+    c.w = add(c.w, mul(flat, dt * .03));
+    if (fanOn) c.w = add(c.w, mul(v3(Math.sin(t * .37 + c.seed), Math.cos(t * .29 + c.seed * 2), Math.sin(t * .23 - c.seed)), dt * .35));
+    const wl = len(c.w); if (wl > 1e-5){ const a = wl * dt, s = Math.sin(a / 2) / wl; c.q = qnorm(qmul([c.w[0] * s, c.w[1] * s, c.w[2] * s, Math.cos(a / 2)], c.q)); }
+    /* dents spring back */
+    for (const d of c.dent){ d.va += (-d.a * 55 - d.va * 5.5) * dt; d.a += d.va * dt; }
+  }
+  /* pillow against pillow */
+  for (let i = 0; i < N; i++) for (let j = i + 1; j < N; j++){
+    const a = clouds[i], b = clouds[j], d = sub(b.p, a.p), dist = len(d), R = RAD * 2;
+    if (dist < R && dist > 1e-4){
+      const n = mul(d, 1 / dist), pen = R - dist, rv = dot(sub(b.v, a.v), n);
+      const ka = a.grab ? .1 : .5, kb = b.grab ? .1 : .5;
+      a.p = sub(a.p, mul(n, pen * ka)); b.p = add(b.p, mul(n, pen * kb));
+      if (rv < 0){
+        const J = -(1 + .55) * rv / 2;
+        a.v = sub(a.v, mul(n, J)); b.v = add(b.v, mul(n, J));
+        const tang = sub(sub(b.v, a.v), mul(n, dot(sub(b.v, a.v), n)));       /* glancing blows set them turning */
+        a.w = add(a.w, mul(cross(n, tang), 1.1)); b.w = sub(b.w, mul(cross(n, tang), 1.1));
+        const s = Math.min(1.6, J);
+        addDent(a, n, s * 1.1); addDent(b, mul(n, -1), s * 1.1);
+        if (J > .04) AUD.bump(Math.min(1, J * 1.6), (a.p[0] + b.p[0]) / 2);
+      }
+    }
+  }
+  /* walls, floor, ceiling */
+  for (const c of clouds){
+    const hit = (axis, lim, sgn) => {
+      const over = (c.p[axis] - lim) * sgn; if (over <= 0) return;
+      c.p[axis] -= over * sgn; const vn = c.v[axis] * sgn;
+      if (vn > 0){ c.v[axis] = -c.v[axis] * .45; const n = v3(0, 0, 0); n[axis] = sgn; addDent(c, n, Math.min(1.4, vn * .9)); if (vn > .12) AUD.tap(Math.min(1, vn * .8), c.p[0]); c.w = add(c.w, v3((rnd() - .5) * vn, (rnd() - .5) * vn, (rnd() - .5) * vn)); }
+    };
+    hit(0, BOUNDS.x0, -1); hit(0, BOUNDS.x1, 1); hit(1, BOUNDS.y0, -1); hit(1, BOUNDS.y1, 1); hit(2, BOUNDS.z0, -1); hit(2, BOUNDS.z1, 1);
+  }
+}
+
+/* ==========================================================================
+   5. CAMERA AND HANDS — you stand in the doorway; the view leans a little
+      with the pointer. Click a pillow to push it; drag it to carry it and
+      fling it; sweep through empty air to make a gust.
+   ========================================================================== */
+const cam = { p:v3(0, 1.45, 4.7), yaw:0, pitch:.08, ty:0, tp:.08 };
+let W = 0, H = 0, DPR = 1, focal = 1.6;
+function basis(){ const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw), cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+  const f = v3(-sy * cp, sp, -cy * cp), r = norm(cross(f, v3(0, 1, 0))), u = cross(r, f); return { r, u, f }; }
+function rayAt(x, y){ const b = basis(), u = (x - W / 2) / (H / 2), v = -(y - H / 2) / (H / 2);
+  return norm(add(add(mul(b.r, u), mul(b.u, v)), mul(b.f, focal))); }
+function hitCloud(o, d){
+  let best = null, bt = 1e9;
+  for (const c of clouds){ const oc = sub(o, c.p), b = dot(oc, d), cc = dot(oc, oc) - (RAD * 1.15) ** 2, h = b * b - cc;
+    if (h > 0){ const tt = -b - Math.sqrt(h); if (tt > 0 && tt < bt){ bt = tt; best = c; } } }
+  return best ? { c:best, t:bt } : null;
+}
+const ptr = { x:0, y:0, down:false, mode:"", moved:0, t0:0, lx:0, ly:0, lt:0, vel:v3() };
+function setHint(){}
+glc.addEventListener("pointerdown", e => {
+  AUD.unlock(); hideHint();
+  const x = e.clientX, y = e.clientY; ptr.down = true; ptr.x = ptr.lx = x; ptr.y = ptr.ly = y; ptr.moved = 0; ptr.t0 = ptr.lt = performance.now(); ptr.vel = v3();
+  try { glc.setPointerCapture(e.pointerId); } catch (_){}
+  const d = rayAt(x, y), h = hitCloud(cam.p, d);
+  if (h){ ptr.mode = "grab"; const pt = add(cam.p, mul(d, h.t));
+    h.c.grab = { dist:h.t, target:h.c.p.slice(), off:sub(pt, h.c.p), hit:pt }; ptr.cloud = h.c; document.body.classList.add("dragging"); AUD.crinkle(.5); }
+  else ptr.mode = "air";
+});
+glc.addEventListener("pointermove", e => {
+  const x = e.clientX, y = e.clientY, now = performance.now(), dt = Math.max(8, now - ptr.lt) / 1000;
+  cam.ty = -(x / W - .5) * .18; cam.tp = .08 - (y / H - .5) * .08;
+  if (ptr.down){
+    const dx = x - ptr.x, dy = y - ptr.y; ptr.moved += Math.hypot(dx, dy);
+    if (ptr.mode === "grab" && ptr.cloud && ptr.cloud.grab){
+      const g = ptr.cloud.grab, d = rayAt(x, y), tgt = sub(add(cam.p, mul(d, g.dist)), g.off);
+      const nv = mul(sub(tgt, g.target), 1 / dt); ptr.vel = lerp3(ptr.vel, nv, .5); g.target = tgt;
+      if (Math.hypot(dx, dy) > 2) AUD.crinkle(Math.min(1, Math.hypot(dx, dy) / 40));
+    } else if (ptr.mode === "air"){
+      /* a gust along the way your hand moved */
+      const d0 = rayAt(ptr.x, ptr.y), d1 = rayAt(x, y), D = 3.4, a = add(cam.p, mul(d0, D)), b = add(cam.p, mul(d1, D)), mv = mul(sub(b, a), 1 / dt);
+      let touched = 0;
+      for (const c of clouds){ const oc = sub(c.p, cam.p), along = dot(oc, d1), perp = len(sub(oc, mul(d1, along)));
+        const reach = .9 + along * .12; if (perp < reach && along > 0){ const k = (1 - perp / reach) * .06; c.v = add(c.v, mul(mv, k)); c.w = add(c.w, mul(v3(mv[2], 0, -mv[0]), k * .4)); touched += k; } }
+      if (Math.hypot(dx, dy) > 4) AUD.gust(Math.min(1, Math.hypot(dx, dy) / 50 + touched));
+    }
+  }
+  ptr.x = x; ptr.y = y; ptr.lt = now;
+});
+const lerp3 = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k)];
+function up(){
+  if (!ptr.down) return; ptr.down = false; document.body.classList.remove("dragging");
+  const c = ptr.cloud, quick = ptr.moved < 8 && performance.now() - ptr.t0 < 400;
+  if (c && c.grab){
+    if (quick){                                                                  /* a tap: a push straight away from you */
+      const d = norm(sub(c.p, cam.p)), push = add(mul(d, 2.6), v3(0, .5, 0));
+      c.v = add(c.v, push); c.w = add(c.w, mul(cross(c.grab.off, d), 6)); addDent(c, mul(d, -1), 1.5); AUD.boop(.9, c.p[0]);
+    } else { const sp = len(ptr.vel); c.v = sp > 7 ? mul(ptr.vel, 7 / sp) : ptr.vel.slice(); if (sp > 1.5) AUD.whoosh(Math.min(1, sp / 6)); }
+    c.grab = null;
+  }
+  ptr.cloud = null; ptr.mode = "";
+}
+glc.addEventListener("pointerup", up); glc.addEventListener("pointercancel", up);
+glc.addEventListener("pointerleave", () => { if (!ptr.down){ cam.ty = 0; cam.tp = .08; } });
+
+/* ==========================================================================
+   6. SOUND — the room's hush, the fan, and the film: crackling foil when you
+      hold one, a soft papery bump when two meet, a whisper when one flies
+   ========================================================================== */
+const AUD = (() => {
+  let ctx = null, master = null, white = null, on = true, borrowed = false, amb = null, fanG = null, cT = 0, bT = 0;
+  function ensure(){ if (ctx) return ctx; const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+    try { const host = window.parent !== window && window.parent.__lamAudio && window.parent.__lamAudio(); if (host && host.state === "running"){ ctx = host; borrowed = true; } } catch (_){}
+    if (!ctx){ try { ctx = new AC(); } catch (_){ return null; } }
+    master = ctx.createGain(); master.gain.value = on ? .85 : 0; master.connect(ctx.destination);
+    const n = ctx.sampleRate * 2; white = ctx.createBuffer(1, n, ctx.sampleRate); const w = white.getChannelData(0); for (let i = 0; i < n; i++) w[i] = Math.random() * 2 - 1;
+    return ctx; }
+  const ok = () => on && ensure() && ctx.state === "running";
+  const pan = (x) => { const p = ctx.createStereoPanner ? ctx.createStereoPanner() : null; if (p) p.pan.value = clamp(x / 4.5, -.9, .9); return p; };
+  function start(){ if (amb || !ensure() || ctx.state !== "running") return;
+    /* the fan: moving air, airy and high — nothing low */
+    const s = ctx.createBufferSource(); s.buffer = white; s.loop = true; const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 1100; f.Q.value = .35;
+    fanG = ctx.createGain(); fanG.gain.value = fanOn ? .022 : 0; const lfo = ctx.createOscillator(); lfo.frequency.value = .31; const lg = ctx.createGain(); lg.gain.value = .006; lfo.connect(lg); lg.connect(fanG.gain);
+    s.connect(f); f.connect(fanG); fanG.connect(master); s.start(); lfo.start(); amb = { s, lfo }; }
+  function burst(tt, dur, f, q, g, x, type){ const s = ctx.createBufferSource(); s.buffer = white; const fl = ctx.createBiquadFilter(); fl.type = type || "bandpass"; fl.frequency.value = f; fl.Q.value = q;
+    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(g, tt + Math.min(.006, dur * .2)); a.gain.exponentialRampToValueAtTime(.0001, tt + dur);
+    s.connect(fl); fl.connect(a); const p = pan(x || 0); if (p){ a.connect(p); p.connect(master); } else a.connect(master); s.start(tt, Math.random() * 1.8); s.stop(tt + dur + .03); }
+  /* foil: a scatter of tiny bright crackles */
+  function crackle(k, x, n){ const tt = ctx.currentTime; for (let i = 0; i < n; i++) burst(tt + Math.random() * .12 * (1 + k), .008 + Math.random() * .02, 2800 + Math.random() * 5200, 2 + Math.random() * 3, (.02 + Math.random() * .05) * k, x); }
+  return {
+    unlock(){ if (ensure()){ if (ctx.state !== "running") ctx.resume().then(start).catch(() => {}); else start(); } },
+    get on(){ return on; }, set on(v){ on = v; if (master) master.gain.setTargetAtTime(v ? .85 : 0, ctx.currentTime, .05); },
+    fan(v){ if (fanG && ctx) fanG.gain.setTargetAtTime(v ? .022 : 0, ctx.currentTime, .3); },
+    stop(){ if (!ctx) return; if (amb){ try { amb.s.stop(); amb.lfo.stop(); } catch (_){} } amb = null; try { master.disconnect(); } catch (_){} if (!borrowed) try { ctx.close(); } catch (_){} },
+    crinkle(k){ if (!ok()) return; const now = performance.now(); if (now - cT < 55) return; cT = now; crackle(k, 0, 3 + Math.floor(k * 6)); },
+    /* two pillows meet: a soft, papery puff with a crackle in it */
+    bump(k, x){ if (!ok()) return; const now = performance.now(); if (now - bT < 40) return; bT = now; const tt = ctx.currentTime;
+      burst(tt, .09 + k * .08, 780 + Math.random() * 300, 1.1, .05 + .09 * k, x); burst(tt, .05, 2400, 1.5, .03 * k, x); crackle(k * .9, x, 3 + Math.floor(k * 5)); },
+    tap(k, x){ if (!ok()) return; const tt = ctx.currentTime; burst(tt, .06 + k * .05, 1100, 1.4, .04 + .06 * k, x); crackle(k * .7, x, 2 + Math.floor(k * 3)); },
+    boop(k, x){ if (!ok()) return; const tt = ctx.currentTime; burst(tt, .12, 700, 1, .1 * k, x); burst(tt + .01, .05, 3000, 2, .04 * k, x); crackle(k, x, 6); },
+    whoosh(k){ if (!ok()) return; const tt = ctx.currentTime, s = ctx.createBufferSource(); s.buffer = white; const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.Q.value = .8;
+      f.frequency.setValueAtTime(600, tt); f.frequency.exponentialRampToValueAtTime(2400, tt + .35); const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(.07 * k, tt + .06); a.gain.exponentialRampToValueAtTime(.0001, tt + .45);
+      s.connect(f); f.connect(a); a.connect(master); s.start(tt, Math.random()); s.stop(tt + .5); },
+    gust(k){ if (!ok()) return; const now = performance.now(); if (now - cT < 90) return; cT = now; burst(ctx.currentTime, .25, 900 + k * 900, .6, .025 + .04 * k, 0); },
+    click(){ if (!ok()) return; burst(ctx.currentTime, .02, 3600, 3, .05, 0); },
+  };
+})();
+
+/* ==========================================================================
+   7. RENDER
+   ========================================================================== */
+function layout(){
+  DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
+  const budget = W <= 760 ? 900000 : 2200000, sc = Math.min(1, Math.sqrt(budget / (W * H * DPR * DPR)));
+  glc.width = Math.round(W * DPR * sc); glc.height = Math.round(H * DPR * sc);
+  focal = W / H < .8 ? 1.15 : 1.6;
+  cam.p = W / H < .8 ? v3(0, 1.45, 5.4) : v3(0, 1.45, 4.7);
+  document.documentElement.style.setProperty("--hint-y", Math.round(($("bar").getBoundingClientRect().top || H - 72) - 26) + "px");
+}
+function viewProj(){
+  const b = basis(), near = .05, far = 40, aspect = W / H, fy = focal;
+  /* view: rows r, u, -f */
+  const e = cam.p, V = [b.r[0], b.u[0], -b.f[0], 0, b.r[1], b.u[1], -b.f[1], 0, b.r[2], b.u[2], -b.f[2], 0, -dot(b.r, e), -dot(b.u, e), dot(b.f, e), 1];
+  const Pm = [fy / aspect, 0, 0, 0, 0, fy, 0, 0, 0, 0, (far + near) / (near - far), -1, 0, 0, 2 * far * near / (near - far), 0];
+  const o = new Float32Array(16);
+  for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++){ let s = 0; for (let k = 0; k < 4; k++) s += Pm[k * 4 + j] * V[i * 4 + k]; o[i * 4 + j] = s; }
+  return o;
+}
+function render(){
+  gl.viewport(0, 0, glc.width, glc.height);
+  const b = basis(), B = new Float32Array(NBMAX * 4);
+  clouds.forEach((c, i) => { if (i < NBMAX){ B[i * 4] = c.p[0]; B[i * 4 + 1] = c.p[1]; B[i * 4 + 2] = c.p[2]; B[i * 4 + 3] = RAD * 1.25; } });
+  /* the room */
+  gl.disable(gl.DEPTH_TEST); gl.useProgram(P.bg.p); gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.uniform2f(P.bg.u.uRes, glc.width, glc.height); gl.uniform3f(P.bg.u.uCam, ...cam.p);
+  gl.uniformMatrix3fv(P.bg.u.uBasis, false, new Float32Array([...b.r, ...b.u, ...mul(b.f, -1)])); gl.uniform1f(P.bg.u.uFocal, focal); gl.uniform1f(P.bg.u.uFace, -1);
+  gl.uniform4fv(P.bg.u.uB, B); gl.uniform1f(P.bg.u.uShadow, 1);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  /* the pillows */
+  gl.enable(gl.DEPTH_TEST); gl.clear(gl.DEPTH_BUFFER_BIT);
+  gl.useProgram(P.pil.p); gl.bindBuffer(gl.ARRAY_BUFFER, meshBuf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+  gl.uniformMatrix4fv(P.pil.u.uVP, false, viewProj()); gl.uniform3f(P.pil.u.uCam, ...cam.p); gl.uniform4fv(P.pil.u.uB, B); gl.uniform1f(P.pil.u.uTime, t);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_CUBE_MAP, envTex); gl.uniform1i(P.pil.u.uEnv, 0);
+  clouds.forEach((c, i) => {
+    gl.uniformMatrix3fv(P.pil.u.uRot, false, new Float32Array(qmat(c.q))); gl.uniform3f(P.pil.u.uPos, ...c.p);
+    const d0 = c.dent[0], d1 = c.dent[1];
+    gl.uniform4f(P.pil.u.uSq, d0.d[0], d0.d[1], d0.d[2], clamp(d0.a, -.18, .45)); gl.uniform4f(P.pil.u.uSq2, d1.d[0], d1.d[1], d1.d[2], clamp(d1.a, -.18, .45));
+    gl.uniform1f(P.pil.u.uSeed, c.seed); gl.uniform1f(P.pil.u.uSelf, i); gl.uniform1f(P.pil.u.uLift, c.lift);
+    gl.drawArrays(gl.TRIANGLES, 0, meshN);
+  });
+}
+let last = performance.now();
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt = Math.min(.033, (now - last) / 1000); last = now; t += dt;
+  cam.yaw = lerp(cam.yaw, cam.ty, Math.min(1, dt * 3)); cam.pitch = lerp(cam.pitch, cam.tp, Math.min(1, dt * 3));
+  const steps = 3; for (let i = 0; i < steps; i++) physics(dt / steps);
+  render();
+}
+
+/* ==========================================================================
+   8. UI
+   ========================================================================== */
+let hintT = 0, hintAt = 0;
+function hint(s, brief){ const h = $("hint"); h.textContent = s; h.classList.remove("off"); hintAt = performance.now(); clearTimeout(hintT); hintT = setTimeout(() => h.classList.add("off"), brief ? 3600 : 6500); }
+function hideHint(){ if (performance.now() - hintAt > 1800) $("hint").classList.add("off"); }
+function siteLight(on){ try { if (window.parent !== window){ const ex = window.parent.document.getElementById("s-exp"); if (ex) ex.classList.toggle("light", on); } } catch (_){} }
+$("fan").querySelector(".lb").textContent = T({ en:"Fan", ko:"선풍기" });
+$("add").querySelector(".lb").textContent = T({ en:"Add one", ko:"하나 더" });
+$("shake").querySelector(".lb").textContent = T({ en:"Stir the air", ko:"바람 일으키기" });
+$("fan").onclick = () => { AUD.unlock(); fanOn = !fanOn; $("fan").setAttribute("aria-pressed", String(fanOn)); AUD.fan(fanOn); AUD.click();
+  hint(fanOn ? T({ en:"The fan is on — the air keeps them moving", ko:"선풍기가 켜졌어요 — 바람이 구름을 계속 움직여요" }) : T({ en:"Still air — they hang where they are", ko:"바람이 멎었어요 — 구름이 그 자리에 떠 있어요" }), true); };
+$("add").onclick = () => { AUD.unlock(); if (clouds.length >= NBMAX){ hint(T({ en:"The room is full", ko:"방이 가득 찼어요" }), true); return; }
+  const c = newCloud(v3((rnd() - .5) * 2, .7, 2.6)); c.v = v3((rnd() - .5) * .6, 1.6, -1.6); clouds.push(c); AUD.whoosh(.6); AUD.crinkle(.8); };
+$("shake").onclick = () => { AUD.unlock(); clouds.forEach(c => { c.v = add(c.v, v3((rnd() - .5) * 2.4, (rnd() - .2) * 1.6, (rnd() - .5) * 2.4)); c.w = add(c.w, v3((rnd() - .5) * 3, (rnd() - .5) * 3, (rnd() - .5) * 3)); }); AUD.whoosh(1); };
+$("snd").onclick = () => { AUD.unlock(); AUD.on = !AUD.on; $("snd").setAttribute("aria-pressed", String(AUD.on)); };
+$("info").onclick = () => document.body.classList.toggle("about");
+$("about-x").onclick = () => document.body.classList.remove("about");
+$("snd").setAttribute("aria-label", T({ en:"Sound", ko:"소리" })); $("info").setAttribute("aria-label", T({ en:"About the work", ko:"작품 설명" }));
+$("about-x").setAttribute("aria-label", T({ en:"Close", ko:"닫기" }));
+$("t-h").textContent = T({ en:"Silver Clouds", ko:"은빛 구름" });
+$("t-p").textContent = T({ en:"Andy Warhol · 1966 · metallised plastic film, helium, air", ko:"앤디 워홀 · 1966 · 금속 코팅 필름, 헬륨, 공기" });
+$("ab-tag").textContent = T({ en:"Andy Warhol · 1966", ko:"앤디 워홀 · 1966" });
+$("ab-h").textContent = T({ en:"Paintings that float away", ko:"날아가 버리는 그림" });
+$("ab-p1").textContent = T({ en:"In 1966 Warhol said he was finished with painting, and filled a room at the Leo Castelli Gallery in New York with silver pillows of metallised film, blown up with helium and air so they would float. Fans kept them drifting; visitors pushed them along. They reflect the room, the people in it and each other.",
+  ko:"1966년 워홀은 이제 그림은 그만 그리겠다며, 뉴욕 레오 카스텔리 갤러리의 방 하나를 은빛 베개 모양 풍선으로 채웠어요. 금속 코팅 필름에 헬륨과 공기를 넣어 공중에 뜨게 했어요. 선풍기 바람에 떠다니고, 관람객은 손으로 밀며 그 사이를 걸었어요. 풍선은 방과 사람, 그리고 서로를 비춰요." });
+$("ab-p2").textContent = T({ en:"A painting you can walk through, push and lose: the picture is whatever the silver happens to reflect. In 1968 the clouds became the set for Merce Cunningham's dance RainForest.",
+  ko:"그 사이를 걷고, 밀고, 놓쳐 버릴 수 있는 그림이에요. 그림의 내용은 은빛이 그 순간 비추는 모든 것이에요. 1968년에는 머스 커닝햄의 무용 〈레인포레스트〉의 무대가 되었어요." });
+$("ab-h3").textContent = T({ en:"Try", ko:"해 보기" });
+[{ en:"Tap a pillow to push it away; drag one to carry it, and let go mid-swing to fling it.", ko:"풍선을 눌러 밀어내고, 드래그해 끌고 다니다 휘두르며 놓으면 튕겨 나가요." },
+ { en:"Sweep through empty air to make a gust.", ko:"빈 공간을 쓸면 바람이 일어요." },
+ { en:"When two meet they dent and spring back. Look for the room — and the others — in every one.", ko:"서로 부딪히면 움푹 들어갔다 다시 펴져요. 풍선마다 비친 방과 다른 풍선을 찾아보세요." },
+ { en:"Turn the fan off and they hang still in the air.", ko:"선풍기를 끄면 공중에 가만히 떠 있어요." }]
+ .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); $("ab-ol").appendChild(li); });
+
+/* ==========================================================================
+   9. START
+   ========================================================================== */
+layout();
+if (!initGL()){ $("nogl").style.display = "grid"; $("nogl").textContent = T({ en:"This room needs WebGL, which this browser has turned off.", ko:"이 전시실은 WebGL이 필요한데, 이 브라우저에서 꺼져 있어요." }); }
+else {
+  for (let i = 0; i < 12; i++){ let c, ok = false, k = 0; while (!ok && k++ < 60){ c = newCloud(); ok = clouds.every(o => len(sub(o.p, c.p)) > RAD * 2.3); } clouds.push(c); }
+  requestAnimationFrame(frame);
+}
+siteLight(true);
+window.addEventListener("resize", layout);
+["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
+window.addEventListener("pagehide", () => AUD.stop());
+window.addEventListener("keydown", e => { if (e.key === "Escape") document.body.classList.remove("about"); });
+AUD.unlock(); setTimeout(() => AUD.unlock(), 150);
+hint(T({ en:"Push them, drag them, fling them", ko:"풍선을 밀고, 끌고, 튕겨 보세요" }));
+window.__sc = { get clouds(){ return clouds; }, physics, render, cam, rayAt, hitCloud, step:(n) => { for (let i = 0; i < n; i++){ t += 1 / 60; physics(1 / 60); } render(); } };
+</script>
+</body>
+</html>
