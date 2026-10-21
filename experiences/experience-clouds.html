@@ -153,55 +153,55 @@ vec3 room(vec3 o, vec3 d){
   vec3 inv = 1. / d, t0 = (R0 - o) * inv, t1 = (R1 - o) * inv, tf = max(t0, t1);
   float t = min(min(tf.x, tf.y), tf.z); vec3 p = o + d * t;
   vec3 c;
-  float wall = smoothstep(0., 1.6, p.y);
-  if (t == tf.y && d.y < 0.){                                         /* the floor: pale oak boards */
-    float b = floor(p.x / .16), seam = smoothstep(.0, .012, abs(fract(p.x / .16) - .5) - .47);
-    float g = hash(vec2(b, floor((p.z + hash(vec2(b, 3.)) * 3.) / 1.6)));
-    c = mix(vec3(.46, .42, .37), vec3(.58, .53, .46), g) * (1. - .3 * (1. - seam));
+  if (t == tf.y && d.y < 0.){                                         /* the floor: dark polished concrete */
+    float g = hash(floor(p.xz * 1.1));
+    c = vec3(.4, .4, .41) * (.9 + .16 * g);                            /* pale polished concrete, its joints dark */
+    vec2 j = abs(fract(p.xz / 1.5) - .5); if (max(j.x, j.y) > .495) c *= .55;
+    c += vec3(.35, .36, .38) * (1. - smoothstep(0., 2.6, R1.x - p.x));  /* daylight pooling under the windows */  /* daylight pooling under the windows */
     float sh = 0.;
     for (int i = 0; i < NB; i++){ vec4 s = uB[i]; if (s.w <= 0.) continue;
       float h = max(s.y - p.y, .01), dd = length(p.xz - s.xz), rr = s.w * (1.1 + h * .35);
       sh = max(sh, (1. - smoothstep(rr * .25, rr, dd)) * .42 / (1. + h * .45)); }
     c *= 1. - sh * uShadow;
-    c *= .82 + .18 * smoothstep(0., 3., min(min(p.x - R0.x, R1.x - p.x), p.z - R0.z));
-  } else if (t == tf.y){                                                /* the ceiling: white, three long lights */
-    c = vec3(.86, .86, .84);
-    for (int k = -1; k <= 1; k++){ float lx = float(k) * 2.6;
-      float on = (1. - smoothstep(.17, .2, abs(p.x - lx))) * (1. - smoothstep(4.0, 4.05, abs(p.z - .6)));
-      c = mix(c, vec3(3.4, 3.3, 3.1), on); }
+  } else if (t == tf.y){                                                /* the ceiling: white panels, round downlights */
+    c = vec3(1.35, 1.35, 1.33);
+    vec2 j = abs(fract(p.xz / 1.2) - .5);
+    if (max(j.x, j.y) > .493) c *= .8;
+    vec2 f = (fract((p.xz + vec2(.6, .2)) / 2.4) - .5) * 2.4; float r = length(f);
+    if (r < .1) c = vec3(5.2, 5.1, 4.9); else if (r < .125) c = vec3(.62);
+    c *= .86 + .14 * smoothstep(0., 1.4, min(min(p.x - R0.x, R1.x - p.x), min(p.z - R0.z, R1.z - p.z)));
   } else {
-    c = vec3(.9, .895, .88) * (.82 + .18 * wall);
     vec3 n = t == tf.x ? vec3(-sign(d.x), 0., 0.) : vec3(0., 0., -sign(d.z));
-    if (p.y < .12) c = vec3(.94, .93, .91) * .92;                      /* skirting */
-    if (abs(p.y - .12) < .006) c *= .8;
-    if (n.x > .5){                                                      /* left wall: a doorway */
-      if (abs(p.z + 1.6) < .55 && p.y < 2.2) c = vec3(.16, .155, .15) * (1. - .4 * smoothstep(1.4, 2.2, p.y));
-      if (abs(abs(p.z + 1.6) - .58) < .03 && p.y < 2.25) c = vec3(.78, .77, .75);
+    c = vec3(1.2, 1.2, 1.18);
+    if (p.y < .1) c = vec3(.12);                                          /* a dark skirting */
+    if (n.x > .5){                                                      /* left: a wall painted black up to the ceiling band */
+      if (p.y < 2.75) c = vec3(.032, .032, .036);
+      vec2 l = vec2(p.z + 2.2, p.y - 1.45); if (abs(l.x) < .32 && abs(l.y) < .12) c = vec3(1.1);   /* the wall text */
     }
-    if (n.x < -.5){                                                     /* right wall: a tall window */
-      vec2 w = vec2(p.z + .4, p.y - 1.75);
-      if (abs(w.x) < 1.25 && abs(w.y) < 1.15){
-        vec3 sky = mix(vec3(1.6, 1.62, 1.66), vec3(1.15, 1.25, 1.45), clamp(w.y * .4 + .5, 0., 1.));
-        float bar = max(1. - smoothstep(.015, .03, abs(w.x)), 1. - smoothstep(.015, .03, abs(w.y + .35)));
-        c = mix(sky, vec3(.55, .55, .56), bar);
-      }
+    if (n.x < -.5){                                                     /* right: floor-to-ceiling windows */
+      vec3 sky = mix(vec3(1.75, 1.78, 1.82), vec3(1.2, 1.32, 1.55), clamp((p.y - 1.2) / 2.4, 0., 1.));
+      float bz = floor(p.z * 1.1), top = .9 + 1.1 * hash(vec2(bz, 2.)) + .5 * hash(vec2(floor(p.z * .45), 5.));
+      if (p.y < top){ vec2 w = fract(vec2(p.z * 7., p.y * 9.)); sky = vec3(.42, .44, .47) * (.75 + .3 * hash(vec2(bz, 9.)));
+        if (w.x > .25 && w.y > .3) sky *= .55 + .9 * hash(floor(vec2(p.z * 7., p.y * 9.))); }
+      float mz = (.5 - abs(fract((p.z + .3) / 1.35) - .5)) * 1.35;
+      float bar = max(1. - smoothstep(.03, .045, mz), 1. - smoothstep(.03, .045, abs(p.y - 2.75)));
+      c = mix(sky, vec3(.06, .065, .07), bar);
+      if (p.y < .32) c = vec3(.1);
     }
-    if (n.z > .5){                                                      /* back wall: a white label, nothing else */
-      vec2 q = vec2(p.x - 2.6, p.y - 1.5); if (abs(q.x) < .12 && abs(q.y) < .07) c = vec3(.97);
+    if (n.z > .5){                                                      /* far wall: white, a dark doorway */
+      if (abs(p.x + 2.4) < .6 && p.y < 2.25) c = vec3(.07);
     }
-    if (n.z < -.5){                                                     /* behind you: the doorway, and you standing in it */
-      if (abs(p.x) < 1.5 && p.y < 2.6) c = vec3(.34, .34, .36);
+    if (n.z < -.5){                                                     /* behind you: the entrance, and people */
+      if (abs(p.x) < 1.5 && p.y < 2.6) c = vec3(.1, .1, .11);
       vec2 f = vec2(p.x + .2, p.y);
       float body = length(vec2(f.x / .23, (f.y - 1.12) / .5)) < 1. || (abs(f.x) < .12 && f.y < .8) ? 1. : 0.;
       float head = length(vec2(f.x, f.y - 1.72) / vec2(.12, .15)) < 1. ? 1. : 0.;
-      if (max(body, head) > .5) c = vec3(.09, .085, .09);
-      vec2 f2 = vec2(p.x - 2.9, p.y);                                    /* another visitor further along */
-      if (length(vec2(f2.x / .2, (f2.y - 1.05) / .46)) < 1. || length(vec2(f2.x, f2.y - 1.62) / vec2(.11, .14)) < 1. || (abs(f2.x) < .1 && f2.y < .7)) c = vec3(.42, .2, .18);
+      if (max(body, head) > .5) c = vec3(.05);
+      vec2 f2 = vec2(p.x - 2.9, p.y);
+      if (length(vec2(f2.x / .2, (f2.y - 1.05) / .46)) < 1. || length(vec2(f2.x, f2.y - 1.62) / vec2(.11, .14)) < 1. || (abs(f2.x) < .1 && f2.y < .7)) c = vec3(.5, .14, .12);
     }
-    /* ambient darkening into the corners */
     float e = min(min(p.x - R0.x, R1.x - p.x), min(p.z - R0.z, R1.z - p.z));
-    c *= .8 + .2 * smoothstep(0., .8, min(e + (n.x != 0. ? 9. : 0.), 9.));
-    c *= .9 + .1 * smoothstep(0., .5, R1.y - p.y);
+    c *= .82 + .18 * smoothstep(0., .8, min(e + (n.x != 0. ? 9. : 0.), 9.));
   }
   return c;
 }
@@ -226,25 +226,32 @@ void main(){
       blown up: a puffy rectangle with a thin flat seam, corners pinched in.
       Its shape lives in the vertex shader, so it can be dented anywhere.
    ========================================================================== */
-const PW = .56, PD = .38, PH = .27;          /* half width, half depth, how far each face bulges */
+const PW = .58, PD = .4, PH = .3;          /* half width, half depth, how far each face bulges */
 const VS = `
 attribute vec3 aG;                          /* u, v in -1.07..1.07, and which face (+1 top, -1 bottom) */
 uniform mat4 uVP; uniform mat3 uRot; uniform vec3 uPos; uniform vec4 uSq; uniform vec4 uSq2; uniform float uSeed, uTime;
-varying vec3 vN, vP; varying vec2 vUV; varying float vSide, vEdge;
+varying vec3 vN, vP, vT, vB; varying vec2 vUV; varying float vSide, vEdge;
 vec3 shape(vec2 uv, float side){
   vec2 q = clamp(abs(uv), 0., 1.);
-  float h = ${PH} * sqrt(max(0., 1. - q.x * q.x)) * sqrt(max(0., 1. - q.y * q.y));
-  h = h * (.75 + .25 * sqrt(max(0., 1. - q.x * q.x)));
-  h *= 1. + .06 * sin(uv.x * 9. + uSeed * 7.) * sin(uv.y * 7. + uSeed * 3.) + .02 * sin((uv.x + uv.y) * 23. + uSeed * 11.);
-  /* blown up, the edges pull in at their middles and the corners stay out */
-  float px = uv.x * ${PW} * (1. - .085 * (1. - q.y * q.y) * q.x * q.x);
-  float pz = uv.y * ${PD} * (1. - .1 * (1. - q.x * q.x) * q.y * q.y);
+  /* blown up from two flat sheets: a full cushion in the middle that thins to nothing at the seam,
+     and to sharp points at the corners */
+  float h = ${PH} * pow(max(0., 1. - q.x * q.x), .5) * pow(max(0., 1. - q.y * q.y), .5);
+  h *= 1. + .05 * sin(uv.x * 7. + uSeed * 7.) * sin(uv.y * 6. + uSeed * 3.);
+  /* the film puckers where it is gathered into the seam */
+  float ex = 1. - q.x, ez = 1. - q.y;
+  h += ${PH} * .08 * (sin(uv.y * 21. + sin(uv.y * 6. + uSeed * 3.) * 2.2 + uSeed * 5. * sign(uv.x)) * exp(-ex * 7.) + sin(uv.x * 25. + sin(uv.x * 5. + uSeed * 2.) * 2.2 + uSeed * 7. * sign(uv.y)) * exp(-ez * 7.)) * min(1., h / ${PH} * 6.);
+  /* the sides are pulled in between the corners, so the corners stand out as points */
+  float px = uv.x * ${PW} * (1. - .15 * (1. - q.y * q.y) * pow(q.x, 1.5));
+  float pz = uv.y * ${PD} * (1. - .16 * (1. - q.x * q.x) * pow(q.y, 1.5));
   vec3 p = vec3(px, side * h, pz);
-  /* a dent where something hit it, with the bulge pushed out round the sides */
+  /* where it was knocked: that side gives in, the rest bulges a little, then it springs back */
+  vec3 E = vec3(${PW}, ${PH}, ${PD});
   for (int k = 0; k < 2; k++){
     vec4 s = k == 0 ? uSq : uSq2; if (abs(s.w) < .0005) continue;
-    vec3 d = s.xyz; float a = s.w, al = dot(p, d);
-    p += -d * al * a + (p - d * al) * a * .45;
+    vec3 d = s.xyz; float a = s.w;
+    float w = smoothstep(.25, 1., dot(normalize(p / E + vec3(0., .0001, 0.)), normalize(d / E)));
+    float al = dot(p, d);
+    p += -d * a * w * .34 + (p - d * al) * a * (.06 + .18 * w);
   }
   return p;
 }
@@ -256,38 +263,55 @@ void main(){
   vec3 n = normalize(cross(dv, du)); if (dot(n, vec3(0., side, 0.)) < 0.) n = -n;
   if (length(du) + length(dv) < 1e-5) n = vec3(0., side, 0.);
   vec3 w = uRot * p + uPos;
-  vP = w; vN = uRot * n; vUV = uv; vSide = side; vEdge = max(abs(uv.x), abs(uv.y));
+  vP = w; vN = uRot * n; vT = normalize(uRot * du + 1e-6); vB = normalize(uRot * dv + 1e-6); vUV = uv; vSide = side; vEdge = max(abs(uv.x), abs(uv.y));
   gl_Position = uVP * vec4(w, 1.);
 }`;
 const FS = SHARED + `
 uniform samplerCube uEnv; uniform vec3 uCam; uniform float uSelf, uSeed, uLift;
-varying vec3 vN, vP; varying vec2 vUV; varying float vSide, vEdge;
+uniform vec4 uU[NB];        /* each pillow's up axis, so the others are seen flat, not as balls */
+varying vec3 vN, vP, vT, vB; varying vec2 vUV; varying float vSide, vEdge;
 vec3 envC(vec3 d){ return textureCube(uEnv, d).rgb * 3.5; }
+/* the creases of the film: sharp puckers in from every seam, and long folds pulled tight to the corners */
+float crease(vec2 uv){
+  vec2 q = abs(uv), sg = sign(uv);
+  float ex = max(0., 1. - q.x), ez = max(0., 1. - q.y), h = 0.;
+  float a1 = uv.y * 17. + sin(uv.y * 6. + uSeed * 3. + sg.x) * 2.4 + uSeed * 5. * sg.x;
+  float a2 = uv.x * 20. + sin(uv.x * 5. + uSeed * 2. + sg.y) * 2.4 + uSeed * 7. * sg.y;
+  h += (1. - abs(sin(a1))) * exp(-ex * (4.5 + 3.5 * sin(uv.y * 9. + uSeed)));
+  h += (1. - abs(sin(a2))) * exp(-ez * (4.5 + 3.5 * sin(uv.x * 8. + uSeed * 2.)));
+  float dg = q.x - q.y * 1.05;
+  for (int k = 0; k < 3; k++){ float o = (float(k) - 1.) * .2;
+    h += exp(-pow((dg - o) / .045, 2.)) * smoothstep(.35, .95, min(q.x, q.y) + abs(o) * .8) * (k == 1 ? .9 : .4); }
+  h += .18 * sin(uv.x * 9. + uv.y * 7. + uSeed * 4.) * sin(uv.y * 8. - uv.x * 4. + uSeed);
+  return h;
+}
 void main(){
   vec3 N = normalize(vN), V = normalize(uCam - vP);
   if (dot(N, V) < 0.) N = -N;
-  /* the film is never smooth: fine crinkles, stronger near the seam */
-  float cr = smoothstep(.75, 1., vEdge) * .9 + .25;
-  vec2 g = vUV * 24. + uSeed * 17.;
-  vec3 wob = vec3(sin(g.x + sin(g.y * 1.3)), sin(g.y * 1.1 + sin(g.x * .7)), sin(g.x * .9 - g.y)) * .032 * cr;
-  N = normalize(N + wob);
+  float e = .004, h0 = crease(vUV);
+  vec2 gr = vec2(crease(vUV + vec2(e, 0.)) - h0, crease(vUV + vec2(0., e)) - h0) / e;
+  float k = .003 * clamp(3.2 / length(uCam - vP), .3, 1.);
+  N = normalize(N - (gr.x * vT + gr.y * vB) * k);
   vec3 R = reflect(-V, N);
   /* the mirror: the room, or another pillow if one is in the way */
   vec3 c = envC(R);
   float best = 1e9;
   for (int i = 0; i < NB; i++){ vec4 s = uB[i]; if (s.w <= 0. || abs(float(i) - uSelf) < .5) continue;
-    vec3 oc = vP - s.xyz; float b = dot(oc, R), cc = dot(oc, oc) - s.w * s.w * .62, h = b * b - cc;
-    if (h > 0.){ float t = -b - sqrt(h); if (t > .02 && t < best){ best = t; vec3 n2 = normalize(vP + R * t - s.xyz); n2.y *= 1.8; n2 = normalize(n2);
-      c = envC(reflect(R, n2)) * .86 * vec3(.96, .965, .975) + .02; } } }
+    vec3 u = uU[i].xyz, oc = vP - s.xyz;
+    vec3 o2 = oc + u * dot(u, oc) * 1.4, r2 = R + u * dot(u, R) * 1.4;      /* squash along its own up axis */
+    float rr = s.w * .9, A = dot(r2, r2), b = dot(o2, r2), cc = dot(o2, o2) - rr * rr, hh = b * b - A * cc;
+    if (hh > 0.){ float t = (-b - sqrt(hh)) / A; if (t > .02 && t < best){ best = t; vec3 x = oc + R * t; vec3 g1 = x + u * dot(u, x) * 1.4;
+      vec3 n2 = normalize(g1 + u * dot(u, g1) * 1.4);
+      c = envC(reflect(R, n2)) * .84 * vec3(.96, .965, .975) + .015; } } }
   /* silver: very high reflectance, a little cooler at grazing angles */
   float fr = pow(1. - max(dot(N, V), 0.), 5.);
   c *= mix(vec3(.86, .875, .9), vec3(1.), fr);
-  c = pow(c, vec3(1.18)) * 1.06;                                          /* a mirror shows everything harder than the room itself */
+  c = pow(c, vec3(1.15));                                                 /* a mirror shows everything harder than the room itself */
   /* the heat-sealed seam: a dull flat rim */
   float seam = smoothstep(1.0, 1.02, vEdge);
-  c = mix(c, c * .6 + vec3(.06), seam);
+  c = mix(c, c * .72 + vec3(.05), seam);
   c *= uLift;
-  c = 1. - exp(-c * 1.25); c = pow(c, vec3(1. / 2.2));
+  c = 1. - exp(-c * 2.2); c = pow(c, vec3(1. / 1.5));
   gl_FragColor = vec4(c, 1.);
 }`;
 
@@ -314,7 +338,7 @@ function initGL(){
   if (!P.bg || !P.pil) return false;
   quadBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
   /* the pillow mesh: a grid per face, out past the edge for the flat seam */
-  const G = 30, E = 1.07, v = [];
+  const G = 40, E = 1.06, v = [];
   for (const side of [1, -1]) for (let j = 0; j < G; j++) for (let i = 0; i < G; i++){
     const u0 = -E + 2 * E * i / G, u1 = -E + 2 * E * (i + 1) / G, w0 = -E + 2 * E * j / G, w1 = -E + 2 * E * (j + 1) / G;
     const q = side > 0 ? [[u0, w0], [u1, w0], [u1, w1], [u0, w0], [u1, w1], [u0, w1]] : [[u0, w0], [u1, w1], [u1, w0], [u0, w0], [u0, w1], [u1, w1]];
@@ -322,7 +346,7 @@ function initGL(){
   }
   meshBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, meshBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW); meshN = v.length / 3;
   /* the mirror world: the empty room, seen from the middle, once */
-  const S = 256; envTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_CUBE_MAP, envTex);
+  const S = 512; envTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_CUBE_MAP, envTex);
   for (let f = 0; f < 6; f++) gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + f, 0, gl.RGBA, S, S, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
   gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -352,8 +376,15 @@ function newCloud(p){
 }
 function addDent(c, dirWorld, amount){
   const m = qmat(c.q), dl = norm(mtvec(m, dirWorld));
-  const slot = c.dent[0].a <= c.dent[1].a ? c.dent[0] : c.dent[1];
-  slot.d = dl; slot.va += amount;
+  const slot = Math.abs(c.dent[0].a) <= Math.abs(c.dent[1].a) ? c.dent[0] : c.dent[1];
+  if (Math.abs(slot.a) < .05) slot.d = dl; else slot.d = norm(add(mul(slot.d, .5), dl));
+  slot.va = Math.min(3.4, slot.va + amount * 6);
+}
+/* how far the pillow reaches in a direction — a flat cushion, not a ball — and the point of it that touches */
+const EXT = [PW * 1.02, PH * 1.1, PD * 1.02];
+function reach(c, n){ const m = qmat(c.q), l = mtvec(m, n);
+  const r = Math.hypot(EXT[0] * l[0], EXT[1] * l[1], EXT[2] * l[2]) || 1e-4;
+  return { r, at:mvec(m, [EXT[0] * EXT[0] * l[0] / r, EXT[1] * EXT[1] * l[1] / r, EXT[2] * EXT[2] * l[2] / r]) };
 }
 const BOUNDS = { x0:ROOM.x0 + .6, x1:ROOM.x1 - .6, y0:.55, y1:ROOM.y1 - .32, z0:ROOM.z0 + .6, z1:3.0 };
 function physics(dt){
@@ -368,36 +399,38 @@ function physics(dt){
     if (!c.grab){ c.v = add(c.v, mul(f, dt)); }
     else {                                                                     /* held: a soft spring to your hand */
       const pull = sub(c.grab.target, c.p); c.v = add(mul(c.v, Math.exp(-dt * 9)), mul(pull, dt * 60));
-      c.w = add(c.w, mul(cross(c.grab.off, mul(pull, 1)), dt * 5));
+      c.w = add(mul(c.w, Math.exp(-dt * 3)), mul(cross(c.grab.off, pull), dt * 1.2));
     }
     const drag = Math.exp(-dt * (c.grab ? 0 : .55)); c.v = mul(c.v, drag);
     const sp = len(c.v); if (sp > 6) c.v = mul(c.v, 6 / sp);
     c.p = add(c.p, mul(c.v, dt));
     /* turning: the air slows it; it drifts towards lying flat, as a pillow does */
-    c.w = mul(c.w, Math.exp(-dt * .9));
+    c.w = mul(c.w, Math.exp(-dt * 1.7));
     const up = mvec(qmat(c.q), v3(0, 1, 0)), flat = cross(up, v3(0, Math.sign(up[1]) || 1, 0));
     c.w = add(c.w, mul(flat, dt * .03));
-    if (fanOn) c.w = add(c.w, mul(v3(Math.sin(t * .37 + c.seed), Math.cos(t * .29 + c.seed * 2), Math.sin(t * .23 - c.seed)), dt * .35));
+    if (fanOn) c.w = add(c.w, mul(v3(Math.sin(t * .37 + c.seed), Math.cos(t * .29 + c.seed * 2), Math.sin(t * .23 - c.seed)), dt * .3));
+    { const wl = len(c.w), WMAX = 1.6; if (wl > WMAX) c.w = mul(c.w, WMAX / wl); }
     const wl = len(c.w); if (wl > 1e-5){ const a = wl * dt, s = Math.sin(a / 2) / wl; c.q = qnorm(qmul([c.w[0] * s, c.w[1] * s, c.w[2] * s, Math.cos(a / 2)], c.q)); }
     /* dents spring back */
-    for (const d of c.dent){ d.va += (-d.a * 55 - d.va * 5.5) * dt; d.a += d.va * dt; }
+    for (const d of c.dent){ d.va += (-d.a * 48 - d.va * 4.2) * dt; d.a += d.va * dt; }
   }
-  /* pillow against pillow */
+  /* pillow against pillow: two flat cushions, each pushed at the point where they touch */
   for (let i = 0; i < N; i++) for (let j = i + 1; j < N; j++){
-    const a = clouds[i], b = clouds[j], d = sub(b.p, a.p), dist = len(d), R = RAD * 2;
-    if (dist < R && dist > 1e-4){
-      const n = mul(d, 1 / dist), pen = R - dist, rv = dot(sub(b.v, a.v), n);
-      const ka = a.grab ? .1 : .5, kb = b.grab ? .1 : .5;
-      a.p = sub(a.p, mul(n, pen * ka)); b.p = add(b.p, mul(n, pen * kb));
-      if (rv < 0){
-        const J = -(1 + .55) * rv / 2;
-        a.v = sub(a.v, mul(n, J)); b.v = add(b.v, mul(n, J));
-        const tang = sub(sub(b.v, a.v), mul(n, dot(sub(b.v, a.v), n)));       /* glancing blows set them turning */
-        a.w = add(a.w, mul(cross(n, tang), 1.1)); b.w = sub(b.w, mul(cross(n, tang), 1.1));
-        const s = Math.min(1.6, J);
-        addDent(a, n, s * 1.1); addDent(b, mul(n, -1), s * 1.1);
-        if (J > .04) AUD.bump(Math.min(1, J * 1.6), (a.p[0] + b.p[0]) / 2);
-      }
+    const a = clouds[i], b = clouds[j], d = sub(b.p, a.p), dist = len(d);
+    if (dist > (PW + .05) * 2.1 || dist < 1e-4) continue;
+    const n = mul(d, 1 / dist), A = reach(a, n), B = reach(b, mul(n, -1)), R = A.r + B.r;
+    if (dist >= R) continue;
+    const pen = R - dist, rv = dot(sub(b.v, a.v), n);
+    const ka = a.grab ? .1 : .5, kb = b.grab ? .1 : .5;
+    a.p = sub(a.p, mul(n, pen * ka)); b.p = add(b.p, mul(n, pen * kb));
+    if (rv < 0){
+      const J = -(1 + .5) * rv / 2;
+      a.v = sub(a.v, mul(n, J)); b.v = add(b.v, mul(n, J));
+      /* a knock off-centre tips it a little — never more */
+      a.w = add(a.w, mul(cross(A.at, mul(n, -J)), 2.2)); b.w = add(b.w, mul(cross(B.at, mul(n, J)), 2.2));
+      const s = Math.min(1.2, J);
+      addDent(a, n, s); addDent(b, mul(n, -1), s);
+      if (J > .04) AUD.bump(Math.min(1, J * 1.6), (a.p[0] + b.p[0]) / 2);
     }
   }
   /* walls, floor, ceiling */
@@ -405,7 +438,7 @@ function physics(dt){
     const hit = (axis, lim, sgn) => {
       const over = (c.p[axis] - lim) * sgn; if (over <= 0) return;
       c.p[axis] -= over * sgn; const vn = c.v[axis] * sgn;
-      if (vn > 0){ c.v[axis] = -c.v[axis] * .45; const n = v3(0, 0, 0); n[axis] = sgn; addDent(c, n, Math.min(1.4, vn * .9)); if (vn > .12) AUD.tap(Math.min(1, vn * .8), c.p[0]); c.w = add(c.w, v3((rnd() - .5) * vn, (rnd() - .5) * vn, (rnd() - .5) * vn)); }
+      if (vn > 0){ c.v[axis] = -c.v[axis] * .45; const n = v3(0, 0, 0); n[axis] = sgn; addDent(c, n, Math.min(1.4, vn * .9)); if (vn > .12) AUD.tap(Math.min(1, vn * .8), c.p[0]); c.w = add(c.w, v3((rnd() - .5) * vn * .5, (rnd() - .5) * vn * .5, (rnd() - .5) * vn * .5)); }
     };
     hit(0, BOUNDS.x0, -1); hit(0, BOUNDS.x1, 1); hit(1, BOUNDS.y0, -1); hit(1, BOUNDS.y1, 1); hit(2, BOUNDS.z0, -1); hit(2, BOUNDS.z1, 1);
   }
@@ -453,7 +486,7 @@ glc.addEventListener("pointermove", e => {
       const d0 = rayAt(ptr.x, ptr.y), d1 = rayAt(x, y), D = 3.4, a = add(cam.p, mul(d0, D)), b = add(cam.p, mul(d1, D)), mv = mul(sub(b, a), 1 / dt);
       let touched = 0;
       for (const c of clouds){ const oc = sub(c.p, cam.p), along = dot(oc, d1), perp = len(sub(oc, mul(d1, along)));
-        const reach = .9 + along * .12; if (perp < reach && along > 0){ const k = (1 - perp / reach) * .06; c.v = add(c.v, mul(mv, k)); c.w = add(c.w, mul(v3(mv[2], 0, -mv[0]), k * .4)); touched += k; } }
+        const reach = .9 + along * .12; if (perp < reach && along > 0){ const k = (1 - perp / reach) * .06; c.v = add(c.v, mul(mv, k)); c.w = add(c.w, mul(v3(mv[2], 0, -mv[0]), k * .15)); touched += k; } }
       if (Math.hypot(dx, dy) > 4) AUD.gust(Math.min(1, Math.hypot(dx, dy) / 50 + touched));
     }
   }
@@ -466,7 +499,7 @@ function up(){
   if (c && c.grab){
     if (quick){                                                                  /* a tap: a push straight away from you */
       const d = norm(sub(c.p, cam.p)), push = add(mul(d, 2.6), v3(0, .5, 0));
-      c.v = add(c.v, push); c.w = add(c.w, mul(cross(c.grab.off, d), 6)); addDent(c, mul(d, -1), 1.5); AUD.boop(.9, c.p[0]);
+      c.v = add(c.v, push); c.w = add(c.w, mul(cross(c.grab.off, d), 1.6)); addDent(c, mul(d, -1), .9); AUD.boop(.9, c.p[0]);
     } else { const sp = len(ptr.vel); c.v = sp > 7 ? mul(ptr.vel, 7 / sp) : ptr.vel.slice(); if (sp > 1.5) AUD.whoosh(Math.min(1, sp / 6)); }
     c.grab = null;
   }
@@ -541,17 +574,18 @@ function viewProj(){
 function render(){
   gl.viewport(0, 0, glc.width, glc.height);
   const b = basis(), B = new Float32Array(NBMAX * 4);
-  clouds.forEach((c, i) => { if (i < NBMAX){ B[i * 4] = c.p[0]; B[i * 4 + 1] = c.p[1]; B[i * 4 + 2] = c.p[2]; B[i * 4 + 3] = RAD * 1.25; } });
+  const U = new Float32Array(NBMAX * 4);
+  clouds.forEach((c, i) => { if (i < NBMAX){ B[i * 4] = c.p[0]; B[i * 4 + 1] = c.p[1]; B[i * 4 + 2] = c.p[2]; B[i * 4 + 3] = RAD * 1.25; const u = mvec(qmat(c.q), [0, 1, 0]); U[i * 4] = u[0]; U[i * 4 + 1] = u[1]; U[i * 4 + 2] = u[2]; } });
   /* a plain white ground — the room only exists in the mirrors */
   gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.enable(gl.DEPTH_TEST);
   gl.useProgram(P.pil.p); gl.bindBuffer(gl.ARRAY_BUFFER, meshBuf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-  gl.uniformMatrix4fv(P.pil.u.uVP, false, viewProj()); gl.uniform3f(P.pil.u.uCam, ...cam.p); gl.uniform4fv(P.pil.u.uB, B); gl.uniform1f(P.pil.u.uTime, t);
+  gl.uniformMatrix4fv(P.pil.u.uVP, false, viewProj()); gl.uniform3f(P.pil.u.uCam, ...cam.p); gl.uniform4fv(P.pil.u.uB, B); gl.uniform4fv(P.pil.u.uU, U); gl.uniform1f(P.pil.u.uTime, t);
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_CUBE_MAP, envTex); gl.uniform1i(P.pil.u.uEnv, 0);
   clouds.forEach((c, i) => {
     gl.uniformMatrix3fv(P.pil.u.uRot, false, new Float32Array(qmat(c.q))); gl.uniform3f(P.pil.u.uPos, ...c.p);
     const d0 = c.dent[0], d1 = c.dent[1];
-    gl.uniform4f(P.pil.u.uSq, d0.d[0], d0.d[1], d0.d[2], clamp(d0.a, -.18, .45)); gl.uniform4f(P.pil.u.uSq2, d1.d[0], d1.d[1], d1.d[2], clamp(d1.a, -.18, .45));
+    gl.uniform4f(P.pil.u.uSq, d0.d[0], d0.d[1], d0.d[2], clamp(d0.a, -.16, .42)); gl.uniform4f(P.pil.u.uSq2, d1.d[0], d1.d[1], d1.d[2], clamp(d1.a, -.16, .42));
     gl.uniform1f(P.pil.u.uSeed, c.seed); gl.uniform1f(P.pil.u.uSelf, i); gl.uniform1f(P.pil.u.uLift, c.lift);
     gl.drawArrays(gl.TRIANGLES, 0, meshN);
   });
@@ -579,7 +613,7 @@ $("fan").onclick = () => { AUD.unlock(); fanOn = !fanOn; $("fan").setAttribute("
   hint(fanOn ? T({ en:"The fan is on — the air keeps them moving", ko:"선풍기가 켜졌어요 — 바람이 구름을 계속 움직여요" }) : T({ en:"Still air — they hang where they are", ko:"바람이 멎었어요 — 구름이 그 자리에 떠 있어요" }), true); };
 $("add").onclick = () => { AUD.unlock(); if (clouds.length >= NBMAX){ hint(T({ en:"The room is full", ko:"방이 가득 찼어요" }), true); return; }
   const c = newCloud(v3((rnd() - .5) * 2, .7, 2.6)); c.v = v3((rnd() - .5) * .6, 1.6, -1.6); clouds.push(c); AUD.whoosh(.6); AUD.crinkle(.8); };
-$("shake").onclick = () => { AUD.unlock(); clouds.forEach(c => { c.v = add(c.v, v3((rnd() - .5) * 2.4, (rnd() - .2) * 1.6, (rnd() - .5) * 2.4)); c.w = add(c.w, v3((rnd() - .5) * 3, (rnd() - .5) * 3, (rnd() - .5) * 3)); }); AUD.whoosh(1); };
+$("shake").onclick = () => { AUD.unlock(); clouds.forEach(c => { c.v = add(c.v, v3((rnd() - .5) * 2.4, (rnd() - .2) * 1.6, (rnd() - .5) * 2.4)); c.w = add(c.w, v3((rnd() - .5) * 1.4, (rnd() - .5) * 1.4, (rnd() - .5) * 1.4)); }); AUD.whoosh(1); };
 $("snd").onclick = () => { AUD.unlock(); AUD.on = !AUD.on; $("snd").setAttribute("aria-pressed", String(AUD.on)); };
 $("info").onclick = () => document.body.classList.toggle("about");
 $("about-x").onclick = () => document.body.classList.remove("about");
