@@ -19802,6 +19802,8 @@ body.camopen #cam{display:grid;} body.camopen #hint{opacity:0;}
 #cam .note{font-size:11px;color:var(--ink-faint);margin-top:10px;line-height:1.5;}
 #cam .stage-pick,#cam.picked .stage-shoot{display:none;}
 #cam.picked .stage-pick{display:flex;}
+#cam .dev{flex:1;justify-content:center;border:1px solid var(--glass-line);cursor:pointer;}
+#cam.nocam .live{display:none;} #cam.nocam .dev{background:#e5322d;color:#fff;border-color:transparent;}
 
 #about{position:fixed;right:20px;top:calc(76px + env(safe-area-inset-top,0px));width:350px;max-height:calc(100% - 170px);overflow:auto;z-index:20;border-radius:22px;padding:20px 20px 18px;display:none;}
 body.about #about{display:block;}
@@ -19847,16 +19849,17 @@ html[lang="ko"] #about .tag{letter-spacing:.04em;}
     <p class="sub" id="cam-sub"></p>
     <div class="view"><video id="vid" playsinline muted></video><canvas id="prev"></canvas><span class="rec" id="rec">REC</span></div>
     <div class="row stage-shoot">
-      <button class="chip" id="m-photo" aria-pressed="true"></button>
-      <button class="chip" id="m-clip" aria-pressed="false"></button>
-      <button class="chip shoot" id="shoot"></button>
+      <button class="chip live" id="m-photo" aria-pressed="true"></button>
+      <button class="chip live" id="m-clip" aria-pressed="false"></button>
+      <button class="chip shoot live" id="shoot"></button>
     </div>
+    <div class="row stage-shoot"><label class="chip dev" id="dev"><svg class="ico" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.6"/></svg><span id="dev-l"></span><input type="file" id="file" accept="image/*,video/*" capture="user" hidden></label></div>
     <div class="row stage-pick">
       <button class="chip shoot" id="put-all"></button>
       <button class="chip" id="put-me"></button>
       <button class="chip" id="again"></button>
     </div>
-    <div class="row"><button class="chip" id="cam-tab" hidden></button><button class="chip" id="cam-x"></button></div>
+    <div class="row"><button class="chip" id="cam-x"></button></div>
     <p class="note" id="cam-note"></p>
   </div>
 </section>
@@ -19902,7 +19905,7 @@ const CHN = [
   { en:"Candle", ko:"촛불" }, { en:"Dancers", ko:"춤" }, { en:"Countdown", ko:"카운트다운" }, { en:"Moon", ko:"달" },
   { en:"Zen", ko:"선(禪)" }, { en:"Feedback", ko:"되먹임" }, { en:"Weather", ko:"날씨" },
 ];
-const NCH = CHN.length, VIS = NCH;                        /* channel NCH: a visitor's clip, only on the sets that hold one */
+const NCH = CHN.length, VIS = NCH;                        /* channel NCH: a visitor's clip (which one: tv.cid) */
 const mkC = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; };
 const chans = CHN.map(() => mkC(CW * 2, CH * 2));
 const HI = mkC(CW * 4, CH * 4); let hiFor = -1;          /* the close-up set's own sharper picture */
@@ -20037,7 +20040,7 @@ function buildTower(){
 function pickStyle(){ let r = rnd(), i = 0; while (i < STYLE_W.length - 1 && (r -= STYLE_W[i]) > 0) i++; return i; }
 function mk(x, y, face, tier, k){
   const ch = Math.floor(rnd() * NCH), on = rnd() > .12;
-  const tv = { x, y, face, tier, k:k || 0, ch, on, pw:on ? 1 : 0, st:pickStyle(), ph:rnd() * 10, clip:null, dial:ch, flash:0 };
+  const tv = { x, y, face, tier, k:k || 0, ch, on, pw:on ? 1 : 0, st:pickStyle(), ph:rnd() * 10, cid:null, hold:0, dial:ch, flash:0 };
   /* the set's own transform: front faces are flat; side faces lean back and lift */
   const sk = face === "f" ? 1 : SK, sy = face === "l" ? -SY : face === "r" ? SY : 0;
   const lift = face === "l" ? (tv.k + 1) * (TW_ + GAP) * SK * SY * -1 : face === "r" ? tv.k * (TW_ + GAP) * SK * SY * -1 : 0;
@@ -20197,7 +20200,7 @@ function drawTV(v, t, ppu){
     const sh = Math.max(.012, v.pw < .5 ? v.pw * 2 * .04 : (v.pw - .5) * 2), sw = v.pw < .5 ? Math.max(.03, v.pw * 2) : 1;      /* warming up: a dot, a line, the picture */
     const cx = SCR.x + SCR.w / 2, cy = SCR.y + SCR.h / 2, w = (SCR.w + 2) * sw, h = (SCR.h + 2) * sh;
     let src = v === zoomed && v.ch < NCH && hiFor === v.ch ? HI : chans[v.ch];
-    if (v.ch === VIS && v.clip){ const fr = v.clip.imgs; src = fr[Math.floor((t * (v.clip.k === "v" ? 5 : 0)) % fr.length) | 0] || fr[0]; }
+    if (v.ch === VIS){ const c = clipMap.get(v.cid); if (c){ const fr = c.imgs; src = fr[Math.floor((t * (c.k === "v" ? 5 : 0)) % fr.length) | 0] || fr[0]; } else src = chans[0]; }
     if (src && (src.complete === undefined || src.complete)) g.drawImage(src, cx - w / 2, cy - h / 2, w, h);
     if (v.flash > 0){ g.globalAlpha = v.flash; g.drawImage(chans[0], SCR.x - 1, SCR.y - 1, SCR.w + 2, SCR.h + 2); g.globalAlpha = 1; }
     if (v.pw < 1){ g.fillStyle = `rgba(230,240,255,${(1 - v.pw) * .8})`; g.fillRect(cx - w / 2, cy - h / 2, w, h); }
@@ -20207,7 +20210,7 @@ function drawTV(v, t, ppu){
   /* what changes: the LED, the dial's pointer */
   if (v.on){ g.fillStyle = "#ff3b22"; g.beginPath(); g.arc(PWR.x, PWR.y - 4.9, .55, 0, 7); g.fill();
     if (ppu > 2.5){ g.fillStyle = "rgba(255,80,40,.35)"; g.beginPath(); g.arc(PWR.x, PWR.y - 4.9, 1.3, 0, 7); g.fill(); } }
-  if (ppu > 2.5){ const an = v.dial / (NCH + 1) * Math.PI * 2 - Math.PI / 2; g.strokeStyle = "#f1ece0"; g.lineWidth = .55; g.lineCap = "round";
+  if (ppu > 2.5){ const an = v.dial / Math.max(NCH + 1, v.dialN || NCH + CLIPS.length) * Math.PI * 2 - Math.PI / 2; g.strokeStyle = "#f1ece0"; g.lineWidth = .55; g.lineCap = "round";
     g.beginPath(); g.moveTo(DIAL.x + Math.cos(an) * DIAL.r * .38, DIAL.y + Math.sin(an) * DIAL.r * .38); g.lineTo(DIAL.x + Math.cos(an) * DIAL.r * .74, DIAL.y + Math.sin(an) * DIAL.r * .74); g.stroke(); }
   /* side faces sit in shadow */
   if (v.shade < 1){ g.fillStyle = `rgba(0,0,0,${1 - v.shade})`; rr(g, 0, 0, TW_, TH_, 4); g.fill(); }
@@ -20215,7 +20218,7 @@ function drawTV(v, t, ppu){
 /* the light each screen throws on the cabinets round it */
 function drawGlow(v){
   if (v.pw < .2) return; setT(v);
-  const gi = v.ch === VIS ? GLOW.length - 1 : v.ch, gs = GLOW[gi]; if (!gs) return;
+  const gi = v.ch >= NCH ? GLOW.length - 1 : v.ch, gs = GLOW[gi]; if (!gs) return;
   g.globalAlpha = .2 * v.pw * v.shade; g.drawImage(gs, SCR.x - 16, SCR.y - 14, SCR.w + 32, SCR.h + 28); g.globalAlpha = 1;
 }
 let ROWS = [], LEDGES = [];
@@ -20260,7 +20263,7 @@ function render(t){
   if (zoomed && camv.s > 4){ const v = zoomed; if (v.osd > 0){
     setT(v); g.globalAlpha = Math.min(1, v.osd); g.fillStyle = "#4dff7a"; g.shadowColor = "rgba(77,255,122,.8)"; g.shadowBlur = 6 * DPR;
     g.font = "600 3.2px 'JetBrains Mono', monospace"; g.textAlign = "left"; g.textBaseline = "top";
-    g.fillText(v.on ? (v.ch === VIS ? (LANG === "ko" ? "CH ★ 방문객" : "CH ★ VISITOR") : `CH ${String(v.ch + 1).padStart(2, "0")} ${T(CHN[v.ch]).toUpperCase()}`) : "", SCR.x + 3, SCR.y + 3); g.globalAlpha = 1; g.shadowBlur = 0; } }
+    g.fillText(v.on ? (v.ch === VIS ? (LANG === "ko" ? "CH ★ 방문객 " : "CH ★ VISITOR ") + (CLIPS.findIndex(c => c.id === v.cid) + 1) + "/" + CLIPS.length : `CH ${String(v.ch + 1).padStart(2, "0")} ${T(CHN[v.ch]).toUpperCase()}`) : "", SCR.x + 3, SCR.y + 3); g.globalAlpha = 1; g.shadowBlur = 0; } }
 }
 
 /* ==========================================================================
@@ -20269,11 +20272,15 @@ function render(t){
 function zoomTo(v){ zoomed = v; document.body.classList.toggle("zoomed", !!v); const f = v ? zoomOf(v) : fitTower(); Object.assign(camv, { tx:f.x, ty:f.y, ts:f.s }); AUD.whoosh(); if (v) v.osd = 2.5;
   if (v && !seenZoom){ seenZoom = true; hint(T({ en:"The silver button: on and off · the dial: change channel (or scroll)", ko:"은색 버튼: 켜기·끄기 · 다이얼: 채널 돌리기 (스크롤도 돼요)" })); } }
 let seenZoom = false;
-function setPower(v, on){ if (v.on === on) return; v.on = on; v.osd = 2; on ? AUD.on() : AUD.off(); }
+function setPower(v, on){ if (v.on === on) return; v.on = on; v.osd = 2; v.hold = t + 25; on ? AUD.on() : AUD.off(); }
+/* set a set's channel; the dial shows where it is among all of them */
+function tune(v, ch, cid){ v.ch = ch; v.cid = ch === VIS ? cid : null; const list = NCH + CLIPS.length;
+  v.dial = ch === VIS ? NCH + Math.max(0, CLIPS.findIndex(c => c.id === cid)) : ch; v.dialN = list; v.flash = Math.max(v.flash, .6); }
 function nextChannel(v, dir){
   if (!v.on){ setPower(v, true); return; }
-  const list = []; for (let i = 0; i < NCH; i++) list.push(i); if (v.clip) list.push(VIS);
-  const i = list.indexOf(v.ch); v.ch = list[(i + (dir || 1) + list.length) % list.length]; v.dial = v.ch === VIS ? NCH : v.ch; v.flash = .9; v.osd = 2; AUD.dial();
+  const list = []; for (let i = 0; i < NCH; i++) list.push([i, null]); for (const c of CLIPS) list.push([VIS, c.id]);
+  const i = list.findIndex(([c, id]) => c === v.ch && (c !== VIS || id === v.cid));
+  const [ch, id] = list[(Math.max(0, i) + (dir || 1) + list.length) % list.length]; tune(v, ch, id); v.flash = .9; v.osd = 2; v.hold = t + 25; AUD.dial();
 }
 const ptr = { x:0, y:0, down:false, moved:0, t0:0 };
 cv.addEventListener("pointerdown", e => { AUD.unlock(); hideHint(); ptr.down = true; ptr.x = e.clientX; ptr.y = e.clientY; ptr.moved = 0; ptr.t0 = performance.now(); });
@@ -20300,81 +20307,139 @@ window.addEventListener("keydown", e => {
 });
 
 /* ==========================================================================
-   6. ON AIR — your camera, a photo or a three-second clip, onto one of the
-      sets. The picture is made small here (120×90) and nothing else is kept.
-      Shared through the museum's store only if you choose "for everyone".
+   6. ON AIR — a photo or a three-second clip, from the camera in the page
+      or from the device's own camera app (which works on every phone and,
+      on a computer, lets you pick a file). It is made small here (120×90).
+      Every clip becomes a visitor channel: sets all over the tower tune in
+      and out of them at random, so no clip is stuck on one set.
    ========================================================================== */
 const FW = 120, FH = 90, CLIP_N = 15, COL = "paikClips", LKEY = "lam.paik.v1";
 let camStream = null, camMode = "photo", shot = null;
-const store = { db:null, shared:[], local:[], tried:false };
+const store = { db:null, local:[], tried:false, shared:false };
+const CLIPS = [], clipMap = new Map();                    /* newest first */
 const vid = $("vid"), prev = $("prev");
 async function openCam(){
-  document.body.classList.add("camopen"); $("cam").classList.remove("picked", "recording"); prev.style.display = "none"; shot = null;
+  document.body.classList.add("camopen"); $("cam").classList.remove("picked", "recording", "nocam"); prev.style.display = "none"; shot = null;
   try {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw 0;
     camStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user", width:{ ideal:640 }, height:{ ideal:480 } }, audio:false });
     vid.srcObject = camStream; await vid.play().catch(() => {});
-    $("cam-note").textContent = T({ en:"Your picture is shrunk to a small TV image here, on your device. Nothing is recorded until you press the red button.", ko:"사진은 이 기기에서 작은 TV 화면 크기로 줄여져요. 빨간 버튼을 누르기 전에는 아무것도 저장되지 않아요." });
+    $("cam-note").textContent = T({ en:"Your picture is shrunk to a small TV image here, on your device. Nothing is kept until you choose where it goes.", ko:"사진은 이 기기에서 작은 TV 화면 크기로 줄여져요. 어디에 방송할지 고르기 전에는 아무것도 저장되지 않아요." });
   } catch (_){
-    const tab = canOpenTab(); $("cam-tab").hidden = !tab;
-    $("cam-note").textContent = tab ? T({ en:"The camera is not available inside this frame. Open the work in a new tab, allow the camera, and go on air there.", ko:"이 화면 안에서는 카메라를 쓸 수 없어요. 새 탭에서 열고 카메라를 허용한 뒤 출연해 보세요." })
-      : T({ en:"The camera is not available here. Allow camera access in your browser and try again.", ko:"여기서는 카메라를 쓸 수 없어요. 브라우저에서 카메라 권한을 허용하고 다시 해 보세요." });
+    $("cam").classList.add("nocam");
+    $("cam-note").textContent = T({ en:"The live camera is not available in this window. Use your device's camera instead — on a phone it opens the camera app; on a computer you can pick a photo or a short video.",
+      ko:"이 창에서는 실시간 카메라를 쓸 수 없어요. 대신 '기기 카메라로 찍기'를 눌러 보세요. 휴대폰은 카메라 앱이 열리고, 컴퓨터는 사진이나 짧은 영상을 골라 올릴 수 있어요." });
   }
 }
-function closeCam(){ document.body.classList.remove("camopen"); if (camStream){ camStream.getTracks().forEach(tr => tr.stop()); camStream = null; } vid.srcObject = null; }
-function grab(){ const c = document.createElement("canvas"); c.width = FW; c.height = FH; const q = c.getContext("2d");
-  const vw = vid.videoWidth || FW, vh = vid.videoHeight || FH, s = Math.max(FW / vw, FH / vh);
-  q.translate(FW, 0); q.scale(-1, 1); q.drawImage(vid, (FW - vw * s) / 2, (FH - vh * s) / 2, vw * s, vh * s);
-  /* a little broadcast colour: lifted blacks, warmer */
+function closeCam(){ document.body.classList.remove("camopen"); if (camStream){ camStream.getTracks().forEach(tr => tr.stop()); camStream = null; } vid.srcObject = null; clearInterval(prevT); }
+/* one frame, cropped to the TV's 4:3, with a little broadcast colour */
+function frameOf(src, sw, sh, mirror){ const c = document.createElement("canvas"); c.width = FW; c.height = FH; const q = c.getContext("2d");
+  sw = sw || FW; sh = sh || FH; const s = Math.max(FW / sw, FH / sh);
+  if (mirror){ q.translate(FW, 0); q.scale(-1, 1); }
+  q.drawImage(src, (FW - sw * s) / 2, (FH - sh * s) / 2, sw * s, sh * s);
   q.setTransform(1, 0, 0, 1, 0, 0); q.globalCompositeOperation = "soft-light"; q.fillStyle = "rgba(255,190,140,.35)"; q.fillRect(0, 0, FW, FH); q.globalCompositeOperation = "source-over";
   return c.toDataURL("image/jpeg", .62); }
+const grab = () => frameOf(vid, vid.videoWidth, vid.videoHeight, true);
 async function shoot(){
   if (!camStream || !vid.videoWidth){ hint(T({ en:"No camera picture yet", ko:"아직 카메라 화면이 없어요" }), true); return; }
   AUD.shutter();
   if (camMode === "photo"){ shot = { k:"p", f:[grab()] }; }
   else { $("cam").classList.add("recording"); const f = []; for (let i = 0; i < CLIP_N; i++){ f.push(grab()); await new Promise(r => setTimeout(r, 200)); } $("cam").classList.remove("recording"); shot = { k:"v", f }; AUD.shutter(); }
-  /* show what was taken, playing */
+  showShot();
+}
+/* from the device's camera app or a file: a photo, or up to three seconds of a video */
+async function fromFile(file){
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  try {
+    if (file.type.startsWith("video")){
+      const v = document.createElement("video"); v.muted = true; v.playsInline = true; v.preload = "auto"; v.src = url;
+      await new Promise((res, rej) => { v.onloadeddata = res; v.onerror = rej; setTimeout(res, 4000); });
+      const dur = isFinite(v.duration) && v.duration > 0 ? Math.min(3, v.duration) : 0, f = [];
+      for (let i = 0; i < CLIP_N; i++){
+        const at = dur ? dur * i / CLIP_N : 0;
+        if (dur){ await new Promise(res => { const done = () => { v.removeEventListener("seeked", done); res(); }; v.addEventListener("seeked", done); v.currentTime = at; setTimeout(done, 700); }); }
+        if (v.videoWidth) f.push(frameOf(v, v.videoWidth, v.videoHeight, false));
+        if (!dur) break;
+      }
+      if (!f.length) throw 0;
+      shot = { k:f.length > 1 ? "v" : "p", f };
+    } else {
+      const im = new Image(); await new Promise((res, rej) => { im.onload = res; im.onerror = rej; im.src = url; });
+      shot = { k:"p", f:[frameOf(im, im.naturalWidth, im.naturalHeight, false)] };
+    }
+    AUD.shutter(); showShot();
+  } catch (_){ hint(T({ en:"That file could not be read — try a photo or a short video", ko:"이 파일은 읽을 수 없어요 — 사진이나 짧은 영상으로 해 보세요" }), true); }
+  finally { setTimeout(() => URL.revokeObjectURL(url), 5000); }
+}
+async function showShot(){
   prev.width = FW; prev.height = FH; prev.style.display = "block"; const imgs = await loadImgs(shot.f); let i = 0;
-  clearInterval(prevT); prevT = setInterval(() => { const q = prev.getContext("2d"); q.drawImage(imgs[i++ % imgs.length], 0, 0, FW, FH); }, 200);
+  clearInterval(prevT); const draw = () => prev.getContext("2d").drawImage(imgs[i++ % imgs.length], 0, 0, FW, FH); draw(); prevT = setInterval(draw, 200);
   $("cam").classList.add("picked");
 }
 let prevT = 0;
 function loadImgs(list){ return Promise.all(list.map(src => new Promise(r => { const im = new Image(); im.onload = () => r(im); im.onerror = () => r(im); im.src = src; }))); }
+const validClip = (r) => r && (r.k === "p" || r.k === "v") && Array.isArray(r.f) && r.f.length && r.f.length <= 16 && r.f.every(x => typeof x === "string" && x.startsWith("data:image/jpeg"));
+/* a clip joins the visitor channels */
+async function addClip(rec, mine){
+  if (clipMap.has(rec.id) || !validClip(rec)) return null;
+  const c = { id:rec.id, k:rec.k, t:rec.t || 0, mine:!!mine, imgs:await loadImgs(rec.f) };
+  if (clipMap.has(rec.id)) return clipMap.get(rec.id);
+  clipMap.set(c.id, c); CLIPS.push(c); CLIPS.sort((a, b) => b.t - a.t);
+  while (CLIPS.length > 60){ const old = CLIPS.pop(); clipMap.delete(old.id); }
+  return c;
+}
+/* a few sets pick it up, one after another */
+function spread(c, n, skip){
+  const pool = tvs.filter(v => v !== skip && v !== zoomed && v.hold < t);
+  for (let k = 0; k < n && pool.length; k++){ const v = pool.splice(Math.floor(rnd() * pool.length), 1)[0];
+    setTimeout(() => { if (v === zoomed) return; tune(v, VIS, c.id); v.on = true; v.hold = t + 6; }, 500 + k * 450); }
+}
 async function putOnAir(shared){
   if (!shot) return; clearInterval(prevT);
   const rec = { k:shot.k, f:shot.f, t:Date.now(), w:FW, h:FH };
-  let id = "me-" + Date.now().toString(36);
+  let id = "me-" + Date.now().toString(36), ok = false;
   if (shared){
     await openStore();
-    if (store.db){ try { const ref = store.db.collection(COL).doc(); id = ref.id; await ref.set(rec); } catch (_){ shared = false; hint(T({ en:"Could not share it — kept on this device", ko:"공유하지 못해 이 기기에만 저장했어요" }), true); } }
-    else shared = false;
+    if (store.db){ try { const ref = store.db.collection(COL).doc(); await ref.set(rec); id = ref.id; ok = true; } catch (_){} }
   }
-  if (!shared){ store.local.push({ id, ...rec }); try { localStorage.setItem(LKEY, JSON.stringify(store.local.slice(-8))); } catch (_){} }
+  if (!ok){ store.local.unshift({ id, ...rec }); store.local = store.local.slice(0, 8); try { localStorage.setItem(LKEY, JSON.stringify(store.local)); } catch (_){} }
   closeCam();
-  const v = await placeClip({ id, ...rec }, true);
-  if (v){ v.on = true; v.ch = VIS; v.dial = NCH; v.pw = 0; zoomTo(v); AUD.on(); }
-  hint(shared ? T({ en:"You are on air — on every visitor's tower", ko:"방송 중이에요 — 모든 방문객의 탑에 나와요" }) : T({ en:"You are on air — on this device", ko:"방송 중이에요 — 이 기기에서만 보여요" }));
-}
-/* each clip takes a set by its id, so it is in the same place for everyone */
-async function placeClip(rec, fresh){
-  const front = tvs.filter(v => v.face === "f"), free = front.filter(v => !v.clip);
-  if (!free.length) return null;
-  let v = free[Math.floor(hashS(rec.id) * free.length)];
-  if (fresh){ const mid = free.filter(x => x.tier >= 2 && x.tier <= 6); if (mid.length) v = mid[Math.floor(hashS(rec.id) * mid.length)]; }
-  v.clip = { id:rec.id, k:rec.k, imgs:await loadImgs(rec.f) };
-  if (!fresh){ v.ch = VIS; v.dial = NCH; v.on = true; }
-  return v;
+  const c = await addClip({ id, ...rec }, true) || clipMap.get(id);
+  const front = tvs.filter(v => v.face === "f" && v.tier >= 2 && v.tier <= 6), v = front[Math.floor(rnd() * front.length)];
+  if (c && v){ tune(v, VIS, c.id); v.on = true; v.pw = 0; v.hold = t + 12; zoomTo(v); AUD.on(); spread(c, 6, v); }
+  if (shared && !ok) hint(T({ en:"Could not share it just now — it plays on this device's tower", ko:"지금은 공유하지 못해 이 기기의 탑에서만 방송돼요" }));
+  else hint(ok ? T({ en:"You are on air — your channel now comes and goes on every visitor's tower", ko:"방송 중이에요 — 모든 방문객의 탑에서 내 채널이 여기저기 랜덤으로 나와요" })
+               : T({ en:"You are on air — on this device, coming and going around the tower", ko:"방송 중이에요 — 이 기기의 탑 곳곳에 랜덤으로 나와요" }));
 }
 async function openStore(){
   if (store.tried) return; store.tried = true;
   try { const api = window.claude || (window.parent !== window && window.parent.claude); if (api && api.use) store.db = await api.use("db"); } catch (_){ store.db = null; }
   if (!store.db) return;
-  try { store.db.collection(COL).limit(80).onSnapshot(async sn => {
-      const docs = sn.docs.map(d => ({ id:d.id, ...(d.data() || {}) })).filter(r => (r.k === "p" || r.k === "v") && Array.isArray(r.f) && r.f.length && r.f.length <= 16 && r.f.every(x => typeof x === "string" && x.startsWith("data:image/jpeg"))).sort((a, b) => (b.t || 0) - (a.t || 0)).slice(0, 60);
-      for (const r of docs) if (!tvs.some(v => v.clip && v.clip.id === r.id)) await placeClip(r, false);
-    }, () => {}); } catch (_){}
+  let first = true;
+  const onDocs = async (sn) => {
+    const docs = sn.docs.map(d => ({ id:d.id, ...(d.data() || {}) })).filter(validClip).sort((a, b) => (b.t || 0) - (a.t || 0)).slice(0, 60);
+    const fresh = [];
+    for (const r of docs){ const c = await addClip(r, false); if (c) fresh.push(c); }
+    if (first){ first = false; seedClips(); } else fresh.forEach(c => spread(c, 4));    /* someone else just went on air */
+  };
+  try { store.db.collection(COL).orderBy("t", "desc").limit(60).onSnapshot(onDocs, () => {
+      try { store.db.collection(COL).limit(80).onSnapshot(onDocs, () => {}); } catch (_){} }); }
+  catch (_){ try { store.db.collection(COL).limit(80).onSnapshot(onDocs, () => {}); } catch (_){} }
 }
-(async () => { try { store.local = JSON.parse(localStorage.getItem(LKEY) || "[]").filter(r => r && Array.isArray(r.f)); } catch (_){ store.local = []; } })();
+/* how much of the tower is visitors: more clips, more of it, but never most */
+const clipShare = () => CLIPS.length ? Math.min(.4, .1 + CLIPS.length * .03) : 0;
+const pickClip = () => CLIPS[Math.floor(Math.pow(rnd(), 1.6) * CLIPS.length)];              /* newer ones a little more often */
+function seedClips(){ const k = clipShare(); for (const v of tvs){ if (v === zoomed || v.hold > t) continue; if (rnd() < k * .8){ const c = pickClip(); if (c) tune(v, VIS, c.id); } } }
+/* now and then a few sets change channel by themselves */
+let zapT = 0;
+function autoZap(dt){
+  zapT += dt; if (zapT < 1.6) return; zapT = 0;
+  const n = 2 + Math.floor(rnd() * 3);
+  for (let k = 0; k < n; k++){ const v = tvs[Math.floor(rnd() * tvs.length)]; if (v === zoomed || v.hold > t || !v.on) continue;
+    if (CLIPS.length && rnd() < clipShare() * 1.2) tune(v, VIS, pickClip().id); else tune(v, Math.floor(rnd() * NCH)); v.flash = .5; }
+}
+(() => { try { store.local = JSON.parse(localStorage.getItem(LKEY) || "[]").filter(validClip); } catch (_){ store.local = []; } })();
 
 /* ==========================================================================
    7. SOUND — the hiss of many tubes, the thunk of a set, the dial's click
@@ -20422,7 +20487,7 @@ function frame(now){
   const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt;
   const k = 1 - Math.exp(-dt * 5.5);
   camv.s = Math.exp(lerp(Math.log(camv.s), Math.log(camv.ts), k)); camv.x = lerp(camv.x, camv.tx, k); camv.y = lerp(camv.y, camv.ty, k);
-  stepChannels(dt);
+  stepChannels(dt); autoZap(dt);
   chT += dt; if (chT > 1 / 30){ chT = 0; paintChannels(t);
     if (zoomed && zoomed.ch < NCH && camv.s > 3){ if (hiFor !== zoomed.ch){ HI.getContext("2d").drawImage(chans[zoomed.ch], 0, 0, HI.width, HI.height); } paintOne(zoomed.ch, HI, t); hiFor = zoomed.ch; } else hiFor = -1; }
   mT += dt; if (mT > .4){ mT = 0; measureChannels(); }
@@ -20446,17 +20511,19 @@ $("onair").onclick = () => { AUD.unlock(); openCam(); };
 let allOn = true;
 $("allpow").onclick = () => { AUD.unlock(); allOn = !allOn; tvs.forEach((v, i) => setTimeout(() => { v.on = allOn; }, (allOn ? i : tvs.length - i) * 4)); allOn ? AUD.on() : AUD.off(); };
 let syncCh = -1;
-$("sync").onclick = () => { AUD.unlock(); syncCh = (syncCh + 1) % (NCH + 1);
-  if (syncCh === NCH){ tvs.forEach(v => { v.ch = v.clip ? VIS : Math.floor(rnd() * NCH); v.dial = v.ch === VIS ? NCH : v.ch; v.flash = .6; }); hint(T({ en:"Every set on its own channel", ko:"모든 TV가 제각각의 채널로" }), true); }
-  else { tvs.forEach((v, i) => setTimeout(() => { if (!v.clip){ v.ch = syncCh; v.dial = syncCh; v.flash = .7; v.on = true; } }, (v.tier * 40 + Math.abs(v.x) * .3))); hint(T(CHN[syncCh]) + T({ en:" — on every set", ko:" — 모든 TV에" }), true); }
+$("sync").onclick = () => { AUD.unlock(); syncCh = (syncCh + 1) % (NCH + 2); if (syncCh === NCH && !CLIPS.length) syncCh = NCH + 1;
+  const wave = (v) => v.tier * 40 + Math.abs(v.x) * .3;
+  if (syncCh === NCH + 1){ tvs.forEach(v => { if (CLIPS.length && rnd() < clipShare()) tune(v, VIS, pickClip().id); else tune(v, Math.floor(rnd() * NCH)); v.hold = 0; }); hint(T({ en:"Every set on its own channel", ko:"모든 TV가 제각각의 채널로" }), true); }
+  else if (syncCh === NCH){ tvs.forEach(v => setTimeout(() => { tune(v, VIS, pickClip().id); v.on = true; v.hold = t + 15; }, wave(v))); hint(T({ en:"The visitors' channel — on every set", ko:"방문객 채널 — 모든 TV에" }), true); }
+  else { tvs.forEach(v => setTimeout(() => { tune(v, syncCh); v.on = true; v.hold = t + 15; }, wave(v))); hint(T(CHN[syncCh]) + T({ en:" — on every set", ko:" — 모든 TV에" }), true); }
   AUD.dial(); };
 $("m-photo").textContent = T({ en:"Photo", ko:"사진" }); $("m-clip").textContent = T({ en:"3-second clip", ko:"영상 3초" }); $("shoot").textContent = T({ en:"● Record", ko:"● 촬영" });
 $("put-all").textContent = T({ en:"Show it to everyone", ko:"모두에게 방송하기" }); $("put-me").textContent = T({ en:"Only on this device", ko:"이 기기에서만" }); $("again").textContent = T({ en:"Retake", ko:"다시 찍기" });
-$("cam-x").textContent = T({ en:"Close", ko:"닫기" }); $("cam-tab").textContent = T({ en:"Open in a new tab", ko:"새 탭에서 열기" });
-const canOpenTab = () => { try { return !!(window.parent && window.parent !== window && window.parent.__openStandalone); } catch (_){ return false; } };
-$("cam-tab").onclick = () => { try { window.parent.__openStandalone("paik"); } catch (_){} closeCam(); };
+$("cam-x").textContent = T({ en:"Close", ko:"닫기" }); $("dev-l").textContent = T({ en:"Use the device camera / a file", ko:"기기 카메라로 찍기 · 파일 올리기" });
+$("file").addEventListener("change", e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; fromFile(f); });
+$("dev").addEventListener("click", () => AUD.unlock());
 $("cam-h").textContent = T({ en:"Go on air", ko:"출연하기" });
-$("cam-sub").textContent = T({ en:"Take a photo or a three-second clip; it plays on one of the sets in the tower.", ko:"사진이나 3초 영상을 찍으면 탑의 TV 한 대에서 방송돼요." });
+$("cam-sub").textContent = T({ en:"Take a photo or a three-second clip. It becomes a visitor channel that comes and goes on sets all over the tower.", ko:"사진이나 3초 영상을 찍으면 방문객 채널이 되어 탑 곳곳의 TV에 랜덤으로 나와요." });
 $("m-photo").onclick = () => { camMode = "photo"; $("m-photo").setAttribute("aria-pressed", "true"); $("m-clip").setAttribute("aria-pressed", "false"); AUD.click(); };
 $("m-clip").onclick = () => { camMode = "clip"; $("m-clip").setAttribute("aria-pressed", "true"); $("m-photo").setAttribute("aria-pressed", "false"); AUD.click(); };
 $("shoot").onclick = () => shoot();
@@ -20480,7 +20547,7 @@ $("ab-h3").textContent = T({ en:"Try", ko:"해 보기" });
 [{ en:"Click any set to bring it close.", ko:"아무 TV나 눌러 가까이 불러오세요." },
  { en:"Close up: the button turns it on and off; the dial (or scroll, or the arrow keys) changes channel.", ko:"가까이서: 버튼으로 켜고 끄고, 다이얼(스크롤, 방향키)로 채널을 돌려요." },
  { en:"One channel tunes the whole tower to the same broadcast; All on / off sweeps through every set.", ko:"'한 채널로'는 탑 전체를 같은 방송으로 맞추고, '전체 켜기·끄기'는 모든 TV를 차례로 켜고 꺼요." },
- { en:"Go on air: a photo or a 3-second clip from your camera plays on one of the sets — for everyone, or only on this device.", ko:"출연하기: 카메라로 찍은 사진이나 3초 영상이 TV 한 대에서 방송돼요 — 모두에게, 또는 이 기기에서만." }]
+ { en:"Go on air: a photo or a 3-second clip — from the live camera, your phone's camera app or a file — becomes a visitor channel that sets all over the tower tune into at random, for everyone or only on this device.", ko:"출연하기: 실시간 카메라, 휴대폰 카메라 앱, 또는 파일로 찍은 사진이나 3초 영상이 방문객 채널이 되어 탑 곳곳의 TV에 랜덤으로 나와요 — 모두에게, 또는 이 기기에서만." }]
  .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); $("ab-ol").appendChild(li); });
 
 /* ==========================================================================
@@ -20488,14 +20555,14 @@ $("ab-h3").textContent = T({ en:"Try", ko:"해 보기" });
    ========================================================================== */
 buildTower(); layout(); const f0 = fitTower(); Object.assign(camv, { x:f0.x, y:f0.y, s:f0.s, tx:f0.x, ty:f0.y, ts:f0.s });
 buildSprites(); paintChannels(0); measureChannels(); siteLight(false);
-(async () => { for (const r of store.local) await placeClip(r, false); openStore(); })();
+(async () => { for (const r of store.local) await addClip(r, true); seedClips(); openStore(); })();
 window.addEventListener("resize", layout);
 ["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
 window.addEventListener("pagehide", () => { AUD.stop(); closeCam(); });
 AUD.unlock(); setTimeout(() => AUD.unlock(), 150);
 hint(T({ en:"Click a television to bring it close", ko:"TV를 눌러 가까이 불러오세요" }));
 requestAnimationFrame(frame);
-window.__pk = { get tvs(){ return tvs; }, zoomTo, setPower, nextChannel, camv, placeClip, toWorld, tvAt, render:() => render(t), store };
+window.__pk = { get tvs(){ return tvs; }, zoomTo, setPower, nextChannel, camv, addClip, CLIPS, seedClips, tune, toWorld, tvAt, render:() => render(t), store, fromFile, putOnAir, get shot(){ return shot; }, set shot(v){ shot = v; } };
 <!--SCRIPT_END-->
 </body>
 </html>
