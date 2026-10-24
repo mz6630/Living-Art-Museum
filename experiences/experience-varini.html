@@ -86,6 +86,7 @@ body.about #about{display:block;}
 #about .x{position:absolute;right:12px;top:12px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--ink-dim);}
 #about .x svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;}
 html[lang="ko"] #about .tag{letter-spacing:.04em;}
+#vig{position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse 80% 70% at 50% 46%, rgba(255,255,255,.14), rgba(255,255,255,0) 55%, rgba(30,40,38,.22) 100%);}
 #nogl{position:fixed;inset:0;display:none;place-items:center;padding:30px;text-align:center;font-size:14px;color:var(--ink-dim);}
 @media (max-width:760px){
   .chip{padding:8px 10px;font-size:11.5px;gap:5px;} #bar .chip .lb{display:none;}
@@ -101,6 +102,7 @@ html[lang="ko"] #about .tag{letter-spacing:.04em;}
 </head>
 <body>
 <canvas id="gl"></canvas>
+<div id="vig"></div>
 <div id="nogl"></div>
 
 <header class="top">
@@ -159,68 +161,212 @@ const len = (a) => Math.hypot(a[0], a[1], a[2]), norm = (a) => { const l = len(a
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
 /* ==========================================================================
-   1. THREE MODELS — each on its own base. Every wall or building on the
-      edge belongs to a side (n, s, e, w); a side facing you is cut away,
-      as in a doll's house, so you can always see in. The point of view is
-      a direction to look from: turn the model until you are there.
+   1. THREE MODELS — each on its own base, with its own works and visitors.
+      Every wall or building on the edge belongs to a side (n, s, e, w); a
+      side facing you is cut away, as in a doll's house, so you can always
+      see in. The point of view is a direction to look from: turn the model
+      until you are there. Works in the room take the paint like the walls;
+      the visitors do not — they walk through it, and get in the way.
    ========================================================================== */
-/* materials: 0 plaster, 1 floor, 3 glass, 4 timber, 5 paving, 6 base, 7 shadow, 8 wood floor */
+/* materials: 0 plaster, 1 floor, 3 glass, 4 timber, 5 paving, 6 base, 7 shadow, 8 wood floor,
+   9 coloured matte, 10 canvas, 11 a visitor (never painted), 12 bronze or lacquer, 13 foliage, 14 dark trim */
 const SIDE = { n:[0, -1], s:[0, 1], w:[-1, 0], e:[1, 0] };
 const wallsAround = (x0, x1, z0, z1, h, t) => [
   [x0 - t, 0, z0 - t, x1 + t, h, z0, 0, "n"], [x0 - t, 0, z1, x1 + t, h, z1 + t, 0, "s"],
-  [x0 - t, 0, z0, x0, h, z1, 0, "w"], [x1, 0, z0, x1 + t, h, z1, 0, "e"] ];
-const base = (x0, x1, z0, z1, top, m) => [[x0, -1.1, z0, x1, 0, z1, 6, null, m]];
+  [x0 - t, 0, z0, x0, h, z1, 0, "w"], [x1, 0, z0, x1 + t, h, z1, 0, "e"],
+  /* dark skirting along the inside */
+  [x0, 0, z0, x1, .12, z0 + .04, 14, "n"], [x0, 0, z1 - .04, x1, .12, z1, 14, "s"], [x0, 0, z0, x0 + .04, .12, z1, 14, "w"], [x1 - .04, 0, z0, x1, .12, z1, 14, "e"] ];
+const base = (x0, x1, z0, z1, top) => [[x0, -1.1, z0, x1, 0, z1, 6, null, top]];
+const PAL = [[.86, .2, .16], [.12, .26, .62], [.95, .76, .14], [.1, .1, .12], [.2, .5, .38], [.93, .9, .82], [.85, .45, .55], [.4, .62, .78]];
+/* a picture on any wall plane: p = point on the wall surface, n = its normal into the room */
+function picture(A, p, n, w, h, seed, side){
+  const c = PAL[seed % PAL.length], f = .06, d = .06;
+  const ax = Math.abs(n[0]) > .5 ? 2 : 0;                               /* the wall runs along z (ax 2) or x (ax 0) */
+  const lo = p.slice(), hi = p.slice();
+  lo[ax] -= w / 2 + f; hi[ax] += w / 2 + f; lo[1] -= h / 2 + f; hi[1] += h / 2 + f;
+  const nn = Math.abs(n[0]) > .5 ? 0 : 2, s = Math.sign(n[nn]);
+  lo[nn] = p[nn]; hi[nn] = p[nn] + s * d; if (s < 0){ const t = lo[nn]; lo[nn] = hi[nn]; hi[nn] = t; }
+  A.box(lo[0], lo[1], lo[2], hi[0], hi[1], hi[2], 14, side, null, [0, 0, 0]);
+  const lo2 = lo.slice(), hi2 = hi.slice(); lo2[ax] += f; hi2[ax] -= f; lo2[1] += f; hi2[1] -= f;
+  if (s > 0) hi2[nn] += .012; else lo2[nn] -= .012;
+  A.box(lo2[0], lo2[1], lo2[2], hi2[0], hi2[1], hi2[2], 10, side, null, [c[0], c[1], c[2] + seed * .0001]);
+}
+const plinth = (A, x, z, w, d, h) => A.box(x - w / 2, 0, z - d / 2, x + w / 2, h, z + d / 2, 0, null, null, [0, 0, 0]);
+const bench = (A, x0, z0, x1, z1) => { A.box(x0, .38, z0, x1, .46, z1, 4); const lx = Math.abs(x1 - x0) > Math.abs(z1 - z0);
+  for (const t of [.08, .92]){ const x = lx ? lerp(x0, x1, t) : (x0 + x1) / 2, z = lx ? (z0 + z1) / 2 : lerp(z0, z1, t); A.box(x - .04 - (lx ? 0 : Math.abs(x1 - x0) / 2 - .06), 0, z - .04 - (lx ? Math.abs(z1 - z0) / 2 - .06 : 0), x + .04 + (lx ? 0 : Math.abs(x1 - x0) / 2 - .06), .38, z + .04 + (lx ? Math.abs(z1 - z0) / 2 - .06 : 0), 14); } };
+function pot(A, x, z, s){ A.tube([x, 0, z], [x, .5 * s, z], .26 * s, .3 * s, 9, [.82, .8, .76], 14);
+  A.ell([x, .82 * s, z], .42 * s, .4 * s, .42 * s, 13, [.3, .5, .28]); A.ell([x + .18 * s, 1.05 * s, z - .1 * s], .26 * s, .26 * s, .26 * s, 13, [.36, .56, .3]); }
+function tree(A, x, z, s){ A.tube([x, 0, z], [x, 2.2 * s, z], .16 * s, .11 * s, 9, [.42, .32, .24], 10);
+  A.ell([x, 3.0 * s, z], 1.2 * s, 1.1 * s, 1.2 * s, 13, [.33, .52, .3]); A.ell([x + .6 * s, 3.7 * s, z + .3 * s], .9 * s, .85 * s, .9 * s, 13, [.4, .6, .34]); A.ell([x - .5 * s, 3.5 * s, z - .4 * s], .8 * s, .8 * s, .8 * s, 13, [.3, .48, .28]); }
+function lamp(A, x, z){ A.tube([x, 0, z], [x, 3.8, z], .07, .05, 14, [0, 0, 0], 8); A.tube([x, 3.8, z], [x + .5, 3.9, z], .04, .04, 14, [0, 0, 0], 6); A.ell([x + .55, 3.8, z], .16, .1, .16, 9, [.95, .92, .8]); }
+function rope(A, pts, h){ pts.forEach((p, i) => { A.tube([p[0], 0, p[1]], [p[0], h, p[1]], .035, .035, 12, [.72, .62, .32], 8); A.ell([p[0], h + .03, p[1]], .05, .05, .05, 12, [.72, .62, .32]);
+  if (i) { const q = pts[i - 1]; A.tube([q[0], h - .08, q[1]], [p[0], h - .08, p[1]], .025, .025, 9, [.6, .12, .12], 6); } }); }
+
 const SCENES = [
   { name:{ en:"Three circles", ko:"세 개의 원" }, place:{ en:"A gallery of columns", ko:"기둥이 늘어선 전시실" },
     color:[.886, .137, .102], shape:0, fov:31, C:[0, 1.6, 0], R:34, yaw:.72, pitch:.5, startYaw:-2.1, startPitch:.62,
-    boxes:[ ...base(-6.6, 6.6, -8.6, 8.6, 0, 8), ...wallsAround(-6, 6, -8, 8, 4.6, .3),
+    boxes:[ ...base(-6.6, 6.6, -8.6, 8.6, 8), ...wallsAround(-6, 6, -8, 8, 4.6, .3),
       [-6, 0, -2.15, -1.1, 4.6, -1.85, 0], [1.1, 0, -2.15, 6, 4.6, -1.85, 0], [-1.1, 3.0, -2.15, 1.1, 4.6, -1.85, 0],
       [-2.9, 0, 4.2, -2.3, 4.6, 4.8, 0], [2.3, 0, 4.2, 2.9, 4.6, 4.8, 0], [-2.9, 0, .4, -2.3, 4.6, 1.0, 0], [2.3, 0, .4, 2.9, 4.6, 1.0, 0],
       [-2.9, 0, -5.8, -2.3, 4.6, -5.2, 0], [2.3, 0, -5.8, 2.9, 4.6, -5.2, 0],
-      [-3.9, 0, 2.2, -2.1, .45, 2.8, 4], [3.1, 0, -7.2, 4.3, .9, -6.0, 0], [-5.2, 0, -7.4, -3.6, 2.2, -7.0, 0], [3.6, 0, 6.6, 5.4, .5, 7.2, 4] ] },
+      [3.1, 0, -7.2, 4.3, .9, -6.0, 0], [-5.2, 0, -7.4, -3.6, 2.2, -7.0, 0] ],
+    extra(A){
+      picture(A, [-4.4, 1.9, -8], [0, 0, 1], 2.0, 1.4, 1, "n"); picture(A, [-.6, 2.1, -8], [0, 0, 1], 1.2, 1.6, 2, "n"); picture(A, [4.3, 2.0, -8], [0, 0, 1], 1.6, 1.1, 6, "n");
+      picture(A, [-6, 1.9, 5.6], [1, 0, 0], 2.2, 1.5, 0, "w"); picture(A, [-6, 1.9, -4.6], [1, 0, 0], 1.3, 1.3, 3, "w");
+      picture(A, [-3.6, 1.9, -1.85], [0, 0, 1], 2.0, 1.3, 4, null); picture(A, [3.8, 1.9, -1.85], [0, 0, 1], 1.4, 1.8, 7, null);
+      picture(A, [3.8, 1.9, -2.15], [0, 0, -1], 1.8, 1.2, 5, null);
+      plinth(A, 4.2, 2.4, .8, .8, 1.0); A.ell([4.2, 1.48, 2.4], .45, .45, .45, 12, [.82, .1, .08]);            /* a lacquered red ball */
+      plinth(A, -.2, 6.0, .7, .7, .9); A.box(-.45, .9, 5.78, .05, 1.4, 6.28, 12, null, null, [.55, .4, .22]); A.box(-.3, 1.4, 5.85, .15, 1.8, 6.3, 12, null, null, [.55, .4, .22]); A.box(-.4, 1.8, 5.8, -.05, 2.15, 6.15, 12, null, null, [.55, .4, .22]);
+      plinth(A, -1.0, -5.0, .6, .6, .8); A.tube([-1.0, .8, -5.0], [-1.0, 2.6, -5.0], .14, .05, 12, [.38, .3, .2], 12); A.ell([-1.0, 2.68, -5.0], .1, .12, .1, 12, [.38, .3, .2]);
+      bench(A, -3.9, 2.2, -2.1, 2.7); bench(A, 3.6, 6.7, 5.4, 7.15);
+      rope(A, [[-5.5, -6.3], [-3.3, -6.3]], .9);
+      pot(A, 5.3, -1.0, .9); pot(A, -5.3, 7.3, .9);
+    },
+    people:[ { path:[[-4, 6], [-4, .2], [-1, 3]], p:0 }, { path:[[-4.4, -5.6]], look:Math.PI, p:1 }, { path:[[0, -4], [0, 0], [4.6, -.6]], p:2 },
+             { path:[[4.6, 5.2], [1.2, 7.0], [1.2, 2.6]], p:3 }, { path:[[-1.5, -3.6], [-4.4, -4.2], [-4.4, -6.4], [-1.5, -6.6]], p:4 }, { path:[[3.2, -4.0], [4.6, -4.8], [1.6, -7.0]], p:5 } ] },
   { name:{ en:"Three squares", ko:"세 개의 사각형" }, place:{ en:"An atrium with a stair", ko:"계단이 있는 아트리움" },
     color:[.96, .77, 0], shape:1, fov:33, C:[0, 3.2, 0], R:36, yaw:-.78, pitch:.4, startYaw:1.9, startPitch:.75,
-    boxes:[ ...base(-6.6, 6.6, -6.6, 6.6, 0, 1), ...wallsAround(-6, 6, -6, 6, 8, .3),
+    boxes:[ ...base(-6.6, 6.6, -6.6, 6.6, 1), ...wallsAround(-6, 6, -6, 6, 8, .3),
       [-6, 3.2, -6, 6, 3.5, -1.5, 0], [-6, 3.5, -1.6, 3.9, 4.45, -1.5, 0],
       [-3.3, 0, -1.95, -2.7, 3.2, -1.35, 0], [2.0, 0, -1.95, 2.6, 3.2, -1.35, 0],
       [-2.2, 5.0, -6, 2.2, 6.6, -5.5, 0], [-5.6, 4.6, -6, -3.6, 7.2, -5.8, 3], [3.6, 4.6, -6, 5.6, 7.2, -5.8, 3],
-      [-6, 4.4, -1.2, -5.8, 6.6, 2.8, 3], [-4.8, 0, 1.8, -3.2, .5, 2.6, 4] ]
-      .concat(Array.from({ length:10 }, (_, i) => [4.0, 0, 4 - (i + 1) * .55, 6, (i + 1) * .32, 4 - i * .55, 4])) },
+      [-6, 4.4, -1.2, -5.8, 6.6, 2.8, 3] ]
+      .concat(Array.from({ length:10 }, (_, i) => [4.0, 0, 4 - (i + 1) * .55, 6, (i + 1) * .32, 4 - i * .55, 4])),
+    extra(A){
+      picture(A, [-4.2, 1.7, -6], [0, 0, 1], 1.8, 1.2, 1, "n"); picture(A, [-.4, 1.6, -6], [0, 0, 1], 1.2, 1.2, 7, "n"); picture(A, [2.6, 1.7, -6], [0, 0, 1], 1.4, 1.0, 0, "n");
+      picture(A, [-6, 1.8, 4.2], [1, 0, 0], 1.6, 1.8, 2, "w"); picture(A, [6, 2.0, 5.2], [-1, 0, 0], .9, 1.2, 4, "e");
+      picture(A, [-1.5, 4.8, -6], [0, 0, 1], 1.0, .7, 6, "n");
+      plinth(A, 0, 2.2, 1.0, 1.0, .5); A.box(-.35, .5, 1.85, .35, 1.2, 2.55, 12, null, null, [.1, .1, .12]); A.box(-.2, 1.2, 2.0, .45, 1.85, 2.65, 12, null, null, [.85, .84, .8]); A.box(-.3, 1.85, 1.9, .1, 2.25, 2.3, 12, null, null, [.86, .2, .16]);
+      /* a mobile hanging from high up */
+      A.tube([-.6, 8, 3.2], [-.6, 6.0, 3.2], .012, .012, 14, [0, 0, 0], 4); A.tube([-1.8, 6.0, 3.2], [.8, 6.0, 3.2], .02, .02, 14, [0, 0, 0], 4);
+      [[-1.8, 5.5, [.86, .2, .16]], [-.2, 5.2, [.12, .26, .62]], [.8, 5.65, [.95, .76, .14]]].forEach(([x, y, c]) => { A.tube([x, 6.0, 3.2], [x, y + .25, 3.2], .01, .01, 14, [0, 0, 0], 4); A.ell([x, y, 3.2], .38, .38, .05, 12, c); });
+      A.box(-4.3, 3.5, -4.5, -3.7, 4.4, -3.9, 0); A.ell([-4.0, 4.75, -4.2], .32, .36, .32, 12, [.62, .5, .3]);  /* on the gallery above */
+      bench(A, -4.8, 1.8, -3.2, 2.5); bench(A, -1.2, -4.6, 1.2, -4.0);
+      pot(A, -5.3, 5.3, 1.0); pot(A, 3.2, 5.3, .8); pot(A, 1.0, -2.6, .7);
+    },
+    people:[ { path:[[-2, 3.5], [1.5, 4.8], [.5, .6]], p:0 }, { path:[[-.4, -4.9]], look:Math.PI, p:2 }, { path:[[-4.6, -2.6], [-1, -3.4], [2.5, -2.6]], y:3.5, p:3 },
+             { path:[[2.8, 2.2], [-1.8, .2], [-2.4, 4.6]], p:1 }, { path:[[-5.0, -4.6], [-5.0, -2.4]], y:3.5, p:5 }, { path:[[3.0, -4.6], [-2.4, -3.2]], p:4 } ] },
   { name:{ en:"Three ellipses", ko:"세 개의 타원" }, place:{ en:"A courtyard", ko:"건물 사이 안뜰" },
     color:[1, .42, .07], shape:2, fov:33, C:[0, 3.4, -1], R:50, yaw:.32, pitch:.36, startYaw:-2.5, startPitch:.7,
-    boxes:[ ...base(-14.6, 14.6, -12.6, 12.6, 0, 5),
+    boxes:[ ...base(-14.6, 14.6, -12.6, 12.6, 5),
       [-12, 0, -12, 12, 9.5, -7, 0, "n"], [-14, 0, -7, -9, 7, 10, 0, "w"], [9, 0, -7, 14, 11.5, 6, 0, "e"], [-9, 0, 10.4, 9, 1.4, 11.4, 0, "s"],
+      [-12, 9.5, -12, 12, 9.8, -7, 14, "n"], [-14, 7, -7, -9, 7.3, 10, 14, "w"], [9, 11.5, -7, 14, 11.8, 6, 14, "e"],
       [-2.6, 0, .4, -1.9, 4.2, 1.1, 0], [1.9, 0, .4, 2.6, 4.2, 1.1, 0], [-2.6, 4.2, .4, 2.6, 4.9, 1.1, 0],
-      [4.2, 0, -3.6, 6.2, .8, -1.6, 0], [-6.2, 0, 5.6, -4.4, .45, 6.2, 4] ]
-      .concat(Array.from({ length:14 }, (_, i) => { const c = i % 7, r = Math.floor(i / 7); return [-9.4 + c * 2.9, 2.1 + r * 3.3, -7.08, -8.2 + c * 2.9, 3.8 + r * 3.3, -6.94, 3, "n"]; }))
+      [4.2, 0, -3.6, 6.2, .8, -1.6, 0], [-1.2, 0, -7.06, 1.2, 2.6, -6.94, 3, "n"] ]
+      .concat(Array.from({ length:14 }, (_, i) => { const c = i % 7, r = Math.floor(i / 7); return [-9.4 + c * 2.9, 3.1 + r * 3.3, -7.08, -8.2 + c * 2.9, 4.8 + r * 3.3, -6.94, 3, "n"]; }))
       .concat(Array.from({ length:10 }, (_, i) => { const c = i % 5, r = Math.floor(i / 5); return [-9.08, 1.8 + r * 3, -5 + c * 3.2, -8.94, 3.4 + r * 3, -3.8 + c * 3.2, 3, "w"]; }))
-      .concat(Array.from({ length:12 }, (_, i) => { const c = i % 4, r = Math.floor(i / 4); return [8.94, 1.8 + r * 3.1, -5.5 + c * 2.9, 9.08, 3.4 + r * 3.1, -4.3 + c * 2.9, 3, "e"]; })) },
+      .concat(Array.from({ length:12 }, (_, i) => { const c = i % 4, r = Math.floor(i / 4); return [8.94, 1.8 + r * 3.1, -5.5 + c * 2.9, 9.08, 3.4 + r * 3.1, -4.3 + c * 2.9, 3, "e"]; })),
+    extra(A){
+      A.ell([5.2, 1.5, -2.6], .7, .7, .7, 12, [.12, .26, .62]);                       /* a big blue ball on its block */
+      tree(A, -6, -3.6, 1); tree(A, 6, 6.8, .9); tree(A, -6.6, 8.2, .8);
+      lamp(A, -3, 4); lamp(A, 3.4, -5.4);
+      bench(A, -6.2, 5.6, -4.4, 6.1); bench(A, 2.0, 8.6, 4.4, 9.1);
+      for (const [x, z] of [[-7.6, 1.2], [-7.6, 4]]){ A.tube([x, 0, z], [x, .72, z], .04, .04, 14, [0, 0, 0], 6); A.tube([x, .72, z], [x, .75, z], .42, .42, 9, [.92, .9, .86], 14);
+        A.box(x + .5, 0, z - .2, x + .9, .45, z + .2, 9, null, null, [.86, .2, .16]); A.box(x - .9, 0, z - .2, x - .5, .45, z + .2, 9, null, null, [.86, .2, .16]); }
+      A.box(-1.6, 0, -9.2, 1.6, .5, -8.0, 0); A.ell([0, 1.3, -8.6], .4, .8, .4, 12, [.9, .88, .84]);       /* a pale standing form in a planter */
+      pot(A, 7.6, -5.8, 1.1); pot(A, 7.6, 8.6, 1.0);
+    },
+    people:[ { path:[[-4, 8], [0, 3], [0, -2], [-3, -5.4]], p:0 }, { path:[[6.5, 2], [2.8, -5.4], [6.6, -5.2]], p:1 }, { path:[[-6.8, 2.6]], look:Math.PI / 2, p:2 },
+             { path:[[3.6, 4.4], [-1, 6.4], [6.2, 8.4]], p:3 }, { path:[[-2.8, -1.2], [-5, -6.0], [2.2, -6.2]], p:4 }, { path:[[1.0, 9.6], [-4.6, 9.6]], p:5 },
+             { path:[[4.0, -1.0]], look:-1.6, p:2 } ] },
 ];
 const eyeOf = (S, yaw, pitch, R) => add(S.C, mul([Math.cos(pitch) * Math.sin(yaw), Math.sin(pitch), Math.cos(pitch) * Math.cos(yaw)], R || S.R));
 
 /* ==========================================================================
-   2. GL — the model is drawn once from the point of view into a distance
+   2. GEOMETRY — boxes, tubes and ellipsoids into one vertex list:
+      position, normal, face coordinates, material + side, colour
+   ========================================================================== */
+const ST = 16;
+function maker(){
+  const v = [];
+  const push = (p, n, u, m, sd, k) => v.push(p[0], p[1], p[2], n[0], n[1], n[2], u[0], u[1], u[2], u[3], m, sd[0], sd[1], k[0], k[1], k[2]);
+  const A = {
+    v,
+    box(x0, y0, z0, x1, y1, z1, m, side, top, col){
+      const lo = [x0, y0, z0], hi = [x1, y1, z1], sd = side ? SIDE[side] : [0, 0], k = col || [0, 0, 0];
+      for (let ax = 0; ax < 3; ax++) for (const s of [0, 1]){
+        if (ax === 1 && s === 0 && y0 <= -1) continue;
+        const b1 = (ax + 1) % 3, b2 = (ax + 2) % 3, n = [0, 0, 0]; n[ax] = s ? 1 : -1;
+        const W = hi[b1] - lo[b1], H = hi[b2] - lo[b2];
+        const corner = (i, j) => { const p = [0, 0, 0]; p[ax] = s ? hi[ax] : lo[ax]; p[b1] = i ? hi[b1] : lo[b1]; p[b2] = j ? hi[b2] : lo[b2]; return p; };
+        const mm = m === 6 && ax === 1 && s === 1 ? top : m;
+        [[0, 0], [1, 0], [1, 1], [0, 0], [1, 1], [0, 1]].forEach(([i, j]) => push(corner(i, j), n, [i * W, j * H, W, H], mm, sd, k));
+      }
+    },
+    /* a tube from a to b, its radius going r0 → r1; flat squashes it front to back */
+    tube(a, b, r0, r1, m, col, seg, flat){
+      seg = seg || 14; const ax = norm(sub(b, a)), up = Math.abs(ax[1]) > .9 ? [1, 0, 0] : [0, 1, 0], e1 = norm(cross(ax, up)), e2 = cross(ax, e1), k = col || [0, 0, 0], fz = flat || 1;
+      const ring = (c, r, i) => { const t = i / seg * Math.PI * 2, o = add(mul(e1, Math.cos(t) * r), mul(e2, Math.sin(t) * r * fz)); return [add(c, o), norm(add(mul(e1, Math.cos(t)), mul(e2, Math.sin(t) / fz)))]; };
+      const U = [1, 1, 2, 2];
+      for (let i = 0; i < seg; i++){ const [p0, n0] = ring(a, r0, i), [p1, n1] = ring(a, r0, i + 1), [q0] = ring(b, r1, i), [q1] = ring(b, r1, i + 1);
+        push(p0, n0, U, m, [0, 0], k); push(p1, n1, U, m, [0, 0], k); push(q1, n1, U, m, [0, 0], k); push(p0, n0, U, m, [0, 0], k); push(q1, n1, U, m, [0, 0], k); push(q0, n0, U, m, [0, 0], k);
+        push(b, ax, U, m, [0, 0], k); push(q0, ax, U, m, [0, 0], k); push(q1, ax, U, m, [0, 0], k);
+        const na = mul(ax, -1); push(a, na, U, m, [0, 0], k); push(p1, na, U, m, [0, 0], k); push(p0, na, U, m, [0, 0], k); }
+    },
+    ell(c, rx, ry, rz, m, col, seg){
+      seg = seg || 14; const k = col || [0, 0, 0], U = [1, 1, 2, 2], rows = Math.max(6, seg >> 1);
+      const P = (i, j) => { const th = i / rows * Math.PI, ph = j / seg * Math.PI * 2, n = [Math.sin(th) * Math.cos(ph), Math.cos(th), Math.sin(th) * Math.sin(ph)];
+        return [[c[0] + n[0] * rx, c[1] + n[1] * ry, c[2] + n[2] * rz], norm([n[0] / rx, n[1] / ry, n[2] / rz])]; };
+      for (let i = 0; i < rows; i++) for (let j = 0; j < seg; j++){ const a = P(i, j), b = P(i + 1, j), cc = P(i + 1, j + 1), d = P(i, j + 1);
+        push(a[0], a[1], U, m, [0, 0], k); push(b[0], b[1], U, m, [0, 0], k); push(cc[0], cc[1], U, m, [0, 0], k); push(a[0], a[1], U, m, [0, 0], k); push(cc[0], cc[1], U, m, [0, 0], k); push(d[0], d[1], U, m, [0, 0], k); }
+    },
+  };
+  return A;
+}
+function upload(v){ const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW); return { buf, n:v.length / ST }; }
+function buildScene(S){
+  const A = maker();
+  for (const b of S.boxes) A.box(b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8], null);
+  S.extra(A);
+  /* a soft shadow on the ground, under the base */
+  const bb = S.boxes[0], sx = (bb[3] - bb[0]) * .78, sz = (bb[5] - bb[2]) * .78, y = -1.35;
+  [[-1, -1], [1, -1], [1, 1], [-1, -1], [1, 1], [-1, 1]].forEach(([i, j]) => A.v.push(i * sx, y, j * sz, 0, 1, 0, 0, 0, sx * 2, sz * 2, 7, 0, 0, 0, 0, 0));
+  return upload(A.v);
+}
+/* a visitor, in three parts: the body (still), one leg and one arm (each drawn twice, swinging) */
+const CLOTHES = [ { coat:[.2, .26, .38], legs:[.12, .13, .16], skin:[.93, .78, .64], hair:[.12, .09, .07] }, { coat:[.62, .2, .18], legs:[.2, .2, .22], skin:[.78, .58, .42], hair:[.08, .06, .05] },
+  { coat:[.86, .82, .72], legs:[.32, .3, .28], skin:[.95, .8, .68], hair:[.72, .58, .36] }, { coat:[.16, .16, .17], legs:[.42, .38, .32], skin:[.56, .38, .26], hair:[.05, .04, .04] },
+  { coat:[.3, .48, .38], legs:[.16, .17, .22], skin:[.9, .74, .6], hair:[.55, .55, .56] }, { coat:[.82, .6, .26], legs:[.2, .24, .34], skin:[.86, .68, .52], hair:[.3, .18, .1] } ];
+function buildPerson(c){
+  const B = maker(), L = maker(), R = maker();
+  B.ell([0, .86, 0], .17, .1, .12, 11, c.legs);
+  B.tube([0, .84, 0], [0, 1.4, 0], .17, .2, 11, c.coat, 14, .66);
+  B.ell([0, 1.4, 0], .22, .08, .13, 11, c.coat);
+  B.tube([0, 1.42, 0], [0, 1.52, 0], .05, .05, 11, c.skin, 8);
+  B.ell([0, 1.6, 0], .1, .12, .11, 11, c.skin);
+  B.ell([0, 1.64, -.012], .108, .1, .114, 11, c.hair);
+  L.tube([0, .84, 0], [0, .06, 0], .075, .058, 11, c.legs, 10, .9); L.ell([0, .045, .05], .058, .045, .115, 11, [.08, .07, .07], 10);
+  R.tube([0, 1.38, 0], [0, .9, 0], .055, .045, 11, c.coat, 8); R.ell([0, .86, 0], .045, .05, .045, 11, c.skin, 8);
+  return { body:upload(B.v), leg:upload(L.v), arm:upload(R.v) };
+}
+
+/* ==========================================================================
+   3. GL — the model is drawn once from the point of view into a distance
       map; then, every frame, a surface is painted only where that point of
-      view could see it, and only where its direction falls inside the shape
+      view could see it, and only where its direction falls inside the shape.
+      A second map, from the sun, gives everything — visitors too — a shadow.
    ========================================================================== */
 const cv = $("gl");
 const gl = cv.getContext("webgl", { antialias:true, alpha:false, powerPreference:"high-performance" });
 const DERIV = gl && gl.getExtension("OES_standard_derivatives");
-const VS = `attribute vec3 aP; attribute vec3 aN; attribute vec4 aU; attribute vec3 aM;
-uniform mat4 uVP; varying vec3 vP, vN; varying vec4 vU; varying vec3 vM;
-void main(){ vP = aP; vN = aN; vU = aU; vM = aM; gl_Position = uVP * vec4(aP, 1.); }`;
-/* aM: material, and the side it belongs to (x, z of its outward normal; 0, 0 for none) */
+const VS = `attribute vec3 aP; attribute vec3 aN; attribute vec4 aU; attribute vec3 aM; attribute vec3 aK;
+uniform mat4 uVP, uM; varying vec3 vP, vN, vK; varying vec4 vU; varying vec3 vM;
+void main(){ vec4 w = uM * vec4(aP, 1.); vP = w.xyz; vN = mat3(uM) * aN; vU = aU; vM = aM; vK = aK; gl_Position = uVP * w; }`;
 const CUT = `uniform vec3 uCutEye, uC;
 float cutAmt(){ if (dot(vM.yz, vM.yz) < .5) return 0.; vec2 d = normalize(uCutEye.xz - uC.xz); return dot(vM.yz, d); }`;
-const DEPTH_FS = `precision highp float; uniform vec3 uV; varying vec3 vP, vN; varying vec4 vU; varying vec3 vM;
-${CUT}
-void main(){ if (cutAmt() > .3 || abs(vM.x - 7.) < .5) discard; float d = clamp(length(vP - uV) / 120., 0., .9999); vec4 e = fract(d * vec4(1., 255., 65025., 16581375.)); e -= e.yzww * vec4(1. / 255., 1. / 255., 1. / 255., 0.); gl_FragColor = e; }`;
+const ENC = `vec4 enc(float d){ vec4 e = fract(d * vec4(1., 255., 65025., 16581375.)); e -= e.yzww * vec4(1. / 255., 1. / 255., 1. / 255., 0.); return e; }
+float dec(vec4 c){ return dot(c, vec4(1., 1. / 255., 1. / 65025., 1. / 16581375.)); }`;
+const DEPTH_FS = `precision highp float; uniform vec3 uV; varying vec3 vP, vN, vK; varying vec4 vU; varying vec3 vM;
+${CUT} ${ENC}
+void main(){ if (cutAmt() > .3 || abs(vM.x - 7.) < .5) discard; gl_FragColor = enc(clamp(length(vP - uV) / 120., 0., .9999)); }`;
+const SHADOW_FS = `precision highp float; varying vec3 vP, vN, vK; varying vec4 vU; varying vec3 vM;
+${CUT} ${ENC}
+void main(){ if (cutAmt() > .3 || abs(vM.x - 7.) < .5) discard; gl_FragColor = enc(clamp(gl_FragCoord.z, 0., .9999)); }`;
 const MAIN_FS = `${DERIV ? "#extension GL_OES_standard_derivatives : enable" : ""}
 precision highp float;
-uniform mat4 uVV; uniform sampler2D uDep; uniform vec3 uV, uCam, uCol, uSun, uBg; uniform float uShape, uWin, uClue, uT, uVyaw;
-varying vec3 vP, vN; varying vec4 vU; varying vec3 vM;
-${CUT}
-float dec(vec4 c){ return dot(c, vec4(1., 1. / 255., 1. / 65025., 1. / 16581375.)); }
+uniform mat4 uVV, uSV; uniform sampler2D uDep, uSh; uniform vec3 uV, uCam, uCol, uSun; uniform float uShape, uWin, uClue, uT, uVyaw, uShN;
+varying vec3 vP, vN, vK; varying vec4 vU; varying vec3 vM;
+${CUT} ${ENC}
 float hash(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
 float band(float x, float a, float b, float w){ return smoothstep(a - w, a + w, x) * (1. - smoothstep(b - w, b + w, x)); }
 float shape(vec2 q, float w){
@@ -231,120 +377,160 @@ float shape(vec2 q, float w){
     float e = length(p / vec2(.74, .27)); s = max(s, band(e, .9, 1.08, w * 3.)); }
   return s;
 }
+/* how much sun reaches this point: a 3×3 look into the sun's map */
+float sunlit(vec3 N){
+  vec4 sp = uSV * vec4(vP + N * .04, 1.); vec3 s = sp.xyz / sp.w * .5 + .5;
+  if (s.x < 0. || s.x > 1. || s.y < 0. || s.y > 1.) return 1.;
+  float lit = 0., b = .0012;
+  for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) lit += step(s.z - b, dec(texture2D(uSh, s.xy + vec2(float(i), float(j)) * uShN)));
+  return lit / 9.;
+}
 void main(){
-  /* the side facing you is cut away, fading out like a doll's house front */
   float cut = cutAmt();
   if (cut > .3) discard;
   if (cut > .12){ vec2 g = floor(gl_FragCoord.xy); float th = fract(dot(g, vec2(.7548, .5698)) + .1); if ((cut - .12) / .18 > th) discard; }
-  if (abs(vM.x - 7.) < .5){                                     /* the soft shadow under the base */
-    float r = length(vP.xz / vU.zw * 2.); gl_FragColor = vec4(0., 0., 0., .26 * (1. - smoothstep(.55, 1., r))); return; }
+  if (abs(vM.x - 7.) < .5){ float r = length(vP.xz / vU.zw * 2.); gl_FragColor = vec4(0., 0., 0., .26 * (1. - smoothstep(.55, 1., r))); return; }
   vec3 N = normalize(vN), Vd = normalize(uCam - vP); if (dot(N, Vd) < 0.) N = -N;
-  vec3 alb = vec3(.94, .935, .92);
-  if (vM.x > .5 && vM.x < 1.5){ vec2 g = abs(fract(vP.xz) - .5); alb = vec3(.8, .79, .77) * (max(g.x, g.y) > .485 ? .9 : 1.); }
-  if (vM.x > 2.5 && vM.x < 3.5) alb = vec3(.32, .4, .48);
-  if (vM.x > 3.5 && vM.x < 4.5) alb = vec3(.6, .47, .34);
-  if (vM.x > 4.5 && vM.x < 5.5){ vec2 g = abs(fract(vP.xz * .5) - .5); alb = vec3(.76, .74, .69) * (max(g.x, g.y) > .485 ? .9 : 1.); }
-  if (vM.x > 5.5 && vM.x < 6.5){ alb = N.y > .5 ? vec3(.8) : vec3(.33, .3, .29); }
-  if (vM.x > 7.5){ float b = floor(vP.x / .5); alb = vec3(.62, .45, .3) * (.88 + .16 * hash(vec3(b, floor(vP.z / 2.6 + hash(vec3(b, 1., 1.)) * 3.), 0.)));
-    if (abs(fract(vP.x / .5) - .5) > .47) alb *= .8; }
-  if (vM.x > 5.5 && vM.x < 6.5 && N.y > .5) alb = vec3(.8);
-  float lam = max(dot(N, uSun), 0.);
-  float light = .62 + .45 * lam + .04 * N.y;
+  float m = vM.x;
+  vec3 alb = vec3(.94, .935, .92); float spec = 0.;
+  if (m > .5 && m < 1.5){ vec2 g = abs(fract(vP.xz) - .5); alb = vec3(.8, .79, .77) * (max(g.x, g.y) > .485 ? .9 : 1.); spec = .08; }
+  else if (m > 2.5 && m < 3.5){ alb = vec3(.26, .33, .4); spec = .5; }
+  else if (m > 3.5 && m < 4.5){ alb = vec3(.6, .47, .34) * (.92 + .08 * sin(dot(vP, vec3(9., 2., 7.)))); }
+  else if (m > 4.5 && m < 5.5){ vec2 g = abs(fract(vP.xz * .5) - .5); alb = vec3(.76, .74, .69) * (max(g.x, g.y) > .485 ? .9 : 1.); }
+  else if (m > 5.5 && m < 6.5){ alb = N.y > .5 ? vec3(.8) : vec3(.3, .28, .27); }
+  else if (m > 7.5 && m < 8.5){ float b = floor(vP.x / .5); alb = vec3(.62, .45, .3) * (.88 + .16 * hash(vec3(b, floor(vP.z / 2.6 + hash(vec3(b, 1., 1.)) * 3.), 0.)));
+    if (abs(fract(vP.x / .5) - .5) > .47) alb *= .8; spec = .12; }
+  else if (m > 8.5 && m < 9.5 || m > 10.5 && m < 11.5) alb = vK;
+  else if (m > 9.5 && m < 10.5){                                  /* a canvas: colour fields, made from its own colour */
+    vec2 q = vU.xy / max(vU.zw, vec2(.01)); float sd = fract(dot(vK, vec3(7.1, 3.3, 5.7)) * 13.);
+    vec3 c2 = vec3(.95, .93, .88) - vK * .5, c3 = vec3(vK.z, vK.x, vK.y);
+    alb = mix(vK, c2, step(.35 + sd * .3, q.x));
+    alb = mix(alb, c3, step(length((q - vec2(.3 + sd * .4, .55)) * vec2(1., vU.w / max(vU.z, .01))), .18 + sd * .1) * step(.5, sd));
+    alb = mix(alb, vec3(.08), step(abs(q.y - .2 - sd * .5), .025) * step(sd, .5)); }
+  else if (m > 11.5 && m < 12.5){ alb = vK; spec = .9; }
+  else if (m > 12.5 && m < 13.5){ alb = vK * (.85 + .3 * hash(floor(vP * 6.))); }
+  else if (m > 13.5) alb = vec3(.16, .16, .17);
+  float sh = sunlit(N), lam = max(dot(N, uSun), 0.) * sh;
+  float amb = mix(.42, .6, N.y * .5 + .5);
   float e = min(min(vU.x, vU.z - vU.x), min(vU.y, vU.w - vU.y));
-  float ao = .78 + .22 * smoothstep(0., .7, e);
-  if (vP.y < .9 && N.y < .5) ao *= .82 + .18 * smoothstep(0., .9, vP.y);
-  vec3 c = alb * light * ao;
-  if (e < .03) c *= .88;
-  /* the paint: only where the point of view looks, and only inside the shape */
-  vec4 pv = uVV * vec4(vP, 1.);
-  float paint = 0.;
-  if (pv.w > .05 && vM.x < 5.5 || pv.w > .05 && vM.x > 7.5){
-    vec2 q = pv.xy / pv.w;
-    if (abs(q.x) < 1. && abs(q.y) < 1.){
-      float dm = dec(texture2D(uDep, q * .5 + .5)), d = length(vP - uV) / 120.;
-      if (d < dm + .0012 + d * .003){
-        ${DERIV ? "float w = max(length(fwidth(q)) * .7, .0008);" : "float w = .004;"}
-        paint = shape(q, w);
+  float ao = .8 + .2 * smoothstep(0., .7, e);
+  if (vP.y < .9 && N.y < .5 && m < 10.5) ao *= .8 + .2 * smoothstep(0., .9, vP.y);
+  vec3 H = normalize(uSun + Vd);
+  vec3 c = alb * (amb + .58 * lam) * ao + spec * .5 * pow(max(dot(N, H), 0.), 40.) * sh;
+  if (e < .03 && m < 9.5) c *= .88;
+  /* the paint: only where the point of view looks, and only inside the shape; never on a visitor */
+  if (m < 6.5 || m > 7.5 && m < 10.5 || m > 11.5){
+    vec4 pv = uVV * vec4(vP, 1.);
+    if (pv.w > .05){
+      vec2 q = pv.xy / pv.w;
+      if (abs(q.x) < 1. && abs(q.y) < 1. && m < 5.5 || abs(q.x) < 1. && abs(q.y) < 1. && m > 7.5){
+        float dm = dec(texture2D(uDep, q * .5 + .5)), d = length(vP - uV) / 120.;
+        if (d < dm + .0012 + d * .003){
+          ${DERIV ? "float w = max(length(fwidth(q)) * .7, .0008);" : "float w = .004;"}
+          float paint = shape(q, w);
+          vec3 pc = uCol * (.93 + .07 * hash(floor(vP * 37.))) * (amb + .62 * lam) * (1. + uWin * .16);
+          c = mix(c, pc, paint);
+        }
       }
     }
   }
-  vec3 pc = uCol * (.93 + .07 * hash(floor(vP * 37.))) * (.72 + .36 * lam) * (1. + uWin * .16);
-  c = mix(c, pc, paint);
-  /* the hint: a mark on the base, on the side to look from */
-  if (uClue > .01 && vM.x > 5.5 && vM.x < 6.5 && N.y < .5){
+  if (uClue > .01 && m > 5.5 && m < 6.5 && N.y < .5){
     float a = atan(vP.x, vP.z), da = abs(atan(sin(a - uVyaw), cos(a - uVyaw)));
-    float m = (1. - smoothstep(.05, .1, da)) * uClue * (.65 + .35 * sin(uT * 4.));
-    c = mix(c, uCol, m);
+    c = mix(c, uCol, (1. - smoothstep(.05, .1, da)) * uClue * (.65 + .35 * sin(uT * 4.)));
   }
-  gl_FragColor = vec4(pow(c, vec3(.96)), 1.);
+  gl_FragColor = vec4(pow(c, vec3(.95)), 1.);
 }`;
-let P = {}, mesh = null, depTex = null, depFB = null, DS = 1024, VV = null, Vpos = null;
+let P = {}, mesh = null, depTex = null, depFB = null, DS = 1024, VV = null, Vpos = null, shTex = null, shFB = null, SS = 1536, SV = null;
+const I4 = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
 function prog(vs, fs){
   const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)){ console.error(gl.getShaderInfoLog(o)); return null; } return o; };
   const a = sh(gl.VERTEX_SHADER, vs), b = sh(gl.FRAGMENT_SHADER, fs); if (!a || !b) return null;
   const p = gl.createProgram(); gl.attachShader(p, a); gl.attachShader(p, b);
-  ["aP", "aN", "aU", "aM"].forEach((n, i) => gl.bindAttribLocation(p, i, n)); gl.linkProgram(p);
+  ["aP", "aN", "aU", "aM", "aK"].forEach((n, i) => gl.bindAttribLocation(p, i, n)); gl.linkProgram(p);
   if (!gl.getProgramParameter(p, gl.LINK_STATUS)){ console.error(gl.getProgramInfoLog(p)); return null; }
   const u = {}; const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS); for (let i = 0; i < n; i++){ const nm = gl.getActiveUniform(p, i).name; u[nm] = gl.getUniformLocation(p, nm); }
   return { p, u };
 }
-/* boxes into triangles: position, normal, face coordinates (u, v, width, height), material and side */
-function buildMesh(boxes){
-  const v = [];
-  for (const b of boxes){ const [x0, y0, z0, x1, y1, z1, m, side, top] = b, lo = [x0, y0, z0], hi = [x1, y1, z1], sd = side ? SIDE[side] : [0, 0];
-    for (let ax = 0; ax < 3; ax++) for (const s of [0, 1]){
-      if (ax === 1 && s === 0 && y0 <= -1) continue;
-      const b1 = (ax + 1) % 3, b2 = (ax + 2) % 3, n = [0, 0, 0]; n[ax] = s ? 1 : -1;
-      const W = hi[b1] - lo[b1], H = hi[b2] - lo[b2];
-      const corner = (i, j) => { const p = [0, 0, 0]; p[ax] = s ? hi[ax] : lo[ax]; p[b1] = i ? hi[b1] : lo[b1]; p[b2] = j ? hi[b2] : lo[b2]; return p; };
-      const mm = m === 6 && ax === 1 && s === 1 ? top : m;                          /* the base's top is the floor */
-      [[0, 0], [1, 0], [1, 1], [0, 0], [1, 1], [0, 1]].forEach(([i, j]) => { const p = corner(i, j); v.push(p[0], p[1], p[2], n[0], n[1], n[2], i * W, j * H, W, H, mm, sd[0], sd[1]); });
-    } }
-  /* a soft shadow on the ground, under the base */
-  const bb = boxes[0], sx = (bb[3] - bb[0]) * .78, sz = (bb[5] - bb[2]) * .78, y = -1.35;
-  [[-1, -1], [1, -1], [1, 1], [-1, -1], [1, 1], [-1, 1]].forEach(([i, j]) => v.push(i * sx, y, j * sz, 0, 1, 0, 0, 0, sx * 2, sz * 2, 7, 0, 0));
-  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW);
-  return { buf, n:v.length / 13 };
-}
-function bindMesh(){ gl.bindBuffer(gl.ARRAY_BUFFER, mesh.buf); const st = 52;
+function bindMesh(m){ gl.bindBuffer(gl.ARRAY_BUFFER, m.buf); const st = ST * 4;
   gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, st, 0);
   gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, st, 12);
   gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 4, gl.FLOAT, false, st, 24);
-  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3, 3, gl.FLOAT, false, st, 40); }
+  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3, 3, gl.FLOAT, false, st, 40);
+  gl.enableVertexAttribArray(4); gl.vertexAttribPointer(4, 3, gl.FLOAT, false, st, 52); }
 function persp(fy, a, n, f){ const k = 1 / Math.tan(fy / 2); return new Float32Array([k / a, 0, 0, 0, 0, k, 0, 0, 0, 0, (f + n) / (n - f), -1, 0, 0, 2 * f * n / (n - f), 0]); }
+function ortho(h, n, f){ return new Float32Array([1 / h, 0, 0, 0, 0, 1 / h, 0, 0, 0, 0, -2 / (f - n), 0, 0, 0, -(f + n) / (f - n), 1]); }
 function lookAt(e, c){ const z = norm(sub(e, c)), x = norm(cross([0, 1, 0], z)), y = cross(z, x);
   return new Float32Array([x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, -dot(x, e), -dot(y, e), -dot(z, e), 1]); }
 function mm4(a, b){ const o = new Float32Array(16); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++){ let s = 0; for (let k = 0; k < 4; k++) s += a[k * 4 + r] * b[c * 4 + k]; o[c * 4 + r] = s; } return o; }
-function initGL(){
-  if (!gl) return false;
-  P.dep = prog(VS, DEPTH_FS); P.main = prog(VS, MAIN_FS); if (!P.dep || !P.main) return false;
-  depTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, depTex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, DS, DS, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+const Tm = (x, y, z) => new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1]);
+const RY = (a) => { const c = Math.cos(a), s = Math.sin(a); return new Float32Array([c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, 0, 0, 0, 1]); };
+const RX = (a) => { const c = Math.cos(a), s = Math.sin(a); return new Float32Array([1, 0, 0, 0, 0, c, s, 0, 0, -s, c, 0, 0, 0, 0, 1]); };
+function target(size){
+  const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  const rb = gl.createRenderbuffer(); gl.bindRenderbuffer(gl.RENDERBUFFER, rb); gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, DS, DS);
-  depFB = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, depFB);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, depTex, 0); gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, rb);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  const rb = gl.createRenderbuffer(); gl.bindRenderbuffer(gl.RENDERBUFFER, rb); gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, size, size);
+  const fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0); gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, rb);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null); return [tex, fb];
+}
+function initGL(){
+  if (!gl) return false;
+  P.dep = prog(VS, DEPTH_FS); P.sh = prog(VS, SHADOW_FS); P.main = prog(VS, MAIN_FS); if (!P.dep || !P.sh || !P.main) return false;
+  if (W <= 760) SS = 1024;
+  [depTex, depFB] = target(DS); [shTex, shFB] = target(SS);
+  CLOTHES.forEach((c, i) => FIG[i] = buildPerson(c));
   return true;
+}
+const FIG = [];
+/* the visitors: each walks its own round, stopping now and then to look */
+let PEOPLE = [];
+function placePeople(){
+  let s = 31 + si * 7; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  PEOPLE = S.people.map(d => ({ d, x:d.path[0][0], z:d.path[0][1], y:d.y || 0, i:0, wait:r() * 3, yaw:d.look ?? r() * 6.28, ph:r() * 6, sp:.5 + r() * .25, r }));
+}
+function stepPeople(dt){
+  for (const p of PEOPLE){
+    const path = p.d.path; p.moving = false;
+    if (path.length < 2){ p.yaw += Math.sin(t * .4 + p.ph) * dt * .05; continue; }
+    if (p.wait > 0){ p.wait -= dt; continue; }
+    const [tx, tz] = path[(p.i + 1) % path.length], dx = tx - p.x, dz = tz - p.z, d = Math.hypot(dx, dz);
+    if (d < .05){ p.i = (p.i + 1) % path.length; p.wait = 1.5 + p.r() * 4; continue; }
+    const st = Math.min(d, p.sp * dt); p.x += dx / d * st; p.z += dz / d * st; p.ph += st * 4.4; p.moving = true;
+    const ty = Math.atan2(dx, dz); p.yaw += wrap(ty - p.yaw) * Math.min(1, dt * 6);
+  }
+}
+function personMats(p){
+  const sw = p.moving ? Math.sin(p.ph) * .5 : 0, bob = p.moving ? Math.abs(Math.sin(p.ph)) * .03 : 0;
+  const root = mm4(Tm(p.x, p.y + bob, p.z), RY(p.yaw));
+  const limb = (x, py, a) => mm4(root, mm4(Tm(x, py, 0), mm4(RX(a), Tm(0, -py, 0))));
+  return [[root, "body"], [limb(-.095, .84, sw), "leg"], [limb(.095, .84, -sw), "leg"], [limb(-.245, 1.38, -sw * .7), "arm"], [limb(.245, 1.38, sw * .7), "arm"]];
+}
+function drawPeople(prog){
+  PEOPLE.forEach(p => { const f = FIG[p.d.p % FIG.length]; for (const [M, part] of personMats(p)){ gl.uniformMatrix4fv(prog.u.uM, false, M); bindMesh(f[part]); gl.drawArrays(gl.TRIANGLES, 0, f[part].n); } });
 }
 /* a new model: its mesh, and the point of view's distance map */
 function loadScene(i){
   S = SCENES[i]; si = i;
-  if (mesh) gl.deleteBuffer(mesh.buf); mesh = buildMesh(S.boxes);
+  if (mesh) gl.deleteBuffer(mesh.buf); mesh = buildScene(S);
   Vpos = eyeOf(S, S.yaw, S.pitch);
   VV = mm4(persp(S.fov * Math.PI / 180, 1, .5, 200), lookAt(Vpos, S.C));
   gl.bindFramebuffer(gl.FRAMEBUFFER, depFB); gl.viewport(0, 0, DS, DS);
   gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE); gl.disable(gl.BLEND);
-  gl.useProgram(P.dep.p); bindMesh(); gl.uniformMatrix4fv(P.dep.u.uVP, false, VV); gl.uniform3fv(P.dep.u.uV, Vpos);
+  gl.useProgram(P.dep.p); bindMesh(mesh); gl.uniformMatrix4fv(P.dep.u.uVP, false, VV); gl.uniformMatrix4fv(P.dep.u.uM, false, I4); gl.uniform3fv(P.dep.u.uV, Vpos);
   gl.uniform3fv(P.dep.u.uCutEye, Vpos); gl.uniform3fv(P.dep.u.uC, S.C);
   gl.drawArrays(gl.TRIANGLES, 0, mesh.n);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  const bb = S.boxes[0], half = Math.hypot(bb[3] - bb[0], bb[5] - bb[2]) / 2 + 3;
+  SV = mm4(ortho(half, 1, 160), lookAt(add(S.C, mul(SUN, 70)), S.C));
+  placePeople();
   view.yaw = view.ty = S.startYaw; view.pitch = view.tp = S.startPitch; view.vy = view.vp = 0; view.fov = view.tf = S.fov + 4;
   won = false; snap = 0; idle = true; document.body.classList.remove("won"); updateChips(); lastBand = -1;
 }
+const SUN = norm([.45, 1, .3]);
 
 /* ==========================================================================
-   3. TURNING — drag to turn the model round and tip it; it keeps a little
+   4. TURNING — drag to turn the model round and tip it; it keeps a little
       spin when you let go. Scroll or pinch to look closer (that only narrows
       the view; you stay where you are, so the shape still lines up).
    ========================================================================== */
@@ -376,7 +562,7 @@ let turnAcc = 0; function turnSound(d){ turnAcc += d; if (turnAcc > 70){ turnAcc
 function leaveWin(){ document.body.classList.remove("won"); won = false; snap = 0; }
 
 /* ==========================================================================
-   4. HOW CLOSE — the angle between where you look from and the point of
+   5. HOW CLOSE — the angle between where you look from and the point of
       view; within a few degrees it draws itself in
    ========================================================================== */
 function closeness(){
@@ -395,11 +581,11 @@ function check(dt){
   if (!won){ const h = Math.abs(c.dy) > .06 ? (c.dy > 0 ? T({ en:"turn ←", ko:"← 돌리기" }) : T({ en:"turn →", ko:"돌리기 →" })) : "", v = Math.abs(c.dp) > .05 ? (c.dp > 0 ? T({ en:"from higher ↓", ko:"더 위에서 ↓" }) : T({ en:"from lower ↑", ko:"더 낮게 ↑" })) : "";
     $("m-d").textContent = [h, v].filter(Boolean).join(" · ") || T({ en:"hold still", ko:"그대로" }); } else $("m-d").textContent = "";
   /* close enough, and not being turned: draw it in */
-  if (!won && !dragging && c.ang < .055){ won = true; snap = 0; AUD.found(); solved[si] = true; updateChips(); setTimeout(showWin, 600); }
+  if (!won && !dragging && c.ang < .045){ won = true; snap = 0; AUD.found(); solved[si] = true; updateChips(); setTimeout(showWin, 600); }
   if (won && snap < 1){ snap = Math.min(1, snap + dt * 1.8); const k = 1 - Math.pow(1 - snap, 3);
     view.yaw = view.ty = view.yaw + wrap(S.yaw - view.yaw) * k; view.pitch = view.tp = lerp(view.pitch, S.pitch, k); view.vy = view.vp = 0; }
   /* a gentle pull in the last few degrees, once you let go */
-  if (!won && !dragging && c.ang < .14){ view.ty += wrap(S.yaw - view.ty) * dt * 2.2; view.tp += (S.pitch - view.tp) * dt * 2.2; }
+  if (!won && !dragging && c.ang < .09){ view.ty += wrap(S.yaw - view.ty) * dt * 2.2; view.tp += (S.pitch - view.tp) * dt * 2.2; }
 }
 function showWin(){
   $("w-k").textContent = T({ en:`Point of view ${si + 1} of 3`, ko:`시점 ${si + 1} / 3` });
@@ -411,7 +597,7 @@ function showWin(){
 }
 
 /* ==========================================================================
-   5. SOUND — the soft click of a turntable, a rising ping as the pieces
+   6. SOUND — the soft click of a turntable, a rising ping as the pieces
       close, a bright chord when they meet
    ========================================================================== */
 const AUD = (() => {
@@ -442,7 +628,7 @@ const AUD = (() => {
 })();
 
 /* ==========================================================================
-   6. RENDER
+   7. RENDER
    ========================================================================== */
 let W = 0, H = 0, DPR = 1;
 const BG = [.663, .714, .698];
@@ -453,24 +639,33 @@ function layout(){
   document.documentElement.style.setProperty("--hint-y", Math.round(($("bar").getBoundingClientRect().top || H - 72) - 26) + "px");
 }
 function render(t){
+  const eye = eyeOf(S, view.yaw, view.pitch);
+  gl.disable(gl.BLEND); gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
+  /* the sun's view: what casts a shadow, visitors included */
+  gl.bindFramebuffer(gl.FRAMEBUFFER, shFB); gl.viewport(0, 0, SS, SS); gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.useProgram(P.sh.p); gl.uniformMatrix4fv(P.sh.u.uVP, false, SV); gl.uniform3fv(P.sh.u.uCutEye, eye); gl.uniform3fv(P.sh.u.uC, S.C);
+  gl.uniformMatrix4fv(P.sh.u.uM, false, I4); bindMesh(mesh); gl.drawArrays(gl.TRIANGLES, 0, mesh.n); drawPeople(P.sh);
+  /* the picture */
   gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, cv.width, cv.height);
-  gl.clearColor(BG[0], BG[1], BG[2], 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
+  gl.clearColor(BG[0], BG[1], BG[2], 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-  const a = W / H, eye = eyeOf(S, view.yaw, view.pitch);
-  /* a tall screen sees the same angle, just with more room above and below */
+  const a = W / H;
   let fy = view.fov * Math.PI / 180; if (a < 1) fy = 2 * Math.atan(Math.tan(fy * 1.22 / 2) / a);
   const VP = mm4(persp(fy, a, .5, 220), lookAt(eye, S.C));
-  gl.useProgram(P.main.p); bindMesh(); const u = P.main.u;
-  gl.uniformMatrix4fv(u.uVP, false, VP); gl.uniformMatrix4fv(u.uVV, false, VV);
+  gl.useProgram(P.main.p); const u = P.main.u;
+  gl.uniformMatrix4fv(u.uVP, false, VP); gl.uniformMatrix4fv(u.uVV, false, VV); gl.uniformMatrix4fv(u.uSV, false, SV);
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, depTex); gl.uniform1i(u.uDep, 0);
-  gl.uniform3fv(u.uV, Vpos); gl.uniform3fv(u.uCam, eye); gl.uniform3fv(u.uCutEye, eye); gl.uniform3fv(u.uC, S.C); gl.uniform3fv(u.uCol, S.color); gl.uniform3fv(u.uSun, norm([.45, 1, .3])); gl.uniform3fv(u.uBg, BG);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, shTex); gl.uniform1i(u.uSh, 1); gl.uniform1f(u.uShN, 1 / SS);
+  gl.uniform3fv(u.uV, Vpos); gl.uniform3fv(u.uCam, eye); gl.uniform3fv(u.uCutEye, eye); gl.uniform3fv(u.uC, S.C); gl.uniform3fv(u.uCol, S.color); gl.uniform3fv(u.uSun, SUN);
   gl.uniform1f(u.uShape, S.shape); gl.uniform1f(u.uWin, won ? .5 + .5 * Math.sin(t * 3) : 0); gl.uniform1f(u.uClue, clueOn); gl.uniform1f(u.uT, t); gl.uniform1f(u.uVyaw, S.yaw);
-  gl.drawArrays(gl.TRIANGLES, 0, mesh.n);
+  gl.uniformMatrix4fv(u.uM, false, I4); bindMesh(mesh); gl.drawArrays(gl.TRIANGLES, 0, mesh.n);
+  drawPeople(P.main);
 }
 let last = performance.now(), t = 0;
 function frame(now){
   requestAnimationFrame(frame);
   const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt;
+  stepPeople(dt);
   if (idle) view.ty += dt * .18;                                            /* it turns slowly by itself until you take hold */
   if (keys.arrowleft || keys.a) view.ty += dt * 1.4; if (keys.arrowright || keys.d) view.ty -= dt * 1.4;
   if (keys.arrowup || keys.w) view.tp = clamp(view.tp + dt * .9, PMIN, PMAX); if (keys.arrowdown || keys.s) view.tp = clamp(view.tp - dt * .9, PMIN, PMAX);
@@ -482,7 +677,7 @@ function frame(now){
 }
 
 /* ==========================================================================
-   7. UI
+   8. UI
    ========================================================================== */
 let hintT = 0, hintAt = 0;
 function hint(s, brief){ const h = $("hint"); h.textContent = s; h.classList.remove("off"); hintAt = performance.now(); clearTimeout(hintT); hintT = setTimeout(() => h.classList.add("off"), brief ? 3600 : 7000); }
@@ -510,13 +705,13 @@ $("ab-p2").textContent = T({ en:"From that one spot the painting is a perfect ci
   ko:"그 한 자리에서는 완벽한 원, 사각형, 타원이 눈앞에 평평하게 떠 있어요. 다른 곳에서 보면 휘어지고 흩어진 조각이 되죠. 그 조각들 또한 작품이에요. 여기서는 공간을 손에 든 작은 모형처럼 돌려 볼 수 있어요." });
 $("ab-h3").textContent = T({ en:"Try", ko:"해 보기" });
 [{ en:"Drag to turn the model all the way round, and up and down to look from higher or lower. Scroll or pinch to look closer.", ko:"드래그해 모형을 360도 돌리고, 위아래로 끌어 높이를 바꿔 보세요. 스크롤이나 두 손가락으로 확대할 수 있어요." },
- { en:"The walls on your side are cut away, so you can always see in.", ko:"내 쪽을 향한 벽은 잘려 나가서 언제나 안을 들여다볼 수 있어요." },
+ { en:"The walls on your side are cut away. Other works take the paint too and break it up; visitors wander through and get in the way — wait for them to move on.", ko:"내 쪽 벽은 잘려 나가요. 다른 작품들도 함께 칠해져 조각을 더 흩뜨리고, 돌아다니는 관람객은 시야를 가려요 — 비켜 줄 때까지 기다려 보세요." },
  { en:"Watch the meter: the closer the angle, the more the pieces close. Hold it there and it locks.", ko:"미터를 보세요. 각도가 가까울수록 조각이 맞춰지고, 그 자리에 두면 딱 맞춰져요." },
  { en:"Stuck? The compass button marks the side to look from and says which way to turn.", ko:"막히면 나침반 버튼이 바라볼 방향을 받침대에 표시하고 돌릴 방향을 알려 줘요." }]
  .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); $("ab-ol").appendChild(li); });
 
 /* ==========================================================================
-   8. START
+   9. START
    ========================================================================== */
 layout();
 if (!initGL()){ $("nogl").style.display = "grid"; $("nogl").textContent = T({ en:"These models need WebGL, which this browser has turned off.", ko:"이 모형은 WebGL이 필요한데, 이 브라우저에서 꺼져 있어요." }); }
