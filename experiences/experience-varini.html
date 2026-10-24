@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Point of View — Living Art Museum</title>
-<meta name="description" content="Walk through three spaces painted with broken fragments of colour. From one hidden spot in each, the fragments join into a perfect shape. After Felice Varini's anamorphic paintings, from the Living Art Museum.">
+<meta name="description" content="Three little spaces on a turntable, painted with broken fragments of colour. Turn them all the way round: from one angle only, the fragments join into a perfect flat shape. After Felice Varini's anamorphic paintings, from the Living Art Museum.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,9 +13,10 @@
 html[lang="ko"]{--serif:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;}
 /* ==========================================================================
    POINT OF VIEW — after Felice Varini's paintings on architecture.
-   Each space is painted across its walls, floor, columns and stairs. From
-   anywhere else you see scattered pieces; from one spot, at eye height, they
-   close into a single flat shape. Walk until you find it.
+   Each space sits on a small base, like a model on a turntable. Its walls,
+   floor, columns and stairs carry pieces of paint. Turn it — all the way
+   round, higher, lower — until, from one angle, the pieces close into a
+   single flat shape.
    ========================================================================== */
 :root{
   --ink:#141414; --ink-dim:rgba(20,20,20,.64); --ink-faint:rgba(20,20,20,.42);
@@ -24,13 +25,13 @@ html[lang="ko"]{--serif:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;}
-body{background:#e9e7e2;color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
+body{background:#a9b6b2;color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px;}
 .glass{background:linear-gradient(180deg,var(--glass-a),var(--glass-b));backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
   border:1px solid var(--glass-line);box-shadow:0 18px 50px -24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.7);}
 #gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab;}
-body.looking #gl{cursor:grabbing;}
+body.turning #gl{cursor:grabbing;}
 
 .top{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:20px;right:20px;z-index:10;display:flex;align-items:center;gap:14px;pointer-events:none;}
 .top > *{pointer-events:auto;}
@@ -47,6 +48,8 @@ body.embedded #meter{top:calc(70px + env(safe-area-inset-top,0px));}
 #meter .fill{height:100%;width:0;border-radius:3px;background:var(--accent);transition:width .25s;}
 #meter .pct{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-dim);min-width:34px;text-align:right;}
 #meter .word{color:var(--ink-dim);}
+#meter .dir{display:none;font-weight:600;color:var(--ink);}
+body.clue #meter .dir{display:inline;}
 
 #bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:12;display:flex;align-items:center;gap:4px;padding:6px;border-radius:20px;max-width:calc(100% - 20px);}
 .chip{display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:14px;font-size:12.5px;color:var(--ink-dim);white-space:nowrap;transition:background .2s,color .2s;}
@@ -61,11 +64,6 @@ body.embedded #meter{top:calc(70px + env(safe-area-inset-top,0px));}
 .ico{stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
 #hint{position:fixed;left:50%;top:var(--hint-y,90px);transform:translate(-50%,-50%);z-index:11;padding:9px 15px;border-radius:999px;font-size:12.5px;color:var(--ink);white-space:nowrap;pointer-events:none;transition:opacity .5s;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;}
 #hint.off{opacity:0;}
-
-/* a thumb-stick for phones */
-#joy{position:fixed;left:22px;bottom:calc(92px + env(safe-area-inset-bottom,0px));width:112px;height:112px;border-radius:50%;z-index:13;display:none;touch-action:none;}
-#joy i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(20,20,20,.75);box-shadow:0 6px 16px rgba(0,0,0,.25);}
-body.touch #joy{display:block;}
 
 /* found it */
 #win{position:fixed;left:20px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:20;width:min(360px,calc(100% - 24px));border-radius:22px;padding:18px 18px 14px;display:none;}
@@ -94,9 +92,8 @@ html[lang="ko"] #about .tag{letter-spacing:.04em;}
   #hint{white-space:normal;text-align:center;border-radius:18px;width:max-content;line-height:1.45;}
   #about{left:10px;right:10px;width:auto;top:calc(64px + env(safe-area-inset-top,0px));}
   #win{left:12px;right:12px;width:auto;bottom:calc(76px + env(safe-area-inset-bottom,0px));}
-  body.won #joy{display:none;}
   .title p{display:none;} .title h1{font-size:13px;} .title{max-width:38vw;}
-  #meter{top:calc(58px + env(safe-area-inset-top,0px));} #meter .bar{width:70px;} #meter .word{display:none;}
+  #meter{top:calc(58px + env(safe-area-inset-top,0px));} #meter .bar{width:64px;} #meter .word{display:none;}
   body.embedded #meter{top:calc(64px + env(safe-area-inset-top,0px));}
 }
 @media (prefers-reduced-motion: reduce){ *{transition:none !important;animation:none !important;} }
@@ -110,16 +107,15 @@ html[lang="ko"] #about .tag{letter-spacing:.04em;}
   <a class="logo" href="#" onclick="return false">Living Art Museum</a>
   <div class="title"><h1 id="t-h"></h1><p id="t-p"></p></div>
 </header>
-<div id="meter" class="glass"><span class="word" id="m-w"></span><span class="bar"><span class="fill" id="m-f"></span></span><span class="pct" id="m-p">0%</span></div>
+<div id="meter" class="glass"><span class="word" id="m-w"></span><span class="bar"><span class="fill" id="m-f"></span></span><span class="pct" id="m-p">0%</span><span class="dir" id="m-d"></span></div>
 <div id="hint" class="glass off"></div>
-<div id="joy" class="glass"><i id="joy-k"></i></div>
 
 <nav id="bar" class="glass">
   <button class="chip" data-s="0"><span class="sw" style="background:#e2231a"></span><span class="lb"></span></button>
   <button class="chip" data-s="1"><span class="sw" style="background:#f5c400"></span><span class="lb"></span></button>
   <button class="chip" data-s="2"><span class="sw" style="background:#ff6a13"></span><span class="lb"></span></button>
   <span class="sep"></span>
-  <button class="chip ic" id="clue" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><path d="M8 4c-2 0-3 2-3 4.5S6 13 8 13s3-2 3-4.5S10 4 8 4zM6.5 15.5h3v2a1.5 1.5 0 01-3 0z"/><path d="M16 8c-2 0-3 2-3 4.5S14 17 16 17s3-2 3-4.5S18 8 16 8zM14.5 19.5h3"/></svg></button>
+  <button class="chip ic" id="clue" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg></button>
   <button class="chip ic" id="snd" aria-pressed="true"><svg class="ico on" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg><svg class="ico off" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
   <button class="chip ic" id="info"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
 </nav>
@@ -156,70 +152,77 @@ if (LANG === "ko") document.title = "착시 회화 연작 — Living Art Museum"
 const T = (o) => (o && (o[LANG] ?? o.en)) || "";
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t;
-const v3 = (x = 0, y = 0, z = 0) => [x, y, z], add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const mul = (a, k) => [a[0] * k, a[1] * k, a[2] * k], dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const len = (a) => Math.hypot(a[0], a[1], a[2]), norm = (a) => { const l = len(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
-const EYE = 1.6;
+const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
 /* ==========================================================================
-   1. THREE SPACES — boxes for walls, columns, stairs and buildings; in each,
-      one point of view and the shape painted from it
+   1. THREE MODELS — each on its own base. Every wall or building on the
+      edge belongs to a side (n, s, e, w); a side facing you is cut away,
+      as in a doll's house, so you can always see in. The point of view is
+      a direction to look from: turn the model until you are there.
    ========================================================================== */
-/* materials: 0 plaster, 1 floor, 2 sky, 3 glass, 4 timber, 5 ground outside */
+/* materials: 0 plaster, 1 floor, 3 glass, 4 timber, 5 paving, 6 base, 7 shadow, 8 wood floor */
+const SIDE = { n:[0, -1], s:[0, 1], w:[-1, 0], e:[1, 0] };
+const wallsAround = (x0, x1, z0, z1, h, t) => [
+  [x0 - t, 0, z0 - t, x1 + t, h, z0, 0, "n"], [x0 - t, 0, z1, x1 + t, h, z1 + t, 0, "s"],
+  [x0 - t, 0, z0, x0, h, z1, 0, "w"], [x1, 0, z0, x1 + t, h, z1, 0, "e"] ];
+const base = (x0, x1, z0, z1, top, m) => [[x0, -1.1, z0, x1, 0, z1, 6, null, m]];
 const SCENES = [
   { name:{ en:"Three circles", ko:"세 개의 원" }, place:{ en:"A gallery of columns", ko:"기둥이 늘어선 전시실" },
-    color:[.886, .137, .102], shape:0, fov:72, out:false,
-    V:[1.55, EYE, 1.35], look:[-.7, 2.05, -13], start:[-3.6, EYE, .6], yaw:.35,
-    walk:[-5.55, 5.55, -15.5, 2.55],
-    boxes:[ [-6, 0, -16, 6, 4.6, 3, 0, "shell"],
-      [-2.9, 0, -2.3, -2.3, 4.6, -1.7, 0], [2.3, 0, -2.3, 2.9, 4.6, -1.7, 0], [-2.9, 0, -6.8, -2.3, 4.6, -6.2, 0], [2.3, 0, -6.8, 2.9, 4.6, -6.2, 0],
-      [-6, 0, -9.15, -1.1, 4.6, -8.85, 0], [1.1, 0, -9.15, 6, 4.6, -8.85, 0], [-1.1, 3.0, -9.15, 1.1, 4.6, -8.85, 0],
-      [-2.9, 0, -12.6, -2.3, 4.6, -12, 0], [2.3, 0, -12.6, 2.9, 4.6, -12, 0],
-      [-3.9, 0, -4.4, -2.1, .45, -3.8, 4], [3.1, 0, -14.2, 4.3, .9, -13, 0], [-5.2, 0, -14.6, -3.6, 2.2, -14.2, 0] ] },
+    color:[.886, .137, .102], shape:0, fov:31, C:[0, 1.6, 0], R:34, yaw:.72, pitch:.5, startYaw:-2.1, startPitch:.62,
+    boxes:[ ...base(-6.6, 6.6, -8.6, 8.6, 0, 8), ...wallsAround(-6, 6, -8, 8, 4.6, .3),
+      [-6, 0, -2.15, -1.1, 4.6, -1.85, 0], [1.1, 0, -2.15, 6, 4.6, -1.85, 0], [-1.1, 3.0, -2.15, 1.1, 4.6, -1.85, 0],
+      [-2.9, 0, 4.2, -2.3, 4.6, 4.8, 0], [2.3, 0, 4.2, 2.9, 4.6, 4.8, 0], [-2.9, 0, .4, -2.3, 4.6, 1.0, 0], [2.3, 0, .4, 2.9, 4.6, 1.0, 0],
+      [-2.9, 0, -5.8, -2.3, 4.6, -5.2, 0], [2.3, 0, -5.8, 2.9, 4.6, -5.2, 0],
+      [-3.9, 0, 2.2, -2.1, .45, 2.8, 4], [3.1, 0, -7.2, 4.3, .9, -6.0, 0], [-5.2, 0, -7.4, -3.6, 2.2, -7.0, 0], [3.6, 0, 6.6, 5.4, .5, 7.2, 4] ] },
   { name:{ en:"Three squares", ko:"세 개의 사각형" }, place:{ en:"An atrium with a stair", ko:"계단이 있는 아트리움" },
-    color:[.96, .77, 0], shape:1, fov:70, out:false,
-    V:[-2.3, EYE, 2.1], look:[.9, 3.7, -11], start:[3.2, EYE, 1.6], yaw:-.2,
-    walk:[-5.55, 5.55, -11.5, 2.55],
-    boxes:[ [-6, 0, -12, 6, 8, 3, 0, "shell"],
-      [-6, 3.2, -12, 6, 3.5, -6.5, 0], [-6, 3.5, -6.6, 3.9, 4.45, -6.5, 0],
-      [-3.3, 0, -6.95, -2.7, 3.2, -6.35, 0], [2.0, 0, -6.95, 2.6, 3.2, -6.35, 0],
-      [-2.2, 5.0, -12, 2.2, 6.6, -11.5, 0], [-5.6, 4.6, -12, -3.6, 7.2, -11.8, 3], [3.6, 4.6, -12, 5.6, 7.2, -11.8, 3],
-      [-4.8, 0, -3.2, -3.2, .5, -2.4, 4] ].concat(Array.from({ length:10 }, (_, i) => [4.0, 0, -1 - (i + 1) * .55, 6, (i + 1) * .32, -1 - i * .55, 4])) },
+    color:[.96, .77, 0], shape:1, fov:33, C:[0, 3.2, 0], R:36, yaw:-.78, pitch:.4, startYaw:1.9, startPitch:.75,
+    boxes:[ ...base(-6.6, 6.6, -6.6, 6.6, 0, 1), ...wallsAround(-6, 6, -6, 6, 8, .3),
+      [-6, 3.2, -6, 6, 3.5, -1.5, 0], [-6, 3.5, -1.6, 3.9, 4.45, -1.5, 0],
+      [-3.3, 0, -1.95, -2.7, 3.2, -1.35, 0], [2.0, 0, -1.95, 2.6, 3.2, -1.35, 0],
+      [-2.2, 5.0, -6, 2.2, 6.6, -5.5, 0], [-5.6, 4.6, -6, -3.6, 7.2, -5.8, 3], [3.6, 4.6, -6, 5.6, 7.2, -5.8, 3],
+      [-6, 4.4, -1.2, -5.8, 6.6, 2.8, 3], [-4.8, 0, 1.8, -3.2, .5, 2.6, 4] ]
+      .concat(Array.from({ length:10 }, (_, i) => [4.0, 0, 4 - (i + 1) * .55, 6, (i + 1) * .32, 4 - i * .55, 4])) },
   { name:{ en:"Three ellipses", ko:"세 개의 타원" }, place:{ en:"A courtyard", ko:"건물 사이 안뜰" },
-    color:[1, .42, .07], shape:2, fov:60, out:true,
-    V:[-3.1, EYE, 4.1], look:[1.4, 4.4, -18], start:[4.2, EYE, 3.4], yaw:-.25,
-    walk:[-7.4, 7.4, -17.4, 5.6],
-    boxes:[ [-70, -1, -70, 70, 60, 70, 2, "shell"], [-16, -.2, -26, 16, 0, 8, 5, "ground"],
-      [-12, 0, -24, 12, 9.5, -18, 0], [-14, 0, -18, -8, 7, 2, 0], [8, 0, -18, 14, 11.5, -4, 0],
-      [-2.6, 0, -9.1, -1.9, 4.2, -8.4, 0], [1.9, 0, -9.1, 2.6, 4.2, -8.4, 0], [-2.6, 4.2, -9.1, 2.6, 4.9, -8.4, 0],
-      [4.2, 0, -12.6, 6.2, .8, -10.6, 0], [-6.2, 0, -3.4, -4.4, .45, -2.8, 4] ]
-      .concat(Array.from({ length:14 }, (_, i) => { const c = i % 7, r = Math.floor(i / 7); return [-9.4 + c * 2.9, 2.1 + r * 3.3, -18.08, -8.2 + c * 2.9, 3.8 + r * 3.3, -17.94, 3]; }))
-      .concat(Array.from({ length:10 }, (_, i) => { const c = i % 5, r = Math.floor(i / 5); return [-8.08, 1.8 + r * 3, -16 + c * 3.4, -7.94, 3.4 + r * 3, -14.8 + c * 3.4, 3]; }))
-      .concat(Array.from({ length:12 }, (_, i) => { const c = i % 4, r = Math.floor(i / 4); return [7.94, 1.8 + r * 3.1, -16.5 + c * 3, 8.08, 3.4 + r * 3.1, -15.3 + c * 3, 3]; })) },
+    color:[1, .42, .07], shape:2, fov:33, C:[0, 3.4, -1], R:50, yaw:.32, pitch:.36, startYaw:-2.5, startPitch:.7,
+    boxes:[ ...base(-14.6, 14.6, -12.6, 12.6, 0, 5),
+      [-12, 0, -12, 12, 9.5, -7, 0, "n"], [-14, 0, -7, -9, 7, 10, 0, "w"], [9, 0, -7, 14, 11.5, 6, 0, "e"], [-9, 0, 10.4, 9, 1.4, 11.4, 0, "s"],
+      [-2.6, 0, .4, -1.9, 4.2, 1.1, 0], [1.9, 0, .4, 2.6, 4.2, 1.1, 0], [-2.6, 4.2, .4, 2.6, 4.9, 1.1, 0],
+      [4.2, 0, -3.6, 6.2, .8, -1.6, 0], [-6.2, 0, 5.6, -4.4, .45, 6.2, 4] ]
+      .concat(Array.from({ length:14 }, (_, i) => { const c = i % 7, r = Math.floor(i / 7); return [-9.4 + c * 2.9, 2.1 + r * 3.3, -7.08, -8.2 + c * 2.9, 3.8 + r * 3.3, -6.94, 3, "n"]; }))
+      .concat(Array.from({ length:10 }, (_, i) => { const c = i % 5, r = Math.floor(i / 5); return [-9.08, 1.8 + r * 3, -5 + c * 3.2, -8.94, 3.4 + r * 3, -3.8 + c * 3.2, 3, "w"]; }))
+      .concat(Array.from({ length:12 }, (_, i) => { const c = i % 4, r = Math.floor(i / 4); return [8.94, 1.8 + r * 3.1, -5.5 + c * 2.9, 9.08, 3.4 + r * 3.1, -4.3 + c * 2.9, 3, "e"]; })) },
 ];
+const eyeOf = (S, yaw, pitch, R) => add(S.C, mul([Math.cos(pitch) * Math.sin(yaw), Math.sin(pitch), Math.cos(pitch) * Math.cos(yaw)], R || S.R));
 
 /* ==========================================================================
-   2. GL — the scene is drawn once from the point of view into a distance
+   2. GL — the model is drawn once from the point of view into a distance
       map; then, every frame, a surface is painted only where that point of
       view could see it, and only where its direction falls inside the shape
    ========================================================================== */
 const cv = $("gl");
 const gl = cv.getContext("webgl", { antialias:true, alpha:false, powerPreference:"high-performance" });
 const DERIV = gl && gl.getExtension("OES_standard_derivatives");
-const VS = `attribute vec3 aP; attribute vec3 aN; attribute vec4 aU; attribute float aM;
-uniform mat4 uVP; varying vec3 vP, vN; varying vec4 vU; varying float vM;
+const VS = `attribute vec3 aP; attribute vec3 aN; attribute vec4 aU; attribute vec3 aM;
+uniform mat4 uVP; varying vec3 vP, vN; varying vec4 vU; varying vec3 vM;
 void main(){ vP = aP; vN = aN; vU = aU; vM = aM; gl_Position = uVP * vec4(aP, 1.); }`;
-const DEPTH_FS = `precision highp float; uniform vec3 uV; varying vec3 vP, vN; varying vec4 vU; varying float vM;
-void main(){ float d = clamp(length(vP - uV) / 80., 0., .9999); vec4 e = fract(d * vec4(1., 255., 65025., 16581375.)); e -= e.yzww * vec4(1. / 255., 1. / 255., 1. / 255., 0.); gl_FragColor = e; }`;
+/* aM: material, and the side it belongs to (x, z of its outward normal; 0, 0 for none) */
+const CUT = `uniform vec3 uCutEye, uC;
+float cutAmt(){ if (dot(vM.yz, vM.yz) < .5) return 0.; vec2 d = normalize(uCutEye.xz - uC.xz); return dot(vM.yz, d); }`;
+const DEPTH_FS = `precision highp float; uniform vec3 uV; varying vec3 vP, vN; varying vec4 vU; varying vec3 vM;
+${CUT}
+void main(){ if (cutAmt() > .3 || abs(vM.x - 7.) < .5) discard; float d = clamp(length(vP - uV) / 120., 0., .9999); vec4 e = fract(d * vec4(1., 255., 65025., 16581375.)); e -= e.yzww * vec4(1. / 255., 1. / 255., 1. / 255., 0.); gl_FragColor = e; }`;
 const MAIN_FS = `${DERIV ? "#extension GL_OES_standard_derivatives : enable" : ""}
 precision highp float;
-uniform mat4 uVV; uniform sampler2D uDep; uniform vec3 uV, uCam, uCol, uSun; uniform float uShape, uWin, uClue, uOut, uT;
-varying vec3 vP, vN; varying vec4 vU; varying float vM;
+uniform mat4 uVV; uniform sampler2D uDep; uniform vec3 uV, uCam, uCol, uSun, uBg; uniform float uShape, uWin, uClue, uT, uVyaw;
+varying vec3 vP, vN; varying vec4 vU; varying vec3 vM;
+${CUT}
 float dec(vec4 c){ return dot(c, vec4(1., 1. / 255., 1. / 65025., 1. / 16581375.)); }
 float hash(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
 float band(float x, float a, float b, float w){ return smoothstep(a - w, a + w, x) * (1. - smoothstep(b - w, b + w, x)); }
-/* the three shapes, as seen from the point of view (q: -1..1 across its picture) */
 float shape(vec2 q, float w){
   if (uShape < .5){ float r = length(q); return max(max(band(r, .14, .22, w), band(r, .39, .48, w)), band(r, .65, .75, w)); }
   if (uShape < 1.5){ float m = max(abs(q.x), abs(q.y)); return max(max(band(m, .14, .21, w), band(m, .4, .48, w)), band(m, .67, .76, w)); }
@@ -229,50 +232,53 @@ float shape(vec2 q, float w){
   return s;
 }
 void main(){
+  /* the side facing you is cut away, fading out like a doll's house front */
+  float cut = cutAmt();
+  if (cut > .3) discard;
+  if (cut > .12){ vec2 g = floor(gl_FragCoord.xy); float th = fract(dot(g, vec2(.7548, .5698)) + .1); if ((cut - .12) / .18 > th) discard; }
+  if (abs(vM.x - 7.) < .5){                                     /* the soft shadow under the base */
+    float r = length(vP.xz / vU.zw * 2.); gl_FragColor = vec4(0., 0., 0., .26 * (1. - smoothstep(.55, 1., r))); return; }
   vec3 N = normalize(vN), Vd = normalize(uCam - vP); if (dot(N, Vd) < 0.) N = -N;
-  if (vM > 1.5 && vM < 2.5){                                   /* the sky */
-    vec3 d = normalize(vP - uCam); vec3 sky = mix(vec3(.93, .95, .97), vec3(.55, .72, .92), clamp(d.y * 1.6, 0., 1.));
-    gl_FragColor = vec4(sky, 1.); return; }
-  /* the surface itself */
-  vec3 alb = vec3(.93, .925, .91);
-  if (vM > .5 && vM < 1.5){ vec2 g = abs(fract(vP.xz) - .5); alb = vec3(.78, .77, .75) * (max(g.x, g.y) > .49 ? .9 : 1.); }
-  if (vM > 2.5 && vM < 3.5) alb = vec3(.36, .42, .48);
-  if (vM > 3.5 && vM < 4.5) alb = vec3(.62, .5, .38);
-  if (vM > 4.5){ vec2 g = abs(fract(vP.xz * .5) - .5); alb = vec3(.74, .72, .68) * (max(g.x, g.y) > .49 ? .9 : 1.); }
+  vec3 alb = vec3(.94, .935, .92);
+  if (vM.x > .5 && vM.x < 1.5){ vec2 g = abs(fract(vP.xz) - .5); alb = vec3(.8, .79, .77) * (max(g.x, g.y) > .485 ? .9 : 1.); }
+  if (vM.x > 2.5 && vM.x < 3.5) alb = vec3(.32, .4, .48);
+  if (vM.x > 3.5 && vM.x < 4.5) alb = vec3(.6, .47, .34);
+  if (vM.x > 4.5 && vM.x < 5.5){ vec2 g = abs(fract(vP.xz * .5) - .5); alb = vec3(.76, .74, .69) * (max(g.x, g.y) > .485 ? .9 : 1.); }
+  if (vM.x > 5.5 && vM.x < 6.5){ alb = N.y > .5 ? vec3(.8) : vec3(.33, .3, .29); }
+  if (vM.x > 7.5){ float b = floor(vP.x / .5); alb = vec3(.62, .45, .3) * (.88 + .16 * hash(vec3(b, floor(vP.z / 2.6 + hash(vec3(b, 1., 1.)) * 3.), 0.)));
+    if (abs(fract(vP.x / .5) - .5) > .47) alb *= .8; }
+  if (vM.x > 5.5 && vM.x < 6.5 && N.y > .5) alb = vec3(.8);
   float lam = max(dot(N, uSun), 0.);
-  float light = uOut > .5 ? .55 + .55 * lam : .8 + .22 * lam + .05 * N.y;
+  float light = .62 + .45 * lam + .04 * N.y;
   float e = min(min(vU.x, vU.z - vU.x), min(vU.y, vU.w - vU.y));
-  float ao = .8 + .2 * smoothstep(0., .6, e);
+  float ao = .78 + .22 * smoothstep(0., .7, e);
+  if (vP.y < .9 && N.y < .5) ao *= .82 + .18 * smoothstep(0., .9, vP.y);
   vec3 c = alb * light * ao;
-  if (e < .012) c *= .86;
+  if (e < .03) c *= .88;
   /* the paint: only where the point of view looks, and only inside the shape */
   vec4 pv = uVV * vec4(vP, 1.);
   float paint = 0.;
-  if (pv.w > .05){
+  if (pv.w > .05 && vM.x < 5.5 || pv.w > .05 && vM.x > 7.5){
     vec2 q = pv.xy / pv.w;
     if (abs(q.x) < 1. && abs(q.y) < 1.){
-      float dm = dec(texture2D(uDep, q * .5 + .5)), d = length(vP - uV) / 80.;
-      if (d < dm + .0018 + d * .004){
+      float dm = dec(texture2D(uDep, q * .5 + .5)), d = length(vP - uV) / 120.;
+      if (d < dm + .0012 + d * .003){
         ${DERIV ? "float w = max(length(fwidth(q)) * .7, .0008);" : "float w = .004;"}
         paint = shape(q, w);
       }
     }
   }
-  vec3 pc = uCol * (.93 + .07 * hash(floor(vP * 37.))) * (uOut > .5 ? .62 + .48 * lam : .8 + .22 * lam) * (1. + uWin * .18);
+  vec3 pc = uCol * (.93 + .07 * hash(floor(vP * 37.))) * (.72 + .36 * lam) * (1. + uWin * .16);
   c = mix(c, pc, paint);
-  /* footprints: where to stand */
-  if (uClue > .01 && (vM > .5 && vM < 1.5 || vM > 4.5)){
-    vec2 r = vP.xz - uV.xz; float dd = length(r);
-    float ring = (1. - smoothstep(.02, .035, abs(dd - .34))) * uClue;
-    vec2 f1 = (r - vec2(-.1, .02)) / vec2(.07, .13), f2 = (r - vec2(.1, -.02)) / vec2(.07, .13);
-    float feet = (step(length(f1), 1.) + step(length(f2), 1.)) * uClue * (.6 + .4 * sin(uT * 3.));
-    c = mix(c, vec3(.12), clamp(ring + feet * .8, 0., 1.));
+  /* the hint: a mark on the base, on the side to look from */
+  if (uClue > .01 && vM.x > 5.5 && vM.x < 6.5 && N.y < .5){
+    float a = atan(vP.x, vP.z), da = abs(atan(sin(a - uVyaw), cos(a - uVyaw)));
+    float m = (1. - smoothstep(.05, .1, da)) * uClue * (.65 + .35 * sin(uT * 4.));
+    c = mix(c, uCol, m);
   }
-  /* distance haze */
-  float fd = length(vP - uCam); c = mix(c, uOut > .5 ? vec3(.88, .9, .93) : vec3(.9, .9, .89), clamp((fd - 14.) / 60., 0., .35));
   gl_FragColor = vec4(pow(c, vec3(.96)), 1.);
 }`;
-let P = {}, mesh = null, depTex = null, depFB = null, DS = 1024, VV = null;
+let P = {}, mesh = null, depTex = null, depFB = null, DS = 1024, VV = null, Vpos = null;
 function prog(vs, fs){
   const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)){ console.error(gl.getShaderInfoLog(o)); return null; } return o; };
   const a = sh(gl.VERTEX_SHADER, vs), b = sh(gl.FRAGMENT_SHADER, fs); if (!a || !b) return null;
@@ -282,27 +288,29 @@ function prog(vs, fs){
   const u = {}; const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS); for (let i = 0; i < n; i++){ const nm = gl.getActiveUniform(p, i).name; u[nm] = gl.getUniformLocation(p, nm); }
   return { p, u };
 }
-/* a box into triangles: position, normal, face coordinates (u, v, width, height) in metres, material */
+/* boxes into triangles: position, normal, face coordinates (u, v, width, height), material and side */
 function buildMesh(boxes){
   const v = [];
-  for (const b of boxes){ const [x0, y0, z0, x1, y1, z1, m] = b, lo = [x0, y0, z0], hi = [x1, y1, z1];
+  for (const b of boxes){ const [x0, y0, z0, x1, y1, z1, m, side, top] = b, lo = [x0, y0, z0], hi = [x1, y1, z1], sd = side ? SIDE[side] : [0, 0];
     for (let ax = 0; ax < 3; ax++) for (const s of [0, 1]){
-      if (b[7] === "ground" && !(ax === 1 && s === 1)) continue;
+      if (ax === 1 && s === 0 && y0 <= -1) continue;
       const b1 = (ax + 1) % 3, b2 = (ax + 2) % 3, n = [0, 0, 0]; n[ax] = s ? 1 : -1;
       const W = hi[b1] - lo[b1], H = hi[b2] - lo[b2];
       const corner = (i, j) => { const p = [0, 0, 0]; p[ax] = s ? hi[ax] : lo[ax]; p[b1] = i ? hi[b1] : lo[b1]; p[b2] = j ? hi[b2] : lo[b2]; return p; };
-      const mm = b[7] === "shell" && ax === 1 && s === 0 && m !== 2 ? 1 : m;                 /* a room's floor */
-      [[0, 0], [1, 0], [1, 1], [0, 0], [1, 1], [0, 1]].forEach(([i, j]) => { const p = corner(i, j); v.push(p[0], p[1], p[2], n[0], n[1], n[2], i * W, j * H, W, H, mm); });
+      const mm = m === 6 && ax === 1 && s === 1 ? top : m;                          /* the base's top is the floor */
+      [[0, 0], [1, 0], [1, 1], [0, 0], [1, 1], [0, 1]].forEach(([i, j]) => { const p = corner(i, j); v.push(p[0], p[1], p[2], n[0], n[1], n[2], i * W, j * H, W, H, mm, sd[0], sd[1]); });
     } }
+  /* a soft shadow on the ground, under the base */
+  const bb = boxes[0], sx = (bb[3] - bb[0]) * .78, sz = (bb[5] - bb[2]) * .78, y = -1.35;
+  [[-1, -1], [1, -1], [1, 1], [-1, -1], [1, 1], [-1, 1]].forEach(([i, j]) => v.push(i * sx, y, j * sz, 0, 1, 0, 0, 0, sx * 2, sz * 2, 7, 0, 0));
   const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW);
-  return { buf, n:v.length / 11 };
+  return { buf, n:v.length / 13 };
 }
-function bindMesh(){ gl.bindBuffer(gl.ARRAY_BUFFER, mesh.buf); const st = 44;
+function bindMesh(){ gl.bindBuffer(gl.ARRAY_BUFFER, mesh.buf); const st = 52;
   gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, st, 0);
   gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, st, 12);
   gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 4, gl.FLOAT, false, st, 24);
-  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3, 1, gl.FLOAT, false, st, 40); }
-/* matrices, column-major */
+  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3, 3, gl.FLOAT, false, st, 40); }
 function persp(fy, a, n, f){ const k = 1 / Math.tan(fy / 2); return new Float32Array([k / a, 0, 0, 0, 0, k, 0, 0, 0, 0, (f + n) / (n - f), -1, 0, 0, 2 * f * n / (n - f), 0]); }
 function lookAt(e, c){ const z = norm(sub(e, c)), x = norm(cross([0, 1, 0], z)), y = cross(z, x);
   return new Float32Array([x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, -dot(x, e), -dot(y, e), -dot(z, e), 1]); }
@@ -319,110 +327,92 @@ function initGL(){
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   return true;
 }
-/* a new space: its mesh, and the point of view's distance map */
+/* a new model: its mesh, and the point of view's distance map */
 function loadScene(i){
   S = SCENES[i]; si = i;
   if (mesh) gl.deleteBuffer(mesh.buf); mesh = buildMesh(S.boxes);
-  VV = mm4(persp(S.fov * Math.PI / 180, 1, .05, 120), lookAt(S.V, S.look));
+  Vpos = eyeOf(S, S.yaw, S.pitch);
+  VV = mm4(persp(S.fov * Math.PI / 180, 1, .5, 200), lookAt(Vpos, S.C));
   gl.bindFramebuffer(gl.FRAMEBUFFER, depFB); gl.viewport(0, 0, DS, DS);
-  gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
-  gl.useProgram(P.dep.p); bindMesh(); gl.uniformMatrix4fv(P.dep.u.uVP, false, VV); gl.uniform3fv(P.dep.u.uV, S.V);
+  gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE); gl.disable(gl.BLEND);
+  gl.useProgram(P.dep.p); bindMesh(); gl.uniformMatrix4fv(P.dep.u.uVP, false, VV); gl.uniform3fv(P.dep.u.uV, Vpos);
+  gl.uniform3fv(P.dep.u.uCutEye, Vpos); gl.uniform3fv(P.dep.u.uC, S.C);
   gl.drawArrays(gl.TRIANGLES, 0, mesh.n);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  cam.p = S.start.slice(); cam.yaw = cam.ty = S.yaw; cam.pitch = cam.tp = .06; won = false; snap = 0; clueOn = 0; $("clue").setAttribute("aria-pressed", "false");
-  document.body.classList.remove("won"); updateChips(); seen = 0;
+  view.yaw = view.ty = S.startYaw; view.pitch = view.tp = S.startPitch; view.vy = view.vp = 0; view.fov = view.tf = S.fov + 4;
+  won = false; snap = 0; idle = true; document.body.classList.remove("won"); updateChips(); lastBand = -1;
 }
 
 /* ==========================================================================
-   3. WALKING — you, at eye height; the walls and everything below head
-      height stop you
+   3. TURNING — drag to turn the model round and tip it; it keeps a little
+      spin when you let go. Scroll or pinch to look closer (that only narrows
+      the view; you stay where you are, so the shape still lines up).
    ========================================================================== */
-let S = SCENES[0], si = 0, won = false, snap = 0, clueOn = 0, seen = 0;
+let S = SCENES[0], si = 0, won = false, snap = 0, clueOn = 0, idle = true, lastBand = -1;
 const solved = [false, false, false];
-const cam = { p:v3(0, EYE, 0), yaw:0, pitch:0, ty:0, tp:0 };
-const keys = {}, joy = { x:0, y:0 };
-const fwd = () => [-Math.sin(cam.yaw) * Math.cos(cam.pitch), Math.sin(cam.pitch), -Math.cos(cam.yaw) * Math.cos(cam.pitch)];
-function blocked(x, z){
-  const r = .32, w = S.walk; if (x < w[0] || x > w[1] || z < w[2] || z > w[3]) return true;
-  for (const b of S.boxes){ if (b[7]) continue; if (b[1] > 1.8 || b[4] < .05) continue;
-    if (x > b[0] - r && x < b[3] + r && z > b[2] - r && z < b[5] + r) return true; }
-  return false;
-}
-function move(dt){
-  if (won && snap >= 1) return;
-  let f = (keys.w || keys.arrowup ? 1 : 0) - (keys.s || keys.arrowdown ? 1 : 0) - joy.y, s = (keys.d ? 1 : 0) - (keys.a ? 1 : 0) + joy.x;
-  if (keys.arrowleft) cam.ty += dt * 1.6; if (keys.arrowright) cam.ty -= dt * 1.6;
-  const run = keys.shift ? 1.9 : 1, sp = 2.2 * run;
-  const fx = -Math.sin(cam.yaw), fz = -Math.cos(cam.yaw), rx = Math.cos(cam.yaw), rz = -Math.sin(cam.yaw);
-  let dx = (fx * f + rx * s) * sp * dt, dz = (fz * f + rz * s) * sp * dt;
-  const m = Math.hypot(dx, dz); if (m > 1e-5){ if (!blocked(cam.p[0] + dx, cam.p[2])) cam.p[0] += dx; if (!blocked(cam.p[0], cam.p[2] + dz)) cam.p[2] += dz; stepT += m; if (stepT > .75){ stepT = 0; AUD.step(); } }
-}
-let stepT = 0;
+const view = { yaw:0, pitch:.5, ty:0, tp:.5, vy:0, vp:0, fov:34, tf:34 };
+const PMIN = .08, PMAX = 1.3;
+const ptrs = new Map(); let pinch0 = 0, fov0 = 0, dragging = false, lastMove = 0;
+cv.addEventListener("pointerdown", e => { AUD.unlock(); hideHint(); idle = false; ptrs.set(e.pointerId, { x:e.clientX, y:e.clientY }); try { cv.setPointerCapture(e.pointerId); } catch (_){}
+  dragging = true; document.body.classList.add("turning"); view.vy = view.vp = 0;
+  if (ptrs.size === 2){ const [a, b] = [...ptrs.values()]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); fov0 = view.tf; } });
+cv.addEventListener("pointermove", e => { const p = ptrs.get(e.pointerId); if (!p) return;
+  const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+  if (ptrs.size === 2){ const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch0 > 0) view.tf = clamp(fov0 * pinch0 / d, 14, 48); return; }
+  const k = e.pointerType === "touch" ? .0085 : .0065, now = performance.now(), dt = Math.max(8, now - lastMove) / 1000; lastMove = now;
+  if (won && snap >= 1 && Math.hypot(dx, dy) > 3) leaveWin();
+  view.ty -= dx * k; view.tp = clamp(view.tp + dy * k * .8, PMIN, PMAX);
+  view.vy = lerp(view.vy, -dx * k / dt, .4); view.vp = lerp(view.vp, dy * k * .8 / dt, .4);
+  turnSound(Math.hypot(dx, dy)); });
+const endPtr = (e) => { if (!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId); if (!ptrs.size){ dragging = false; document.body.classList.remove("turning"); if (performance.now() - lastMove > 80){ view.vy = view.vp = 0; } } pinch0 = 0; };
+cv.addEventListener("pointerup", endPtr); cv.addEventListener("pointercancel", endPtr);
+cv.addEventListener("wheel", e => { e.preventDefault(); view.tf = clamp(view.tf * Math.exp(e.deltaY * .0012), 14, 48); }, { passive:false });
+const keys = {};
+window.addEventListener("keydown", e => { const k = e.key.toLowerCase(); if (["arrowleft", "arrowright", "arrowup", "arrowdown", "a", "d", "w", "s"].includes(k)){ keys[k] = true; e.preventDefault(); AUD.unlock(); idle = false; hideHint(); if (won && snap >= 1) leaveWin(); }
+  if (e.key === "Escape") document.body.classList.remove("about"); });
+window.addEventListener("keyup", e => { keys[e.key.toLowerCase()] = false; });
+window.addEventListener("blur", () => { for (const k in keys) keys[k] = false; });
+let turnAcc = 0; function turnSound(d){ turnAcc += d; if (turnAcc > 70){ turnAcc = 0; AUD.tick(); } }
+function leaveWin(){ document.body.classList.remove("won"); won = false; snap = 0; }
 
 /* ==========================================================================
-   4. HOW CLOSE — the closer you stand to the point of view, the more the
-      fragments close up; within a few centimetres it locks
+   4. HOW CLOSE — the angle between where you look from and the point of
+      view; within a few degrees it draws itself in
    ========================================================================== */
 function closeness(){
-  const d = Math.hypot(cam.p[0] - S.V[0], cam.p[2] - S.V[2]);
-  const vf = norm(sub(S.look, S.V)), a = Math.acos(clamp(dot(fwd(), vf), -1, 1));
-  const pos = Math.exp(-Math.pow(d / 1.6, 2)), face = Math.exp(-Math.pow(a / .7, 2));
-  return { d, a, pos, face, score:pos * (.55 + .45 * face) };
+  const a = norm(sub(eyeOf(S, view.yaw, view.pitch), S.C)), b = norm(sub(Vpos, S.C));
+  const ang = Math.acos(clamp(dot(a, b), -1, 1));
+  return { ang, score:Math.exp(-Math.pow(ang / .55, 2)), dy:wrap(S.yaw - view.yaw), dp:S.pitch - view.pitch };
 }
-let lastBand = -1;
 function check(dt){
   const c = closeness();
   const pct = Math.round(won ? 100 : c.score * 100);
   $("m-f").style.width = pct + "%"; $("m-p").textContent = pct + "%";
-  const band = won ? 4 : c.score > .8 ? 3 : c.score > .45 ? 2 : c.score > .15 ? 1 : 0;
+  const band = won ? 4 : c.score > .85 ? 3 : c.score > .5 ? 2 : c.score > .18 ? 1 : 0;
   $("m-w").textContent = T([{ en:"Far off", ko:"아직 멀어요" }, { en:"It's starting to close", ko:"조금씩 맞춰져요" }, { en:"Nearly there", ko:"거의 다 왔어요" }, { en:"Right about here", ko:"바로 이 근처예요" }, { en:"Found", ko:"찾았어요" }][band]);
   if (band !== lastBand){ if (band > lastBand && lastBand >= 0 && band < 4) AUD.ping(band); lastBand = band; }
-  /* close enough and looking roughly the right way: draw it in */
-  if (!won && c.d < .3 && c.a < .5){ won = true; snap = 0; AUD.found(); solved[si] = true; updateChips(); setTimeout(showWin, 650); }
-  if (won && snap < 1){ snap = Math.min(1, snap + dt * 1.6); const k = 1 - Math.pow(1 - snap, 3), vf = norm(sub(S.look, S.V));
-    cam.p = [lerp(cam.p[0], S.V[0], k), EYE, lerp(cam.p[2], S.V[2], k)];
-    const ty = Math.atan2(-vf[0], -vf[2]), tp = Math.asin(vf[1]); let dy = ty - cam.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
-    cam.ty = cam.yaw = cam.yaw + dy * k; cam.tp = cam.pitch = lerp(cam.pitch, tp, k); }
+  /* the hint: which way to turn */
+  if (!won){ const h = Math.abs(c.dy) > .06 ? (c.dy > 0 ? T({ en:"turn ←", ko:"← 돌리기" }) : T({ en:"turn →", ko:"돌리기 →" })) : "", v = Math.abs(c.dp) > .05 ? (c.dp > 0 ? T({ en:"from higher ↓", ko:"더 위에서 ↓" }) : T({ en:"from lower ↑", ko:"더 낮게 ↑" })) : "";
+    $("m-d").textContent = [h, v].filter(Boolean).join(" · ") || T({ en:"hold still", ko:"그대로" }); } else $("m-d").textContent = "";
+  /* close enough, and not being turned: draw it in */
+  if (!won && !dragging && c.ang < .055){ won = true; snap = 0; AUD.found(); solved[si] = true; updateChips(); setTimeout(showWin, 600); }
+  if (won && snap < 1){ snap = Math.min(1, snap + dt * 1.8); const k = 1 - Math.pow(1 - snap, 3);
+    view.yaw = view.ty = view.yaw + wrap(S.yaw - view.yaw) * k; view.pitch = view.tp = lerp(view.pitch, S.pitch, k); view.vy = view.vp = 0; }
+  /* a gentle pull in the last few degrees, once you let go */
+  if (!won && !dragging && c.ang < .14){ view.ty += wrap(S.yaw - view.ty) * dt * 2.2; view.tp += (S.pitch - view.tp) * dt * 2.2; }
 }
 function showWin(){
   $("w-k").textContent = T({ en:`Point of view ${si + 1} of 3`, ko:`시점 ${si + 1} / 3` });
   $("w-h").textContent = T(S.name);
-  $("w-p").textContent = T({ en:"Only from here do the pieces on the walls, floor and columns become one flat shape. Take one step and it breaks apart again.", ko:"오직 이 자리에서만 벽과 바닥, 기둥에 흩어진 조각이 하나의 평평한 도형이 돼요. 한 걸음만 움직여도 다시 흩어져요." });
-  const allDone = solved.every(Boolean);
-  $("w-next").textContent = allDone && si === 2 ? T({ en:"Start again", ko:"처음부터" }) : T({ en:"Next space", ko:"다음 공간" });
-  $("w-stay").textContent = T({ en:"Step away", ko:"한 걸음 물러서기" });
+  $("w-p").textContent = T({ en:"Only from this angle do the pieces on the walls, floor and columns become one flat shape. Turn it a little and it breaks apart again.", ko:"오직 이 각도에서만 벽과 바닥, 기둥에 흩어진 조각이 하나의 평평한 도형이 돼요. 조금만 돌려도 다시 흩어져요." });
+  $("w-next").textContent = solved.every(Boolean) && si === 2 ? T({ en:"Start again", ko:"처음부터" }) : T({ en:"Next model", ko:"다음 공간" });
+  $("w-stay").textContent = T({ en:"Turn it away", ko:"돌려서 흩뜨리기" });
   document.body.classList.add("won");
 }
 
 /* ==========================================================================
-   5. HANDS — drag to look; keys or the thumb-stick to walk
-   ========================================================================== */
-const ptr = { id:null, x:0, y:0 };
-cv.addEventListener("pointerdown", e => { AUD.unlock(); hideHint(); if (ptr.id !== null) return; ptr.id = e.pointerId; ptr.x = e.clientX; ptr.y = e.clientY; document.body.classList.add("looking"); try { cv.setPointerCapture(e.pointerId); } catch (_){} });
-cv.addEventListener("pointermove", e => { if (e.pointerId !== ptr.id) return; const dx = e.clientX - ptr.x, dy = e.clientY - ptr.y; ptr.x = e.clientX; ptr.y = e.clientY;
-  if (won && snap >= 1 && Math.hypot(dx, dy) > 3) leaveWin();
-  const k = (e.pointerType === "touch" ? .0062 : .0042); cam.ty += dx * k; cam.tp = clamp(cam.tp + dy * k, -1.1, 1.1); });
-const endPtr = (e) => { if (e.pointerId !== ptr.id) return; ptr.id = null; document.body.classList.remove("looking"); };
-cv.addEventListener("pointerup", endPtr); cv.addEventListener("pointercancel", endPtr);
-window.addEventListener("keydown", e => { const k = e.key.toLowerCase(); if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", "shift"].includes(k)){ keys[k] = true; e.preventDefault(); AUD.unlock(); hideHint(); if (won && snap >= 1 && k !== "shift") leaveWin(); }
-  if (e.key === "Escape") document.body.classList.remove("about"); });
-window.addEventListener("keyup", e => { keys[e.key.toLowerCase()] = false; });
-window.addEventListener("blur", () => { for (const k in keys) keys[k] = false; });
-/* the thumb-stick */
-const jb = $("joy"), jk = $("joy-k"); let jid = null;
-jb.addEventListener("pointerdown", e => { jid = e.pointerId; try { jb.setPointerCapture(e.pointerId); } catch (_){} jmove(e); AUD.unlock(); hideHint(); e.stopPropagation(); });
-jb.addEventListener("pointermove", e => { if (e.pointerId === jid) jmove(e); });
-const jend = (e) => { if (e.pointerId !== jid) return; jid = null; joy.x = joy.y = 0; jk.style.transform = ""; };
-jb.addEventListener("pointerup", jend); jb.addEventListener("pointercancel", jend);
-function jmove(e){ const r = jb.getBoundingClientRect(), x = (e.clientX - r.left - r.width / 2) / (r.width / 2), y = (e.clientY - r.top - r.height / 2) / (r.height / 2), m = Math.hypot(x, y), k = m > 1 ? 1 / m : 1;
-  joy.x = x * k; joy.y = y * k; jk.style.transform = `translate(${joy.x * 34}px,${joy.y * 34}px)`; if (won && snap >= 1 && m > .3) leaveWin(); }
-if (matchMedia("(pointer: coarse)").matches) document.body.classList.add("touch");
-window.addEventListener("touchstart", () => document.body.classList.add("touch"), { once:true, passive:true });
-function leaveWin(){ document.body.classList.remove("won"); won = false; snap = 0; }
-
-/* ==========================================================================
-   6. SOUND — a large quiet room; soft steps; a rising ping as the pieces
-      close; a bright chord when they meet
+   5. SOUND — the soft click of a turntable, a rising ping as the pieces
+      close, a bright chord when they meet
    ========================================================================== */
 const AUD = (() => {
   let ctx = null, master = null, white = null, on = true, borrowed = false, amb = null;
@@ -439,12 +429,12 @@ const AUD = (() => {
   function tone(tt, f, dur, g){ const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = f; const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(g, tt + .01); a.gain.exponentialRampToValueAtTime(.0001, tt + dur); o.connect(a); a.connect(master); o.start(tt); o.stop(tt + dur + .05); }
   function start(){ if (amb || !ensure() || ctx.state !== "running") return;
     const s = ctx.createBufferSource(); s.buffer = white; s.loop = true; const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 2600; f.Q.value = .4;
-    const g = ctx.createGain(); g.gain.value = .008; s.connect(f); f.connect(g); g.connect(master); s.start(); amb = { s }; }
+    const g = ctx.createGain(); g.gain.value = .006; s.connect(f); f.connect(g); g.connect(master); s.start(); amb = { s }; }
   return {
     unlock(){ if (ensure()){ if (ctx.state !== "running") ctx.resume().then(start).catch(() => {}); else start(); } },
     get on(){ return on; }, set on(v){ on = v; if (master) master.gain.setTargetAtTime(v ? .85 : 0, ctx.currentTime, .05); },
     stop(){ if (!ctx) return; if (amb) try { amb.s.stop(); } catch (_){} amb = null; try { master.disconnect(); } catch (_){} if (!borrowed) try { ctx.close(); } catch (_){} },
-    step(){ if (!ok()) return; const tt = ctx.currentTime; burst(tt, .05, 1500 + Math.random() * 600, 1.5, .03); burst(tt + .01, .025, 3800, 2, .012); },
+    tick(){ if (!ok()) return; burst(ctx.currentTime, .018, 3200 + Math.random() * 800, 4, .025); },
     ping(b){ if (!ok()) return; const tt = ctx.currentTime, f = [0, 880, 1109, 1319][b] || 880; tone(tt, f, .35, .03); },
     found(){ if (!ok()) return; const tt = ctx.currentTime; [1047, 1319, 1568, 2093].forEach((f, i) => tone(tt + i * .09, f, 1.4 - i * .15, .04)); burst(tt, .4, 5200, .8, .02); },
     click(){ if (!ok()) return; burst(ctx.currentTime, .02, 3600, 3, .05); },
@@ -452,40 +442,47 @@ const AUD = (() => {
 })();
 
 /* ==========================================================================
-   7. RENDER
+   6. RENDER
    ========================================================================== */
 let W = 0, H = 0, DPR = 1;
+const BG = [.663, .714, .698];
 function layout(){
   DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
-  const budget = W <= 760 ? 1100000 : 2600000, sc = Math.min(1, Math.sqrt(budget / (W * H * DPR * DPR)));
+  const budget = W <= 760 ? 1200000 : 2800000, sc = Math.min(1, Math.sqrt(budget / (W * H * DPR * DPR)));
   cv.width = Math.round(W * DPR * sc); cv.height = Math.round(H * DPR * sc);
   document.documentElement.style.setProperty("--hint-y", Math.round(($("bar").getBoundingClientRect().top || H - 72) - 26) + "px");
 }
 function render(t){
   gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, cv.width, cv.height);
-  gl.clearColor(.91, .9, .89, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
-  const a = W / H, fy = (a < .8 ? 78 : 66) * Math.PI / 180;
-  const VP = mm4(persp(fy, a, .05, 150), lookAt(cam.p, add(cam.p, fwd())));
+  gl.clearColor(BG[0], BG[1], BG[2], 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  const a = W / H, eye = eyeOf(S, view.yaw, view.pitch);
+  /* a tall screen sees the same angle, just with more room above and below */
+  let fy = view.fov * Math.PI / 180; if (a < 1) fy = 2 * Math.atan(Math.tan(fy * 1.22 / 2) / a);
+  const VP = mm4(persp(fy, a, .5, 220), lookAt(eye, S.C));
   gl.useProgram(P.main.p); bindMesh(); const u = P.main.u;
   gl.uniformMatrix4fv(u.uVP, false, VP); gl.uniformMatrix4fv(u.uVV, false, VV);
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, depTex); gl.uniform1i(u.uDep, 0);
-  gl.uniform3fv(u.uV, S.V); gl.uniform3fv(u.uCam, cam.p); gl.uniform3fv(u.uCol, S.color); gl.uniform3fv(u.uSun, norm(S.out ? [.45, .8, .35] : [.3, 1, .45]));
-  gl.uniform1f(u.uShape, S.shape); gl.uniform1f(u.uWin, won ? .5 + .5 * Math.sin(t * 3) : 0); gl.uniform1f(u.uClue, clueOn); gl.uniform1f(u.uOut, S.out ? 1 : 0); gl.uniform1f(u.uT, t);
+  gl.uniform3fv(u.uV, Vpos); gl.uniform3fv(u.uCam, eye); gl.uniform3fv(u.uCutEye, eye); gl.uniform3fv(u.uC, S.C); gl.uniform3fv(u.uCol, S.color); gl.uniform3fv(u.uSun, norm([.45, 1, .3])); gl.uniform3fv(u.uBg, BG);
+  gl.uniform1f(u.uShape, S.shape); gl.uniform1f(u.uWin, won ? .5 + .5 * Math.sin(t * 3) : 0); gl.uniform1f(u.uClue, clueOn); gl.uniform1f(u.uT, t); gl.uniform1f(u.uVyaw, S.yaw);
   gl.drawArrays(gl.TRIANGLES, 0, mesh.n);
 }
 let last = performance.now(), t = 0;
 function frame(now){
   requestAnimationFrame(frame);
   const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt;
-  move(dt);
-  const k = Math.min(1, dt * 12); let dy = cam.ty - cam.yaw; cam.yaw += dy * k; cam.pitch += (cam.tp - cam.pitch) * k;
-  check(dt);
+  if (idle) view.ty += dt * .18;                                            /* it turns slowly by itself until you take hold */
+  if (keys.arrowleft || keys.a) view.ty += dt * 1.4; if (keys.arrowright || keys.d) view.ty -= dt * 1.4;
+  if (keys.arrowup || keys.w) view.tp = clamp(view.tp + dt * .9, PMIN, PMAX); if (keys.arrowdown || keys.s) view.tp = clamp(view.tp - dt * .9, PMIN, PMAX);
+  if (!dragging && !won){ view.ty += view.vy * dt; view.tp = clamp(view.tp + view.vp * dt, PMIN, PMAX); const f = Math.exp(-dt * 3.2); view.vy *= f; view.vp *= f; }
+  const k = Math.min(1, dt * 14); view.yaw += (view.ty - view.yaw) * k; view.pitch += (view.tp - view.pitch) * k; view.fov += (view.tf - view.fov) * Math.min(1, dt * 8);
+  if (!idle) check(dt); else { $("m-f").style.width = "0%"; $("m-p").textContent = "0%"; $("m-w").textContent = T({ en:"Take hold and turn it", ko:"잡고 돌려 보세요" }); }
   clueOn = lerp(clueOn, $("clue").getAttribute("aria-pressed") === "true" ? 1 : 0, Math.min(1, dt * 4));
   render(t);
 }
 
 /* ==========================================================================
-   8. UI
+   7. UI
    ========================================================================== */
 let hintT = 0, hintAt = 0;
 function hint(s, brief){ const h = $("hint"); h.textContent = s; h.classList.remove("off"); hintAt = performance.now(); clearTimeout(hintT); hintT = setTimeout(() => h.classList.add("off"), brief ? 3600 : 7000); }
@@ -494,43 +491,43 @@ function siteLight(on){ try { if (window.parent !== window){ const ex = window.p
 function updateChips(){ document.querySelectorAll("#bar [data-s]").forEach(b => { const i = +b.dataset.s; b.setAttribute("aria-pressed", String(i === si)); b.classList.toggle("done", solved[i]); }); }
 document.querySelectorAll("#bar [data-s]").forEach(b => { const i = +b.dataset.s; b.querySelector(".lb").textContent = T(SCENES[i].name);
   b.onclick = () => { AUD.unlock(); AUD.click(); if (i !== si){ loadScene(i); sceneHint(); } }; });
-function sceneHint(){ hint(T({ en:`${T(SCENES[si].place)} — walk until the ${si === 0 ? "red" : si === 1 ? "yellow" : "orange"} pieces join into one shape`, ko:`${T(SCENES[si].place)} — ${si === 0 ? "빨간" : si === 1 ? "노란" : "주황"} 조각들이 하나의 도형으로 맞춰지는 자리를 찾아 걸어 보세요` })); }
-$("w-next").onclick = () => { AUD.click(); const n = (si + 1) % 3; loadScene(n); sceneHint(); };
-$("w-stay").onclick = () => { AUD.click(); leaveWin(); cam.p = [cam.p[0] + Math.cos(cam.yaw) * .9, EYE, cam.p[2] - Math.sin(cam.yaw) * .9]; if (blocked(cam.p[0], cam.p[2])) cam.p = S.V.slice(); };
-$("clue").onclick = () => { AUD.unlock(); AUD.click(); const on = $("clue").getAttribute("aria-pressed") !== "true"; $("clue").setAttribute("aria-pressed", String(on));
-  if (on) hint(T({ en:"Footprints on the floor mark where to stand", ko:"바닥의 발자국이 서야 할 자리예요" }), true); };
+function sceneHint(){ hint(T({ en:`${T(SCENES[si].place)} — drag to turn it until the ${si === 0 ? "red" : si === 1 ? "yellow" : "orange"} pieces join into one shape`, ko:`${T(SCENES[si].place)} — 드래그로 돌려서 ${si === 0 ? "빨간" : si === 1 ? "노란" : "주황"} 조각이 하나의 도형이 되는 각도를 찾아보세요` })); }
+$("w-next").onclick = () => { AUD.click(); loadScene((si + 1) % 3); sceneHint(); };
+$("w-stay").onclick = () => { AUD.click(); leaveWin(); view.vy = 1.6; idle = false; };
+$("clue").onclick = () => { AUD.unlock(); AUD.click(); const on = $("clue").getAttribute("aria-pressed") !== "true"; $("clue").setAttribute("aria-pressed", String(on)); document.body.classList.toggle("clue", on);
+  if (on) hint(T({ en:"The mark on the base shows the side to look from; the meter says which way to turn", ko:"받침대의 표시가 바라볼 방향이에요. 미터가 돌릴 방향을 알려 줘요" }), true); };
 $("snd").onclick = () => { AUD.unlock(); AUD.on = !AUD.on; $("snd").setAttribute("aria-pressed", String(AUD.on)); };
 $("info").onclick = () => document.body.classList.toggle("about");
 $("about-x").onclick = () => document.body.classList.remove("about");
-$("clue").setAttribute("aria-label", T({ en:"Show where to stand", ko:"서야 할 자리 보기" })); $("snd").setAttribute("aria-label", T({ en:"Sound", ko:"소리" })); $("info").setAttribute("aria-label", T({ en:"About the work", ko:"작품 설명" }));
+$("clue").setAttribute("aria-label", T({ en:"Which way to look from", ko:"바라볼 방향 힌트" })); $("snd").setAttribute("aria-label", T({ en:"Sound", ko:"소리" })); $("info").setAttribute("aria-label", T({ en:"About the work", ko:"작품 설명" }));
 $("t-h").textContent = T({ en:"Point of View — after Felice Varini", ko:"착시 회화 연작" });
 $("t-p").textContent = T({ en:"Felice Varini · 1979– · paint on architecture", ko:"펠리체 바리니 · 1979– · 건축 위에 칠한 페인트" });
 $("ab-tag").textContent = T({ en:"Felice Varini · since 1979", ko:"펠리체 바리니 · 1979–" });
 $("ab-h").textContent = T({ en:"One point of view", ko:"단 하나의 시점" });
 $("ab-p1").textContent = T({ en:"The Swiss painter Felice Varini paints on buildings, rooms and whole streets. He chooses one point of view — usually at his own eye height, somewhere people pass — and projects a simple shape from it across everything in sight: walls, floors, columns, roofs. Then he paints only what the projection covers.",
   ko:"스위스 화가 펠리체 바리니는 건물과 방, 거리 전체에 그림을 그려요. 사람들이 지나다니는 곳에서 자기 눈높이쯤의 시점 하나를 고르고, 그 자리에서 단순한 도형을 벽과 바닥, 기둥, 지붕 위로 비춘 다음, 비친 부분만 칠해요." });
-$("ab-p2").textContent = T({ en:"From that one spot the painting is a perfect circle, square or ellipse floating flat in front of you. From anywhere else it falls apart into bent, scattered pieces — and those pieces are the painting too. In 2018 he hung yellow concentric circles across the ramparts of Carcassonne.",
-  ko:"그 한 자리에서는 완벽한 원, 사각형, 타원이 눈앞에 평평하게 떠 있어요. 다른 곳에서 보면 휘어지고 흩어진 조각이 되죠. 그 조각들 또한 작품이에요. 2018년에는 프랑스 카르카손 성벽에 노란 동심원을 그리기도 했어요." });
+$("ab-p2").textContent = T({ en:"From that one spot the painting is a perfect circle, square or ellipse floating flat in front of you. From anywhere else it falls apart into bent, scattered pieces — and those pieces are the painting too. Here each space is a small model you can turn in your hands.",
+  ko:"그 한 자리에서는 완벽한 원, 사각형, 타원이 눈앞에 평평하게 떠 있어요. 다른 곳에서 보면 휘어지고 흩어진 조각이 되죠. 그 조각들 또한 작품이에요. 여기서는 공간을 손에 든 작은 모형처럼 돌려 볼 수 있어요." });
 $("ab-h3").textContent = T({ en:"Try", ko:"해 보기" });
-[{ en:"Walk with W A S D or the arrow keys (on a phone, the stick); drag to look around.", ko:"W A S D나 방향키로 걷고(휴대폰은 조이스틱), 드래그해 둘러보세요." },
- { en:"Watch the meter at the top: the closer you are to the point of view, the more the shape closes.", ko:"위의 미터를 보세요. 시점에 가까워질수록 도형이 맞춰져요." },
- { en:"Stand on the spot and the pieces lock into one flat shape.", ko:"정확한 자리에 서면 조각들이 하나의 평평한 도형으로 딱 맞춰져요." },
- { en:"Stuck? The footprints button marks the spot on the floor.", ko:"막히면 발자국 버튼으로 바닥에 자리를 표시할 수 있어요." }]
+[{ en:"Drag to turn the model all the way round, and up and down to look from higher or lower. Scroll or pinch to look closer.", ko:"드래그해 모형을 360도 돌리고, 위아래로 끌어 높이를 바꿔 보세요. 스크롤이나 두 손가락으로 확대할 수 있어요." },
+ { en:"The walls on your side are cut away, so you can always see in.", ko:"내 쪽을 향한 벽은 잘려 나가서 언제나 안을 들여다볼 수 있어요." },
+ { en:"Watch the meter: the closer the angle, the more the pieces close. Hold it there and it locks.", ko:"미터를 보세요. 각도가 가까울수록 조각이 맞춰지고, 그 자리에 두면 딱 맞춰져요." },
+ { en:"Stuck? The compass button marks the side to look from and says which way to turn.", ko:"막히면 나침반 버튼이 바라볼 방향을 받침대에 표시하고 돌릴 방향을 알려 줘요." }]
  .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); $("ab-ol").appendChild(li); });
 
 /* ==========================================================================
-   9. START
+   8. START
    ========================================================================== */
 layout();
-if (!initGL()){ $("nogl").style.display = "grid"; $("nogl").textContent = T({ en:"These rooms need WebGL, which this browser has turned off.", ko:"이 공간은 WebGL이 필요한데, 이 브라우저에서 꺼져 있어요." }); }
+if (!initGL()){ $("nogl").style.display = "grid"; $("nogl").textContent = T({ en:"These models need WebGL, which this browser has turned off.", ko:"이 모형은 WebGL이 필요한데, 이 브라우저에서 꺼져 있어요." }); }
 else { loadScene(0); requestAnimationFrame(frame); sceneHint(); }
 siteLight(true);
 window.addEventListener("resize", layout);
 ["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
 window.addEventListener("pagehide", () => AUD.stop());
 AUD.unlock(); setTimeout(() => AUD.unlock(), 150);
-window.__va = { cam, loadScene, get S(){ return S; }, get won(){ return won; }, closeness, solved, render:() => render(t),
-  goV(off){ const vf = norm(sub(S.look, S.V)); cam.p = [S.V[0] + (off || 0), EYE, S.V[2]]; cam.yaw = cam.ty = Math.atan2(-vf[0], -vf[2]); cam.pitch = cam.tp = Math.asin(vf[1]); } };
+window.__va = { view, loadScene, get S(){ return S; }, get won(){ return won; }, closeness, solved, render:() => render(t),
+  set idle(v){ idle = v; }, goV(dy, dp){ idle = false; view.yaw = view.ty = S.yaw + (dy || 0); view.pitch = view.tp = S.pitch + (dp || 0); view.vy = view.vp = 0; } };
 </script>
 </body>
 </html>
