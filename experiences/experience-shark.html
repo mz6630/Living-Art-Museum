@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Shark in Lines — Living Art Museum</title>
-<meta name="description" content="A tiger shark drawn only in lines, kept in a three-bay tank with its eyes open. It moves only while you drag — a real scanimation film, vertical line engraving, loose tapered strokes, sonar. Hold your hand in front of its mouth. Leave it, and it rots. An experience from the Living Art Museum.">
+<meta name="description" content="A tiger shark kept in a three-bay tank with its eyes open. It moves only while you drag — a real scanimation film, loose tapered strokes, sonar. Hold your hand in front of its mouth. Leave it, and it rots. An experience from the Living Art Museum.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -597,7 +597,7 @@ const SH = { x:0, y:0, len:100, ang:0, sx:1, dir:1, turning:false, phase:.6, A:.
 const STYLES = ["lines", "slits", "taper", "rings"];
 const STYLE_BASE = { lines:5.2, slits:5, taper:10, rings:8 };       /* base spacing, px */
 const STYLE_DENS = { lines:.1, slits:.25, taper:.62, rings:.55 };   /* each style's own feel: dense … loose */
-let style = "lines", state = "kept", dens = .1;
+let style = "slits", state = "kept", dens = .25;
 const MIXS = { alive:0, kept:1, decay:0 };
 let decay = 0, t = 0, waveT = 0;
 const film = { x:0, y:0, v:0 };
@@ -980,7 +980,7 @@ let hintT = 0, hintAt = 0;
 function hint(s, brief){ const h = $("hint"); h.textContent = s; h.classList.remove("off"); hintAt = performance.now(); clearTimeout(hintT); hintT = setTimeout(() => h.classList.add("off"), brief ? 3600 : 6500); }
 function hideHint(){ if (performance.now() - hintAt > 1800) $("hint").classList.add("off"); }
 function buildUI(){
-  STYLES.forEach(s => { const b = document.createElement("button"); b.className = "chip"; b.dataset.s = s; b.setAttribute("aria-pressed", String(s === style));
+  STYLES.filter(s => s !== "lines").forEach(s => { const b = document.createElement("button"); b.className = "chip"; b.dataset.s = s; b.setAttribute("aria-pressed", String(s === style));
     b.innerHTML = `<svg class="ico" viewBox="0 0 24 24">${STYLE_UI[s].ic}</svg><span class="lb">${T(STYLE_UI[s])}</span>`; b.title = T(STYLE_UI[s]); b.setAttribute("aria-label", T(STYLE_UI[s]));
     b.onclick = () => { AUD.unlock(); setStyle(s); }; $("styles").appendChild(b); });
   ["kept", "alive", "decay"].forEach(s => { const b = document.createElement("button"); b.className = "chip st"; b.dataset.s = s; b.setAttribute("aria-pressed", String(s === state));
@@ -1023,7 +1023,7 @@ $("ab-h3").textContent = T({ en:"Try", ko:"해 보기" });
 /* ==========================================================================
    10. START
    ========================================================================== */
-buildPictures(); buildUI(); setStyle("lines", true); layout(); plaque(); clock(); setInterval(clock, 1000); gazeOpen();
+buildPictures(); buildUI(); setStyle("slits", true); layout(); plaque(); clock(); setInterval(clock, 1000); gazeOpen();
 document.addEventListener("visibilitychange", () => { gazeTick(); if (document.hidden) gazeSave(true); });
 window.addEventListener("pagehide", () => { gazeTick(); gazeSave(true); mirrorOff(); });
 if (!initGL()){ $("nogl").style.display = "grid"; $("nogl").textContent = T({ en:"This room needs WebGL, which this browser has turned off.", ko:"이 전시실은 WebGL이 필요한데, 이 브라우저에서 꺼져 있어요." }); }
@@ -1034,7 +1034,7 @@ window.addEventListener("pagehide", () => AUD.stop());
 window.addEventListener("keydown", e => { const k = e.key; if (k >= "1" && k <= "4") setStyle(STYLES[+k - 1]);
   if (k === "k") setState("kept"); if (k === "a") setState("alive"); if (k === "d") setState("decay"); if (k === "Escape") document.body.classList.remove("about"); });
 AUD.unlock(); setTimeout(() => AUD.unlock(), 150);
-hint(T({ en:"Kept, eyes open. Drag across the tank to lend it life", ko:"눈을 뜬 채 박제된 상어예요. 수조를 드래그해 숨을 불어넣어 보세요" }));
+hint(T({ en:"Kept, eyes open. Drag the film sideways — the shark moves only while you do", ko:"눈을 뜬 채 박제된 상어예요. 필름을 옆으로 드래그하세요 — 당신이 움직일 때만 상어가 움직여요" }));
 requestAnimationFrame(frame);
 window.__shark = { gapeNow, setStyle, setState, SH, tank, ptr, film, lunge, lend, HEART, GAZE, MIR, mirrorOn, mirrorOff, gazeAll, get style(){ return style; }, get state(){ return state; }, get decay(){ return decay; },
   setDens:(v) => { dens = v; $("dens").value = Math.round(v * 100); }, pose, zoomNow,
