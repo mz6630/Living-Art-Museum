@@ -278,7 +278,6 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
   outline:1px solid rgba(0,0,0,.08);box-shadow:0 30px 70px -40px rgba(0,0,0,.5);transition:opacity .18s linear;}
 .pane svg{width:100%;height:100%;display:block;}
 .pane img.ph{width:100%;height:100%;display:block;object-fit:contain;}
-.pane.photo .inner{opacity:1;mix-blend-mode:normal;outline:none;box-shadow:0 1px 2px rgba(0,0,0,.08), 0 24px 60px -34px rgba(0,0,0,.45);}
 .pane canvas{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .18s linear;}
 .pane.snap .inner, .pane.snap canvas{animation:snap .34s cubic-bezier(.2,.9,.2,1);}
 @keyframes snap{
@@ -1626,25 +1625,24 @@ function paneCaption(){
   $("pcaption").textContent = LANG === "ko" ? `작품 ${n}점 · 전시실 ${r}곳` : `${n} works · ${r} rooms`;
 }
 
-/* one even height for every work, each at its own proportions, hung in a row with equal gaps */
-const paneH = () => PHONE() ? Math.min(window.innerWidth * 0.6, 270) : Math.min(window.innerHeight * 0.4, window.innerWidth * 0.24, 360);
+/* the original row of glass panes, overlapping and receding — each pane now at its photo's own shape */
+const paneH = () => PHONE() ? Math.min(window.innerWidth * 0.62, 280) : Math.min(window.innerHeight * 0.52, window.innerWidth * 0.31, 440);
 let paneSpan = 0;
 function placePanes(){
-  const H = paneH(), gap = H * 0.16;
+  const H = paneH(), f = PHONE() ? 0.5 : 0.62;      /* how far along each pane steps: the rest overlaps the next */
   const ws = panes.map(el => H * (+el.dataset.ar || 0.75));
-  const total = ws.reduce((a, w) => a + w, 0) + gap * (panes.length - 1);
-  const step = total / Math.max(1, panes.length - 1);
-  let x = -total / 2;
+  const cs = []; let c = 0;
+  ws.forEach((w, i) => { if (i) c += (ws[i - 1] + w) / 2 * f; cs.push(c); });
+  const mid = c / 2, step = c / Math.max(1, panes.length - 1);
   panes.forEach((el, i) => {
-    const w = ws[i], cx = x + w / 2, k = cx / step;
-    x += w + gap;
+    const w = ws[i], cx = cs[i] - mid, k = cx / (step || 1);
     el.style.width = w + "px"; el.style.height = H + "px";
     el.style.transition = "opacity .35s var(--ease)";
     el.dataset.x = String(cx);
-    el.style.transform = `translate3d(${cx - w / 2}px, ${k * 4 - H / 2}px, ${-Math.abs(k) * 18}px) rotateY(-12deg)`;
+    el.style.transform = `translate3d(${cx - w / 2}px, ${k * 6 - H / 2}px, ${-Math.abs(k) * 26}px) rotateY(-14deg)`;
     el.style.zIndex = String(50 - Math.abs(Math.round(k)));
   });
-  paneSpan = total;
+  paneSpan = c;
 }
 window.addEventListener("resize", () => { if (panes.length && !entering) placePanes(); });
 
@@ -1688,47 +1686,55 @@ function digitise(el, index, p){
     }
   }
   cvp.style.opacity = "1";
-  el.querySelector(".inner").style.opacity = String(Math.max(0, (P ? 1 : 0.86) - p * 1.1));
+  el.querySelector(".inner").style.opacity = String(Math.max(0, 0.86 - p * 1.1));
 }
 
 /* the whole transition, start to finish — fast, and it never stops moving */
 async function runTransition(){
-  const row = prow, N = panes.length;
-  const travel = paneSpan || Math.min(window.innerWidth * 0.17, 240) * (N - 1);
+  const row = prow, N = panes.length, W = window.innerWidth;
+  const T = paneSpan || Math.min(W * 0.17, 240) * (N - 1);
+  const x0 = T * 0.46, x1 = -T * 0.52;          /* ends with the last work in the middle */
 
   /* 1 — the works snap in from the right */
   row.style.transition = "none";
-  row.style.transform = `translate3d(${travel * 0.46}px, 0, -60px)`;
+  row.style.transform = `translate3d(${x0}px, 0, -60px)`;
   panes.forEach((el, i) => setTimeout(() => { el.style.opacity = "1"; }, reduce ? 0 : 32 * i));
   await wait(reduce ? 40 : 420); if (skipped) return;
 
-  /* 2 — the row accelerates past the camera */
-  const driftMs = reduce ? 160 : 4600;
-  row.style.transition = `transform ${driftMs}ms cubic-bezier(.32,0,.72,1)`;
-  row.style.transform = `translate3d(${-travel * 0.58}px, 0, 460px) rotateY(2deg)`;
-
-  /* 3 — each work is read and rewritten as 0s and 1s on its way through */
-  await wait(reduce ? 20 : 260); if (skipped) return;
-  $("pcaption").textContent = t("panes.read");
-  const stepMs = reduce ? 4 : 150, morphMs = reduce ? 16 : 380;
-  panes.forEach((el, i) => {
-    setTimeout(() => {
-      el.classList.add("snap");
-      setTimeout(() => el.classList.remove("snap"), 440);
-      const t0 = performance.now();
-      const tick = () => {
-        const p = Math.min(1, (performance.now() - t0) / morphMs);
-        digitise(el, i, p);
-        if (p < 1) requestAnimationFrame(tick);
-      };
-      tick();
-      if (i === 2){ $("s-panes").classList.add("digital"); $("pcaption").textContent = "0 1 0 1 1 0 0 1"; }
-      if (i === Math.floor(N * 0.62)) $("pcaption").textContent = t("panes.enter");
-    }, i * stepMs);
+  /* 2 — the row glides past the camera at the pace of the first version (about half a screen a second),
+         3 — and each work is rewritten as 0s and 1s as it reaches the middle */
+  const driftMs = reduce ? 200 : Math.max(3400, Math.min(6200, (x0 - x1) / (W * (PHONE() ? 0.62 : 0.46)) * 1000));
+  const morphMs = reduce ? 16 : 380;
+  const ease = (u) => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+  const started = new Array(N).fill(false);
+  let count = 0, handed = false;
+  const read = (i) => {
+    if (started[i]) return; started[i] = true; count++;
+    const el = panes[i];
+    el.classList.add("snap"); setTimeout(() => el.classList.remove("snap"), 440);
+    const t0 = performance.now();
+    const tick = () => { const p = Math.min(1, (performance.now() - t0) / morphMs); digitise(el, i, p); if (p < 1 && !skipped) requestAnimationFrame(tick); };
+    tick();
+    if (count === 1) $("pcaption").textContent = t("panes.read");
+    if (count === 3){ $("s-panes").classList.add("digital"); $("pcaption").textContent = "0 1 0 1 1 0 0 1"; }
+    if (count === Math.floor(N * 0.62)) $("pcaption").textContent = t("panes.enter");
+  };
+  const t0 = performance.now();
+  await new Promise((done) => {
+    const frame = () => {
+      if (skipped) return done();
+      const u = Math.min(1, (performance.now() - t0) / driftMs), e = ease(u);
+      const rx = x0 + (x1 - x0) * e;
+      row.style.transform = `translate3d(${rx}px, 0, ${-60 + 520 * e}px) rotateY(${2 * e}deg)`;
+      /* a work is read once its middle comes within a little of the centre of the screen */
+      panes.forEach((el, i) => { if (!started[i] && rx + (+el.dataset.x) < W * (PHONE() ? 0.42 : 0.26)) for (let j = 0; j <= i; j++) read(j); });
+      if (u > 0.74) panes.forEach((el, i) => read(i));              /* nobody is left unread */
+      if (!handed && u > 0.86){ handed = true; enterSpace(); }      /* the panes dissolve forward, into the room */
+      if (u < 1) requestAnimationFrame(frame); else done();
+    };
+    requestAnimationFrame(frame);
   });
-
-  await wait(reduce ? 80 : stepMs * N + morphMs + 120); if (skipped) return;
-  enterSpace();
+  if (!handed && !skipped) enterSpace();
 }
 
 /* ==========================================================================
