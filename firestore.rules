@@ -67,10 +67,11 @@ service cloud.firestore {
                     && str(d().f[0], 40000);
       allow update, delete: if false;
     }
-    // ---- Pulse Room: one heartbeat per visit (beats a minute and when), added, never edited ----
+    // ---- Pulse Room: one heartbeat per visit (beats a minute, when, and an optional name), added, never edited ----
     match /pulseRoom/{id} {
       allow read: if true;
-      allow create: if d().keys().hasOnly(['b', 't']) && d().b is number && d().b >= 35 && d().b <= 200 && d().t is number;
+      allow create: if d().keys().hasOnly(['b', 't', 'n']) && d().b is number && d().b >= 35 && d().b <= 200 && d().t is number
+                    && (!('n' in d()) || str(d().n, 16));
       allow update, delete: if false;
     }
     // where the binder, magazine, mug and oilsticks were left

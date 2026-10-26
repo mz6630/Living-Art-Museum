@@ -57,6 +57,7 @@ body.embedded #count{top:calc(70px + env(safe-area-inset-top,0px));}
 #hint.off{opacity:0;}
 #tip{position:fixed;z-index:9;padding:6px 10px;border-radius:10px;font-size:11.5px;pointer-events:none;white-space:nowrap;display:none;transform:translate(-50%,-130%);}
 #tip b{font-family:"JetBrains Mono",monospace;font-weight:500;}
+#tip .nm{display:block;font-family:var(--serif);font-size:14px;font-weight:600;color:var(--ink);margin-bottom:2px;}
 
 /* giving a pulse */
 #give{position:fixed;inset:0;z-index:30;display:none;place-items:center;background:rgba(0,0,0,.55);}
@@ -64,7 +65,12 @@ body.giving #give{display:grid;}
 #give .box{width:min(420px,calc(100% - 24px));border-radius:24px;padding:18px;text-align:center;}
 #give h2{font-family:var(--serif);font-size:19px;font-weight:600;}
 #give .sub{font-size:12.5px;color:var(--ink-dim);margin-top:6px;line-height:1.55;}
-#give .ways{display:flex;gap:6px;margin-top:14px;}
+#give .name{display:flex;align-items:center;gap:10px;margin-top:14px;padding:4px 4px 4px 14px;border-radius:14px;border:1px solid var(--glass-line);background:rgba(255,255,255,.04);text-align:left;}
+#give .name span{font-size:12px;color:var(--ink-dim);white-space:nowrap;}
+#give .name input{flex:1;min-width:0;font:inherit;font-size:14px;color:var(--ink);background:none;border:0;outline:0;padding:8px 6px;-webkit-user-select:text;user-select:text;}
+#give .name input::placeholder{color:var(--ink-faint);}
+#give .name:focus-within{border-color:rgba(255,180,90,.6);}
+#give .ways{display:flex;gap:6px;margin-top:10px;}
 #give .ways .chip{flex:1;justify-content:center;border:1px solid var(--glass-line);}
 #sensor{position:relative;margin:16px auto 0;width:200px;height:200px;border-radius:50%;display:grid;place-items:center;touch-action:none;cursor:pointer;}
 #sensor canvas{position:absolute;inset:0;width:100%;height:100%;}
@@ -124,6 +130,7 @@ html[lang="ko"] #about .tag,html[lang="ko"] #count{letter-spacing:.02em;}
   <div class="box glass">
     <h2 id="g-h"></h2>
     <p class="sub" id="g-sub"></p>
+    <label class="name"><span id="n-l"></span><input id="g-name" type="text" maxlength="16" autocomplete="off" spellcheck="false"></label>
     <div class="ways"><button class="chip" id="w-cam" aria-pressed="false"></button><button class="chip" id="w-tap" aria-pressed="true"></button></div>
     <div id="sensor"><canvas id="ring"></canvas><video id="vid" playsinline muted></video><div><span class="bpm" id="g-bpm">—</span><span class="u">BPM</span></div></div>
     <canvas id="wave"></canvas>
@@ -182,8 +189,8 @@ function assign(shift){
   /* when a new pulse arrives, the room goes dark for a moment and everything moves one bulb along */
   if (shift){ dark = 1; wave = 0; }
   for (let i = 0; i < NB; i++){ const p = list[i], b = bulbs[i];
-    if (p){ if (b.id !== p.id){ b.bpm = p.b; b.id = p.id; b.t = p.t; b.ph = (p.t % 997) / 997; b.mine = myIds.has(p.id); } }
-    else { b.bpm = 0; b.id = null; b.mine = false; } }
+    if (p){ if (b.id !== p.id){ b.bpm = p.b; b.id = p.id; b.t = p.t; b.n = p.n || ""; b.ph = (p.t % 997) / 997; b.mine = myIds.has(p.id); } }
+    else { b.bpm = 0; b.id = null; b.mine = false; b.n = ""; } }
   PULSES = list;
   const n = list.length;
   $("count").innerHTML = T({ en:`<b>${n}</b> heartbeat${n === 1 ? "" : "s"} in the room · <b>${NB}</b> bulbs`, ko:`방 안의 심장 박동 <b>${n}</b> · 전구 <b>${NB}</b>개` });
@@ -272,7 +279,6 @@ function render(){
       for (let s = 0; s <= 8; s++){ const xx = p[0] - r * .32 + s / 8 * r * .64, yy = p[1] - r * .05 + (s % 2 ? -1 : 1) * r * .12; s ? g.lineTo(xx, yy) : g.moveTo(xx, yy); } g.stroke(); }
     /* the halo */
     if (l > .05){ g.globalCompositeOperation = "lighter"; const hr = r * (3 + l * 9); g.globalAlpha = Math.min(1, l * 1.1); g.drawImage(halo, p[0] - hr, p[1] - hr, hr * 2, hr * 2); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; }
-    if (b.mine){ g.strokeStyle = `rgba(255,90,74,${.5 + .5 * Math.sin(t * 3)})`; g.lineWidth = 1.5; g.beginPath(); g.arc(p[0], p[1] - r * .1, r * 2.1 + 4, 0, 7); g.stroke(); }
     if (i === hovB){ g.strokeStyle = "rgba(255,240,220,.7)"; g.lineWidth = 1; g.beginPath(); g.arc(p[0], p[1] - r * .1, r * 1.7 + 3, 0, 7); g.stroke(); }
     b.sx = p[0]; b.sy = p[1]; b.sr = r;
   }
@@ -294,7 +300,11 @@ function setHover(i, x, y){
   hovB = i; const tip = $("tip");
   if (i < 0){ tip.style.display = "none"; return; }
   const b = bulbs[i]; tip.style.display = "block"; tip.style.left = x + "px"; tip.style.top = y + "px";
-  tip.innerHTML = b.bpm ? `<b>${b.bpm}</b> BPM · ${b.mine ? T({ en:"yours", ko:"나의 박동" }) : T({ en:`bulb ${i + 1}`, ko:`${i + 1}번째 전구` })} · ${ago(b.t)}` : T({ en:"waiting for a heartbeat", ko:"박동을 기다리는 전구" });
+  tip.textContent = "";
+  if (!b.bpm){ tip.textContent = T({ en:"waiting for a heartbeat", ko:"박동을 기다리는 전구" }); return; }
+  if (b.n){ const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = b.n; tip.appendChild(nm); }
+  const bb = document.createElement("b"); bb.textContent = b.bpm; tip.appendChild(bb);
+  tip.appendChild(document.createTextNode(` BPM · ${b.mine ? T({ en:"yours", ko:"나의 박동" }) : T({ en:`bulb ${i + 1}`, ko:`${i + 1}번째 전구` })} · ${ago(b.t)}`));
 }
 function ago(ts){ const s = (Date.now() - ts) / 1000; if (s < 60) return T({ en:"just now", ko:"방금" }); const m = s / 60; if (m < 60) return T({ en:`${m | 0} min ago`, ko:`${m | 0}분 전` });
   const h = m / 60; if (h < 48) return T({ en:`${h | 0} h ago`, ko:`${h | 0}시간 전` }); return T({ en:`${(h / 24) | 0} days ago`, ko:`${(h / 24) | 0}일 전` }); }
@@ -323,7 +333,7 @@ function tap(){ if (GV.way !== "tap") return; const now = performance.now(); AUD
     if (b >= 40 && b <= 180){ setBpm(b); state(T({ en:`${b} beats a minute — keep tapping to refine it, or give it to the room.`, ko:`1분에 ${b}번 — 계속 두드리면 더 정확해져요. 준비되면 방에 보내세요.` })); } }
   else state(T({ en:`${Math.max(0, 6 - GV.taps.length)} more…`, ko:`${Math.max(0, 6 - GV.taps.length)}번 더…` })); }
 $("sensor").addEventListener("pointerdown", e => { e.preventDefault(); tap(); });
-window.addEventListener("keydown", e => { if (e.key === " " && document.body.classList.contains("giving")){ e.preventDefault(); tap(); } if (e.key === "Escape"){ closeGive(); document.body.classList.remove("about"); } });
+window.addEventListener("keydown", e => { if (e.key === " " && document.body.classList.contains("giving") && document.activeElement !== $("g-name")){ e.preventDefault(); tap(); } if (e.key === "Escape"){ closeGive(); document.body.classList.remove("about"); } });
 /* the camera: the red channel's rise and fall */
 async function startCam(){
   state(T({ en:"Cover the back camera (and its light) gently with a fingertip. Hold still.", ko:"후면 카메라와 플래시를 손끝으로 살짝 덮고 가만히 있어 주세요." }));
@@ -380,9 +390,11 @@ function drawGive(){
   else { const now = performance.now(); for (let x = 0; x <= ww; x += 2){ const tm = now - (1 - x / ww) * 4000; let v = 0; for (const tp of GV.taps){ const d = (tm - tp) / 1000; if (d >= 0 && d < .5) v = Math.max(v, Math.exp(-d * 14)); } const y = hh / 2 - v * hh * .42; x ? p.lineTo(x, y) : p.moveTo(x, y); } }
   p.stroke(); flash = Math.max(0, flash - .05);
 }
+const cleanName = (s) => String(s || "").replace(/[\u0000-\u001f<>]/g, "").replace(/\s+/g, " ").trim().slice(0, 16);
 async function giveIt(){
   const b = GV.bpm; if (!b) return; closeGive();
-  const rec = { b, t:Date.now() }; let id = "me-" + Date.now().toString(36), shared = false;
+  const nm = cleanName($("g-name").value); try { localStorage.setItem(LKEY + ".name", nm); } catch (_){}
+  const rec = nm ? { b, t:Date.now(), n:nm } : { b, t:Date.now() }; let id = "me-" + Date.now().toString(36), shared = false;
   await openStore();
   if (store.db){ try { const ref = store.db.collection(COL).doc(); await ref.set(rec); id = ref.id; shared = true; } catch (_){} }
   myIds.add(id); try { localStorage.setItem(LKEY + ".mine", JSON.stringify([...myIds].slice(-20))); } catch (_){}
@@ -401,7 +413,7 @@ async function openStore(){
   if (store.tried) return; store.tried = true;
   try { const api = window.claude || (window.parent !== window && window.parent.claude); if (api && api.use) store.db = await api.use("db"); } catch (_){ store.db = null; }
   if (!store.db) return;
-  const onDocs = (sn) => { const fresh = sn.docs.map(d => ({ id:d.id, ...(d.data() || {}) })).filter(p => typeof p.b === "number" && p.b >= 35 && p.b <= 200 && typeof p.t === "number");
+  const onDocs = (sn) => { const fresh = sn.docs.map(d => ({ id:d.id, ...(d.data() || {}) })).map(p => ({ ...p, n:typeof p.n === "string" ? cleanName(p.n) : "" })).filter(p => typeof p.b === "number" && p.b >= 35 && p.b <= 200 && typeof p.t === "number");
     const before = PULSES[0] && PULSES[0].id; sharedP = fresh; const after = mergeP()[0];
     assign(!!before && after && after.id !== before && !myIds.has(after.id)); };
   try { store.db.collection(COL).orderBy("t", "desc").limit(NB).onSnapshot(onDocs, () => { try { store.db.collection(COL).limit(NB * 2).onSnapshot(onDocs, () => {}); } catch (_){} }); }
@@ -467,8 +479,11 @@ $("w-cam").textContent = T({ en:"Fingertip on camera", ko:"카메라에 손끝" 
 $("w-cam").onclick = () => { AUD.unlock(); setWay("cam"); }; $("w-tap").onclick = () => { AUD.unlock(); setWay("tap"); };
 $("g-h").textContent = T({ en:"Give your pulse", ko:"내 맥박 보내기" });
 $("g-sub").textContent = T({ en:"Your heartbeat will light the first bulb. Every heartbeat already here moves one bulb along, and the oldest goes out.", ko:"당신의 심장 박동이 첫 번째 전구를 밝혀요. 이미 있던 박동은 모두 한 칸씩 밀려나고, 가장 오래된 박동은 꺼져요." });
+$("n-l").textContent = T({ en:"Your name", ko:"이름" }); $("g-name").placeholder = T({ en:"optional — shown on your bulb", ko:"선택 — 내 전구에 표시돼요" });
+try { $("g-name").value = localStorage.getItem(LKEY + ".name") || ""; } catch (_){}
+$("g-name").addEventListener("keydown", e => e.stopPropagation());
 $("g-go").textContent = T({ en:"Send it to the room", ko:"방으로 보내기" }); $("g-x").textContent = T({ en:"Not now", ko:"다음에" });
-$("g-note").textContent = T({ en:"Only the number of beats a minute is kept — no picture, no name. The camera's image never leaves your device.", ko:"1분당 박동 수만 저장돼요 — 사진도 이름도 남지 않아요. 카메라 영상은 기기 밖으로 나가지 않아요." });
+$("g-note").textContent = T({ en:"Only the beats a minute — and a name, if you write one — are kept, and every visitor can see them. The camera's image never leaves your device.", ko:"1분당 박동 수와, 적었다면 이름만 저장되고 모든 방문객에게 보여요. 카메라 영상은 기기 밖으로 나가지 않아요." });
 $("g-go").onclick = giveIt; $("g-x").onclick = closeGive;
 $("snd").onclick = () => { AUD.unlock(); AUD.on = !AUD.on; $("snd").setAttribute("aria-pressed", String(AUD.on)); };
 $("info").onclick = () => document.body.classList.toggle("about");
