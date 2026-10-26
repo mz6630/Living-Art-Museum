@@ -277,7 +277,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 .pane .inner{position:absolute;inset:0;overflow:hidden;opacity:.86;mix-blend-mode:multiply;
   outline:1px solid rgba(0,0,0,.08);box-shadow:0 30px 70px -40px rgba(0,0,0,.5);transition:opacity .18s linear;}
 .pane svg{width:100%;height:100%;display:block;}
-.pane img.ph{width:100%;height:100%;display:block;object-fit:cover;background:#fff;}
+.pane img.ph{width:100%;height:100%;display:block;object-fit:contain;}
+.pane.photo .inner{opacity:1;mix-blend-mode:normal;outline:none;box-shadow:0 1px 2px rgba(0,0,0,.08), 0 24px 60px -34px rgba(0,0,0,.45);}
 .pane canvas{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .18s linear;}
 .pane.snap .inner, .pane.snap canvas{animation:snap .34s cubic-bezier(.2,.9,.2,1);}
 @keyframes snap{
@@ -1570,63 +1571,49 @@ async function launch(){
    and the character space.
    ========================================================================== */
 const prow = $("prow");
-const CELLS_X = 22, CELLS_Y = 29;                 /* glyph grid inside one pane */
+const CELLS_Y = 30;                               /* glyph rows in a pane; columns follow the photo's shape */
 let panes = [], entering = false, PANE_W = [];
-const PANE_RGB = [];                              /* each work's photo, sampled down to the glyph grid */
+const PANE_RGB = [];                              /* each work's photo, sampled down to its glyph grid */
 
 /* the works that open the museum: everything on show except the prototypes */
 const introWorks = () => SHOW.filter(w => w && !PROTO.has(w.id));
+const paneCols = (el) => Math.max(8, Math.round(CELLS_Y * (+el.dataset.ar || 0.75)));
 
-/* read a representative photo into CELLS_X × CELLS_Y colours (cover-cropped, like the pane) */
-function samplePhoto(i, src, pos){
-  const im = new Image();
-  im.onload = () => {
-    const sx = CELLS_X * 4, sy = CELLS_Y * 4;
-    const a = document.createElement("canvas"); a.width = sx; a.height = sy;
-    const g = a.getContext("2d"); g.imageSmoothingQuality = "high";
-    const k = Math.max(sx / im.width, sy / im.height), dw = im.width * k, dh = im.height * k;
-    const py = /30%/.test(pos || "") ? 0.3 : 0.5;
-    g.drawImage(im, (sx - dw) / 2, (sy - dh) * py, dw, dh);
-    let d; try { d = g.getImageData(0, 0, sx, sy).data; } catch (e){ return; }
-    const out = new Float32Array(CELLS_X * CELLS_Y * 3);
-    for (let y = 0; y < CELLS_Y; y++) for (let x = 0; x < CELLS_X; x++){
-      let r = 0, gg = 0, b = 0;
-      for (let v = 0; v < 4; v++) for (let u = 0; u < 4; u++){ const o = ((y * 4 + v) * sx + x * 4 + u) * 4; r += d[o]; gg += d[o + 1]; b += d[o + 2]; }
-      const o = (y * CELLS_X + x) * 3; out[o] = r / 16; out[o + 1] = gg / 16; out[o + 2] = b / 16;
-    }
-    PANE_RGB[i] = out;
-  };
-  im.src = src;
+/* read the whole photo (nothing cropped) into one colour per glyph cell */
+function samplePhoto(i, im, el){
+  const cx = paneCols(el), cy = CELLS_Y, sx = cx * 4, sy = cy * 4;
+  const a = document.createElement("canvas"); a.width = sx; a.height = sy;
+  const g = a.getContext("2d"); g.imageSmoothingQuality = "high";
+  g.drawImage(im, 0, 0, sx, sy);
+  let d; try { d = g.getImageData(0, 0, sx, sy).data; } catch (e){ return; }
+  const out = new Float32Array(cx * cy * 3);
+  for (let y = 0; y < cy; y++) for (let x = 0; x < cx; x++){
+    let r = 0, gg = 0, b = 0;
+    for (let v = 0; v < 4; v++) for (let u = 0; u < 4; u++){ const o = ((y * 4 + v) * sx + x * 4 + u) * 4; r += d[o]; gg += d[o + 1]; b += d[o + 2]; }
+    const o = (y * cx + x) * 3; out[o] = r / 16; out[o + 1] = gg / 16; out[o + 2] = b / 16;
+  }
+  PANE_RGB[i] = out;
 }
-
-/* the same motifs art() draws, sampled as brightness so a work can be written in glyphs */
-function artCell(index, u, v){
-  const m = index % 7, r = rng(index + 11);
-  let b = 0.18;
-  if (m === 0){ const g = 9; const cx = (Math.floor(u*g)+0.5)/g, cy = (Math.floor(v*g)+0.5)/g;
-    const d = Math.hypot(u-cx, v-cy)*g; const rr = 0.35+0.65*Math.abs(Math.sin(cx*9+cy*7+index));
-    b = d < rr*0.52 ? 0.95 : 0.2; }
-  if (m === 1){ b = 0.25 + 0.7*Math.abs(Math.sin(v*11 + index)); }
-  if (m === 2){ const d = Math.hypot(u-0.5, v-0.45)*2.2; b = 0.25 + 0.7*Math.abs(Math.sin(d*7 - index)); }
-  if (m === 3){ b = ((u+v)*9 % 1) < 0.45 ? 0.85 : 0.22; if (u>0.18&&u<0.82&&v>0.26&&v<0.74) b = Math.max(b,0.6); }
-  if (m === 4){ b = 0.2; for (let k=0;k<5;k++){ const x0=r(), y0=r(), w=0.18+r()*0.4, h=0.12+r()*0.36;
-      if (u>x0&&u<x0+w&&v>y0&&v<y0+h) b = 0.55 + 0.4*((k%2)?1:0); } }
-  if (m === 5){ const n = 6; b = ((u*n) % 1) < 0.62 ? 0.9 : 0.2; }
-  if (m === 6){ b = 0.22 + 0.72*Math.abs(Math.sin(u*17+index) * Math.sin(v*13-index)); }
-  return Math.max(0.05, Math.min(1, b * (1 - v*0.25)));
-}
-
 function buildPanes(){
   if (panes.length) return;
   prow.innerHTML = "";
   PANE_W = introWorks();
   panes = PANE_W.map((w, i) => {
     const el = document.createElement("div");
-    el.className = "pane";
     const src = PHOTO[w.id];
-    if (src) samplePhoto(i, src, PHOTO_POS[w.id]);
-    const face = src ? `<img class="ph" alt="" src="${src}" style="object-position:${PHOTO_POS[w.id] || "center"}">` : art(i);
-    el.innerHTML = `<span class="inner">${face}</span><canvas></canvas><span class="clip"><span class="scan"></span></span><span class="cap">${String(i+1).padStart(2,"0")} ${loc(w).title}</span>`;
+    el.className = src ? "pane photo" : "pane";
+    el.dataset.ar = "0.75";
+    el.innerHTML = `<span class="inner">${src ? `<img class="ph" alt="" src="${src}">` : art(i)}</span><canvas></canvas><span class="clip"><span class="scan"></span></span><span class="cap">${String(i+1).padStart(2,"0")} ${loc(w).title}</span>`;
+    if (src){
+      const im = el.querySelector("img");
+      const fit = () => {
+        if (!im.naturalWidth) return;
+        el.dataset.ar = String(Math.max(0.55, Math.min(1.8, im.naturalWidth / im.naturalHeight)));
+        samplePhoto(i, im, el);
+        if (!entering) placePanes();
+      };
+      if (im.complete) fit(); else im.addEventListener("load", fit, { once:true });
+    }
     prow.appendChild(el);
     return el;
   });
@@ -1639,15 +1626,25 @@ function paneCaption(){
   $("pcaption").textContent = LANG === "ko" ? `작품 ${n}점 · 전시실 ${r}곳` : `${n} works · ${r} rooms`;
 }
 
-/* a long horizontal row, receding slightly to the right */
+/* one even height for every work, each at its own proportions, hung in a row with equal gaps */
+const paneH = () => PHONE() ? Math.min(window.innerWidth * 0.6, 270) : Math.min(window.innerHeight * 0.4, window.innerWidth * 0.24, 360);
+let paneSpan = 0;
 function placePanes(){
-  const W = window.innerWidth, gap = Math.min(W * 0.17, 240);
+  const H = paneH(), gap = H * 0.16;
+  const ws = panes.map(el => H * (+el.dataset.ar || 0.75));
+  const total = ws.reduce((a, w) => a + w, 0) + gap * (panes.length - 1);
+  const step = total / Math.max(1, panes.length - 1);
+  let x = -total / 2;
   panes.forEach((el, i) => {
-    const k = i - (panes.length - 1) / 2;
-    el.dataset.x = String(k * gap);
-    el.style.transform = `translate3d(calc(${k * gap}px - 50%), calc(${k * 6}px - 50%), ${-Math.abs(k) * 26}px) rotateY(-14deg)`;
+    const w = ws[i], cx = x + w / 2, k = cx / step;
+    x += w + gap;
+    el.style.width = w + "px"; el.style.height = H + "px";
+    el.style.transition = "opacity .35s var(--ease)";
+    el.dataset.x = String(cx);
+    el.style.transform = `translate3d(${cx - w / 2}px, ${k * 4 - H / 2}px, ${-Math.abs(k) * 18}px) rotateY(-12deg)`;
     el.style.zIndex = String(50 - Math.abs(Math.round(k)));
   });
+  paneSpan = total;
 }
 window.addEventListener("resize", () => { if (panes.length && !entering) placePanes(); });
 
@@ -1657,48 +1654,47 @@ function digitise(el, index, p){
   const w = el.clientWidth, h = el.clientHeight;
   if (!w || !h) return;
   const d = Math.min(window.devicePixelRatio || 1, 2);
-  if (cvp.width !== Math.round(w*d)){ cvp.width = Math.round(w*d); cvp.height = Math.round(h*d); }
+  if (cvp.width !== Math.round(w*d) || cvp.height !== Math.round(h*d)){ cvp.width = Math.round(w*d); cvp.height = Math.round(h*d); }
   const g = cvp.getContext("2d");
   g.setTransform(d, 0, 0, d, 0, 0);
   g.clearRect(0, 0, w, h);
-  const cw = w / CELLS_X, ch = h / CELLS_Y;
-  g.font = `${Math.round(ch * 0.92)}px "JetBrains Mono", monospace`;
-  g.textBaseline = "top";
-  for (let y = 0; y < CELLS_Y; y++){
-    for (let x = 0; x < CELLS_X; x++){
+  const P = PANE_RGB[index], CX = P ? paneCols(el) : 22, CY = P ? CELLS_Y : 29;
+  const cw = w / CX, ch = h / CY;
+  g.font = `${Math.round(Math.min(ch, cw * 1.6) * 0.9)}px "JetBrains Mono", monospace`;
+  g.textBaseline = "middle"; g.textAlign = "center";
+  for (let y = 0; y < CY; y++){
+    for (let x = 0; x < CX; x++){
       /* cells flip in a diagonal wave, with a little noise */
-      const wave = (x / CELLS_X) * 0.55 + (y / CELLS_Y) * 0.25 + hash(x + index * 7, y) * 0.3;
+      const wave = (x / CX) * 0.55 + (y / CY) * 0.25 + hash(x + index * 7, y) * 0.3;
       if (wave > p) continue;
-      const P = PANE_RGB[index];
       if (P){                                        /* the work's own photo, written in glyphs and its own colours */
-        const o = (y * CELLS_X + x) * 3, r = P[o], gg = P[o + 1], bb = P[o + 2];
+        const o = (y * CX + x) * 3, r = P[o], gg = P[o + 1], bb = P[o + 2];
         const L = (0.299 * r + 0.587 * gg + 0.114 * bb) / 255;
-        const t = Math.max(1, Math.min(GLYPHS.length - 1, Math.round((0.12 + L * 0.95) * (GLYPHS.length - 1))));
-        const f = 0.5 + L * 0.3;
-        g.fillStyle = `rgb(${r * f | 0},${gg * f | 0},${bb * f | 0})`; g.fillRect(x * cw, y * ch, cw + .5, ch + .5);
-        g.fillStyle = L > 0.72 ? `rgb(${r * .42 | 0},${gg * .42 | 0},${bb * .42 | 0})`
-                               : `rgb(${r + (255 - r) * .55 | 0},${gg + (255 - gg) * .55 | 0},${bb + (255 - bb) * .55 | 0})`;
-        g.fillText(GLYPHS[t], x * cw, y * ch);
+        const t = Math.max(1, Math.min(GLYPHS.length - 1, Math.round((0.1 + L * 0.9) * (GLYPHS.length - 1))));
+        const f = 0.62 + L * 0.2;
+        g.fillStyle = `rgb(${r * f | 0},${gg * f | 0},${bb * f | 0})`; g.fillRect(x * cw, y * ch, cw + .6, ch + .6);
+        g.fillStyle = L > 0.6 ? `rgba(${r * .35 | 0},${gg * .35 | 0},${bb * .35 | 0},.85)`
+                              : `rgba(${r + (255 - r) * .6 | 0},${gg + (255 - gg) * .6 | 0},${bb + (255 - bb) * .6 | 0},.9)`;
+        g.fillText(GLYPHS[t], x * cw + cw / 2, y * ch + ch / 2 + .5);
         continue;
       }
-      const b = artCell(index, (x + 0.5) / CELLS_X, (y + 0.5) / CELLS_Y);
+      const b = artCell(index, (x + 0.5) / CX, (y + 0.5) / CY);
       let t = Math.max(1, Math.min(GLYPHS.length - 1, Math.round(b * (GLYPHS.length - 1) * 1.1)));
       if (t >= 5 && t <= 7) t = hash(x + index, y + index) > 0.5 ? 5 : 6;
       const tier = Math.min(TIERS - 1, Math.round((t / (GLYPHS.length - 1)) * (TIERS - 1)));
       const fam = [4, 0, 1, 2, 7][index % 5];
       g.fillStyle = TILE[fam][tier]; g.fillRect(x * cw, y * ch, cw, ch);
-      g.fillStyle = INK[fam][tier];  g.fillText(GLYPHS[t], x * cw, y * ch);
+      g.fillStyle = INK[fam][tier];  g.fillText(GLYPHS[t], x * cw + cw / 2, y * ch + ch / 2 + .5);
     }
   }
   cvp.style.opacity = "1";
-  el.querySelector(".inner").style.opacity = String(Math.max(0, 0.86 - p * 1.1));
+  el.querySelector(".inner").style.opacity = String(Math.max(0, (P ? 1 : 0.86) - p * 1.1));
 }
 
 /* the whole transition, start to finish — fast, and it never stops moving */
 async function runTransition(){
   const row = prow, N = panes.length;
-  const W = window.innerWidth, gap = Math.min(W * 0.17, 240);
-  const travel = gap * (N - 1);
+  const travel = paneSpan || Math.min(window.innerWidth * 0.17, 240) * (N - 1);
 
   /* 1 — the works snap in from the right */
   row.style.transition = "none";
@@ -1707,14 +1703,14 @@ async function runTransition(){
   await wait(reduce ? 40 : 420); if (skipped) return;
 
   /* 2 — the row accelerates past the camera */
-  const driftMs = reduce ? 160 : 3400;
+  const driftMs = reduce ? 160 : 4600;
   row.style.transition = `transform ${driftMs}ms cubic-bezier(.32,0,.72,1)`;
   row.style.transform = `translate3d(${-travel * 0.58}px, 0, 460px) rotateY(2deg)`;
 
   /* 3 — each work is read and rewritten as 0s and 1s on its way through */
   await wait(reduce ? 20 : 260); if (skipped) return;
   $("pcaption").textContent = t("panes.read");
-  const stepMs = reduce ? 4 : 115, morphMs = reduce ? 16 : 360;
+  const stepMs = reduce ? 4 : 150, morphMs = reduce ? 16 : 380;
   panes.forEach((el, i) => {
     setTimeout(() => {
       el.classList.add("snap");
