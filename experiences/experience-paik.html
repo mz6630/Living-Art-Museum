@@ -143,6 +143,32 @@ html[lang="ko"] #about .tag{letter-spacing:.04em;}
 </section>
 
 <script>
+/* ---- the museum's shared store: this page's own, or the museum's when shown inside it.
+   Every body is rebuilt in the window that owns the store, so it reads as that window's own
+   plain object (an object made in this frame is refused there), and a store that is still
+   starting up is waited for. ---- */
+async function LAMDB(){
+  const wins = () => { const w = [window]; try { if (window.parent && window.parent !== window) w.push(window.parent); } catch (_){} return w; };
+  for (let k = 0; k < 4; k++){
+    for (const R of wins()){
+      try { if (R.claude && typeof R.claude.use === "function"){ const db = await R.claude.use("db"); if (db) return LAMWRAP(db, R); } } catch (_){}
+    }
+    await new Promise(r => setTimeout(r, 900 * (k + 1)));
+  }
+  return null;
+}
+function LAMWRAP(db, R){
+  const P = (o) => R.JSON.parse(JSON.stringify(o));
+  const A = (v) => (v && typeof v === "object") ? P(v) : v;
+  const Q = (q) => ({
+    where:(f, op, v) => Q(q.where(f, op, A(v))), orderBy:(f, d) => Q(d ? q.orderBy(f, d) : q.orderBy(f)), limit:(n) => Q(q.limit(n)),
+    get:() => q.get(), onSnapshot:(a, b) => q.onSnapshot(a, b) });
+  const D = (r) => ({ id:r.id, path:r.path, get:() => r.get(), set:(d) => r.set(P(d)), update:(d) => r.update(P(d)), delete:() => r.delete(),
+    onSnapshot:(a, b) => r.onSnapshot(a, b), collection:(s) => C(r.collection(s)) });
+  const C = (c) => Object.assign(Q(c), { path:c.path, doc:(id) => D(id ? c.doc(id) : c.doc()), add:(d) => c.add(P(d)).then(D) });
+  return { collection:(p) => C(db.collection(p)), doc:(p) => D(db.doc(p)) };
+}
+
 "use strict";
 /* ==========================================================================
    0. BASICS
@@ -682,7 +708,7 @@ async function putOnAir(shared){
 }
 async function openStore(){
   if (store.tried) return; store.tried = true;
-  try { const api = window.claude || (window.parent !== window && window.parent.claude); if (api && api.use) store.db = await api.use("db"); } catch (_){ store.db = null; }
+  try { store.db = await LAMDB(); } catch (_){ store.db = null; }
   if (!store.db) return;
   let first = true;
   const onDocs = async (sn) => {

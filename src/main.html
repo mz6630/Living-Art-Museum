@@ -1625,24 +1625,20 @@ function paneCaption(){
   $("pcaption").textContent = LANG === "ko" ? `작품 ${n}점 · 전시실 ${r}곳` : `${n} works · ${r} rooms`;
 }
 
-/* the original row of glass panes, overlapping and receding — each pane now at its photo's own shape */
-const paneH = () => PHONE() ? Math.min(window.innerWidth * 0.62, 280) : Math.min(window.innerHeight * 0.52, window.innerWidth * 0.31, 440);
+/* the first version's row of glass panes — same step, same recession — each pane at its photo's own shape */
+const paneH = () => PHONE() ? Math.min(window.innerWidth * 0.68, 300) : Math.min(window.innerWidth * 0.3, window.innerHeight * 0.5, 410);
 let paneSpan = 0;
 function placePanes(){
-  const H = paneH(), f = PHONE() ? 0.5 : 0.62;      /* how far along each pane steps: the rest overlaps the next */
-  const ws = panes.map(el => H * (+el.dataset.ar || 0.75));
-  const cs = []; let c = 0;
-  ws.forEach((w, i) => { if (i) c += (ws[i - 1] + w) / 2 * f; cs.push(c); });
-  const mid = c / 2, step = c / Math.max(1, panes.length - 1);
+  const H = paneH(), gap = PHONE() ? window.innerWidth * 0.34 : Math.min(window.innerWidth * 0.17, 240);
   panes.forEach((el, i) => {
-    const w = ws[i], cx = cs[i] - mid, k = cx / (step || 1);
+    const w = H * (+el.dataset.ar || 0.75), k = i - (panes.length - 1) / 2, cx = k * gap;
     el.style.width = w + "px"; el.style.height = H + "px";
     el.style.transition = "opacity .35s var(--ease)";
     el.dataset.x = String(cx);
     el.style.transform = `translate3d(${cx - w / 2}px, ${k * 6 - H / 2}px, ${-Math.abs(k) * 26}px) rotateY(-14deg)`;
     el.style.zIndex = String(50 - Math.abs(Math.round(k)));
   });
-  paneSpan = c;
+  paneSpan = gap * (panes.length - 1);
 }
 window.addEventListener("resize", () => { if (panes.length && !entering) placePanes(); });
 
@@ -1693,7 +1689,7 @@ function digitise(el, index, p){
 async function runTransition(){
   const row = prow, N = panes.length, W = window.innerWidth;
   const T = paneSpan || Math.min(W * 0.17, 240) * (N - 1);
-  const x0 = T * 0.46, x1 = -T * 0.52;          /* ends with the last work in the middle */
+  const x0 = T * 0.46, x1 = -T * 0.5;           /* the row comes to rest with the last work in the middle */
 
   /* 1 — the works snap in from the right */
   row.style.transition = "none";
@@ -1703,13 +1699,13 @@ async function runTransition(){
 
   /* 2 — the row glides past the camera at the pace of the first version (about half a screen a second),
          3 — and each work is rewritten as 0s and 1s as it reaches the middle */
-  const driftMs = reduce ? 200 : Math.max(3400, Math.min(6200, (x0 - x1) / (W * (PHONE() ? 0.62 : 0.46)) * 1000));
-  const morphMs = reduce ? 16 : 380;
+  const driftMs = reduce ? 200 : 3400;
+  const morphMs = reduce ? 16 : 330;
   const ease = (u) => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
   const started = new Array(N).fill(false);
-  let count = 0, handed = false;
+  let count = 0, handed = false, lastRead = 0;
   const read = (i) => {
-    if (started[i]) return; started[i] = true; count++;
+    if (started[i]) return; started[i] = true; count++; lastRead = performance.now();
     const el = panes[i];
     el.classList.add("snap"); setTimeout(() => el.classList.remove("snap"), 440);
     const t0 = performance.now();
@@ -1727,14 +1723,14 @@ async function runTransition(){
       const rx = x0 + (x1 - x0) * e;
       row.style.transform = `translate3d(${rx}px, 0, ${-60 + 520 * e}px) rotateY(${2 * e}deg)`;
       /* a work is read once its middle comes within a little of the centre of the screen */
-      panes.forEach((el, i) => { if (!started[i] && rx + (+el.dataset.x) < W * (PHONE() ? 0.42 : 0.26)) for (let j = 0; j <= i; j++) read(j); });
-      if (u > 0.74) panes.forEach((el, i) => read(i));              /* nobody is left unread */
-      if (!handed && u > 0.86){ handed = true; enterSpace(); }      /* the panes dissolve forward, into the room */
+      panes.forEach((el, i) => { if (!started[i] && rx + (+el.dataset.x) < W * (PHONE() ? 0.3 : 0.2)) for (let j = 0; j <= i; j++) read(j); });
+      if (u > 0.86) panes.forEach((el, i) => read(i));              /* nobody is left unread */
+      if (!handed && u > 0.8 && performance.now() - lastRead > morphMs + 60){ handed = true; enterSpace(true); }   /* the glyphs spread out into the room */
       if (u < 1) requestAnimationFrame(frame); else done();
     };
     requestAnimationFrame(frame);
   });
-  if (!handed && !skipped) enterSpace();
+  if (!handed && !skipped) enterSpace(true);
 }
 
 /* ==========================================================================
@@ -1941,7 +1937,8 @@ let BULBS3 = [], PULSE_G = { start:1e9, g:new Int16Array(0) }, BEAT3 = new Float
 /* a heartbeat as light: a quick bright rise, a smaller second one, the filament's fade */
 const beat3 = (ph) => Math.min(1, Math.exp(-ph * 11) * (ph < .015 ? ph / .015 : 1) + (ph > .28 ? Math.exp(-(ph - .28) * 13) * .62 : 0));
 /* the bulbs take the latest real heartbeats left in the Pulse Room, when the shared room is reachable */
-(async () => { try { const api = window.claude; if (!api || !api.use) return; const db = await api.use("db"); if (!db) return;
+(async () => { try { let api = null; for (let k = 0; k < 6 && !(api = window.claude); k++) await new Promise(r => setTimeout(r, 800 * (k + 1)));   /* hosted elsewhere, the store arrives a moment later */
+  if (!api || !api.use) return; const db = await api.use("db"); if (!db) return;
   db.collection("pulseRoom").orderBy("t", "desc").limit(25).onSnapshot(sn => { const L = sn.docs.map(d => d.data()).filter(p => p && typeof p.b === "number");
     L.forEach((p, i) => { if (BULBS3[i]){ BULBS3[i].bpm = p.b; BULBS3[i].ph = (p.t % 997) / 997; } }); }, () => {}); } catch (_){} })();
 function buildWorld(){
@@ -2793,16 +2790,66 @@ function openExperience(w){
 }
 
 /* ---- entering the space ---- */
-async function enterSpace(){
+/* the hand-off: every pane breaks into its glyphs, and they spread out behind, landing on the room's own grid */
+function scatterPanes(){
+  const W = window.innerWidth, H = window.innerHeight, d = Math.min(window.devicePixelRatio || 1, 2);
+  const cv2 = document.createElement("canvas");
+  cv2.style.cssText = "position:fixed;inset:0;width:100%;height:100%;z-index:40;pointer-events:none;";
+  cv2.width = Math.round(W * d); cv2.height = Math.round(H * d); document.body.appendChild(cv2);
+  const g = cv2.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0);
+  const cwR = CELL_W, chR = CELL_H, ps = [];
+  panes.forEach((el, i) => {
+    const P = PANE_RGB[i], rc = el.getBoundingClientRect(); if (!P || rc.right < -40 || rc.left > W + 40) return;
+    const CX = paneCols(el), CY = CELLS_Y, sw = rc.width / CX, sh = rc.height / CY;
+    const stride = Math.max(1, Math.round(Math.sqrt(CX * CY / 300)));
+    for (let y = 0; y < CY; y += stride) for (let x = 0; x < CX; x += stride){
+      const o = (y * CX + x) * 3, r = P[o], gg = P[o + 1], bb = P[o + 2], L = (0.299 * r + 0.587 * gg + 0.114 * bb) / 255;
+      const sx = rc.left + (x + .5) * sw, sy = rc.top + (y + .5) * sh;
+      const ang = Math.atan2(sy - H * .48, sx - W * .5) + (Math.random() - .5) * 1.4, far = (0.25 + Math.random() * 0.75) * Math.hypot(W, H) * .55;
+      const tx = Math.floor(Math.min(W - 1, Math.max(0, sx + Math.cos(ang) * far)) / cwR) * cwR + cwR / 2;
+      const ty = Math.floor(Math.min(H - 1, Math.max(0, sy + Math.sin(ang) * far)) / chR) * chR + chR / 2;
+      ps.push({ sx, sy, tx, ty, s0:Math.max(sw, sh) * stride, r, g:gg, b:bb, L, ch:GLYPHS[Math.max(1, Math.min(GLYPHS.length - 1, Math.round((0.1 + L * 0.9) * (GLYPHS.length - 1))))], dl:Math.random() * 0.22 });
+    }
+  });
+  panes.forEach(el => { el.style.transition = "none"; el.style.opacity = "0"; });
+  const T0 = performance.now(), DUR = 1150;
+  const outE = (u) => 1 - Math.pow(1 - u, 3);
+  const frame = () => {
+    const u = (performance.now() - T0) / DUR;
+    g.clearRect(0, 0, W, H);
+    if (u >= 1){ cv2.remove(); return; }
+    g.textAlign = "center"; g.textBaseline = "middle";
+    const fs = ps.length ? Math.max(7, (ps[0].s0 + (cwR - ps[0].s0) * outE(Math.min(1, u))) * 1.05) | 0 : 10;
+    g.font = `${fs}px "JetBrains Mono", monospace`;
+    for (const p of ps){
+      const v = Math.max(0, Math.min(1, (u - p.dl) / (1 - p.dl))), e = outE(v);
+      const x = p.sx + (p.tx - p.sx) * e, y = p.sy + (p.ty - p.sy) * e, sz = p.s0 + (cwR - p.s0) * e;
+      const a = v < .55 ? 1 : Math.max(0, 1 - (v - .55) / .45);
+      const f = 0.62 + p.L * 0.2;
+      g.globalAlpha = a;
+      g.fillStyle = `rgb(${p.r * f | 0},${p.g * f | 0},${p.b * f | 0})`; g.fillRect(x - sz / 2, y - sz * chR / cwR / 2, sz, sz * chR / cwR);
+      g.fillStyle = p.L > .6 ? `rgb(${p.r * .35 | 0},${p.g * .35 | 0},${p.b * .35 | 0})` : `rgb(${p.r + (255 - p.r) * .6 | 0},${p.g + (255 - p.g) * .6 | 0},${p.b + (255 - p.b) * .6 | 0})`;
+      g.fillText(p.ch, x, y + .5);
+    }
+    g.globalAlpha = 1;
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
+async function enterSpace(scatter){
   if (entering || scene === "space") return;
   entering = true;
-  /* the panes dissolve on the spot; the glyphs keep going in the space behind */
-  panes.forEach(el => {
-    el.style.transition = "opacity .45s linear, transform .7s var(--ease)";
-    el.style.transform = el.style.transform + " translateZ(260px)";
-    el.style.opacity = "0";
-  });
-  await wait(reduce ? 30 : 300);
+  if (scatter === true && !reduce && panes.length){ scatterPanes(); await wait(260); }
+  else {
+    /* skipped: the panes simply dissolve on the spot */
+    panes.forEach(el => {
+      el.style.transition = "opacity .45s linear, transform .7s var(--ease)";
+      el.style.transform = el.style.transform + " translateZ(260px)";
+      el.style.opacity = "0";
+    });
+    await wait(reduce ? 30 : 300);
+  }
   show("space");
   sizeGrid();
   if (!OBJ.n) buildWorld();
