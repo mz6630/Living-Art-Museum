@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Pulse Room — Living Art Museum</title>
+<meta name="description" content="A dark room of hanging light bulbs, each one flashing with the heartbeat of a visitor. Give your pulse — a fingertip on your phone's camera, or tap along with your heart — and it lights the first bulb, pushing everyone else's one bulb along. After Rafael Lozano-Hemmer's Pulse Room (2006), from the Living Art Museum.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--serif:Fraunces,"Noto Serif KR",Georgia,serif;}
+html[lang="ko"]{--serif:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;}
+/* ==========================================================================
+   PULSE ROOM — after Rafael Lozano-Hemmer (2006).
+   Rows of bare bulbs hang in the dark. Each one flashes with a heartbeat
+   someone left here. Give yours: it goes to the first bulb, and every other
+   heartbeat moves one bulb along; the oldest goes out.
+   ========================================================================== */
+:root{
+  --ink:#f3ede2; --ink-dim:rgba(243,237,226,.66); --ink-faint:rgba(243,237,226,.4);
+  --glass-a:rgba(255,255,255,.1); --glass-b:rgba(255,255,255,.04); --glass-line:rgba(255,255,255,.13);
+  --chip-on:rgba(255,246,230,.94); --chip-on-ink:#120d08; --accent:#ffb45a; --red:#ff5a4a;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+[hidden]{display:none !important;}
+html,body{height:100%;}
+body{background:#050403;color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px;}
+.glass{background:linear-gradient(180deg,var(--glass-a),var(--glass-b));backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);
+  border:1px solid var(--glass-line);box-shadow:0 24px 60px -30px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.08);}
+#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+
+.top{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:20px;right:20px;z-index:10;display:flex;align-items:center;gap:14px;pointer-events:none;}
+.top > *{pointer-events:auto;}
+.logo{font-size:19px;font-weight:600;letter-spacing:-.018em;line-height:1;white-space:nowrap;text-decoration:none;color:var(--ink);}
+.title{margin-left:auto;text-align:right;max-width:46vw;}
+.title h1{font-family:var(--serif);font-size:16px;font-weight:600;line-height:1.25;}
+.title p{font-size:11.5px;color:var(--ink-dim);margin-top:2px;}
+body.embedded .top{display:none;}
+
+#count{position:fixed;left:50%;top:calc(18px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:11;padding:8px 14px;border-radius:999px;font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:11px;letter-spacing:.06em;color:var(--ink-dim);white-space:nowrap;}
+body.embedded #count{top:calc(70px + env(safe-area-inset-top,0px));}
+#count b{color:var(--ink);font-weight:500;}
+
+#bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:12;display:flex;align-items:center;gap:4px;padding:6px;border-radius:20px;max-width:calc(100% - 20px);}
+.chip{display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:14px;font-size:12.5px;color:var(--ink-dim);white-space:nowrap;transition:background .2s,color .2s;}
+.chip svg{width:18px;height:18px;flex:none;}
+.chip:hover{color:var(--ink);background:rgba(255,255,255,.08);}
+.chip[aria-pressed="true"],.chip.hot{background:var(--chip-on);color:var(--chip-on-ink);}
+.chip.ic{padding:9px 10px;}
+.sep{width:1px;align-self:stretch;margin:6px 4px;background:var(--glass-line);}
+.ico{stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+#snd[aria-pressed="false"] .on, #snd[aria-pressed="true"] .off{display:none;}
+#hint{position:fixed;left:50%;top:var(--hint-y,90px);transform:translate(-50%,-50%);z-index:11;padding:9px 15px;border-radius:999px;font-size:12.5px;color:var(--ink);white-space:nowrap;pointer-events:none;transition:opacity .5s;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;}
+#hint.off{opacity:0;}
+#tip{position:fixed;z-index:9;padding:6px 10px;border-radius:10px;font-size:11.5px;pointer-events:none;white-space:nowrap;display:none;transform:translate(-50%,-130%);}
+#tip b{font-family:"JetBrains Mono",monospace;font-weight:500;}
+
+/* giving a pulse */
+#give{position:fixed;inset:0;z-index:30;display:none;place-items:center;background:rgba(0,0,0,.55);}
+body.giving #give{display:grid;}
+#give .box{width:min(420px,calc(100% - 24px));border-radius:24px;padding:18px;text-align:center;}
+#give h2{font-family:var(--serif);font-size:19px;font-weight:600;}
+#give .sub{font-size:12.5px;color:var(--ink-dim);margin-top:6px;line-height:1.55;}
+#give .ways{display:flex;gap:6px;margin-top:14px;}
+#give .ways .chip{flex:1;justify-content:center;border:1px solid var(--glass-line);}
+#sensor{position:relative;margin:16px auto 0;width:200px;height:200px;border-radius:50%;display:grid;place-items:center;touch-action:none;cursor:pointer;}
+#sensor canvas{position:absolute;inset:0;width:100%;height:100%;}
+#sensor .bpm{position:relative;font-family:var(--serif);font-size:44px;font-weight:600;line-height:1;}
+#sensor .u{position:relative;display:block;font-size:11px;color:var(--ink-dim);margin-top:6px;font-family:"JetBrains Mono",monospace;letter-spacing:.1em;}
+#sensor video{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;}
+#wave{display:block;width:100%;height:46px;margin-top:12px;}
+#give .state{font-size:12.5px;color:var(--ink);margin-top:10px;min-height:20px;line-height:1.5;}
+#give .row{display:flex;gap:6px;margin-top:12px;}
+#give .row .chip{flex:1;justify-content:center;border:1px solid var(--glass-line);}
+#give .go{background:var(--red);color:#fff;border-color:transparent !important;}
+#give .go[disabled]{opacity:.35;pointer-events:none;}
+#give .note{font-size:11px;color:var(--ink-faint);margin-top:10px;line-height:1.5;}
+
+#about{position:fixed;right:20px;top:calc(76px + env(safe-area-inset-top,0px));width:350px;max-height:calc(100% - 170px);overflow:auto;z-index:21;border-radius:22px;padding:20px 20px 18px;display:none;}
+body.about #about{display:block;}
+#about .tag{font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);}
+#about h2{font-family:var(--serif);font-size:20px;font-weight:600;line-height:1.25;margin-top:8px;padding-right:24px;}
+#about p{font-size:12.5px;line-height:1.65;color:var(--ink-dim);margin-top:9px;}
+#about h3{font-size:12px;font-weight:600;margin-top:16px;padding-top:14px;border-top:1px solid var(--glass-line);}
+#about ol{margin:8px 0 0 18px;font-size:12.5px;line-height:1.6;color:var(--ink-dim);}
+#about .x{position:absolute;right:12px;top:12px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--ink-dim);}
+#about .x svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;}
+html[lang="ko"] #about .tag,html[lang="ko"] #count{letter-spacing:.02em;}
+@media (max-width:760px){
+  .chip{padding:8px 10px;font-size:11.5px;gap:5px;} #bar .chip:not(.hot) .lb{display:none;}
+  #hint{white-space:normal;text-align:center;border-radius:18px;width:max-content;line-height:1.45;}
+  #about{left:10px;right:10px;width:auto;top:calc(64px + env(safe-area-inset-top,0px));}
+  .title p{display:none;} .title h1{font-size:13px;}
+  #count{top:calc(58px + env(safe-area-inset-top,0px));}
+  body.embedded #count{top:calc(64px + env(safe-area-inset-top,0px));}
+  #sensor{width:170px;height:170px;}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<header class="top">
+  <a class="logo" href="#" onclick="return false">Living Art Museum</a>
+  <div class="title"><h1 id="t-h"></h1><p id="t-p"></p></div>
+</header>
+<div id="count" class="glass"></div>
+<div id="hint" class="glass off"></div>
+<div id="tip" class="glass"></div>
+
+<nav id="bar" class="glass">
+  <button class="chip hot" id="givebtn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/><path d="M3 12h4l2-3 3 6 2-3h7"/></svg><span class="lb"></span></button>
+  <button class="chip" id="mine" hidden><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="10" r="5"/><path d="M10 15h4v3h-4zM11 21h2"/></svg><span class="lb"></span></button>
+  <span class="sep"></span>
+  <button class="chip ic" id="snd" aria-pressed="true"><svg class="ico on" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg><svg class="ico off" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
+  <button class="chip ic" id="info"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
+</nav>
+
+<section id="give" role="dialog" aria-modal="true">
+  <div class="box glass">
+    <h2 id="g-h"></h2>
+    <p class="sub" id="g-sub"></p>
+    <div class="ways"><button class="chip" id="w-cam" aria-pressed="false"></button><button class="chip" id="w-tap" aria-pressed="true"></button></div>
+    <div id="sensor"><canvas id="ring"></canvas><video id="vid" playsinline muted></video><div><span class="bpm" id="g-bpm">—</span><span class="u">BPM</span></div></div>
+    <canvas id="wave"></canvas>
+    <div class="state" id="g-state"></div>
+    <div class="row"><button class="chip go" id="g-go" disabled></button><button class="chip" id="g-x"></button></div>
+    <p class="note" id="g-note"></p>
+  </div>
+</section>
+
+<section id="about" class="glass" aria-labelledby="ab-h">
+  <button class="x" id="about-x" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="tag" id="ab-tag"></div>
+  <h2 id="ab-h"></h2>
+  <p id="ab-p1"></p>
+  <p id="ab-p2"></p>
+  <h3 id="ab-h3"></h3>
+  <ol id="ab-ol"></ol>
+</section>
+
+<script>
+"use strict";
+/* ==========================================================================
+   0. BASICS
+   ========================================================================== */
+const LANG = (() => {
+  let l = (document.documentElement.lang || "en").slice(0, 2);
+  try { const q = new URLSearchParams(location.search).get("lang"); if (q) l = q; } catch (_){}
+  return l === "ko" ? "ko" : "en";
+})();
+document.documentElement.lang = LANG;
+if (LANG === "ko") document.title = "펄스 룸 — Living Art Museum";
+const T = (o) => (o && (o[LANG] ?? o.en)) || "";
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t;
+let seed = 2006; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+/* ==========================================================================
+   1. THE ROOM — a grid of bulbs hung at one height under a dark ceiling.
+      Bulb 0 is the one nearest the door (front, centre); the line runs on
+      from there, row by row, to the back of the room.
+   ========================================================================== */
+const COLS = 15, ROWS = 10, NB = COLS * ROWS, GAP = 1.15, HANG = 2.9, CEIL = 4.6;
+const bulbs = [];
+(function build(){
+  /* order: the first bulb hangs front and centre, nearest you; the line then spreads outward and back */
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
+    bulbs.push({ x:(c - (COLS - 1) / 2) * GAP + (rnd() - .5) * .12, z:-(r * GAP + 2.2) + (rnd() - .5) * .12, y:HANG + (rnd() - .5) * .14, sway:rnd() * 6.28, bpm:0, ph:rnd(), id:null, t:0, mine:false, glow:0 });
+  const d = (b) => Math.hypot(b.x, (b.z + 2.2) * 1.15) + Math.atan2(b.x, -b.z) * .01;
+  bulbs.sort((a, b) => d(a) - d(b));
+})();
+/* the pulse each bulb carries, newest first */
+let PULSES = [], localP = [], sharedP = [], myIds = new Set();
+const LKEY = "lam.pulse.v1", COL = "pulseRoom";
+function assign(shift){
+  const list = mergeP();
+  /* when a new pulse arrives, the room goes dark for a moment and everything moves one bulb along */
+  if (shift){ dark = 1; wave = 0; }
+  for (let i = 0; i < NB; i++){ const p = list[i], b = bulbs[i];
+    if (p){ if (b.id !== p.id){ b.bpm = p.b; b.id = p.id; b.t = p.t; b.ph = (p.t % 997) / 997; b.mine = myIds.has(p.id); } }
+    else { b.bpm = 0; b.id = null; b.mine = false; } }
+  PULSES = list;
+  const n = list.length;
+  $("count").innerHTML = T({ en:`<b>${n}</b> heartbeat${n === 1 ? "" : "s"} in the room · <b>${NB}</b> bulbs`, ko:`방 안의 심장 박동 <b>${n}</b> · 전구 <b>${NB}</b>개` });
+  $("mine").hidden = !bulbs.some(b => b.mine);
+}
+function mergeP(){ const m = new Map(); for (const p of sharedP.concat(localP)) if (!m.has(p.id)) m.set(p.id, p); return [...m.values()].sort((a, b) => b.t - a.t).slice(0, NB); }
+
+/* ==========================================================================
+   2. A HEARTBEAT, AS LIGHT — a quick bright rise on the first beat, a
+      smaller one on the second, and the filament's slow fade between
+   ========================================================================== */
+function beat(phase){
+  const a = Math.exp(-phase * 11) * (phase < .015 ? phase / .015 : 1);
+  const d = phase > .28 ? Math.exp(-(phase - .28) * 13) * .62 * (phase < .295 ? (phase - .28) / .015 : 1) : 0;
+  return Math.min(1, a + d);
+}
+
+/* ==========================================================================
+   3. DRAWING — a perspective view into the room; the bulbs drawn as glass,
+      socket and cord, with a filament and a warm halo that grow with the
+      light; the floor catches a little of it
+   ========================================================================== */
+const cv = $("cv"), g = cv.getContext("2d");
+let W = 0, H = 0, DPR = 1, F = 600, small = false;
+const cam = { x:0, y:1.55, z:4.2, yaw:0, pitch:-.16, ty:0, tp:-.16 };
+function layout(){ DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; small = W <= 760; cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  F = W / H < 1 ? H * .8 : Math.min(W, H * 1.6) * .78; cam.z = W / H < 1 ? 3.4 : 4.2;
+  document.documentElement.style.setProperty("--hint-y", Math.round(($("bar").getBoundingClientRect().top || H - 72) - 26) + "px"); }
+function proj(x, y, z){
+  let dx = x - cam.x, dy = y - cam.y, dz = z - cam.z;
+  const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw); let X = dx * cy - dz * sy, Z = dx * sy + dz * cy;
+  const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch); let Y = dy * cp - Z * sp; Z = dy * sp + Z * cp;
+  if (Z > -.1) return null; const k = F / -Z; return [W / 2 + X * k, H * .52 - Y * k, k];
+}
+const halo = (() => { const c = document.createElement("canvas"), s = 128; c.width = c.height = s; const q = c.getContext("2d"), gr = q.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+  gr.addColorStop(0, "rgba(255,214,150,1)"); gr.addColorStop(.12, "rgba(255,180,100,.55)"); gr.addColorStop(.4, "rgba(255,140,60,.14)"); gr.addColorStop(1, "rgba(255,120,40,0)"); q.fillStyle = gr; q.fillRect(0, 0, s, s); return c; })();
+let dark = 0, wave = 1, hovB = -1, t = 0, myBlink = 0;
+function lightOf(b, i){
+  if (!b.bpm) return .025 + .015 * Math.sin(t * 1.3 + i);                           /* empty: a filament barely warm */
+  const P = 60 / b.bpm, ph = ((t / P + b.ph) % 1 + 1) % 1;
+  return .05 + .95 * beat(ph);
+}
+function render(){
+  g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  g.fillStyle = "#050403"; g.fillRect(0, 0, W, H);
+  /* total light in the room, to tint the walls and floor */
+  let sum = 0; const L = bulbs.map((b, i) => { let l = lightOf(b, i); if (dark > 0) l *= 1 - dark; if (wave < 1){ const k = clamp((wave * NB * 1.15 - i) / 6, 0, 1); l *= k; } b.glow = l; sum += l; return l; });
+  const amb = sum / NB;
+  /* the room itself: floor, back wall, side walls and ceiling, lit only by the bulbs */
+  const ZB = -(ROWS * GAP + 3.6), ZN = cam.z - .3, XW = COLS * GAP / 2 + 6;
+  const quad = (pts, fill) => { const pp = pts.map(q => proj(q[0], q[1], q[2])); if (pp.some(q => !q)) return; g.beginPath(); pp.forEach((q, i) => i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1])); g.closePath(); g.fillStyle = fill; g.fill(); };
+  const wc = (k) => `rgb(${10 + amb * 70 * k | 0},${7 + amb * 46 * k | 0},${5 + amb * 22 * k | 0})`;
+  quad([[-XW, CEIL, ZB], [XW, CEIL, ZB], [XW, CEIL, ZN], [-XW, CEIL, ZN]], wc(.35));
+  quad([[-XW, 0, ZB], [XW, 0, ZB], [XW, CEIL, ZB], [-XW, CEIL, ZB]], wc(.6));
+  quad([[-XW, 0, ZB], [-XW, 0, ZN], [-XW, CEIL, ZN], [-XW, CEIL, ZB]], wc(.55));
+  quad([[XW, 0, ZB], [XW, 0, ZN], [XW, CEIL, ZN], [XW, CEIL, ZB]], wc(.55));
+  { const a = proj(0, 0, ZB), b = proj(0, 0, ZN); if (a && b){ const fg = g.createLinearGradient(0, a[1], 0, Math.min(H, b[1]));
+    fg.addColorStop(0, wc(1.1)); fg.addColorStop(1, wc(.45)); quad([[-XW, 0, ZB], [XW, 0, ZB], [XW, 0, ZN], [-XW, 0, ZN]], fg); } }
+  /* the light on the back wall and ceiling, where the bulbs are */
+  g.globalCompositeOperation = "lighter";
+  { const c = proj(0, HANG, ZB + .1); if (c){ const r = c[2] * COLS * GAP * .55; g.globalAlpha = amb * .55; g.drawImage(halo, c[0] - r, c[1] - r * .6, r * 2, r * 1.2); g.globalAlpha = 1; } }
+  g.globalCompositeOperation = "source-over";
+  /* far to near */
+  const order = bulbs.map((b, i) => i).sort((a, b) => bulbs[a].z - bulbs[b].z);
+  /* pools of light on the floor */
+  g.globalCompositeOperation = "lighter";
+  for (const i of order){ const b = bulbs[i], p = proj(b.x, 0, b.z); if (!p) continue; const l = L[i]; if (l < .08) continue;
+    const r = p[2] * 1.3; g.globalAlpha = l * .35; g.drawImage(halo, p[0] - r * 1.4, p[1] - r * .45, r * 2.8, r * .9); }
+  g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
+  for (const i of order){
+    const b = bulbs[i], sw = Math.sin(t * .6 + b.sway) * .012, x = b.x + sw, l = L[i];
+    const top = proj(x - sw, CEIL, b.z), p = proj(x, b.y, b.z); if (!p || !top) continue;
+    const k = p[2], r = Math.max(1.6, k * .085);
+    /* the cord */
+    g.strokeStyle = `rgba(${30 + l * 60 | 0},${24 + l * 40 | 0},${18 + l * 24 | 0},.9)`; g.lineWidth = Math.max(.6, k * .006); g.beginPath(); g.moveTo(top[0], top[1]); g.lineTo(p[0], p[1] - r * 1.9); g.stroke();
+    /* the socket */
+    g.fillStyle = "#16120e"; g.fillRect(p[0] - r * .42, p[1] - r * 2.05, r * .84, r * .9);
+    g.fillStyle = `rgba(${90 + l * 120 | 0},${70 + l * 80 | 0},${50 + l * 40 | 0},.9)`; g.fillRect(p[0] - r * .34, p[1] - r * 1.2, r * .68, r * .3);
+    /* the glass */
+    const gg = g.createRadialGradient(p[0] - r * .3, p[1] - r * .3, r * .1, p[0], p[1], r);
+    gg.addColorStop(0, `rgba(255,${235 - (1 - l) * 40 | 0},${200 - (1 - l) * 90 | 0},${.12 + l * .75})`); gg.addColorStop(1, `rgba(${120 + l * 135 | 0},${80 + l * 120 | 0},${50 + l * 60 | 0},${.18 + l * .5})`);
+    g.fillStyle = gg; g.beginPath(); g.ellipse(p[0], p[1] - r * .1, r * .8, r, 0, 0, 7); g.fill();
+    g.strokeStyle = `rgba(255,240,220,${.12 + l * .2})`; g.lineWidth = Math.max(.5, r * .08); g.beginPath(); g.ellipse(p[0], p[1] - r * .1, r * .8, r, 0, 0, 7); g.stroke();
+    /* the filament */
+    if (r > 3){ g.strokeStyle = `rgba(255,${200 + l * 55 | 0},${120 + l * 110 | 0},${.25 + l * .75})`; g.lineWidth = Math.max(.6, r * .09); g.beginPath();
+      for (let s = 0; s <= 8; s++){ const xx = p[0] - r * .32 + s / 8 * r * .64, yy = p[1] - r * .05 + (s % 2 ? -1 : 1) * r * .12; s ? g.lineTo(xx, yy) : g.moveTo(xx, yy); } g.stroke(); }
+    /* the halo */
+    if (l > .05){ g.globalCompositeOperation = "lighter"; const hr = r * (3 + l * 9); g.globalAlpha = Math.min(1, l * 1.1); g.drawImage(halo, p[0] - hr, p[1] - hr, hr * 2, hr * 2); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; }
+    if (b.mine){ g.strokeStyle = `rgba(255,90,74,${.5 + .5 * Math.sin(t * 3)})`; g.lineWidth = 1.5; g.beginPath(); g.arc(p[0], p[1] - r * .1, r * 2.1 + 4, 0, 7); g.stroke(); }
+    if (i === hovB){ g.strokeStyle = "rgba(255,240,220,.7)"; g.lineWidth = 1; g.beginPath(); g.arc(p[0], p[1] - r * .1, r * 1.7 + 3, 0, 7); g.stroke(); }
+    b.sx = p[0]; b.sy = p[1]; b.sr = r;
+  }
+  /* the dark edges of the room */
+  const vg = g.createRadialGradient(W / 2, H * .45, Math.min(W, H) * .2, W / 2, H * .5, Math.max(W, H) * .75); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,.7)"); g.fillStyle = vg; g.fillRect(0, 0, W, H);
+}
+
+/* ==========================================================================
+   4. LOOKING — the view leans with the pointer; hover a bulb to hear it
+   ========================================================================== */
+cv.addEventListener("pointermove", e => {
+  cam.ty = -(e.clientX / W - .5) * .5; cam.tp = -.16 + (e.clientY / H - .5) * .16;
+  let best = -1, bd = 1e9; for (let i = 0; i < NB; i++){ const b = bulbs[i]; if (b.sx == null) continue; const d = Math.hypot(e.clientX - b.sx, e.clientY - b.sy); if (d < Math.max(14, b.sr * 2.2) && d < bd){ bd = d; best = i; } }
+  setHover(best, e.clientX, e.clientY);
+});
+cv.addEventListener("pointerdown", e => { AUD.unlock(); hideHint(); cv.dispatchEvent(new PointerEvent("pointermove", e)); });
+cv.addEventListener("pointerleave", () => setHover(-1));
+function setHover(i, x, y){
+  hovB = i; const tip = $("tip");
+  if (i < 0){ tip.style.display = "none"; return; }
+  const b = bulbs[i]; tip.style.display = "block"; tip.style.left = x + "px"; tip.style.top = y + "px";
+  tip.innerHTML = b.bpm ? `<b>${b.bpm}</b> BPM · ${b.mine ? T({ en:"yours", ko:"나의 박동" }) : T({ en:`bulb ${i + 1}`, ko:`${i + 1}번째 전구` })} · ${ago(b.t)}` : T({ en:"waiting for a heartbeat", ko:"박동을 기다리는 전구" });
+}
+function ago(ts){ const s = (Date.now() - ts) / 1000; if (s < 60) return T({ en:"just now", ko:"방금" }); const m = s / 60; if (m < 60) return T({ en:`${m | 0} min ago`, ko:`${m | 0}분 전` });
+  const h = m / 60; if (h < 48) return T({ en:`${h | 0} h ago`, ko:`${h | 0}시간 전` }); return T({ en:`${(h / 24) | 0} days ago`, ko:`${(h / 24) | 0}일 전` }); }
+
+/* ==========================================================================
+   5. GIVING A PULSE — a fingertip over the phone's camera (its light shines
+      through the skin; the red rises and falls with each beat), or tapping
+      along with your heart. Nothing but the number is kept.
+   ========================================================================== */
+const GV = { way:"tap", taps:[], bpm:0, stream:null, sig:[], peaks:[], lastPeak:0, raf:0, ok:false, track:null };
+const vid = $("vid"), ring = $("ring"), wv = $("wave");
+const sc = document.createElement("canvas"); sc.width = 40; sc.height = 30; const sq = sc.getContext("2d", { willReadFrequently:true });
+function openGive(){ AUD.unlock(); document.body.classList.add("giving"); GV.bpm = 0; GV.taps = []; GV.sig = []; GV.peaks = []; setBpm(0);
+  const phone = matchMedia("(pointer: coarse)").matches; setWay(phone && navigator.mediaDevices ? "cam" : "tap"); }
+function closeGive(){ document.body.classList.remove("giving"); stopCam(); }
+function setWay(w){ GV.way = w; $("w-cam").setAttribute("aria-pressed", String(w === "cam")); $("w-tap").setAttribute("aria-pressed", String(w === "tap")); GV.taps = []; GV.sig = []; GV.peaks = []; setBpm(0);
+  if (w === "cam") startCam(); else { stopCam(); state(T({ en:"Feel your pulse at your wrist or neck, and tap the circle with each beat (or press the space bar).", ko:"손목이나 목에서 맥박을 느끼며, 박동마다 원을 두드리세요(스페이스 바도 돼요)." })); } }
+function state(s){ $("g-state").textContent = s; }
+function setBpm(b){ GV.bpm = b; $("g-bpm").textContent = b ? b : "—"; $("g-go").disabled = !b; }
+/* tapping: the steady middle of the last taps */
+function tap(){ if (GV.way !== "tap") return; const now = performance.now(); AUD.lub(.8); flash = 1;
+  if (GV.taps.length && now - GV.taps[GV.taps.length - 1] > 2500) GV.taps = [];
+  GV.taps.push(now); if (GV.taps.length > 12) GV.taps.shift();
+  const iv = GV.taps.slice(1).map((x, i) => x - GV.taps[i]).filter(d => d > 280 && d < 2000);
+  if (iv.length >= 5){ const s = iv.slice().sort((a, b) => a - b), med = s[s.length >> 1], b = Math.round(60000 / med);
+    if (b >= 40 && b <= 180){ setBpm(b); state(T({ en:`${b} beats a minute — keep tapping to refine it, or give it to the room.`, ko:`1분에 ${b}번 — 계속 두드리면 더 정확해져요. 준비되면 방에 보내세요.` })); } }
+  else state(T({ en:`${Math.max(0, 6 - GV.taps.length)} more…`, ko:`${Math.max(0, 6 - GV.taps.length)}번 더…` })); }
+$("sensor").addEventListener("pointerdown", e => { e.preventDefault(); tap(); });
+window.addEventListener("keydown", e => { if (e.key === " " && document.body.classList.contains("giving")){ e.preventDefault(); tap(); } if (e.key === "Escape"){ closeGive(); document.body.classList.remove("about"); } });
+/* the camera: the red channel's rise and fall */
+async function startCam(){
+  state(T({ en:"Cover the back camera (and its light) gently with a fingertip. Hold still.", ko:"후면 카메라와 플래시를 손끝으로 살짝 덮고 가만히 있어 주세요." }));
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw 0;
+    GV.stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:"environment" }, width:{ ideal:320 }, height:{ ideal:240 }, frameRate:{ ideal:30 } }, audio:false });
+    vid.srcObject = GV.stream; await vid.play().catch(() => {});
+    GV.track = GV.stream.getVideoTracks()[0];
+    try { await GV.track.applyConstraints({ advanced:[{ torch:true }] }); } catch (_){}
+    GV.t0 = performance.now(); cancelAnimationFrame(GV.raf); camLoop();
+  } catch (_){
+    setWay("tap");
+    state(T({ en:"The camera is not available here — tap along with your pulse instead.", ko:"여기서는 카메라를 쓸 수 없어요 — 대신 맥박에 맞춰 두드려 주세요." }));
+  }
+}
+function stopCam(){ cancelAnimationFrame(GV.raf); if (GV.track) try { GV.track.applyConstraints({ advanced:[{ torch:false }] }); } catch (_){}
+  if (GV.stream){ GV.stream.getTracks().forEach(tr => tr.stop()); GV.stream = null; } GV.track = null; vid.srcObject = null; }
+function camLoop(){
+  GV.raf = requestAnimationFrame(camLoop);
+  if (!vid.videoWidth) return;
+  sq.drawImage(vid, 0, 0, 40, 30); const d = sq.getImageData(0, 0, 40, 30).data; let r = 0, gg = 0, bb = 0;
+  for (let i = 0; i < d.length; i += 4){ r += d[i]; gg += d[i + 1]; bb += d[i + 2]; } const n = d.length / 4; r /= n; gg /= n; bb /= n;
+  const covered = r > 60 && r > gg * 1.6 && r > bb * 1.6;
+  const now = performance.now();
+  if (!covered){ GV.sig = []; GV.peaks = []; if (now - (GV.warn || 0) > 1200){ GV.warn = now; state(T({ en:"Cover the camera and its light completely with a fingertip.", ko:"손끝으로 카메라와 플래시를 완전히 덮어 주세요." })); } return; }
+  GV.sig.push({ t:now, v:r }); while (GV.sig.length && now - GV.sig[0].t > 8000) GV.sig.shift();
+  if (GV.sig.length < 20) { state(T({ en:"Reading… hold still", ko:"측정 중… 가만히 있어 주세요" })); return; }
+  /* take away the slow drift, smooth a little; the blood pulses darken the red, so look for the dips */
+  const s = GV.sig, k = s.length, sm = [];
+  for (let i = 0; i < k; i++){ let a = 0, c = 0; for (let j = Math.max(0, i - 15); j <= Math.min(k - 1, i + 15); j++){ a += s[j].v; c++; } let b = 0, cb = 0; for (let j = Math.max(0, i - 2); j <= Math.min(k - 1, i + 2); j++){ b += s[j].v; cb++; } sm.push(a / c - b / cb); }
+  GV.sm = sm;
+  const i = k - 4;
+  if (i > 3 && sm[i] > sm[i - 1] && sm[i] >= sm[i + 1] && sm[i] > sm[i - 3] && sm[i] > 0){
+    const tt = s[i].t; if (tt - GV.lastPeak > 330){ GV.lastPeak = tt; GV.peaks.push(tt); if (GV.peaks.length > 14) GV.peaks.shift(); AUD.lub(.6); flash = 1;
+      const iv = GV.peaks.slice(1).map((x, j) => x - GV.peaks[j]).filter(d => d > 330 && d < 1700);
+      if (iv.length >= 6){ const so = iv.slice().sort((a, b) => a - b), med = so[so.length >> 1], spread = (so[so.length * .8 | 0] - so[so.length * .2 | 0]) / med;
+        if (spread < .35){ const b = Math.round(60000 / med); if (b >= 40 && b <= 180){ setBpm(b); state(T({ en:`${b} beats a minute — that's your heart. Give it to the room when you're ready.`, ko:`1분에 ${b}번 — 당신의 심장이에요. 준비되면 방에 보내세요.` })); } }
+        else state(T({ en:"Almost — hold still a little longer", ko:"거의 다 됐어요 — 조금만 더 가만히" })); }
+      else if (!GV.bpm) state(T({ en:`Found a beat… ${Math.max(0, 7 - GV.peaks.length)} more`, ko:`박동을 찾았어요… ${Math.max(0, 7 - GV.peaks.length)}번 더` })); } }
+  if (now - GV.t0 > 25000 && !GV.bpm && !GV.slow){ GV.slow = true; state(T({ en:"It's hard to read here — try pressing a little more lightly, or tap along instead.", ko:"측정이 잘 안 돼요 — 조금 더 살살 눌러 보거나, 두드리기로 해 보세요." })); }
+}
+let flash = 0;
+function drawGive(){
+  if (!document.body.classList.contains("giving")) return;
+  const R = ring, w = R.clientWidth * DPR, q = R.getContext("2d"); if (R.width !== w){ R.width = R.height = w; }
+  q.clearRect(0, 0, w, w); const cx = w / 2, rr = w * .44, b = GV.bpm, beatL = b ? beat(((t * b / 60) % 1)) : flash;
+  const gr = q.createRadialGradient(cx, cx, rr * .2, cx, cx, rr * 1.1); gr.addColorStop(0, `rgba(255,${120 + beatL * 60 | 0},90,${.15 + beatL * .45})`); gr.addColorStop(1, "rgba(255,90,74,0)");
+  q.fillStyle = gr; q.beginPath(); q.arc(cx, cx, rr * 1.1, 0, 7); q.fill();
+  q.strokeStyle = `rgba(255,120,100,${.35 + beatL * .6})`; q.lineWidth = w * .015; q.beginPath(); q.arc(cx, cx, rr * (1 + beatL * .04), 0, 7); q.stroke();
+  /* the trace */
+  const ww = wv.clientWidth * DPR, hh = wv.clientHeight * DPR; if (wv.width !== ww){ wv.width = ww; wv.height = hh; } const p = wv.getContext("2d"); p.clearRect(0, 0, ww, hh);
+  p.strokeStyle = "rgba(255,120,100,.85)"; p.lineWidth = 1.5 * DPR; p.beginPath();
+  if (GV.way === "cam" && GV.sm && GV.sm.length > 2){ const sm = GV.sm, mx = Math.max(.5, ...sm.map(Math.abs)); sm.forEach((v, i) => { const x = i / (sm.length - 1) * ww, y = hh / 2 - v / mx * hh * .42; i ? p.lineTo(x, y) : p.moveTo(x, y); }); }
+  else { const now = performance.now(); for (let x = 0; x <= ww; x += 2){ const tm = now - (1 - x / ww) * 4000; let v = 0; for (const tp of GV.taps){ const d = (tm - tp) / 1000; if (d >= 0 && d < .5) v = Math.max(v, Math.exp(-d * 14)); } const y = hh / 2 - v * hh * .42; x ? p.lineTo(x, y) : p.moveTo(x, y); } }
+  p.stroke(); flash = Math.max(0, flash - .05);
+}
+async function giveIt(){
+  const b = GV.bpm; if (!b) return; closeGive();
+  const rec = { b, t:Date.now() }; let id = "me-" + Date.now().toString(36), shared = false;
+  await openStore();
+  if (store.db){ try { const ref = store.db.collection(COL).doc(); await ref.set(rec); id = ref.id; shared = true; } catch (_){} }
+  myIds.add(id); try { localStorage.setItem(LKEY + ".mine", JSON.stringify([...myIds].slice(-20))); } catch (_){}
+  if (!shared){ localP.unshift({ id, ...rec }); localP = localP.slice(0, NB); try { localStorage.setItem(LKEY, JSON.stringify(localP)); } catch (_){} }
+  else if (!sharedP.some(p => p.id === id)) sharedP.unshift({ id, ...rec });
+  AUD.off(); assign(true);
+  hint(shared ? T({ en:`Your ${b} BPM is in the first bulb. Everyone else moved one bulb along.`, ko:`당신의 ${b} BPM이 첫 번째 전구에 들어갔어요. 다른 모든 박동은 한 칸씩 밀려났어요.` })
+              : T({ en:`Your ${b} BPM is in the first bulb (on this device). Everyone else moved one bulb along.`, ko:`당신의 ${b} BPM이 첫 번째 전구에 들어갔어요(이 기기). 다른 모든 박동은 한 칸씩 밀려났어요.` }));
+}
+
+/* ==========================================================================
+   6. THE SHARED ROOM — everyone's pulses, newest first
+   ========================================================================== */
+const store = { db:null, tried:false };
+async function openStore(){
+  if (store.tried) return; store.tried = true;
+  try { const api = window.claude || (window.parent !== window && window.parent.claude); if (api && api.use) store.db = await api.use("db"); } catch (_){ store.db = null; }
+  if (!store.db) return;
+  const onDocs = (sn) => { const fresh = sn.docs.map(d => ({ id:d.id, ...(d.data() || {}) })).filter(p => typeof p.b === "number" && p.b >= 35 && p.b <= 200 && typeof p.t === "number");
+    const before = PULSES[0] && PULSES[0].id; sharedP = fresh; const after = mergeP()[0];
+    assign(!!before && after && after.id !== before && !myIds.has(after.id)); };
+  try { store.db.collection(COL).orderBy("t", "desc").limit(NB).onSnapshot(onDocs, () => { try { store.db.collection(COL).limit(NB * 2).onSnapshot(onDocs, () => {}); } catch (_){} }); }
+  catch (_){ try { store.db.collection(COL).limit(NB * 2).onSnapshot(onDocs, () => {}); } catch (_){} }
+}
+(() => { try { localP = JSON.parse(localStorage.getItem(LKEY) || "[]").filter(p => p && typeof p.b === "number"); myIds = new Set(JSON.parse(localStorage.getItem(LKEY + ".mine") || "[]")); } catch (_){ localP = []; } })();
+
+/* ==========================================================================
+   7. SOUND — no low thumps: each heartbeat as two soft, bright taps; the
+      bulbs' faint tick as they heat; a click as the room goes dark
+   ========================================================================== */
+const AUD = (() => {
+  let ctx = null, master = null, white = null, on = true, borrowed = false;
+  function ensure(){ if (ctx) return ctx; const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+    try { const host = window.parent !== window && window.parent.__lamAudio && window.parent.__lamAudio(); if (host && host.state === "running"){ ctx = host; borrowed = true; } } catch (_){}
+    if (!ctx){ try { ctx = new AC(); } catch (_){ return null; } }
+    master = ctx.createGain(); master.gain.value = on ? .85 : 0; master.connect(ctx.destination);
+    const n = ctx.sampleRate; white = ctx.createBuffer(1, n, ctx.sampleRate); const w = white.getChannelData(0); for (let i = 0; i < n; i++) w[i] = Math.random() * 2 - 1;
+    return ctx; }
+  const ok = () => on && ensure() && ctx.state === "running";
+  function tone(tt, f0, f1, dur, gg){ const o = ctx.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(f0, tt); o.frequency.exponentialRampToValueAtTime(f1, tt + dur); const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(gg, tt + .006); a.gain.exponentialRampToValueAtTime(.0001, tt + dur); o.connect(a); a.connect(master); o.start(tt); o.stop(tt + dur + .03); }
+  function burst(tt, dur, f, q, gg){ const s = ctx.createBufferSource(); s.buffer = white; const fl = ctx.createBiquadFilter(); fl.type = "bandpass"; fl.frequency.value = f; fl.Q.value = q;
+    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(gg, tt + .004); a.gain.exponentialRampToValueAtTime(.0001, tt + dur); s.connect(fl); fl.connect(a); a.connect(master); s.start(tt, Math.random() * .5); s.stop(tt + dur + .02); }
+  return {
+    unlock(){ if (ensure() && ctx.state !== "running") ctx.resume().catch(() => {}); },
+    get on(){ return on; }, set on(v){ on = v; if (master) master.gain.setTargetAtTime(v ? .85 : 0, ctx.currentTime, .05); },
+    stop(){ if (!ctx) return; try { master.disconnect(); } catch (_){} if (!borrowed) try { ctx.close(); } catch (_){} },
+    /* a heartbeat: lub, then dub — mid-pitched, short */
+    lub(k){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 520, 300, .09, .05 * k); burst(tt, .03, 1400, 2, .02 * k); tone(tt + .17, 460, 280, .07, .032 * k); },
+    tick(k){ if (!ok()) return; burst(ctx.currentTime, .012, 4200 + Math.random() * 1500, 6, .006 + .01 * k); },
+    off(){ if (!ok()) return; const tt = ctx.currentTime; burst(tt, .025, 2600, 4, .07); tone(tt + .02, 1600, 900, .12, .02); },
+  };
+})();
+let beatClock = new Map();
+function soundBeats(){
+  /* hear the bulb under the pointer, or yours */
+  const i = hovB >= 0 ? hovB : bulbs.findIndex(b => b.mine);
+  if (i >= 0 && bulbs[i].bpm){ const b = bulbs[i], P = 60 / b.bpm, n = Math.floor(t / P + b.ph); if (beatClock.get("h") !== n + ":" + i){ beatClock.set("h", n + ":" + i); AUD.lub(hovB >= 0 ? .9 : .45); } }
+  if (Math.random() < .05) AUD.tick(Math.random());
+}
+
+/* ==========================================================================
+   8. LOOP AND UI
+   ========================================================================== */
+let last = performance.now();
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt;
+  cam.yaw = lerp(cam.yaw, cam.ty, Math.min(1, dt * 2.5)); cam.pitch = lerp(cam.pitch, cam.tp, Math.min(1, dt * 2.5));
+  if (dark > 0){ dark -= dt / 1.1; if (dark <= .02){ dark = 0; } }
+  if (wave < 1 && dark <= 0) wave = Math.min(1, wave + dt / 1.6);
+  render(); drawGive(); if (!document.body.classList.contains("giving")) soundBeats();
+}
+let hintT = 0, hintAt = 0;
+function hint(s, brief){ const h = $("hint"); h.textContent = s; h.classList.remove("off"); hintAt = performance.now(); clearTimeout(hintT); hintT = setTimeout(() => h.classList.add("off"), brief ? 3600 : 7500); }
+function hideHint(){ if (performance.now() - hintAt > 2500) $("hint").classList.add("off"); }
+function siteLight(on){ try { if (window.parent !== window){ const ex = window.parent.document.getElementById("s-exp"); if (ex) ex.classList.toggle("light", on); } } catch (_){} }
+$("givebtn").querySelector(".lb").textContent = T({ en:"Give your pulse", ko:"내 맥박 보내기" });
+$("mine").querySelector(".lb").textContent = T({ en:"My bulb", ko:"내 전구" });
+$("givebtn").onclick = openGive;
+$("mine").onclick = () => { AUD.unlock(); const i = bulbs.findIndex(b => b.mine); if (i < 0) return; const b = bulbs[i]; setHover(i, b.sx, b.sy); setTimeout(() => setHover(-1), 3500); };
+$("w-cam").textContent = T({ en:"Fingertip on camera", ko:"카메라에 손끝" }); $("w-tap").textContent = T({ en:"Tap along", ko:"박동에 맞춰 두드리기" });
+$("w-cam").onclick = () => { AUD.unlock(); setWay("cam"); }; $("w-tap").onclick = () => { AUD.unlock(); setWay("tap"); };
+$("g-h").textContent = T({ en:"Give your pulse", ko:"내 맥박 보내기" });
+$("g-sub").textContent = T({ en:"Your heartbeat will light the first bulb. Every heartbeat already here moves one bulb along, and the oldest goes out.", ko:"당신의 심장 박동이 첫 번째 전구를 밝혀요. 이미 있던 박동은 모두 한 칸씩 밀려나고, 가장 오래된 박동은 꺼져요." });
+$("g-go").textContent = T({ en:"Send it to the room", ko:"방으로 보내기" }); $("g-x").textContent = T({ en:"Not now", ko:"다음에" });
+$("g-note").textContent = T({ en:"Only the number of beats a minute is kept — no picture, no name. The camera's image never leaves your device.", ko:"1분당 박동 수만 저장돼요 — 사진도 이름도 남지 않아요. 카메라 영상은 기기 밖으로 나가지 않아요." });
+$("g-go").onclick = giveIt; $("g-x").onclick = closeGive;
+$("snd").onclick = () => { AUD.unlock(); AUD.on = !AUD.on; $("snd").setAttribute("aria-pressed", String(AUD.on)); };
+$("info").onclick = () => document.body.classList.toggle("about");
+$("about-x").onclick = () => document.body.classList.remove("about");
+$("snd").setAttribute("aria-label", T({ en:"Sound", ko:"소리" })); $("info").setAttribute("aria-label", T({ en:"About the work", ko:"작품 설명" }));
+$("t-h").textContent = T({ en:"Pulse Room", ko:"펄스 룸" });
+$("t-p").textContent = T({ en:"Rafael Lozano-Hemmer · 2006 · light bulbs, heart-rate sensor", ko:"라파엘 로자노-헤머 · 2006 · 백열전구, 심박 센서" });
+$("ab-tag").textContent = T({ en:"Rafael Lozano-Hemmer · 2006", ko:"라파엘 로자노-헤머 · 2006" });
+$("ab-h").textContent = T({ en:"A room that keeps time with strangers", ko:"낯선 이들의 박동으로 깜빡이는 방" });
+$("ab-p1").textContent = T({ en:"In Pulse Room, up to three hundred clear incandescent bulbs hang about three metres up. At the side of the room you hold a sensor; it reads your heart rate, and the bulb nearest you flashes with your pulse. When you let go, the room goes dark for a moment and the whole sequence moves one bulb along — your heartbeat joins the hundreds recorded before you, and the oldest disappears. It was first shown in 2006 at Plataforma 06 in Puebla, Mexico.",
+  ko:"〈펄스 룸〉에는 최대 300개의 투명한 백열전구가 약 3m 높이에 매달려 있어요. 방 한쪽의 센서를 쥐면 심장 박동을 읽어, 가장 가까운 전구가 그 박동에 맞춰 깜빡여요. 손을 떼면 방이 잠시 어두워지고 모든 박동이 한 칸씩 밀려나요 — 당신의 박동이 앞서 기록된 수백 개의 박동에 합류하고, 가장 오래된 박동은 사라져요. 2006년 멕시코 푸에블라의 〈플라타포르마 06〉에서 처음 선보였어요." });
+$("ab-p2").textContent = T({ en:"Lozano-Hemmer has said it was partly inspired by the candle scene in Roberto Gavaldón's 1960 film Macario, where a candle stands for each life. Each pulse is unique, yet together they make one shifting light — a portrait of the public rather than of anyone in it.",
+  ko:"로자노-헤머는 로베르토 가발돈의 1960년 영화 〈마카리오〉에서 촛불 하나하나가 한 사람의 생명을 뜻하는 장면에서 영감을 받았다고 해요. 박동은 저마다 다르지만, 모이면 하나의 흔들리는 빛이 돼요 — 한 사람이 아닌 '관객 전체'의 초상이죠." });
+$("ab-h3").textContent = T({ en:"Try", ko:"해 보기" });
+[{ en:"Give your pulse: on a phone, cover the back camera and its light with a fingertip; anywhere, tap along with your heartbeat.", ko:"내 맥박 보내기: 휴대폰은 후면 카메라와 플래시를 손끝으로 덮고, 어디서든 박동에 맞춰 두드릴 수 있어요." },
+ { en:"Send it, and the room goes dark — then your bulb lights first and everyone else's moves one along.", ko:"보내면 방이 잠시 어두워졌다가, 내 전구가 첫 번째로 켜지고 나머지가 한 칸씩 밀려나요." },
+ { en:"Hover over any bulb to hear that heartbeat and see when it was left.", ko:"전구에 마우스를 올리면 그 박동이 들리고, 언제 남겨졌는지 보여요." },
+ { en:"The room is shared: everyone who visits fills it, one bulb each.", ko:"방은 모두가 함께 써요. 방문객 한 사람이 전구 하나씩 채워요." }]
+ .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); $("ab-ol").appendChild(li); });
+
+/* ==========================================================================
+   9. START
+   ========================================================================== */
+layout(); assign(false); wave = 0; siteLight(false); openStore();
+window.addEventListener("resize", layout);
+["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
+window.addEventListener("pagehide", () => { AUD.stop(); stopCam(); });
+AUD.unlock(); setTimeout(() => AUD.unlock(), 150);
+hint(T({ en:"Each bulb is someone's heartbeat. Give yours to light the first one.", ko:"전구 하나하나가 누군가의 심장 박동이에요. 당신의 박동으로 첫 번째 전구를 밝혀 보세요." }));
+requestAnimationFrame(frame);
+window.__pr = { bulbs, assign, get PULSES(){ return PULSES; }, set local(v){ localP = v; }, openGive, tap, giveIt, GV, setBpm, store };
+</script>
+</body>
+</html>

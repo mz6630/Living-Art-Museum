@@ -67,6 +67,12 @@ service cloud.firestore {
                     && str(d().f[0], 40000);
       allow update, delete: if false;
     }
+    // ---- Pulse Room: one heartbeat per visit (beats a minute and when), added, never edited ----
+    match /pulseRoom/{id} {
+      allow read: if true;
+      allow create: if d().keys().hasOnly(['b', 't']) && d().b is number && d().b >= 35 && d().b <= 200 && d().t is number;
+      allow update, delete: if false;
+    }
     // where the binder, magazine, mug and oilsticks were left
     match /basquiatMeta/{id} {
       allow read: if true;
