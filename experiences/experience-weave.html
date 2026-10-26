@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>The Loom — Living Art Museum</title>
+<meta name="description" content="Program a loom in black and white squares — threading, tie-up, treadling — and watch the shuttle weave your cloth. Change one square and the whole pattern changes; switch to Jacquard and punch the cards yourself. After Anni Albers and the Bauhaus weaving workshop, from the Living Art Museum.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--serif:Fraunces,"Noto Serif KR",Georgia,serif;}
+html[lang="ko"]{--serif:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;}
+/* ==========================================================================
+   THE LOOM — after Anni Albers and the Bauhaus weaving workshop.
+   A loom is a binary machine: at every crossing either the warp is on top or
+   the weft is. Here you program one the way weavers write a draft — which
+   shaft each warp thread goes through, which shafts each treadle lifts, which
+   treadle to press for each pass of the shuttle — and the cloth is woven in
+   front of you. In Jacquard mode each pass is a punched card.
+   ========================================================================== */
+:root{
+  --ink:#16150f; --ink-dim:rgba(22,21,15,.62); --ink-faint:rgba(22,21,15,.4);
+  --glass-a:rgba(255,255,255,.8); --glass-b:rgba(255,255,255,.6); --glass-line:rgba(0,0,0,.08);
+  --chip-on:#16150f; --chip-on-ink:#fff; --accent:#c9a24a;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{background:#f2efe8;color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px;}
+.glass{background:linear-gradient(180deg,var(--glass-a),var(--glass-b));backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
+  border:1px solid var(--glass-line);box-shadow:0 18px 50px -24px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.7);}
+#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+body.hov #cv{cursor:pointer;}
+
+.top{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:20px;right:20px;z-index:10;display:flex;align-items:center;gap:14px;pointer-events:none;}
+.top > *{pointer-events:auto;}
+.logo{font-size:19px;font-weight:600;letter-spacing:-.018em;line-height:1;white-space:nowrap;text-decoration:none;color:var(--ink);}
+.title{margin-left:auto;text-align:right;max-width:46vw;}
+.title h1{font-family:var(--serif);font-size:16px;font-weight:600;line-height:1.25;}
+.title p{font-size:11.5px;color:var(--ink-dim);margin-top:2px;}
+body.embedded .top{display:none;}
+
+#pill{position:fixed;left:50%;top:calc(18px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:11;display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;font-size:12px;white-space:nowrap;}
+body.embedded #pill{top:calc(70px + env(safe-area-inset-top,0px));}
+#pill .bits{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.12em;}
+#pill .bits b{color:var(--ink);} #pill .bits i{font-style:normal;color:var(--ink-faint);}
+#pill .k{color:var(--ink-dim);font-size:11.5px;}
+
+#bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:12;display:flex;align-items:center;gap:4px;padding:6px;border-radius:20px;max-width:calc(100% - 20px);}
+.chip{display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:14px;font-size:12.5px;color:var(--ink-dim);white-space:nowrap;transition:background .2s,color .2s;}
+.chip svg{width:18px;height:18px;flex:none;}
+.chip:hover{color:var(--ink);background:rgba(0,0,0,.05);}
+.chip[aria-pressed="true"],.chip.hot{background:var(--chip-on);color:var(--chip-on-ink);}
+.chip.ic{padding:9px 10px;}
+.sep{width:1px;align-self:stretch;margin:6px 4px;background:var(--glass-line);}
+.ico{stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+#snd[aria-pressed="false"] .on, #snd[aria-pressed="true"] .off{display:none;}
+#play[aria-pressed="true"] .pl, #play[aria-pressed="false"] .pa{display:none;}
+.seg{display:flex;padding:2px;border-radius:14px;background:rgba(0,0,0,.05);}
+.seg .chip{padding:7px 11px;}
+#swatch i{width:14px;height:14px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18);}
+
+.pop{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:14;border-radius:18px;padding:8px;display:none;}
+.pop.on{display:block;animation:rise .2s ease-out;}
+@keyframes rise{from{opacity:0;transform:translate(-50%,8px);}to{opacity:1;transform:translate(-50%,0);}}
+#pats{display:grid;grid-template-columns:repeat(4,auto);gap:6px;}
+#pats button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px;border-radius:12px;font-size:11px;color:var(--ink-dim);}
+#pats button:hover{background:rgba(0,0,0,.05);color:var(--ink);}
+#pats canvas{width:64px;height:64px;border-radius:8px;box-shadow:0 0 0 1px rgba(0,0,0,.08);}
+#cols{display:flex;gap:6px;}
+#cols button{width:30px;height:30px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);}
+#cols button[aria-pressed="true"]{box-shadow:0 0 0 2px #fff, 0 0 0 4px var(--ink);}
+#cols p{font-size:11px;color:var(--ink-dim);align-self:center;padding:0 4px;max-width:150px;line-height:1.35;}
+
+#hint{position:fixed;left:50%;top:var(--hint-y,90px);transform:translate(-50%,-50%);z-index:11;padding:9px 15px;border-radius:999px;font-size:12.5px;color:var(--ink);white-space:nowrap;pointer-events:none;transition:opacity .5s;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;}
+#hint.off{opacity:0;}
+
+#about{position:fixed;right:20px;top:calc(76px + env(safe-area-inset-top,0px));width:360px;max-height:calc(100% - 170px);overflow:auto;z-index:21;border-radius:22px;padding:20px 20px 18px;display:none;}
+body.about #about{display:block;}
+#about .tag{font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);}
+#about h2{font-family:var(--serif);font-size:20px;font-weight:600;line-height:1.25;margin-top:8px;padding-right:24px;}
+#about p{font-size:12.5px;line-height:1.65;color:var(--ink-dim);margin-top:9px;}
+#about blockquote{margin-top:10px;padding-left:12px;border-left:2px solid var(--accent);font-family:var(--serif);font-size:13px;line-height:1.55;color:var(--ink);}
+#about h3{font-size:12px;font-weight:600;margin-top:16px;padding-top:14px;border-top:1px solid var(--glass-line);}
+#about ol{margin:8px 0 0 18px;font-size:12.5px;line-height:1.6;color:var(--ink-dim);}
+#about .x{position:absolute;right:12px;top:12px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--ink-dim);}
+#about .x svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;}
+html[lang="ko"] #about .tag{letter-spacing:.04em;}
+@media (max-width:760px){
+  .chip{padding:8px 9px;font-size:11.5px;gap:5px;} #bar .chip .lb{display:none;} .seg .chip{padding:6px 8px;}
+  #hint{white-space:normal;text-align:center;border-radius:18px;width:max-content;line-height:1.45;}
+  #about{left:10px;right:10px;width:auto;top:calc(64px + env(safe-area-inset-top,0px));}
+  .title p{display:none;} .title h1{font-size:13px;}
+  #pill{top:calc(58px + env(safe-area-inset-top,0px));font-size:11px;padding:6px 12px;} #pill .k{display:none;}
+  body.embedded #pill{top:calc(64px + env(safe-area-inset-top,0px));}
+  #pats{grid-template-columns:repeat(4,auto);} #pats canvas{width:56px;height:56px;}
+  #bar{gap:2px;padding:5px;} #bar .sep{display:none;} #end{display:none;}
+  #cols p{display:none;}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important;animation:none !important;} }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<header class="top">
+  <a class="logo" href="#" onclick="return false">Living Art Museum</a>
+  <div class="title"><h1 id="t-h"></h1><p id="t-p"></p></div>
+</header>
+<div id="pill" class="glass"><span class="k" id="p-k"></span><span class="bits" id="p-b"></span></div>
+<div id="hint" class="glass off"></div>
+
+<div id="pop-pat" class="pop glass"><div id="pats"></div></div>
+<div id="pop-col" class="pop glass"><div id="cols"></div></div>
+
+<nav id="bar" class="glass">
+  <button class="chip" id="pat"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><path d="M14 3h7v7h-7zM3 14h7v7H3z" stroke-dasharray="2 2"/></svg><span class="lb"></span></button>
+  <div class="seg"><button class="chip" id="m-shaft" aria-pressed="true"><span class="lb2"></span></button><button class="chip" id="m-jac" aria-pressed="false"><span class="lb2"></span></button></div>
+  <span class="sep"></span>
+  <button class="chip ic" id="play" aria-pressed="true"><svg class="ico pa" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg><svg class="ico pl" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg></button>
+  <button class="chip" id="end"><svg class="ico" viewBox="0 0 24 24"><path d="M5 5l7 7-7 7M12 5l7 7-7 7"/></svg><span class="lb"></span></button>
+  <button class="chip ic" id="swatch"><i id="sw-i"></i></button>
+  <span class="sep"></span>
+  <button class="chip ic" id="snd" aria-pressed="true"><svg class="ico on" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg><svg class="ico off" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
+  <button class="chip ic" id="info"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
+</nav>
+
+<section id="about" class="glass" aria-labelledby="ab-h">
+  <button class="x" id="about-x" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="tag" id="ab-tag"></div>
+  <h2 id="ab-h"></h2>
+  <p id="ab-p1"></p>
+  <p id="ab-p2"></p>
+  <blockquote id="ab-q"></blockquote>
+  <h3 id="ab-h3"></h3>
+  <ol id="ab-ol"></ol>
+</section>
+
+<script>
+"use strict";
+/* ==========================================================================
+   0. BASICS
+   ========================================================================== */
+const LANG = (() => {
+  let l = (document.documentElement.lang || "en").slice(0, 2);
+  try { const q = new URLSearchParams(location.search).get("lang"); if (q) l = q; } catch (_){}
+  return l === "ko" ? "ko" : "en";
+})();
+document.documentElement.lang = LANG;
+if (LANG === "ko") document.title = "베틀 — Living Art Museum";
+const T = (o) => (o && (o[LANG] ?? o.en)) || "";
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t;
+const ease = (x) => { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); };
+
+/* ==========================================================================
+   1. THE PROGRAM — four shafts, six treadles. Every warp thread passes
+      through one shaft; every treadle is tied to some shafts; every pick
+      presses some treadles. A warp thread is on top where its shaft rises.
+   ========================================================================== */
+const S = 4, K = 6, NMAX = 64, MMAX = 48;
+const PAL = ["#efe7d6", "#1d1b19", "#c9a24a", "#b4512e", "#8e8a82", "#36566f", "#fbfaf6", "#6d7744"];
+const PAL_N = [{ en:"Cream", ko:"크림" }, { en:"Black", ko:"검정" }, { en:"Gold", ko:"금색" }, { en:"Rust", ko:"녹슨 빨강" }, { en:"Grey", ko:"회색" }, { en:"Slate", ko:"청회색" }, { en:"White", ko:"흰색" }, { en:"Olive", ko:"올리브" }];
+const P = {
+  thr:new Int8Array(NMAX), tie:Array.from({ length:S }, () => new Uint8Array(K)), trd:new Uint8Array(MMAX),
+  wc:new Uint8Array(NMAX), fc:new Uint8Array(MMAX), card:Array.from({ length:MMAX }, () => new Uint8Array(NMAX)),
+};
+let N = 48, M = 30, mode = "shaft";
+const tieMask = (s) => { let m = 0; for (let k = 0; k < K; k++) if (P.tie[s][k]) m |= 1 << k; return m; };
+let TM = [0, 0, 0, 0];
+function refreshTie(){ for (let s = 0; s < S; s++) TM[s] = tieMask(s); }
+const shaftUp = (s, j) => (P.trd[j] & TM[s]) !== 0;
+function up(i, j){ if (mode === "jac") return P.card[j][i] === 1; const s = P.thr[i]; return s >= 0 && shaftUp(s, j); }
+
+/* a few drafts to start from, each as a short repeat */
+const PATTERNS = [
+  { id:"plain", n:{ en:"Plain", ko:"평직" }, thr:[0, 1, 2, 3], tie:[[0, 2], [1, 3]], trd:[[0], [1]], wc:[0], fc:[1] },
+  { id:"twill", n:{ en:"Twill", ko:"능직" }, thr:[0, 1, 2, 3], tie:[[0, 1], [1, 2], [2, 3], [3, 0]], trd:[[0], [1], [2], [3]], wc:[1], fc:[2] },
+  { id:"diamond", n:{ en:"Diamond", ko:"다이아몬드" }, thr:[0, 1, 2, 3, 0, 1, 2, 3, 2, 1, 0, 3, 2, 1], tie:[[0, 1], [1, 2], [2, 3], [3, 0]], trd:[[0], [1], [2], [3], [0], [1], [2], [3], [2], [1], [0], [3], [2], [1]], wc:[5], fc:[0] },
+  { id:"herring", n:{ en:"Herringbone", ko:"헤링본" }, thr:[0, 1, 2, 3, 0, 1, 2, 3, 1, 0, 3, 2, 1, 0, 3, 2], tie:[[0, 1], [1, 2], [2, 3], [3, 0]], trd:[[0], [1], [2], [3]], wc:[4], fc:[1] },
+  { id:"basket", n:{ en:"Basket", ko:"바스켓" }, thr:[0, 1, 2, 3], tie:[[0, 1], [2, 3]], trd:[[0], [0], [1], [1]], wc:[0], fc:[3] },
+  { id:"cabin", n:{ en:"Log cabin", ko:"로그 캐빈" }, thr:[0, 1], tie:[[0], [1]], trd:[[0], [1]], wc:[1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1], fc:[1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1] },
+  { id:"blocks", n:{ en:"Bauhaus blocks", ko:"바우하우스 블록" }, thr:[0, 1, 0, 1, 0, 1, 2, 3, 2, 3, 2, 3, 2, 3, 0, 1, 0, 1, 2, 3, 2, 3],
+    tie:[[0, 1], [2, 3], [0, 2], [1, 3]], trd:[[0], [2], [0], [3], [0], [2], [0], [3], [1], [2], [1], [3], [1], [2], [1], [3], [1], [2], [2], [3], [2], [3]],
+    wc:[1], fc:[6, 2, 6, 2, 6, 2, 6, 2, 6, 3, 6, 3, 6, 3, 6, 3, 6, 3, 6, 6, 6, 6] },
+  { id:"satin", n:{ en:"Broken twill", ko:"파능직" }, thr:[0, 1, 2, 3], tie:[[0], [1], [2], [3]], trd:[[0], [2], [1], [3]], wc:[2], fc:[1] },
+];
+function applyPattern(p){
+  for (let i = 0; i < NMAX; i++){ P.thr[i] = p.thr[i % p.thr.length]; P.wc[i] = p.wc[i % p.wc.length]; }
+  for (let s = 0; s < S; s++) P.tie[s].fill(0);
+  p.tie.forEach((ss, k) => ss.forEach(s => P.tie[s][k] = 1)); refreshTie();
+  for (let j = 0; j < MMAX; j++){ const tr = p.trd[j % p.trd.length]; P.trd[j] = tr.reduce((m, k) => m | 1 << k, 0); P.fc[j] = p.fc[j % p.fc.length]; }
+  syncCards(); save();
+}
+function syncCards(){ const m = mode; mode = "shaft"; for (let j = 0; j < MMAX; j++) for (let i = 0; i < NMAX; i++) P.card[j][i] = up(i, j) ? 1 : 0; mode = m; }
+const LKEY = "lam.weave.v1";
+function save(){ try { localStorage.setItem(LKEY, JSON.stringify({ thr:[...P.thr], tie:P.tie.map(r => [...r]), trd:[...P.trd], wc:[...P.wc], fc:[...P.fc], card:P.card.map(r => [...r].join("")), mode })); } catch (_){} }
+function load(){ try { const d = JSON.parse(localStorage.getItem(LKEY) || "null"); if (!d) return false;
+  P.thr.set(d.thr); d.tie.forEach((r, s) => P.tie[s].set(r)); P.trd.set(d.trd); P.wc.set(d.wc); P.fc.set(d.fc); d.card.forEach((r, j) => { for (let i = 0; i < r.length; i++) P.card[j][i] = r.charCodeAt(i) === 49 ? 1 : 0; });
+  mode = d.mode === "jac" ? "jac" : "shaft"; refreshTie(); return true; } catch (_){ return false; } }
+
+/* ==========================================================================
+   2. THREAD — each crossing drawn as a short length of yarn: a rounded
+      body with a sheen and a ply twist, dipping out of sight where it goes
+      under. Cached per colour, direction and ends, at the current size.
+   ========================================================================== */
+let C = 16, sprites = new Map();
+function shade(hex, k){ const n = parseInt(hex.slice(1), 16), c = [n >> 16, n >> 8 & 255, n & 255].map(v => Math.round(k > 0 ? v + (255 - v) * k : v * (1 + k))); return `rgb(${c[0]},${c[1]},${c[2]})`; }
+function sprite(col, under, vert, capA, capB){
+  const key = col + under + (vert ? 1 : 0) + (capA ? 1 : 0) + (capB ? 1 : 0);
+  let s = sprites.get(key); if (s) return s;
+  const R = Math.max(2, Math.round(C * DPR)), c = document.createElement("canvas"); c.width = c.height = R; const q = c.getContext("2d");
+  const hex = PAL[col], uh = PAL[under];
+  q.fillStyle = shade(uh, -.55); q.fillRect(0, 0, R, R);                                   /* the thread underneath, in shadow */
+  if (vert){ q.fillStyle = shade(uh, -.25); q.fillRect(0, R * .1, R, R * .8); } else { q.fillStyle = shade(uh, -.25); q.fillRect(R * .1, 0, R * .8, R); }
+  const w = R * .94, a0 = capA ? R * .07 : -R * .3, a1 = capB ? R * .93 : R * 1.3, r = w / 2;
+  q.save();
+  if (vert) { q.translate(R / 2, 0); } else { q.translate(0, R / 2); q.rotate(-Math.PI / 2); q.scale(-1, 1); }
+  /* in this frame the thread runs down the y axis, across x ∈ [-w/2, w/2] */
+  const g = q.createLinearGradient(-w / 2, 0, w / 2, 0);
+  g.addColorStop(0, shade(hex, -.3)); g.addColorStop(.32, shade(hex, .08)); g.addColorStop(.5, shade(hex, .18)); g.addColorStop(.72, hex); g.addColorStop(1, shade(hex, -.34));
+  q.beginPath(); q.moveTo(-w / 2, a0 + r * .6); q.quadraticCurveTo(-w / 2, a0, 0, a0); q.quadraticCurveTo(w / 2, a0, w / 2, a0 + r * .6);
+  q.lineTo(w / 2, a1 - r * .6); q.quadraticCurveTo(w / 2, a1, 0, a1); q.quadraticCurveTo(-w / 2, a1, -w / 2, a1 - r * .6); q.closePath();
+  q.fillStyle = g; q.fill(); q.clip();
+  /* ply: fine diagonal twist */
+  q.lineWidth = Math.max(.6, R * .06); q.strokeStyle = "rgba(0,0,0,.14)";
+  for (let y = -R; y < R * 2; y += R * .22){ q.beginPath(); q.moveTo(-w / 2, y); q.lineTo(w / 2, y + R * .28); q.stroke(); }
+  q.strokeStyle = "rgba(255,255,255,.1)"; for (let y = -R + R * .11; y < R * 2; y += R * .22){ q.beginPath(); q.moveTo(-w / 2, y); q.lineTo(w / 2, y + R * .28); q.stroke(); }
+  /* where it dives under, it darkens */
+  if (capA){ const e = q.createLinearGradient(0, a0, 0, a0 + R * .35); e.addColorStop(0, "rgba(0,0,0,.4)"); e.addColorStop(1, "rgba(0,0,0,0)"); q.fillStyle = e; q.fillRect(-w, a0, w * 2, R * .35); }
+  if (capB){ const e = q.createLinearGradient(0, a1, 0, a1 - R * .35); e.addColorStop(0, "rgba(0,0,0,.4)"); e.addColorStop(1, "rgba(0,0,0,0)"); q.fillStyle = e; q.fillRect(-w, a1 - R * .35, w * 2, R * .35); }
+  q.restore();
+  sprites.set(key, c); return c;
+}
+
+/* ==========================================================================
+   3. THE DRAFT ON SCREEN — warp colours and threading above the cloth, the
+      tie-up in the corner, the treadling and weft colours to its right
+   ========================================================================== */
+const cv = $("cv"), g = cv.getContext("2d");
+let W = 0, H = 0, DPR = 1, small = false;
+const L = {};                                        /* layout: where each part is */
+function layout(){
+  DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; small = W <= 760;
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  const emb = document.body.classList.contains("embedded");
+  N = small ? 22 : 48; M = small ? 26 : 30;
+  const topM = small ? (emb ? 104 : 100) : (emb ? 118 : 74), botM = (H - ($("bar").getBoundingClientRect().top || H - 72)) + (small ? 18 : 22);
+  const aw = W - (small ? 20 : 220), ah = H - topM - botM;
+  C = Math.max(8, Math.floor(Math.min(aw / (N + K + 2.3), ah / (M + S + 2.3))));
+  const tw = C * (N + K + 2.3), th = C * (M + S + 2.3);
+  L.x0 = Math.round((W - tw) / 2); L.y0 = Math.round(topM + (ah - th) / 2);
+  L.yth = L.y0 + C * 1.5; L.yc = L.yth + S * C + C * .8;
+  L.xt = L.x0 + N * C + C * .8; L.xw = L.xt + K * C + C * .5;
+  sprites.clear();
+  document.documentElement.style.setProperty("--hint-y", Math.round(($("bar").getBoundingClientRect().top || H - 72) - 26) + "px");
+}
+/* what is under a point */
+function hit(x, y){
+  const c = C, cx = (x - L.x0) / c, cy = (y - L.yc) / c;
+  if (y >= L.y0 && y < L.y0 + c && cx >= 0 && cx < N) return { a:"wc", i:Math.floor(cx) };
+  if (y >= L.yth && y < L.yth + S * c){
+    if (cx >= 0 && cx < N) return { a:"thr", i:Math.floor(cx), s:S - 1 - Math.floor((y - L.yth) / c) };
+    const tx = (x - L.xt) / c; if (tx >= 0 && tx < K) return { a:"tie", k:Math.floor(tx), s:S - 1 - Math.floor((y - L.yth) / c) };
+  }
+  if (cy >= 0 && cy < M){
+    const j = Math.floor(cy);
+    if (cx >= 0 && cx < N) return { a:"cloth", i:Math.floor(cx), j };
+    const tx = (x - L.xt) / c; if (tx >= 0 && tx < K) return { a:"trd", k:Math.floor(tx), j };
+    if (x >= L.xw && x < L.xw + c) return { a:"fc", j };
+  }
+  return null;
+}
+
+/* ==========================================================================
+   4. WEAVING — the shuttle passes once per pick, the reed beats the weft
+      home, the cloth grows a row at a time; at the end of the length it is
+      wound on and a new length begins
+   ========================================================================== */
+const W8 = { cur:0, p:0, play:true, speed:3, hold:0, roll:0, beat:1, dir:1, done:false };
+function stepWeave(dt){
+  if (W8.roll > 0){ W8.roll += dt / .9; if (W8.roll >= 1){ W8.roll = 0; W8.cur = 0; W8.p = 0; W8.done = false; } return; }
+  if (W8.done){ if (W8.play){ W8.hold -= dt; if (W8.hold <= 0){ W8.roll = .0001; AUD.wind(); } } return; }
+  W8.beat = Math.min(1, W8.beat + dt * 5);
+  if (!W8.play) return;
+  if (W8.p === 0){ AUD.treadle(); }
+  W8.p += dt * W8.speed;
+  if (W8.p >= 1){ W8.p = 0; W8.cur++; W8.beat = 0; W8.dir = -W8.dir; AUD.beat(); if (W8.cur >= M){ W8.done = true; W8.hold = 1.6; } }
+  else if (W8.p > .05 && !W8.swished){ W8.swished = true; AUD.shuttle(); }
+  if (W8.p < .05) W8.swished = false;
+}
+function weaveToEnd(){ W8.cur = M; W8.p = 0; W8.done = true; W8.hold = 2.4; W8.roll = 0; W8.beat = 1; AUD.beat(); }
+
+/* ==========================================================================
+   5. DRAWING
+   ========================================================================== */
+let hov = null;
+function frame(){
+  const c = C, d = DPR; g.setTransform(d, 0, 0, d, 0, 0);
+  g.fillStyle = "#f2efe8"; g.fillRect(0, 0, W, H);
+  const cw = N * c, ch = M * c;
+  /* the paper of the draft, ruled */
+  const grid = (x, y, cols, rows, fill) => { g.fillStyle = fill || "#fbfaf6"; g.fillRect(x, y, cols * c, rows * c); g.strokeStyle = "rgba(60,55,45,.18)"; g.lineWidth = 1; g.beginPath();
+    for (let i = 0; i <= cols; i++){ g.moveTo(Math.round(x + i * c) + .5, y); g.lineTo(Math.round(x + i * c) + .5, y + rows * c); }
+    for (let j = 0; j <= rows; j++){ g.moveTo(x, Math.round(y + j * c) + .5); g.lineTo(x + cols * c, Math.round(y + j * c) + .5); } g.stroke(); };
+  const ink = (x, y) => { g.fillStyle = "#1d1b19"; g.fillRect(Math.round(x) + 2, Math.round(y) + 2, c - 3, c - 3); };
+  /* warp colours */
+  for (let i = 0; i < N; i++){ g.fillStyle = PAL[P.wc[i]]; g.fillRect(L.x0 + i * c, L.y0, c, c); }
+  g.strokeStyle = "rgba(0,0,0,.12)"; g.strokeRect(L.x0 + .5, L.y0 + .5, cw, c);
+  if (mode === "shaft"){
+    grid(L.x0, L.yth, N, S); for (let i = 0; i < N; i++) if (P.thr[i] >= 0) ink(L.x0 + i * c, L.yth + (S - 1 - P.thr[i]) * c);
+    grid(L.xt, L.yth, K, S); for (let s = 0; s < S; s++) for (let k = 0; k < K; k++) if (P.tie[s][k]) ink(L.xt + k * c, L.yth + (S - 1 - s) * c);
+    grid(L.xt, L.yc, K, M); for (let j = 0; j < M; j++) for (let k = 0; k < K; k++) if (P.trd[j] >> k & 1) ink(L.xt + k * c, L.yc + j * c);
+    /* the shafts rising for this pick, marked in the tie-up's margin */
+    const j = Math.min(W8.cur, M - 1);
+    for (let s = 0; s < S; s++) if (shaftUp(s, j)){ g.fillStyle = "#c9a24a"; g.fillRect(L.xt + K * c + 3, L.yth + (S - 1 - s) * c + 3, 3, c - 6); }
+  } else {
+    /* Jacquard: the card for this pick, holes where the hooks lift */
+    const j = Math.min(W8.cur, M - 1), y = L.yth, h = S * c;
+    for (let b = 2; b >= 1; b--){ g.fillStyle = b === 2 ? "#ddd2bb" : "#e6dcc6"; roundRect(L.x0 - 6 + b * 3, y - 4 - b * 3, cw + 12, h + 8, 6); g.fill(); }
+    g.fillStyle = "#efe6d1"; roundRect(L.x0 - 6, y - 4, cw + 12, h + 8, 6); g.fill(); g.strokeStyle = "rgba(90,70,40,.25)"; g.stroke();
+    for (let i = 0; i < N; i++){ const on = P.card[j][i], x = L.x0 + i * c + c / 2;
+      for (let r = 0; r < 2; r++){ const yy = y + h * (r ? .68 : .32); g.beginPath(); g.arc(x, yy, c * .26, 0, 7);
+        if (on && r === 0){ g.fillStyle = "#2a241b"; g.fill(); } else { g.strokeStyle = "rgba(90,70,40,.3)"; g.lineWidth = 1; g.stroke(); } } }
+    g.fillStyle = "rgba(90,70,40,.55)"; g.font = `600 ${Math.max(8, c * .45)}px "JetBrains Mono", monospace`; g.textAlign = "left"; g.textBaseline = "middle";
+    g.fillText(`№ ${String(j + 1).padStart(2, "0")}`, L.xt, y + h / 2);
+    /* the chain of cards, edge on */
+    for (let jj = 0; jj < M; jj++){ const yy = L.yc + jj * c; g.fillStyle = jj === j ? "#e3c983" : "#ece3cf"; g.fillRect(L.xt, yy + 1.5, K * c, c - 3);
+      let n = 0; for (let i = 0; i < N; i++) n += P.card[jj][i];
+      g.fillStyle = "rgba(42,36,27,.7)"; const holes = Math.round(n / N * (K * 2)); for (let h2 = 0; h2 < holes; h2++) g.fillRect(L.xt + 3 + h2 * (K * c - 6) / (K * 2), yy + c / 2 - 1, 2, 2); }
+  }
+  /* weft colours */
+  for (let j = 0; j < M; j++){ g.fillStyle = PAL[P.fc[j]]; g.fillRect(L.xw, L.yc + j * c, c, c); }
+  g.strokeStyle = "rgba(0,0,0,.12)"; g.strokeRect(L.xw + .5, L.yc + .5, c, ch);
+  /* the cloth */
+  const woven = W8.roll > 0 ? M : Math.min(W8.cur, M), rollY = W8.roll > 0 ? -ease(W8.roll) * ch : 0;
+  g.save(); g.beginPath(); g.rect(L.x0 - 2, L.yc, cw + 4, ch); g.clip();
+  /* bare warp, stretched down to the reed and beyond */
+  for (let i = 0; i < N; i++){ const x = L.x0 + i * c, lift = !W8.done && W8.roll === 0 && up(i, Math.min(W8.cur, M - 1));
+    const gw = g.createLinearGradient(x + c * .2, 0, x + c * .8, 0), col = PAL[P.wc[i]];
+    gw.addColorStop(0, shade(col, -.35)); gw.addColorStop(.45, shade(col, lift ? .25 : .05)); gw.addColorStop(1, shade(col, -.4));
+    g.fillStyle = gw; g.fillRect(x + c * .2 + (lift ? -c * .06 : 0), L.yc, c * .6, ch); }
+  /* a pencil ghost of the whole draft where it is not yet woven */
+  for (let j = woven; j < M; j++) for (let i = 0; i < N; i++){ if (up(i, j)){ g.fillStyle = "rgba(29,27,25,.13)"; g.fillRect(L.x0 + i * c + 1, L.yc + j * c + 1, c - 2, c - 2); } }
+  const rowCells = (j, y0, from, to) => { for (let i = from; i < to; i++){ const u = up(i, j), x = L.x0 + i * c, y = y0 + j * c;
+      if (u){ const a = j === 0 || !up(i, j - 1), b = j === M - 1 || j + 1 >= woven || !up(i, j + 1); g.drawImage(sprite(P.wc[i], P.fc[j], true, a, b), x, y, c, c); }
+      else { const a = i === 0 || up(i - 1, j), b = i === N - 1 || up(i + 1, j); g.drawImage(sprite(P.fc[j], P.wc[i], false, a, b), x, y, c, c); } } };
+  for (let j = 0; j < woven; j++) rowCells(j, L.yc + rollY, 0, N);
+  /* the pick in progress: the weft laid as far as the shuttle has gone */
+  let shX = null;
+  if (!W8.done && W8.roll === 0 && W8.cur < M && W8.play || !W8.done && W8.roll === 0 && W8.p > 0){
+    const j = W8.cur, p = ease(W8.p), from = W8.dir > 0 ? 0 : Math.ceil(N * (1 - p)), to = W8.dir > 0 ? Math.floor(N * p) : N;
+    rowCells(j, L.yc, from, to);
+    shX = W8.dir > 0 ? lerp(L.x0 - c * 1.6, L.x0 + cw + c * 1.6, p) : lerp(L.x0 + cw + c * 1.6, L.x0 - c * 1.6, p);
+  }
+  g.restore();
+  /* the reed, beating the weft home */
+  const fellY = L.yc + Math.min(W8.cur, M) * c + rollY * 0, bt = W8.beat < 1 ? Math.sin(W8.beat * Math.PI) : 0, ry = fellY + c * (1.1 - .9 * bt);
+  if (W8.roll === 0 && W8.cur < M){
+    g.fillStyle = "rgba(60,52,40,.85)"; g.fillRect(L.x0 - c * .6, ry, cw + c * 1.2, Math.max(2, c * .16));
+    g.fillStyle = "rgba(60,52,40,.35)"; for (let i = 0; i <= N; i++) g.fillRect(L.x0 + i * c - .5, ry - c * .5, 1, c * .5);
+  }
+  /* the shuttle, trailing its weft */
+  if (shX !== null){ const y = L.yc + W8.cur * c + c / 2, len = c * 2.6, ht = c * .78, col = PAL[P.fc[W8.cur]];
+    const edge = W8.dir > 0 ? L.x0 : L.x0 + cw;
+    g.strokeStyle = col; g.lineWidth = Math.max(1.5, c * .2); g.beginPath(); g.moveTo(edge, y); g.lineTo(shX, y); g.stroke();
+    g.save(); g.translate(shX, y); g.scale(W8.dir, 1);
+    const sg = g.createLinearGradient(0, -ht / 2, 0, ht / 2); sg.addColorStop(0, "#d9b07a"); sg.addColorStop(.5, "#a8763f"); sg.addColorStop(1, "#6d4a26");
+    g.fillStyle = "rgba(0,0,0,.18)"; g.beginPath(); g.ellipse(c * .1, ht * .45, len * .5, ht * .22, 0, 0, 7); g.fill();
+    g.fillStyle = sg; g.beginPath(); g.moveTo(len / 2, 0); g.quadraticCurveTo(len * .2, -ht / 2, -len * .3, -ht * .42); g.quadraticCurveTo(-len / 2, -ht * .2, -len / 2, 0);
+    g.quadraticCurveTo(-len / 2, ht * .2, -len * .3, ht * .42); g.quadraticCurveTo(len * .2, ht / 2, len / 2, 0); g.fill();
+    g.fillStyle = "#3a2a18"; roundRect(-len * .28, -ht * .2, len * .5, ht * .4, ht * .15); g.fill();
+    g.fillStyle = col; roundRect(-len * .24, -ht * .14, len * .42, ht * .28, ht * .12); g.fill();
+    g.fillStyle = "rgba(255,255,255,.25)"; g.fillRect(-len * .24, -ht * .12, len * .42, ht * .06);
+    g.restore(); }
+  /* where the pointer is: a quiet outline, and what it touches in the cloth */
+  if (hov){ g.strokeStyle = "#c9a24a"; g.lineWidth = 2;
+    if (hov.a === "thr" || hov.a === "wc"){ g.fillStyle = "rgba(201,162,74,.14)"; g.fillRect(L.x0 + hov.i * c, L.yc, c, ch); }
+    if (hov.a === "trd" || hov.a === "fc"){ g.fillStyle = "rgba(201,162,74,.14)"; g.fillRect(L.x0, L.yc + hov.j * c, cw, c); }
+    if (hov.a === "tie" && mode === "shaft"){ g.fillStyle = "rgba(201,162,74,.12)"; for (let i = 0; i < N; i++) if (P.thr[i] === hov.s) g.fillRect(L.x0 + i * c, L.yc, c, ch); }
+    const r = cellRect(hov); if (r) g.strokeRect(r[0] + 1, r[1] + 1, c - 2, c - 2); }
+  /* labels */
+  if (!small){ g.fillStyle = "rgba(22,21,15,.45)"; g.font = `500 10px "JetBrains Mono", "Noto Sans KR", monospace`; g.textAlign = "right"; g.textBaseline = "middle";
+    const lab = (o, y) => g.fillText(T(o), L.x0 - 12, y);
+    lab({ en:"WARP COLOURS", ko:"날실 색" }, L.y0 + c / 2);
+    lab(mode === "shaft" ? { en:"THREADING", ko:"날실 꿰기" } : { en:"PUNCHED CARD", ko:"펀치 카드" }, L.yth + S * c / 2);
+    lab({ en:"CLOTH", ko:"직물" }, L.yc + c / 2);
+    g.textAlign = "left";
+    g.fillText(mode === "shaft" ? T({ en:"TIE-UP", ko:"연결" }) : "", L.xw + c + 12, L.yth + S * c / 2);
+    g.fillText(mode === "shaft" ? T({ en:"TREADLING", ko:"페달 순서" }) : T({ en:"CARD CHAIN", ko:"카드 묶음" }), L.xw + c + 12, L.yc + c / 2);
+    g.fillText(T({ en:"WEFT", ko:"씨실 색" }), L.xw + c + 12, L.yc + c * 1.7);
+    g.fillStyle = "rgba(22,21,15,.3)"; g.textAlign = "right";
+    for (let s = 0; s < S && mode === "shaft"; s++) g.fillText(String(s + 1), L.x0 - 4 - 0, L.yth + (S - 1 - s) * c + c / 2 + 0) ; }
+}
+function cellRect(h){ const c = C;
+  if (h.a === "wc") return [L.x0 + h.i * c, L.y0]; if (h.a === "thr") return [L.x0 + h.i * c, L.yth + (S - 1 - h.s) * c];
+  if (h.a === "tie") return [L.xt + h.k * c, L.yth + (S - 1 - h.s) * c]; if (h.a === "trd") return [L.xt + h.k * c, L.yc + h.j * c];
+  if (h.a === "fc") return [L.xw, L.yc + h.j * c]; if (h.a === "cloth") return [L.x0 + h.i * c, L.yc + h.j * c]; return null; }
+function roundRect(x, y, w, h, r){ g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+
+/* ==========================================================================
+   6. HANDS — click or drag across the draft; every change re-weaves the
+      whole cloth at once
+   ========================================================================== */
+let pen = 1, brush = null, lastCell = "", told = false;
+const small0 = innerWidth <= 760;
+function edit(h, first){
+  const id = JSON.stringify(h); if (id === lastCell) return; lastCell = id;
+  let changed = false;
+  if (h.a === "thr" && mode === "shaft"){
+    if (first) brush = P.thr[h.i] === h.s ? -1 : 1;                       /* click the filled square to empty it; otherwise draw */
+    const v = brush === -1 ? (P.thr[h.i] === h.s ? -1 : P.thr[h.i]) : h.s;
+    if (P.thr[h.i] !== v){ P.thr[h.i] = v; changed = true; } }
+  else if (h.a === "tie" && mode === "shaft"){ if (first) brush = P.tie[h.s][h.k] ? 0 : 1; if (P.tie[h.s][h.k] !== brush){ P.tie[h.s][h.k] = brush; refreshTie(); changed = true; } }
+  else if (h.a === "trd" && mode === "shaft"){ const bit = 1 << h.k;
+    if (first){ brush = P.trd[h.j] & bit ? 0 : 1; P.trd[h.j] = brush ? (P.trd[h.j] | bit) : (P.trd[h.j] & ~bit); changed = true; }
+    else { const v = brush ? bit : 0; if (P.trd[h.j] !== v){ P.trd[h.j] = v; changed = true; } } }
+  else if (h.a === "wc"){ if (P.wc[h.i] !== pen){ P.wc[h.i] = pen; changed = true; } }
+  else if (h.a === "fc"){ if (P.fc[h.j] !== pen){ P.fc[h.j] = pen; changed = true; } }
+  else if (h.a === "cloth"){
+    if (mode === "jac"){ if (first) brush = P.card[h.j][h.i] ? 0 : 1; if (P.card[h.j][h.i] !== brush){ P.card[h.j][h.i] = brush; changed = true; } }
+    else if (first){ AUD.lock(); hint(T({ en:"On a shaft loom you can't lift one thread on its own — change the threading, tie-up or treadling, or switch to Jacquard", ko:"종광 베틀에서는 실 한 올만 따로 들 수 없어요 — 날실 꿰기·연결·페달 순서를 바꾸거나 자카드로 바꿔 보세요" }), true); }
+  }
+  else if ((h.a === "thr" || h.a === "tie") && mode === "jac" && first){ hint(T({ en:"Jacquard: punch the card by drawing straight on the cloth", ko:"자카드: 직물 위에 바로 그려서 카드에 구멍을 뚫어요" }), true); }
+  if (changed){ AUD.tick(h.a); save(); if (!told && (h.a === "thr" || h.a === "tie" || h.a === "trd")){ told = true; hint(T({ en:"One square — and the whole cloth is re-woven", ko:"한 칸만 바꿨는데 — 천 전체가 다시 짜였어요" }), true); } }
+}
+const ptr = { down:false, id:null };
+cv.addEventListener("pointerdown", e => { AUD.unlock(); closePops(); const h = hit(e.clientX, e.clientY); if (!h) return; ptr.down = true; ptr.id = e.pointerId; try { cv.setPointerCapture(e.pointerId); } catch (_){} lastCell = ""; edit(h, true); hideHint(); });
+cv.addEventListener("pointermove", e => { const h = hit(e.clientX, e.clientY); hov = h; document.body.classList.toggle("hov", !!h);
+  if (ptr.down && h && e.pointerId === ptr.id){ const ok = h.a === "thr" || h.a === "tie" || h.a === "trd" || h.a === "wc" || h.a === "fc" || (h.a === "cloth" && mode === "jac"); if (ok) edit(h, false); } });
+const endP = () => { ptr.down = false; ptr.id = null; lastCell = ""; };
+cv.addEventListener("pointerup", endP); cv.addEventListener("pointercancel", endP);
+cv.addEventListener("pointerleave", () => { hov = null; document.body.classList.remove("hov"); });
+window.addEventListener("keydown", e => { if (e.key === " "){ e.preventDefault(); togglePlay(); } if (e.key === "Escape"){ document.body.classList.remove("about"); closePops(); } });
+
+/* ==========================================================================
+   7. SOUND — all of it small and wooden: a treadle's click, the shuttle's
+      hiss across the shed, the reed's knock, a soft tick for every square
+   ========================================================================== */
+const AUD = (() => {
+  let ctx = null, master = null, white = null, on = true, borrowed = false;
+  function ensure(){ if (ctx) return ctx; const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+    try { const host = window.parent !== window && window.parent.__lamAudio && window.parent.__lamAudio(); if (host && host.state === "running"){ ctx = host; borrowed = true; } } catch (_){}
+    if (!ctx){ try { ctx = new AC(); } catch (_){ return null; } }
+    master = ctx.createGain(); master.gain.value = on ? .85 : 0; master.connect(ctx.destination);
+    const n = ctx.sampleRate; white = ctx.createBuffer(1, n, ctx.sampleRate); const w = white.getChannelData(0); for (let i = 0; i < n; i++) w[i] = Math.random() * 2 - 1;
+    return ctx; }
+  const ok = () => on && ensure() && ctx.state === "running";
+  function burst(tt, dur, f, q, gg, f2){ const s = ctx.createBufferSource(); s.buffer = white; const fl = ctx.createBiquadFilter(); fl.type = "bandpass"; fl.frequency.setValueAtTime(f, tt); if (f2) fl.frequency.exponentialRampToValueAtTime(f2, tt + dur); fl.Q.value = q;
+    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(gg, tt + Math.min(.01, dur * .25)); a.gain.exponentialRampToValueAtTime(.0001, tt + dur);
+    s.connect(fl); fl.connect(a); a.connect(master); s.start(tt, Math.random() * .5); s.stop(tt + dur + .03); }
+  function tone(tt, f, dur, gg){ const o = ctx.createOscillator(); o.type = "triangle"; o.frequency.value = f; const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(gg, tt + .004); a.gain.exponentialRampToValueAtTime(.0001, tt + dur); o.connect(a); a.connect(master); o.start(tt); o.stop(tt + dur + .03); }
+  return {
+    unlock(){ if (ensure() && ctx.state !== "running") ctx.resume().catch(() => {}); },
+    get on(){ return on; }, set on(v){ on = v; if (master) master.gain.setTargetAtTime(v ? .85 : 0, ctx.currentTime, .05); },
+    stop(){ if (!ctx) return; try { master.disconnect(); } catch (_){} if (!borrowed) try { ctx.close(); } catch (_){} },
+    treadle(){ if (!ok()) return; const tt = ctx.currentTime; burst(tt, .03, 2200, 6, .03); },
+    shuttle(){ if (!ok()) return; const tt = ctx.currentTime, d = .9 / W8.speed; burst(tt, d, 1600, 1.2, .022, 3800); },
+    beat(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 1180, .07, .05); burst(tt, .035, 2600, 5, .05); },
+    tick(a){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, a === "tie" ? 1760 : a === "trd" ? 1568 : a === "thr" ? 1319 : 2093, .06, .03); },
+    lock(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 880, .08, .025); tone(tt + .07, 784, .1, .02); },
+    wind(){ if (!ok()) return; const tt = ctx.currentTime; for (let i = 0; i < 6; i++) burst(tt + i * .1, .05, 2400 + i * 120, 6, .025); },
+    ui(){ if (!ok()) return; burst(ctx.currentTime, .02, 3600, 3, .04); },
+  };
+})();
+
+/* ==========================================================================
+   8. LOOP AND UI
+   ========================================================================== */
+let last = performance.now();
+function loop(now){
+  requestAnimationFrame(loop);
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  stepWeave(dt); frame(); pill();
+}
+function pill(){
+  const j = Math.min(W8.cur, M - 1);
+  if (mode === "shaft"){ let s = ""; for (let k = S - 1; k >= 0; k--) s += shaftUp(k, j) ? "<b>1</b>" : "<i>0</i>";
+    $("p-k").textContent = T({ en:`Pick ${W8.cur + (W8.done ? 0 : 1)} · shafts 4321`, ko:`${W8.cur + (W8.done ? 0 : 1)}번째 씨실 · 종광 4321` }); $("p-b").innerHTML = s; }
+  else { let s = "", n = 0; const show = Math.min(N, small ? 12 : 24); for (let i = 0; i < show; i++){ const on = P.card[j][i]; n += on; s += on ? "<b>1</b>" : "<i>0</i>"; }
+    for (let i = show; i < N; i++) n += P.card[j][i];
+    $("p-k").textContent = T({ en:`Card ${j + 1} · ${n} holes`, ko:`${j + 1}번 카드 · 구멍 ${n}개` }); $("p-b").innerHTML = s + "<i>…</i>"; }
+}
+let hintT = 0, hintAt = 0;
+function hint(s, brief){ const h = $("hint"); h.textContent = s; h.classList.remove("off"); hintAt = performance.now(); clearTimeout(hintT); hintT = setTimeout(() => h.classList.add("off"), brief ? 3800 : 7000); }
+function hideHint(){ if (performance.now() - hintAt > 2500) $("hint").classList.add("off"); }
+function siteLight(on){ try { if (window.parent !== window){ const ex = window.parent.document.getElementById("s-exp"); if (ex) ex.classList.toggle("light", on); } } catch (_){} }
+function closePops(){ $("pop-pat").classList.remove("on"); $("pop-col").classList.remove("on"); }
+function togglePlay(){ AUD.unlock(); W8.play = !W8.play; $("play").setAttribute("aria-pressed", String(W8.play)); AUD.ui(); }
+function setMode(m){ if (m === mode) return;
+  if (m === "jac") syncCards();
+  mode = m; $("m-shaft").setAttribute("aria-pressed", String(m === "shaft")); $("m-jac").setAttribute("aria-pressed", String(m === "jac")); AUD.ui(); save();
+  hint(m === "jac" ? T({ en:"Jacquard (1804): one punched card per pick — draw on the cloth to punch holes, thread by thread", ko:"자카드(1804): 씨실 한 줄마다 펀치 카드 한 장 — 직물 위에 그려 한 올씩 구멍을 뚫어요" })
+                   : T({ en:"Shaft loom: four shafts, six treadles — a small program, a big pattern", ko:"종광 베틀: 종광 4개, 페달 6개 — 작은 프로그램, 큰 무늬" })); }
+/* the pattern picker, each one drawn small */
+function thumb(p){ const c = document.createElement("canvas"), n = 16, z = 8; c.width = c.height = n * z; const q = c.getContext("2d");
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++){ const s = p.thr[i % p.thr.length], tr = p.trd[j % p.trd.length], u = tr.some(k => (p.tie[k] || []).includes(s));
+    q.fillStyle = u ? PAL[p.wc[i % p.wc.length]] : PAL[p.fc[j % p.fc.length]]; q.fillRect(i * z, j * z, z, z); q.fillStyle = "rgba(0,0,0,.12)"; q.fillRect(i * z, j * z + z - 1, z, 1); q.fillRect(i * z + z - 1, j * z, 1, z); }
+  return c; }
+PATTERNS.forEach(p => { const b = document.createElement("button"); b.appendChild(thumb(p)); const s = document.createElement("span"); s.textContent = T(p.n); b.appendChild(s);
+  b.onclick = () => { AUD.unlock(); applyPattern(p); if (mode === "jac") syncCards(); W8.cur = 0; W8.p = 0; W8.done = false; W8.roll = 0; closePops(); AUD.wind();
+    hint(T(p.n) + T({ en:" — now change one square", ko:" — 이제 한 칸만 바꿔 보세요" }), true); };
+  $("pats").appendChild(b); });
+PAL.forEach((c, i) => { const b = document.createElement("button"); b.style.background = c; b.setAttribute("aria-label", T(PAL_N[i])); b.title = T(PAL_N[i]); b.setAttribute("aria-pressed", String(i === 1));
+  b.onclick = () => { pen = i; document.querySelectorAll("#cols button").forEach((x, k) => x.setAttribute("aria-pressed", String(k === i))); $("sw-i").style.background = c; AUD.ui(); closePops();
+    hint(T({ en:"Now paint the colour strips above the cloth and to its right", ko:"이제 직물 위와 오른쪽의 색 띠를 칠해 보세요" }), true); };
+  $("cols").appendChild(b); });
+{ const p = document.createElement("p"); p.textContent = T({ en:"Pick a yarn, then paint the warp and weft colour strips", ko:"실 색을 고르고 날실·씨실 색 띠를 칠하세요" }); $("cols").appendChild(p); }
+pen = 1; $("sw-i").style.background = PAL[1];
+$("pat").querySelector(".lb").textContent = T({ en:"Patterns", ko:"무늬" });
+$("end").querySelector(".lb").textContent = T({ en:"Weave it all", ko:"끝까지 짜기" });
+$("m-shaft").querySelector(".lb2").textContent = small0 ? T({ en:"Shafts", ko:"종광" }) : T({ en:"Shaft loom", ko:"종광 베틀" });
+$("m-jac").querySelector(".lb2").textContent = small0 ? T({ en:"Jacquard", ko:"자카드" }) : T({ en:"Jacquard", ko:"자카드" });
+$("pat").onclick = (e) => { e.stopPropagation(); AUD.unlock(); $("hint").classList.add("off"); $("pop-col").classList.remove("on"); $("pop-pat").classList.toggle("on"); };
+$("swatch").onclick = (e) => { e.stopPropagation(); AUD.unlock(); $("hint").classList.add("off"); $("pop-pat").classList.remove("on"); $("pop-col").classList.toggle("on"); };
+$("m-shaft").onclick = () => setMode("shaft"); $("m-jac").onclick = () => setMode("jac");
+$("play").onclick = togglePlay;
+$("end").onclick = () => { AUD.unlock(); weaveToEnd(); };
+$("snd").onclick = () => { AUD.unlock(); AUD.on = !AUD.on; $("snd").setAttribute("aria-pressed", String(AUD.on)); };
+$("info").onclick = () => document.body.classList.toggle("about");
+$("about-x").onclick = () => document.body.classList.remove("about");
+$("play").setAttribute("aria-label", T({ en:"Weave / pause", ko:"짜기 / 멈춤" })); $("swatch").setAttribute("aria-label", T({ en:"Yarn colour", ko:"실 색" }));
+$("snd").setAttribute("aria-label", T({ en:"Sound", ko:"소리" })); $("info").setAttribute("aria-label", T({ en:"About the work", ko:"작품 설명" }));
+$("t-h").textContent = T({ en:"The Loom — after Anni Albers", ko:"베틀 — 아니 알베르스" });
+$("t-p").textContent = T({ en:"Anni Albers · Bauhaus weaving workshop · 1920s", ko:"아니 알베르스 · 바우하우스 직조 공방 · 1920년대" });
+$("ab-tag").textContent = T({ en:"Anni Albers · 1899–1994", ko:"아니 알베르스 · 1899–1994" });
+$("ab-h").textContent = T({ en:"Thinking in threads", ko:"실로 생각하기" });
+$("ab-p1").textContent = T({ en:"Anni Albers entered the Bauhaus in 1922 and was put in the weaving workshop. She made it a place for modern art: wall hangings built from a grid of crossing threads, every square either warp or weft, every pattern the result of the structure. In 1933 she and Josef Albers left for Black Mountain College in America; in 1965 she wrote On Weaving.",
+  ko:"아니 알베르스는 1922년 바우하우스에 들어가 직조 공방에 배정됐어요. 그녀는 그곳을 현대 미술의 현장으로 만들었어요. 교차하는 실의 격자로 짠 벽걸이 직물 — 모든 칸은 날실 아니면 씨실이고, 모든 무늬는 구조의 결과예요. 1933년 요제프 알베르스와 함께 미국 블랙 마운틴 칼리지로 떠났고, 1965년 『직조에 관하여(On Weaving)』를 썼어요." });
+$("ab-p2").textContent = T({ en:"A loom is a binary machine. On a shaft loom a short program — threading, tie-up, treadling — makes a large pattern. The Jacquard loom (1804) went further: one punched card per pass, a hole for every thread to lift. Those cards led to Babbage's Analytical Engine, and so to the computer.",
+  ko:"베틀은 이진법 기계예요. 종광 베틀에서는 날실 꿰기·연결·페달 순서라는 짧은 프로그램이 커다란 무늬를 만들어요. 자카드 직기(1804)는 한 걸음 더 나아가, 씨실 한 줄마다 펀치 카드 한 장, 들어 올릴 실마다 구멍 하나를 썼어요. 이 카드가 배비지의 해석 기관으로, 그리고 컴퓨터로 이어졌어요." });
+$("ab-q").textContent = T({ en:"“The Analytical Engine weaves algebraical patterns just as the Jacquard-loom weaves flowers and leaves.” — Ada Lovelace, 1843",
+  ko:"“해석 기관은 자카드 직기가 꽃과 잎을 짜듯이 대수의 무늬를 짠다.” — 에이다 러브레이스, 1843" });
+$("ab-h3").textContent = T({ en:"Try", ko:"해 보기" });
+[{ en:"Threading (above the cloth): which of the four shafts each warp thread passes through. Drag across it to draw a line of thread.", ko:"날실 꿰기(직물 위): 날실 한 올 한 올이 종광 네 개 중 어디에 꿰이는지. 드래그해 사선으로 그어 보세요." },
+ { en:"Tie-up (the corner): which shafts each treadle lifts. Treadling (right): which treadle to press for each pick.", ko:"연결(오른쪽 위 모서리): 페달마다 어떤 종광을 들어 올리는지. 페달 순서(오른쪽): 씨실 한 줄마다 어떤 페달을 밟는지." },
+ { en:"Change one square and the whole cloth is re-woven. The pill at the top shows the shafts rising for this pick, in binary.", ko:"한 칸만 바꿔도 천 전체가 다시 짜여요. 위의 표시는 지금 올라가는 종광을 이진수로 보여 줘요." },
+ { en:"Paint the colour strips for colour-and-weave effects; try Log cabin.", ko:"색 띠를 칠하면 색과 조직이 만드는 무늬가 생겨요. '로그 캐빈'을 해 보세요." },
+ { en:"Jacquard: your draft becomes a chain of punched cards — draw on the cloth to punch any thread you like.", ko:"자카드: 지금의 설계가 펀치 카드 묶음이 돼요 — 직물 위에 그려 원하는 실을 마음대로 들어 올리세요." }]
+ .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); $("ab-ol").appendChild(li); });
+document.addEventListener("pointerdown", e => { if (!e.target.closest(".pop") && !e.target.closest("#pat") && !e.target.closest("#swatch")) closePops(); });
+
+/* ==========================================================================
+   9. START
+   ========================================================================== */
+if (!load()) applyPattern(PATTERNS[6]);
+$("m-shaft").setAttribute("aria-pressed", String(mode === "shaft")); $("m-jac").setAttribute("aria-pressed", String(mode === "jac"));
+layout(); siteLight(true);
+window.addEventListener("resize", layout);
+["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
+window.addEventListener("pagehide", () => AUD.stop());
+AUD.unlock(); setTimeout(() => AUD.unlock(), 150);
+hint(T({ en:"Click a square in the threading, tie-up or treadling — one square changes the whole cloth", ko:"날실 꿰기·연결·페달 순서의 칸을 눌러 보세요 — 한 칸이 천 전체를 바꿔요" }));
+requestAnimationFrame(loop);
+window.__wv = { P, W8, applyPattern, PATTERNS, setMode, weaveToEnd, edit, hit, L, get C(){ return C; }, up, refreshTie };
+</script>
+</body>
+</html>
