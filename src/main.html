@@ -1642,6 +1642,45 @@ function placePanes(){
 }
 window.addEventListener("resize", () => { if (panes.length && !entering) placePanes(); });
 
+/* a photo becomes glyphs in two soft movements: it coarsens into a mosaic that settles on the glyph grid,
+   then each tile darkens to its own tone and its glyph surfaces — cell by cell, in a gentle wave */
+const smooth = (u) => u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u);
+function photoToGlyphs(el, g, img, P, w, h, CX, CY, cw, ch, index, p){
+  const e1 = smooth(p / 0.58), e2 = smooth((p - 0.38) / 0.62);
+  /* 1 — the mosaic: from the photo's own resolution down to the glyph grid */
+  if (e2 < 1){
+    const cols = Math.max(CX, Math.round(w * Math.pow(CX / w, e1))), rows = Math.max(CY, Math.round(h * Math.pow(CY / h, e1)));
+    const sc = el._sc || (el._sc = document.createElement("canvas"));
+    if (sc.width !== cols || sc.height !== rows){ sc.width = cols; sc.height = rows; }
+    const q = sc.getContext("2d"); q.imageSmoothingQuality = "high"; q.drawImage(img, 0, 0, cols, rows);
+    g.imageSmoothingEnabled = cols > w * 0.6; g.drawImage(sc, 0, 0, w, h); g.imageSmoothingEnabled = true;
+  }
+  /* 2 — the glyphs */
+  if (e2 > 0){
+    g.font = `${Math.round(Math.min(ch, cw * 1.6) * 0.9)}px "JetBrains Mono", monospace`;
+    g.textBaseline = "middle"; g.textAlign = "center";
+    for (let y = 0; y < CY; y++) for (let x = 0; x < CX; x++){
+      const o = (y * CX + x) * 3, r = P[o], gg = P[o + 1], bb = P[o + 2];
+      const L = (0.299 * r + 0.587 * gg + 0.114 * bb) / 255;
+      const lag = (x / CX) * 0.35 + (y / CY) * 0.2 + hash(x + index * 7, y) * 0.25;   /* a soft diagonal wave */
+      const k = smooth((e2 * 1.8 - lag) / 1);
+      const f = 1 - (1 - (0.62 + L * 0.2)) * k;                                     /* the tile eases to its tone */
+      g.globalAlpha = e2 < 1 ? Math.min(1, e2 * 2.2) : 1;
+      g.fillStyle = `rgb(${r * f | 0},${gg * f | 0},${bb * f | 0})`; g.fillRect(x * cw, y * ch, cw + .6, ch + .6);
+      if (k > 0.02){
+        const t = Math.max(1, Math.min(GLYPHS.length - 1, Math.round((0.1 + L * 0.9) * (GLYPHS.length - 1))));
+        g.globalAlpha = k * (L > 0.6 ? .85 : .9);
+        g.fillStyle = L > 0.6 ? `rgb(${r * .35 | 0},${gg * .35 | 0},${bb * .35 | 0})` : `rgb(${r + (255 - r) * .6 | 0},${gg + (255 - gg) * .6 | 0},${bb + (255 - bb) * .6 | 0})`;
+        g.fillText(GLYPHS[t], x * cw + cw / 2, y * ch + ch / 2 + .5);
+      }
+    }
+    g.globalAlpha = 1;
+  }
+  const cvp = el.querySelector("canvas");
+  cvp.style.opacity = String(0.86 + 0.14 * e1);
+  el.querySelector(".inner").style.opacity = String(Math.max(0, 0.86 * (1 - e1)));
+}
+
 /* write one pane in glyphs, `p` = how far the digitisation has come (0 → 1) */
 function digitise(el, index, p){
   const cvp = el.querySelector("canvas");
@@ -1654,6 +1693,8 @@ function digitise(el, index, p){
   g.clearRect(0, 0, w, h);
   const P = PANE_RGB[index], CX = P ? paneCols(el) : 22, CY = P ? CELLS_Y : 29;
   const cw = w / CX, ch = h / CY;
+  const img = el.querySelector("img.ph");
+  if (P && img && img.naturalWidth){ photoToGlyphs(el, g, img, P, w, h, CX, CY, cw, ch, index, p); return; }
   g.font = `${Math.round(Math.min(ch, cw * 1.6) * 0.9)}px "JetBrains Mono", monospace`;
   g.textBaseline = "middle"; g.textAlign = "center";
   for (let y = 0; y < CY; y++){
@@ -1700,14 +1741,13 @@ async function runTransition(){
   /* 2 — the row glides past the camera at the pace of the first version (about half a screen a second),
          3 — and each work is rewritten as 0s and 1s as it reaches the middle */
   const driftMs = reduce ? 200 : 3400;
-  const morphMs = reduce ? 16 : 330;
+  const morphMs = reduce ? 16 : 620;
   const ease = (u) => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
   const started = new Array(N).fill(false);
   let count = 0, handed = false, lastRead = 0;
   const read = (i) => {
     if (started[i]) return; started[i] = true; count++; lastRead = performance.now();
     const el = panes[i];
-    el.classList.add("snap"); setTimeout(() => el.classList.remove("snap"), 440);
     const t0 = performance.now();
     const tick = () => { const p = Math.min(1, (performance.now() - t0) / morphMs); digitise(el, i, p); if (p < 1 && !skipped) requestAnimationFrame(tick); };
     tick();
