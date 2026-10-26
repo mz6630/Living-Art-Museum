@@ -277,6 +277,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 .pane .inner{position:absolute;inset:0;overflow:hidden;opacity:.86;mix-blend-mode:multiply;
   outline:1px solid rgba(0,0,0,.08);box-shadow:0 30px 70px -40px rgba(0,0,0,.5);transition:opacity .18s linear;}
 .pane svg{width:100%;height:100%;display:block;}
+.pane img.ph{width:100%;height:100%;display:block;object-fit:cover;background:#fff;}
 .pane canvas{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .18s linear;}
 .pane.snap .inner, .pane.snap canvas{animation:snap .34s cubic-bezier(.2,.9,.2,1);}
 @keyframes snap{
@@ -859,7 +860,7 @@ html[lang="ko"] .minimap .cap, html[lang="ko"] .wsec h4, html[lang="ko"] .dpanel
   <!-- ============ 2. THE COLLECTION DRIFTS PAST AND DIGITISES ============ -->
   <section class="scene" id="s-panes" aria-label="The collection">
     <div class="pstage"><div class="prow" id="prow"></div></div>
-    <div class="pcaption" id="pcaption" data-i18n="panes.cap">12 works · 5 rooms</div>
+    <div class="pcaption" id="pcaption" data-i18n="panes.cap">14 works · 6 rooms</div>
     <button class="skip" id="skip2" data-i18n="skip">Skip intro</button>
   </section>
 
@@ -1038,7 +1039,7 @@ const I18N = {
     "app.Finder":"Finder", "app.Mail":"Mail", "app.Photos":"Photos", "app.Music":"Music", "app.Notes":"Notes",
     "app.Maps":"Maps", "app.Settings":"Settings", "app.Safari":"Safari", "app.ART MUSEUM":"ART MUSEUM",
     "skip":"Skip intro",
-    "panes.cap":"12 works · 5 rooms", "panes.read":"reading the collection", "panes.enter":"entering the space",
+    "panes.cap":"14 works · 6 rooms", "panes.read":"reading the collection", "panes.enter":"entering the space",
     "mount":(n) => [
       `&gt; mount <b>/volumes/ART_MUSEUM</b>`,
       `&gt; reading manifest … <b>ok</b>`,
@@ -1066,7 +1067,7 @@ const I18N = {
     "toast.lightsUp":"Lights up", "toast.lightsDown":"Gallery light",
     "toast.next":(title) => `“${title}” experience — next build step`,
     "boot.t":"ENTERING THE GALLERY", "boot.0":"building the room …",
-    "boot.lines":["reading 0 1 geometry …", "placing 12 works …", "ready"],
+    "boot.lines":["reading 0 1 geometry …", "placing 14 works …", "ready"],
     "exp.frame":"Experience",
   },
   ko: {
@@ -1079,7 +1080,7 @@ const I18N = {
     "app.Finder":"Finder", "app.Mail":"메일", "app.Photos":"사진", "app.Music":"음악", "app.Notes":"메모",
     "app.Maps":"지도", "app.Settings":"설정", "app.Safari":"Safari", "app.ART MUSEUM":"ART MUSEUM",
     "skip":"인트로 건너뛰기",
-    "panes.cap":"작품 12점 · 전시실 5곳", "panes.read":"컬렉션을 읽는 중", "panes.enter":"공간으로 들어가는 중",
+    "panes.cap":"작품 14점 · 전시실 6곳", "panes.read":"컬렉션을 읽는 중", "panes.enter":"공간으로 들어가는 중",
     "mount":(n) => [
       `&gt; mount <b>/volumes/ART_MUSEUM</b>`,
       `&gt; 매니페스트 읽는 중 … <b>ok</b>`,
@@ -1107,7 +1108,7 @@ const I18N = {
     "toast.lightsUp":"조명 밝게", "toast.lightsDown":"전시 조명",
     "toast.next":(title) => `“${title}” 체험은 다음 단계에서 열립니다`,
     "boot.t":"갤러리 입장", "boot.0":"전시실을 짓는 중 …",
-    "boot.lines":["0 1 형태를 읽는 중 …", "작품 12점을 거는 중 …", "준비 완료"],
+    "boot.lines":["0 1 형태를 읽는 중 …", "작품 14점을 거는 중 …", "준비 완료"],
     "exp.frame":"체험",
   },
 };
@@ -1570,7 +1571,33 @@ async function launch(){
    ========================================================================== */
 const prow = $("prow");
 const CELLS_X = 22, CELLS_Y = 29;                 /* glyph grid inside one pane */
-let panes = [], entering = false;
+let panes = [], entering = false, PANE_W = [];
+const PANE_RGB = [];                              /* each work's photo, sampled down to the glyph grid */
+
+/* the works that open the museum: everything on show except the prototypes */
+const introWorks = () => SHOW.filter(w => w && !PROTO.has(w.id));
+
+/* read a representative photo into CELLS_X × CELLS_Y colours (cover-cropped, like the pane) */
+function samplePhoto(i, src, pos){
+  const im = new Image();
+  im.onload = () => {
+    const sx = CELLS_X * 4, sy = CELLS_Y * 4;
+    const a = document.createElement("canvas"); a.width = sx; a.height = sy;
+    const g = a.getContext("2d"); g.imageSmoothingQuality = "high";
+    const k = Math.max(sx / im.width, sy / im.height), dw = im.width * k, dh = im.height * k;
+    const py = /30%/.test(pos || "") ? 0.3 : 0.5;
+    g.drawImage(im, (sx - dw) / 2, (sy - dh) * py, dw, dh);
+    let d; try { d = g.getImageData(0, 0, sx, sy).data; } catch (e){ return; }
+    const out = new Float32Array(CELLS_X * CELLS_Y * 3);
+    for (let y = 0; y < CELLS_Y; y++) for (let x = 0; x < CELLS_X; x++){
+      let r = 0, gg = 0, b = 0;
+      for (let v = 0; v < 4; v++) for (let u = 0; u < 4; u++){ const o = ((y * 4 + v) * sx + x * 4 + u) * 4; r += d[o]; gg += d[o + 1]; b += d[o + 2]; }
+      const o = (y * CELLS_X + x) * 3; out[o] = r / 16; out[o + 1] = gg / 16; out[o + 2] = b / 16;
+    }
+    PANE_RGB[i] = out;
+  };
+  im.src = src;
+}
 
 /* the same motifs art() draws, sampled as brightness so a work can be written in glyphs */
 function artCell(index, u, v){
@@ -1592,21 +1619,31 @@ function artCell(index, u, v){
 function buildPanes(){
   if (panes.length) return;
   prow.innerHTML = "";
-  panes = WORKS.map((w, i) => {
+  PANE_W = introWorks();
+  panes = PANE_W.map((w, i) => {
     const el = document.createElement("div");
     el.className = "pane";
-    el.innerHTML = `<span class="inner">${art(i)}</span><canvas></canvas><span class="clip"><span class="scan"></span></span><span class="cap">${String(i+1).padStart(2,"0")} ${loc(w).title}</span>`;
+    const src = PHOTO[w.id];
+    if (src) samplePhoto(i, src, PHOTO_POS[w.id]);
+    const face = src ? `<img class="ph" alt="" src="${src}" style="object-position:${PHOTO_POS[w.id] || "center"}">` : art(i);
+    el.innerHTML = `<span class="inner">${face}</span><canvas></canvas><span class="clip"><span class="scan"></span></span><span class="cap">${String(i+1).padStart(2,"0")} ${loc(w).title}</span>`;
     prow.appendChild(el);
     return el;
   });
+  paneCaption();
   placePanes();
+}
+
+function paneCaption(){
+  const n = PANE_W.length, r = new Set(PANE_W.map(w => w.room)).size;
+  $("pcaption").textContent = LANG === "ko" ? `작품 ${n}점 · 전시실 ${r}곳` : `${n} works · ${r} rooms`;
 }
 
 /* a long horizontal row, receding slightly to the right */
 function placePanes(){
   const W = window.innerWidth, gap = Math.min(W * 0.17, 240);
   panes.forEach((el, i) => {
-    const k = i - (WORKS.length - 1) / 2;
+    const k = i - (panes.length - 1) / 2;
     el.dataset.x = String(k * gap);
     el.style.transform = `translate3d(calc(${k * gap}px - 50%), calc(${k * 6}px - 50%), ${-Math.abs(k) * 26}px) rotateY(-14deg)`;
     el.style.zIndex = String(50 - Math.abs(Math.round(k)));
@@ -1632,6 +1669,18 @@ function digitise(el, index, p){
       /* cells flip in a diagonal wave, with a little noise */
       const wave = (x / CELLS_X) * 0.55 + (y / CELLS_Y) * 0.25 + hash(x + index * 7, y) * 0.3;
       if (wave > p) continue;
+      const P = PANE_RGB[index];
+      if (P){                                        /* the work's own photo, written in glyphs and its own colours */
+        const o = (y * CELLS_X + x) * 3, r = P[o], gg = P[o + 1], bb = P[o + 2];
+        const L = (0.299 * r + 0.587 * gg + 0.114 * bb) / 255;
+        const t = Math.max(1, Math.min(GLYPHS.length - 1, Math.round((0.12 + L * 0.95) * (GLYPHS.length - 1))));
+        const f = 0.5 + L * 0.3;
+        g.fillStyle = `rgb(${r * f | 0},${gg * f | 0},${bb * f | 0})`; g.fillRect(x * cw, y * ch, cw + .5, ch + .5);
+        g.fillStyle = L > 0.72 ? `rgb(${r * .42 | 0},${gg * .42 | 0},${bb * .42 | 0})`
+                               : `rgb(${r + (255 - r) * .55 | 0},${gg + (255 - gg) * .55 | 0},${bb + (255 - bb) * .55 | 0})`;
+        g.fillText(GLYPHS[t], x * cw, y * ch);
+        continue;
+      }
       const b = artCell(index, (x + 0.5) / CELLS_X, (y + 0.5) / CELLS_Y);
       let t = Math.max(1, Math.min(GLYPHS.length - 1, Math.round(b * (GLYPHS.length - 1) * 1.1)));
       if (t >= 5 && t <= 7) t = hash(x + index, y + index) > 0.5 ? 5 : 6;
@@ -1647,7 +1696,7 @@ function digitise(el, index, p){
 
 /* the whole transition, start to finish — fast, and it never stops moving */
 async function runTransition(){
-  const row = prow, N = WORKS.length;
+  const row = prow, N = panes.length;
   const W = window.innerWidth, gap = Math.min(W * 0.17, 240);
   const travel = gap * (N - 1);
 
@@ -3327,7 +3376,7 @@ function relabelViews(){
     lastSel = -1; drawWheel();
   }
   if (salonBuilt){ salonBuilt = false; buildSalon(); }
-  panes.forEach((el, i) => { const c = el.querySelector(".cap"); if (c) c.textContent = `${String(i + 1).padStart(2, "0")} ${loc(WORKS[i]).title}`; });
+  panes.forEach((el, i) => { const c = el.querySelector(".cap"); if (c) c.textContent = `${String(i + 1).padStart(2, "0")} ${loc(PANE_W[i]).title}`; });
   labelNear();
 }
 applyLang();
