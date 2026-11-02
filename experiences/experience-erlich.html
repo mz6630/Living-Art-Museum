@@ -248,7 +248,7 @@ document.documentElement.lang = LANG;
 if (LANG === "ko") document.title = "수영장 — Living Art Museum";
 const T = (o) => (o && (o[LANG] ?? o.en)) || "";
 const $ = (id) => document.getElementById(id);
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t, sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const mul = (a, k) => [a[0] * k, a[1] * k, a[2] * k], dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -264,7 +264,7 @@ const TOUCH = matchMedia("(pointer:coarse)").matches;
    ========================================================================== */
 const FLOOR = -2.8, CXW = 19, CZW = 15;               /* the room's floor, the courtyard's half-size */
 const PX = 8, PZ = 5.5;                               /* the pool's half-size: 16 × 11 m */
-const HOLE = { x0:PX + 1.6, x1:PX + 3, z0:-3.0, z1:3.0 };     /* the stairwell, east of the pool */
+const HOLE = { x0:PX + 1.6, x1:PX + 4.6, z0:-4.0, z1:3.0 };   /* the stairwell, east of the pool: 3 m wide */
 const SZ0 = -1.5, RUN = 4.5, NSTEP = 16;              /* sixteen steps from the landing up to the deck */
 const RAD = .27;                                      /* how close a body may come to a wall */
 const stairY = (z) => clamp(-2.8 + (z - SZ0) / RUN * 2.8 + .085, -2.8, 0);
@@ -345,6 +345,27 @@ function maker(){
         return [[c[0] + (R + r * cv) * cu, c[1] + r * sw, c[2] + (R + r * cv) * si], [cv * cu, sw, cv * si]]; };
       for (let i = 0; i < su; i++){ const kk = kf ? kf(i) : k; for (let j = 0; j < sv; j++) quadV(V(i, j), V(i + 1, j), V(i + 1, j + 1), V(i, j + 1), kk, m); }
     },
+    /* a lock of hair: rings through the points P, W wide (along side) and T thick, tapering to a point */
+    strand(P, W, T, side, k, m, seg){
+      seg = seg || 10; const R = [];
+      for (let j = 0; j < P.length; j++){
+        const ax = norm(sub(P[Math.min(P.length - 1, j + 1)], P[Math.max(0, j - 1)])), d = side[0] * ax[0] + side[1] * ax[1] + side[2] * ax[2];
+        let e1 = sub(side, mul(ax, d)); e1 = Math.hypot(e1[0], e1[1], e1[2]) < 1e-4 ? [1, 0, 0] : norm(e1);
+        const e2 = cross(ax, e1), w = Math.max(W[j], .002), t = Math.max(T[j], .002), ring = [];
+        for (let i = 0; i <= seg; i++){ const th = i / seg * Math.PI * 2, c = Math.cos(th), s = Math.sin(th);
+          ring.push([add(P[j], add(mul(e1, c * w), mul(e2, s * t))), norm(add(mul(e1, c * t), mul(e2, s * w)))]); }
+        R.push(ring); }
+      for (let j = 0; j < R.length - 1; j++) for (let i = 0; i < seg; i++){ const a = R[j][i], b = R[j][i + 1], c = R[j + 1][i + 1], e = R[j + 1][i];
+        push(a[0], a[1], k, m); push(b[0], b[1], k, m); push(c[0], c[1], k, m); push(a[0], a[1], k, m); push(c[0], c[1], k, m); push(e[0], e[1], k, m); }
+      const n0 = norm(sub(P[0], P[1])); for (let i = 0; i < seg; i++){ push(P[0], n0, k, m); push(R[0][i + 1][0], n0, k, m); push(R[0][i][0], n0, k, m); }
+    },
+    /* a smooth sheet through a grid of points, its normals turned away from c */
+    grid(G, k, m, c){
+      const R = G.length, C = G[0].length;
+      const N = G.map((row, i) => row.map((p, j) => { let n = norm(cross(sub(G[i][Math.min(C - 1, j + 1)], G[i][Math.max(0, j - 1)]), sub(G[Math.min(R - 1, i + 1)][j], G[Math.max(0, i - 1)][j])));
+        if ((p[0] - c[0]) * n[0] + (p[1] - c[1]) * n[1] + (p[2] - c[2]) * n[2] < 0) n = mul(n, -1); return n; }));
+      for (let i = 0; i < R - 1; i++) for (let j = 0; j < C - 1; j++) quadV([G[i][j], N[i][j]], [G[i][j + 1], N[i][j + 1]], [G[i + 1][j + 1], N[i + 1][j + 1]], [G[i + 1][j], N[i + 1][j]], k, m);
+    },
     quad(p0, p1, p2, p3, n, k, m){ [p0, p1, p2, p0, p2, p3].forEach(p => push(p, n, k, m)); },
   };
 }
@@ -381,7 +402,7 @@ function buildWorld(){
   A.box(HOLE.x0 - .2, FLOOR, HOLE.z1, HOLE.x1 + .2, -.26, HOLE.z1 + .2, CON, 0);
   for (let i = 0; i < NSTEP; i++){ const z0 = SZ0 + i * RUN / NSTEP; A.box(HOLE.x0, FLOOR, z0, HOLE.x1, FLOOR + (i + 1) * 2.8 / NSTEP, z0 + RUN / NSTEP, DECK, 1); }
   for (const x of [HOLE.x0 + .1, HOLE.x1 - .1]) A.tube([x, FLOOR + .9, SZ0], [x, .9, HOLE.z1], .03, .03, MET, 3, 10);
-  for (const x of [PX + .55, PX + 1.2]) A.box(x - .25, -.285, -2.4, x + .25, -.255, -2.1, [1, .95, .84], 7);       /* corridor lights */
+  for (const x of [PX + .55, PX + 1.2]) A.box(x - .25, -.285, -2.9, x + .25, -.255, -2.6, [1, .95, .84], 7);       /* corridor lights */
   /* railings round the stairwell, open on the south side */
   const rail = (a, b) => { A.tube([a[0], .95, a[1]], [b[0], .95, b[1]], .03, .03, MET, 3, 10);
     const L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / 1.2));
@@ -426,7 +447,7 @@ const lookArr = (L) => LOOK_KEYS.map(k => L[k]);
 const lookFrom = (a) => { const L = {}; LOOK_KEYS.forEach((k, i) => { const v = Array.isArray(a) ? a[i] : 0; L[k] = Number.isInteger(v) && v >= 0 && v < LOOK_N[k] ? v : 0; }); return L; };
 const lookKey = (L) => lookArr(L).join(".");
 const randomLook = () => { const L = {}; LOOK_KEYS.forEach(k => L[k] = Math.floor(Math.random() * LOOK_N[k])); return L; };
-const HEAD = 1.2, HR = [.375, .35, .355];
+const HEAD = 1.2, HR = [.395, .365, .37];
 const SHADE = (c, k) => c.map(v => v * k);
 const faceZ = (x, y) => HR[2] * Math.sqrt(Math.max(0, 1 - (x / HR[0]) ** 2 - ((y - HEAD) / HR[1]) ** 2));
 function arc(A, cx, cy, w, h, r, k, m){                     /* a little stroke drawn on the face, with round ends */
@@ -434,71 +455,152 @@ function arc(A, cx, cy, w, h, r, k, m){                     /* a little stroke d
   for (let i = 0; i < 8; i++) A.tube(pts[i], pts[i + 1], r, r, k, m || 5, 6);
   A.ell(pts[0], r, r, r, k, m || 5, 6); A.ell(pts[8], r, r, r, k, m || 5, 6);
 }
-const UPPER = [[.284, .52], [.279, .6], [.268, .68], [.248, .76], [.21, .825], [.15, .87], [.07, .895], [0, .9]];
-const LOWER = [[0, .3], [.15, .302], [.225, .33], [.265, .38], [.282, .45], [.284, .52]];
-const DRESS = [[0, .2], [.3, .205], [.355, .235], [.352, .29], [.31, .42], [.287, .52]].concat(UPPER.slice(1));
-const rAt = (y) => { for (let i = 0; i < UPPER.length - 1; i++){ const a = UPPER[i], b = UPPER[i + 1]; if (y >= a[1] && y <= b[1]) return lerp(a[0], b[0], (y - a[1]) / (b[1] - a[1])); } return .28; };
+/* the body: a short bell of a shirt under a big round head, thin limbs, big round hands */
+const TORSO = [[0, .47], [.2, .472], [.218, .49], [.216, .55], [.202, .63], [.183, .71], [.162, .77], [.132, .815], [.086, .845], [0, .858]];
+const BODY_Z = .82;
+const rAt = (y) => { for (let i = 1; i < TORSO.length - 1; i++){ const a = TORSO[i], b = TORSO[i + 1]; if (y >= a[1] && y <= b[1]) return lerp(a[0], b[0], (y - a[1]) / (b[1] - a[1])); } return .2; };
+/* the face is painted: flat shapes laid onto the head, each a hair above the one below */
+const fN = (x, y) => norm([x / (HR[0] * HR[0]), (y - HEAD) / (HR[1] * HR[1]), Math.max(faceZ(x, y), .02) / (HR[2] * HR[2])]);
+const fP = (x, y, o) => { const n = fN(x, y); return [x + n[0] * o, y + n[1] * o, faceZ(x, y) + n[2] * o]; };
+const CAP = [0, HEAD + .1, -.05], CR = [.42, .335, .405];
+const IRIS = [[.33, .2, .13], [.42, .26, .15], [.45, .3, .17], [.24, .42, .72], [.55, .3, .3], [.26, .44, .74]];
+const SHOE = [[.28, .45, .84], [.86, .32, .3], [.32, .32, .36], [.96, .62, .22], [.34, .6, .42], [.62, .44, .82]];
 function buildAvatar(L){
-  const B = maker(), LL = maker(), LR = maker(), AL = maker(), AR = maker(), M = 5, EYE = 8, BODY_Z = .9;
-  const sk = SKIN[L.sk], hc = HAIRC[L.hc], tc = TOPC[L.tc], bc = BOTC[L.bc], white = [.97, .97, .96], ink = [.17, .13, .12];
-  const swim = L.st === 3, dress = L.st === 1, hood = L.st === 2;
-  const shoe = swim ? sk : [.96, .95, .93], sole = swim ? SHADE(sk, .88) : [.4, .41, .45];
-  /* legs and shoes */
-  for (const [A, s] of [[LL, -1], [LR, 1]]){ const x = .1 * s, lc = swim || dress ? sk : bc;
-    A.ell([x, .42, 0], .088, .07, .086, lc, M, 16);
-    A.tube([x, .43, 0], [x, .12, 0], .084, .074, lc, M, 16);
-    A.ell([x, .088, .03], .092, .07, .136, shoe, M, 20);
-    A.ell([x, .032, .032], .097, .03, .142, sole, M, 20); }
-  /* the body: one smooth bean */
-  if (dress){ B.lathe(DRESS, tc, M, 36, BODY_Z); B.torus([0, .215, 0], .335, .014, SHADE(tc, .86), M, 36, 6); }
-  else { B.lathe(LOWER, swim ? tc : bc, M, 36, BODY_Z); B.lathe(UPPER, tc, M, 36, BODY_Z); }
-  if (swim) for (const [y0, y1] of [[.6, .645], [.7, .745]]) B.lathe([[rAt(y0) + .004, y0], [rAt(y1) + .004, y1]], white, M, 36, BODY_Z);
-  B.torus([0, .875, 0], .12, .022, hood ? SHADE(tc, .9) : swim ? sk : SHADE(tc, .86), M, 24, 8);   /* the neckline */
-  if (hood){ B.ell([0, .96, -.2], .27, .19, .15, SHADE(tc, .92), M, 18);
-    for (const s of [-1, 1]){ B.tube([.06 * s, .86, .2], [.07 * s, .7, .235], .011, .011, white, M, 6); B.ell([.07 * s, .69, .236], .018, .022, .018, white, M, 8); }
-    B.ell([0, .57, .228], .15, .06, .03, SHADE(tc, .88), M, 16); }
-  if (!dress && !swim) B.torus([0, .515, 0], .283, .012, SHADE(bc, .82), M, 36, 6);               /* the waistband */
-  /* the head, ears, face */
+  const B = maker(), LL = maker(), LR = maker(), AL = maker(), AR = maker(), M = 5, GLOSS = 8, PAINT = 9, HAIR = 10;
+  const sk = SKIN[L.sk], hc = HAIRC[L.hc], tc = TOPC[L.tc], bc = BOTC[L.bc], white = [.98, .97, .95], ink = [.2, .13, .12];
+  const swim = L.st === 3, dress = L.st === 1, hood = L.st === 2, tee = L.st === 0;
+  const mix3 = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+  /* ---- painting on the face ---- */
+  const paint = (pts, o, k) => { let cx = 0, cy = 0; for (const p of pts){ cx += p[0]; cy += p[1]; } cx /= pts.length; cy /= pts.length;
+    const C = fP(cx, cy, o), n = fN(cx, cy);
+    for (let i = 0; i < pts.length; i++){ const a = pts[i], b = pts[(i + 1) % pts.length], P1 = fP(a[0], a[1], o), P2 = fP(b[0], b[1], o); B.quad(C, P1, P2, P2, n, k, PAINT); } };
+  const oval = (cx, cy, rx, ry, o, k, rot, t0, t1) => { const r = rot || 0, a0 = t0 == null ? 0 : t0, a1 = t1 == null ? Math.PI * 2 : t1, full = a1 - a0 > 6.28, n = 30, pts = [];
+    for (let i = 0; i < (full ? n : n + 1); i++){ const t = a0 + (a1 - a0) * i / n, x = Math.cos(t) * rx, y = Math.sin(t) * ry; pts.push([cx + x * Math.cos(r) - y * Math.sin(r), cy + x * Math.sin(r) + y * Math.cos(r)]); }
+    paint(pts, o, k); };
+  const stroke = (x0, y0, x1, y1, r0, r1, k) => B.tube(fP(x0, y0, .007), fP(x1, y1, .007), r0, r1, k, PAINT, 8);
+  /* ---- legs, socks and shoes ---- */
+  for (const [A, s] of [[LL, -1], [LR, 1]]){ const x = .08 * s, lc = hood ? bc : sk, lr = hood ? .058 : .045;
+    A.ell([x, .41, 0], lr + .006, .05, lr + .006, lc, M, 14);
+    A.tube([x, .42, 0], [x, .08, 0], lr, lr * .92, lc, M, 14);
+    if (hood) A.torus([x, .12, 0], .054, .014, SHADE(bc, .86), M, 16, 6);
+    if (tee) A.tube([x, .15, 0], [x, .07, 0], .048, .047, white, M, 14);
+    if (dress){ A.tube([x, .26, 0], [x, .07, 0], .048, .046, white, M, 14); A.torus([x, .255, 0], .05, .013, white, M, 16, 6); }
+    if (swim){ A.ell([x, .04, .03], .05, .036, .092, sk, M, 16); A.ell([x, .011, .03], .064, .012, .11, [.98, .82, .32], M, 18);
+      for (const d of [-1, 1]) A.tube([x + .04 * d, .022, -.005], [x, .055, .078], .008, .008, [.3, .62, .9], M, 6); }
+    else if (dress){ const mj = [.82, .2, .24]; A.ell([x, .058, .03], .06, .05, .098, mj, GLOSS, 18); A.ell([x, .018, .03], .063, .018, .102, [.45, .14, .16], M, 18);
+      A.tube([x - .055, .088, .04], [x + .055, .088, .04], .01, .01, mj, M, 6); }
+    else { const up = hood ? [.3, .32, .38] : SHOE[L.bc % SHOE.length];
+      A.ell([x, .062, .035], .062, .052, .102, up, M, 18); A.ell([x, .02, .035], .066, .02, .108, white, M, 18); A.ell([x, .1, .0], .044, .012, .046, SHADE(up, .7), M, 12); }
+  }
+  /* ---- the body and clothes ---- */
+  const band = (y0, y1, r0, r1, k) => B.lathe([[r0, y0], [Math.max(r0, r1) + .004, (y0 + y1) / 2], [r1, y1]], k, M, 40, BODY_Z);
+  const zf = (y) => rAt(y) * BODY_Z;
+  if (tee){
+    B.lathe(TORSO, tc, M, 44, BODY_Z); band(.47, .495, .202, .22, SHADE(tc, .92));
+    B.lathe([[0, .37], [.18, .37], [.205, .39], [.212, .45], [.206, .5]], bc, M, 40, BODY_Z);
+    B.torus([0, .846, 0], .08, .016, SHADE(tc, .88), M, 24, 8);
+    const em = L.tc === 5 ? [.95, .5, .55] : [.99, .97, .94];                                                /* a little heart print */
+    for (const d of [-1, 1]) B.ell([.022 * d, .68, zf(.68) - .004], .027, .027, .012, em, PAINT, 16);
+    B.tube([0, .676, zf(.676) - .002], [0, .63, zf(.63) + .001], .033, .005, em, PAINT, 12);
+  } else if (dress){
+    const DR = [[0, .3], [.31, .3], [.326, .318], [.316, .36], [.27, .45], [.228, .53], [.205, .6]].concat(TORSO.filter(p => p[1] > .62));
+    B.lathe(DR, tc, M, 48, BODY_Z); band(.3, .335, .326, .322, white);
+    for (const d of [-1, 1]) B.ell([.06 * d, .83, .085], .075, .026, .05, white, M, 16);
+    B.ell([0, .78, zf(.78) + .006], .045, .028, .016, SHADE(tc, .8), M, 12); for (const d of [-1, 1]) B.ell([.045 * d, .78, zf(.78) + .002], .04, .03, .014, SHADE(tc, .8), M, 12);
+    for (const y of [.7, .64]) B.ell([0, y, zf(y) - .002], .012, .012, .01, white, M, 8);
+  } else if (hood){
+    B.lathe(TORSO.map(([r, y]) => [r ? r + .012 : 0, y]), tc, M, 44, BODY_Z); band(.46, .5, .2, .224, SHADE(tc, .88));
+    B.lathe([[0, .37], [.18, .37], [.205, .39], [.214, .45], [.21, .48]], bc, M, 40, BODY_Z);
+    B.ell([0, .875, -.15], .23, .14, .14, SHADE(tc, .92), M, 20); B.torus([0, .86, -.02], .13, .026, SHADE(tc, .92), M, 24, 8);
+    B.ell([0, .58, zf(.58) + .006], .13, .06, .02, SHADE(tc, .92), M, 18);
+    for (const d of [-1, 1]){ B.tube([.042 * d, .83, .1], [.048 * d, .7, zf(.7) + .016], .008, .008, white, M, 6); B.ell([.048 * d, .69, zf(.69) + .016], .013, .018, .013, white, M, 8); }
+  } else {
+    B.lathe(TORSO, sk, M, 44, BODY_Z);
+    B.lathe([[0, .38], [.17, .38], [.2, .41], [.214, .47]].concat([.53, .58, .63, .68, .72].map(y => [rAt(y) + .006, y])), tc, M, 44, BODY_Z);
+    for (const y of [.5, .58, .66]) band(y, y + .028, rAt(y) + .008, rAt(y + .028) + .008, white);
+    for (const d of [-1, 1]) B.tube([.085 * d, .72, zf(.72) - .01], [.085 * d, .8, -.03], .015, .015, tc, M, 8);
+  }
+  /* ---- the head: big and round, ears like halves of a ball ---- */
   B.ell([0, HEAD, 0], HR[0], HR[1], HR[2], sk, M, 48);
-  for (const s of [-1, 1]) B.ell([.365 * s, HEAD - .02, -.01], .055, .075, .05, SHADE(sk, .97), M, 12);
-  B.ell([0, HEAD - .045, faceZ(0, HEAD - .045) - .004], .024, .019, .018, SHADE(sk, .94), M, 12);  /* the nose */
-  for (const s of [-1, 1]){ const ex = .13 * s, ey = HEAD + .03;
-    if (L.fa === 0) arc(B, ex, ey - .014, .05, .027, .012, ink, 9);
-    else if (L.fa === 1){ B.ell([ex, ey, faceZ(ex, ey) - .01], .04, .055, .022, ink, EYE, 14); B.ell([ex + .013 * s, ey + .02, faceZ(ex, ey) + .009], .013, .013, .008, white, EYE, 8);
-      B.ell([ex - .008 * s, ey - .02, faceZ(ex, ey) + .006], .006, .006, .005, white, EYE, 6); arc(B, ex, ey + .085, .035, .008, .007, L.hs ? SHADE(hc, .8) : SHADE(sk, .6), 9); }
-    else arc(B, ex, ey + .01, .048, -.022, .011, ink, 9);
-    const bx = .215 * s, by = HEAD - .065; B.ell([bx, by, faceZ(bx, by) - .004], .062, .034, .016, [.98, .67, .66], 9, 16); }
-  if (L.fa === 0) B.ell([0, HEAD - .105, faceZ(0, HEAD - .105) - .005], .034, .021, .014, [.62, .27, .27], 9, 16);
-  else arc(B, 0, HEAD - .1, .036, -.014, .008, [.55, .3, .28], 9);
-  /* hair */
-  const cap = () => B.ell([0, HEAD + .09, -.035], .392, .308, .388, hc, M, 48);
-  const bangs = () => { for (let i = -2; i <= 2; i++){ const x = i * .1, y = HEAD + .165 - Math.abs(i) * .016; B.ell([x, y, faceZ(x, y) - .03], .085, .07, .06, hc, M, 14); } };
-  if (L.hs >= 1){ cap(); bangs(); }
-  if (L.hs === 1) B.tube([0, HEAD + .38, -.04], [.07, HEAD + .47, -.01], .022, .006, hc, M, 8);
-  if (L.hs === 2 || L.hs === 4){ for (const s of [-1, 1]) B.ell([.31 * s, HEAD - .1, -.03], .13, .24, .25, hc, M, 18); B.ell([0, HEAD - .1, -.18], .34, .27, .22, hc, M, 20); }
-  if (L.hs === 3){ B.ell([0, HEAD + .42, -.1], .15, .14, .15, hc, M, 18); B.torus([0, HEAD + .33, -.07], .085, .022, tc, M, 18, 8); }
-  if (L.hs === 4) B.ell([0, .88, -.2], .3, .32, .13, hc, M, 20);
-  if (L.hs === 5) for (let i = 0; i < 13; i++){ const a = i * 2.39996, yy = .2 + .2 * (i / 13); const r = .3 * Math.sqrt(1 - (i / 14) * .6);
-    B.ell([Math.cos(a) * r, HEAD + yy, Math.sin(a) * r - .06], .115, .105, .115, hc, M, 12); }
-  /* the extra */
-  if (L.ac === 1){ const straw = [.92, .81, .55];
-    B.lathe([[0, HEAD + .3], [.6, HEAD + .265], [.635, HEAD + .25], [.6, HEAD + .24], [0, HEAD + .275]], straw, M, 40);
-    B.lathe([[.345, HEAD + .27], [.35, HEAD + .36], [.32, HEAD + .44], [.22, HEAD + .48], [0, HEAD + .49]], straw, M, 32);
-    B.lathe([[.353, HEAD + .285], [.352, HEAD + .33]], tc, M, 32); }
-  if (L.ac === 2){ const gk = [.1, .12, .15]; for (const s of [-1, 1]){ B.ell([.13 * s, HEAD + .035, .348], .1, .066, .025, gk, EYE, 16); B.tube([.225 * s, HEAD + .05, .31], [.36 * s, HEAD + .05, .05], .009, .009, gk, 3, 6); }
-    B.tube([-.04, HEAD + .055, .37], [.04, HEAD + .055, .37], .011, .011, gk, 3, 6); }
-  if (L.ac === 3) B.torus([0, .58, 0], .36, .1, white, M, 30, 14, i => (Math.floor(i / 5) % 2) ? white : [.98, .52, .6]);
-  if (L.ac === 4){ B.lathe([[.388, HEAD + .1], [.385, HEAD + .2], [.34, HEAD + .31], [.21, HEAD + .38], [0, HEAD + .395]], tc, M, 32); B.ell([0, HEAD + .135, .33], .23, .02, .19, SHADE(tc, .88), M, 20); B.ell([0, HEAD + .395, 0], .03, .02, .03, SHADE(tc, .8), M, 8); }
-  if (L.ac === 5) for (const s of [-1, 1]){ B.tube([.13 * s, HEAD + .3, -.05], [.17 * s, HEAD + .72, -.08], .066, .056, white, M, 14); B.ell([.17 * s, HEAD + .72, -.08], .056, .062, .056, white, M, 12);
-    B.ell([.155 * s, HEAD + .53, -.022], .028, .16, .02, [.98, .72, .77], M, 10); }
-  /* arms, from the shoulder: a sleeve, then the forearm and a mitten hand */
+  for (const s of [-1, 1]){ B.ell([.385 * s, HEAD - .05, -.03], .055, .09, .072, sk, M, 18); B.ell([.418 * s, HEAD - .05, -.02], .024, .052, .04, SHADE(sk, .86), M, 12); }
+  B.ell([0, HEAD - .088, faceZ(0, HEAD - .088) - .012], .03, .025, .028, mix3(sk, [1, .48, .38], .5), M, 14);   /* a little nose */
+  const ex = .15, ey = HEAD - .04, iris = IRIS[L.hc], lash = [.2, .12, .1];
+  for (const s of [-1, 1]){ const x = ex * s;
+    if (L.fa === 0) arc(B, x, ey - .022, .058, .04, .015, lash, PAINT);                                       /* happy: closed in a smile */
+    else if (L.fa === 1){                                                                                        /* oval eyes, a coloured iris, a shine */
+      oval(x, ey + .004, .075, .096, .004, lash, 0, .18, Math.PI - .18);
+      oval(x, ey, .067, .085, .008, white);
+      oval(x - .006 * s, ey - .012, .053, .066, .012, iris); oval(x - .006 * s, ey - .016, .028, .036, .015, SHADE(iris, .35));
+      oval(x + .012 * s, ey + .02, .017, .02, .018, white); oval(x - .022 * s, ey - .04, .007, .007, .018, white);
+      stroke(x + .06 * s, ey + .056, x + .086 * s, ey + .074, .01, .005, lash); }
+    else {                                                                                                       /* calm: lids half down */
+      const lid = ey + .024, cut = (r, cy) => Math.asin(clamp((lid - cy) / r, -1, 1));
+      let t = cut(.085, ey); oval(x, ey, .067, .085, .008, white, 0, Math.PI - t, Math.PI * 2 + t);
+      const ix = x - .004 * s, iy = ey - .018; t = cut(.062, iy); oval(ix, iy, .05, .062, .012, iris, 0, Math.PI - t, Math.PI * 2 + t);
+      t = cut(.034, iy - .004); oval(ix, iy - .004, .027, .034, .015, SHADE(iris, .35), 0, Math.PI - t, Math.PI * 2 + t);
+      arc(B, x, lid - .004, .07, .008, .012, lash, PAINT); }
+    if (!L.hs) oval(x, ey + .13, .045, .016, .006, SHADE(sk, .6), -.1 * s);
+    oval(.248 * s, HEAD - .128, .052, .03, .005, mix3(sk, [.98, .55, .55], .45)); }                         /* cheeks */
+  if (L.fa === 0){ oval(0, HEAD - .15, .05, .045, .006, [.45, .13, .15], 0, Math.PI, Math.PI * 2);
+    oval(0, HEAD - .186, .028, .018, .01, [.96, .52, .55], 0, 0, Math.PI); }
+  else if (L.fa === 1) arc(B, 0, HEAD - .15, .058, -.026, .008, ink, PAINT);
+  else arc(B, .006, HEAD - .152, .044, -.016, .008, ink, PAINT);
+  /* ---- hair: smooth, with a blunt fringe ---- */
+  const hp = (a, y, o) => { const kh = Math.sqrt(Math.max(0, 1 - ((y - HEAD) / HR[1]) ** 2)), kc = Math.sqrt(Math.max(0, 1 - ((y - CAP[1]) / CR[1]) ** 2));
+    const h = [Math.sin(a) * HR[0] * kh, Math.cos(a) * HR[2] * kh], c = [Math.sin(a) * CR[0] * kc, CAP[2] + Math.cos(a) * CR[2] * kc], p = Math.hypot(h[0], h[1]) > Math.hypot(c[0], c[1]) ? h : c;
+    return [p[0] + Math.sin(a) * o, y, p[1] + Math.cos(a) * o]; };
+  const at = (a, y, r) => [Math.sin(a) * r, y, Math.cos(a) * r];
+  const HC = [0, HEAD - .1, -.05];
+  /* the fringe, with the hair down by the cheeks: cut(a) is where it ends, sweep turns it to one side */
+  const fringe = (aMax, cut, sweep) => { const G = [], C = 30, R = 8;
+    for (let r = 0; r <= R; r++){ const t = r / R, row = [];
+      for (let j = 0; j <= C; j++){ const a0 = -aMax + 2 * aMax * j / C, a = a0 + (sweep || 0) * t * Math.cos(a0), y = lerp(HEAD + .38, cut(a0), t);
+        row.push(hp(a, y, lerp(-.03, .03, Math.min(1, t * 1.6)))); }
+      G.push(row); }
+    G.push(G[R].map((p, j) => { const a0 = -aMax + 2 * aMax * j / C, a = a0 + (sweep || 0) * Math.cos(a0); return hp(a, p[1] + .006, -.01); }));
+    B.grid(G, hc, HAIR, HC); };
+  const blunt = (sideLen, h) => (a) => HEAD + (h || .085) + .02 * a * a - sstep(.98, 1.16, Math.abs(a)) * (sideLen + .1 + (h || .085));
+  /* hair down the sides and back: rows of [y, r] — r 0 follows the head, a negative r turns the edge inwards */
+  const shell = (rows) => { const G = [], C = 30, a0 = .98, a1 = Math.PI * 2 - .98;
+    for (const [y, r] of rows){ const row = [];
+      for (let j = 0; j <= C; j++){ const a = lerp(a0, a1, j / C), s = hp(a, y, .014);
+        row.push(r === 0 ? s : r < 0 ? at(a, y, -r) : at(a, y, Math.max(Math.hypot(s[0], s[2]), r))); }
+      G.push(row); }
+    B.grid(G, hc, HAIR, HC); };
+  if (L.hs >= 1) B.ell(CAP, CR[0], CR[1], CR[2], hc, HAIR, 48);
+  if (L.hs === 1){ fringe(1.42, (a) => blunt(.02, .11 + .03 * a)(a), .22); }                                   /* short, swept to one side */
+  if (L.hs === 2){ fringe(1.1, blunt(.05)); shell([[HEAD + .33, 0], [HEAD + .2, 0], [HEAD + .08, 0], [HEAD - .03, .46], [HEAD - .15, .472], [HEAD - .24, .46], [HEAD - .285, .43], [HEAD - .27, -.37]]); }
+  if (L.hs === 3){ fringe(1.42, blunt(.0)); B.ell([0, HEAD + .44, -.1], .17, .16, .17, hc, HAIR, 28); B.torus([0, HEAD + .32, -.09], .09, .026, tc, M, 20, 8); }
+  if (L.hs === 4){ fringe(1.1, blunt(.12)); shell([[HEAD + .33, 0], [HEAD + .2, 0], [HEAD + .08, 0], [HEAD - .06, .455], [HEAD - .22, .44], [.88, .405], [.76, .395], [.66, .39], [.6, .37], [.61, -.3]]); }
+  if (L.hs === 5){
+    for (let i = 0; i < 24; i++){ const a = i * 2.39996, v = i / 24, y = HEAD + .44 - v * .5; if (Math.cos(a) > .55 && y < HEAD + .28) continue;
+      const r = .1 + (i % 3) * .015; B.ell(hp(a, y, .02), r, r * .92, r, hc, HAIR, 18); }
+    for (let i = -3; i <= 3; i++){ const a = i * .27, y = HEAD + .2 - Math.abs(i) * .022; B.ell(hp(a, y, .01), .075, .068, .065, hc, HAIR, 16); }
+  }
+  /* ---- the extra ---- */
+  const shiftZ = (from, dz) => { for (let i = from; i < B.v.length; i += ST) B.v[i + 2] += dz; };
+  if (L.ac === 1){ const straw = [.93, .8, .52], n0 = B.v.length;
+    B.lathe([[0, HEAD + .29], [.68, HEAD + .25], [.72, HEAD + .232], [.68, HEAD + .22], [0, HEAD + .26]], straw, M, 44);
+    B.lathe([[.445, HEAD + .25], [.45, HEAD + .34], [.41, HEAD + .46], [.28, HEAD + .52], [0, HEAD + .53]], straw, M, 36);
+    B.lathe([[.452, HEAD + .262], [.455, HEAD + .31]], tc, M, 36); shiftZ(n0, -.05); }
+  if (L.ac === 2){ const gk = [.1, .12, .15];
+    for (const s of [-1, 1]){ const x = ex * s, z = faceZ(x, ey) + .05; B.ell([x, ey + .004, z], .1, .09, .022, gk, GLOSS, 20); B.ell([x + .03 * s, ey + .04, z + .02], .025, .014, .006, [.5, .55, .62], PAINT, 10);
+      B.tube([.245 * s, ey + .02, z - .03], [.39 * s, ey + .02, -.03], .01, .01, gk, 3, 6); }
+    B.tube([-.05, ey + .03, faceZ(0, ey) + .055], [.05, ey + .03, faceZ(0, ey) + .055], .012, .012, gk, 3, 6); }
+  if (L.ac === 3) B.torus([0, .56, 0], .29, .085, white, M, 30, 14, i => (Math.floor(i / 5) % 2) ? white : [.98, .52, .6]);
+  if (L.ac === 4){ const n0 = B.v.length;
+    B.lathe([[.45, HEAD + .12], [.452, HEAD + .22], [.4, HEAD + .36], [.26, HEAD + .45], [0, HEAD + .475]], tc, M, 40); shiftZ(n0, -.05);
+    B.ell([0, HEAD + .145, .36], .26, .022, .2, SHADE(tc, .86), M, 22); B.ell([0, HEAD + .475, -.05], .035, .022, .035, SHADE(tc, .8), M, 10); }
+  if (L.ac === 5) for (const s of [-1, 1]){ B.tube([.13 * s, HEAD + .33, -.07], [.18 * s, HEAD + .78, -.1], .066, .056, white, M, 14); B.ell([.18 * s, HEAD + .78, -.1], .056, .062, .056, white, M, 12);
+    B.ell([.165 * s, HEAD + .58, -.042], .028, .16, .02, [.98, .72, .77], M, 10); }
+  /* ---- arms: short sleeves, thin arms, big round hands ---- */
   for (const [A, s] of [[AL, -1], [AR, 1]]){
-    const sl = swim ? sk : tc, shp = [.25 * s, .8, 0], el = [.285 * s, .665, 0], wr = [.3 * s, .54, 0];
-    A.ell(shp, .08, .08, .08, sl, M, 16); A.tube(shp, el, .077, .069, sl, M, 16);
-    if (hood){ A.ell(el, .069, .069, .069, sl, M, 14); A.tube(el, wr, .069, .062, sl, M, 16); A.torus([wr[0], wr[1] + .01, 0], .058, .013, SHADE(sl, .86), M, 16, 6); }
-    else { if (!swim) A.torus([el[0], el[1] + .006, 0], .066, .013, SHADE(sl, .88), M, 18, 6);
-      A.ell(el, .062, .062, .062, sk, M, 14); A.tube(el, wr, .061, .056, sk, M, 16); }
-    A.ell([.305 * s, .5, 0], .066, .074, .06, sk, M, 16); A.ell([.28 * s, .52, .042], .026, .032, .024, sk, M, 10); }
+    const sh = [.165 * s, .79, 0], el = [.19 * s, .7, 0], hd = [.215 * s, .56, 0];
+    if (swim){ A.ell(sh, .05, .05, .05, sk, M, 14); A.tube(sh, hd, .04, .036, sk, M, 14); }
+    else if (hood){ A.ell(sh, .066, .066, .066, tc, M, 16); A.tube(sh, [.21 * s, .6, 0], .064, .054, tc, M, 16); A.torus([.21 * s, .605, 0], .052, .014, SHADE(tc, .88), M, 16, 6); }
+    else { A.ell(sh, .07, .068, .068, tc, M, 16); A.tube(sh, el, .07, .064, tc, M, 16); A.torus([el[0], el[1] + .006, 0], .062, .012, dress ? white : SHADE(tc, .9), M, 16, 6);
+      A.tube(el, hd, .038, .036, sk, M, 14); }
+    A.ell([hd[0] + .004 * s, hd[1] - .03, .004], .066, .068, .064, sk, M, 18); }
   return { b:upload(B.v), ll:upload(LL.v), lr:upload(LR.v), al:upload(AL.v), ar:upload(AR.v) };
 }
 const MESHES = new Map();
@@ -552,7 +654,7 @@ void main(){
   gl_FragColor = vec4(c, 1.); }`;
 const MAIN_FS = `${DERIV ? "#extension GL_OES_standard_derivatives : enable\n" : ""}precision highp float;
 varying vec3 vP; varying vec3 vN; varying vec3 vC; varying float vM;
-uniform vec3 uCam, uSun; uniform float uT, uClip, uBelow, uShTex, uAvY; uniform mat4 uSV; uniform sampler2D uSh;
+uniform vec3 uCam, uSun, uAvP; uniform float uT, uClip, uBelow, uShTex, uAvY; uniform mat4 uSV; uniform sampler2D uSh;
 ${SKYFN}
 ${NOISE}
 ${CAUST}
@@ -576,9 +678,9 @@ void main(){
   if (uClip > 1.5 && vP.y < .004) discard;
   vec3 n = normalize(vN); vec3 col = vC; float m = vM;
   vec3 V = normalize(uCam - vP); float dist = length(uCam - vP);
-  bool soft = (m > 4.5 && m < 5.5) || (m > 7.5 && m < 8.5);
+  bool soft = (m > 4.5 && m < 5.5) || (m > 7.5 && m < 8.5) || m > 9.5;
   if (soft && dot(n, V) < -.2) n = -n;
-  if (m > 6.5 && m < 7.5 || m > 8.5){ gl_FragColor = vec4(col, 1.); return; }       /* lamps, painted-on face details */
+  if ((m > 6.5 && m < 7.5) || (m > 8.5 && m < 9.5)){ gl_FragColor = vec4(col, 1.); return; }       /* lamps, painted-on face details */
   vec2 fp = abs(n.y) > .5 ? vP.xz : (abs(n.x) > .5 ? vP.zy : vP.xy);
   if (m > .5 && m < 1.5){ vec2 g = fp / .6; col = mix(col * (.97 + .04 * hs(floor(g))), vec3(.62, .6, .57), grout(g) * .7); }
   if (m > 1.5 && m < 2.5){ vec2 g = fp / .3; float r = hs(floor(g) + 17.);
@@ -587,7 +689,7 @@ void main(){
   if (m > 5.5 && m < 6.5) col *= .9 + .2 * step(.55, ns(vP.xz * 2.2 + vec2(vP.y * 1.9, -vP.y)));
   /* two tones: lit, or shade; cast shadows in flat blue */
   float lam = dot(n, uSun);
-  float lit = soft ? smoothstep(-.44, -.3, lam) : smoothstep(-.02, .06, lam);      /* people: shade only round the far side */
+  float lit = soft ? smoothstep(-.75, .55, lam) : smoothstep(-.02, .06, lam);      /* people: shade only round the far side */
   float sh = soft ? 1. : shadow(vP, n);
   vec3 SHADE = vec3(.66, .66, .82), BLUE = vec3(.24, .33, .7);
   vec3 self = col * SHADE, castC = mix(col, BLUE, .62);
@@ -603,9 +705,14 @@ void main(){
     vec3 poolReal = col * (ambU * .56 + vec3(.85, .97, 1.) * (max(lam, 0.) * .4 + .12) * sh + vec3(.8, .96, 1.) * cc * 1.9 * (.35 + .65 * sh));
     vec3 poolToon = mix(col * vec3(.8, .86, .96), col, lit * .7 + .3) + vec3(.8, .96, 1.) * cc * .25;
     vec3 pool = soft ? poolToon : poolReal;
-    vec3 lamp = vec3(${(PX + .85).toFixed(2)}, -.4, -2.25) - vP; float ld = length(lamp);
+    vec3 lamp = vec3(${(PX + .85).toFixed(2)}, -.4, -2.75) - vP; float ld = length(lamp);
     vec3 hall = mix(self, col, lit * sh) * .8 + vec3(.35, .25, .1) * max(dot(n, lamp / ld), 0.) / (1. + ld * ld * .35);
     c = mix(hall, pool, inPool); }
+  if (soft){ vec3 lp = vP - uAvP;                                              /* the soft shadow under the chin */
+    float neck = smoothstep(.72, .8, lp.y) * (1. - smoothstep(.875, .9, lp.y)) * (1. - smoothstep(.3, .36, length(lp.xz)));
+    c = mix(c, self, neck * .6);
+    c += col * .14 * pow(1. - max(dot(n, normalize(V)), 0.), 2.5);                        /* a soft rim of light */
+  }
   /* hatching in the shade, as if drawn */
   if (!soft && !under){ float shade = 1. - lit * sh;
     float hl = smoothstep(.55, .9, sin((fp.x + fp.y) * 40.)) * (1. - smoothstep(5., 16., dist));
@@ -665,8 +772,9 @@ const NRM_FS = `precision highp float; varying vec3 vP; varying vec3 vN; varying
 uniform vec3 uCam;
 vec2 oct(vec3 n){ n /= (abs(n.x) + abs(n.y) + abs(n.z)); vec2 o = n.xz; if (n.y < 0.) o = (1. - abs(n.zx)) * vec2(n.x >= 0. ? 1. : -1., n.z >= 0. ? 1. : -1.); return o * .5 + .5; }
 void main(){
-  if (vM > 7.5) discard;
+  if (vM > 7.5 && vM < 9.5) discard;
   vec3 n = normalize(vN), V = uCam - vP; float d = length(V); if (dot(n, V) < 0.) n = -n;
+  if ((vM > 4.5 && vM < 5.5) || vM > 9.5) n = V / d;                                           /* people: an outline round the edge only */
   float dd = clamp(d / 90., 0., .999) * 255.;
   gl_FragColor = vec4(oct(n), floor(dd) / 255., fract(dd)); }`;
 const INK_VS = `attribute vec3 aP; varying vec2 vU; void main(){ vU = aP.xy * .5 + .5; gl_Position = vec4(aP.xy, 0., 1.); }`;
@@ -796,21 +904,43 @@ function stepNpcs(dt){
     a.ph += s * 5.2; a.mv = Math.min(1, a.mv + dt * 4);
   }
 }
+/* other people are shown a moment behind real time, played back evenly from the positions that
+   arrive — never leaping to each one and standing to wait for the next */
+const NET_IV = () => NET.kind === "store" ? .62 : NET.kind === "rtdb" ? .16 : .1;          /* seconds between updates */
+function pushSample(a, st, now){
+  const B = a.buf || (a.buf = []), last = B[B.length - 1];
+  if (last && last.x === st.x && last.y === st.y && last.z === st.z && last.r === st.r) return;     /* nothing new */
+  if (last && (Math.hypot(st.x - last.x, st.z - last.z) > 7 || Math.abs(st.y - last.y) > 2.5)) B.length = 0;
+  const iv = (a.iv || NET_IV()) * 1000;
+  if (B.length && now - B[B.length - 1].t > iv * 1.7){ const h = B[B.length - 1]; B.push({ t:now - iv, x:h.x, y:h.y, z:h.z, r:h.r }); }   /* stood still, now off again */
+  else if (B.length) a.iv = clamp(lerp(a.iv || NET_IV(), (now - B[B.length - 1].t) / 1000, .25), .05, 1.2);
+  B.push({ t:now, x:st.x, y:st.y, z:st.z, r:st.r });
+  while (B.length > 16) B.shift();
+}
+function samplePeer(a, T){
+  const B = a.buf;
+  if (T <= B[0].t) return B[0];
+  for (let i = B.length - 1; i > 0; i--){ const p = B[i - 1], q = B[i];
+    if (p.t <= T){ if (T >= q.t) return q; const u = (T - p.t) / (q.t - p.t); return { x:lerp(p.x, q.x, u), y:lerp(p.y, q.y, u), z:lerp(p.z, q.z, u), r:p.r + wrap(q.r - p.r) * u }; } }
+  return B[B.length - 1];
+}
 function stepPeers(dt){
-  const k = 1 - Math.exp(-dt * 9);
+  const now = performance.now();
   for (const a of PEERS.values()){
-    const dx = a.tx - a.x, dy = a.ty - a.y, dz = a.tz - a.z, d = Math.hypot(dx, dz);
-    if (d > 6 || Math.abs(dy) > 2.5){ a.x = a.tx; a.y = a.ty; a.z = a.tz; }
-    else { a.x += dx * k; a.y += dy * k; a.z += dz * k; }
-    a.r += wrap(a.tr - a.r) * Math.min(1, dt * 10);
-    const sp = d * 9; a.ph += Math.min(d, 6 * dt) * 5.2;
-    a.mv = clamp(lerp(a.mv, (a.tw || sp > .5) ? 1 : 0, Math.min(1, dt * 6)), 0, 1);
+    if (!a.buf || !a.buf.length) continue;
+    const s = samplePeer(a, now - ((a.iv || NET_IV()) * 1.25 + .06) * 1000);
+    const dist = Math.hypot(s.x - a.x, s.z - a.z);
+    a.x = s.x; a.y = s.y; a.z = s.z;
+    if (dist > 7){ a.r = s.r; continue; }
+    a.r += wrap(s.r - a.r) * Math.min(1, dt * 12);
+    a.ph += dist * 5.2;                                                          /* the stride follows the ground actually covered */
+    a.mv = lerp(a.mv, clamp(dist / Math.max(dt, .001) / 3, 0, 1.35), Math.min(1, dt * 7)); if (a.mv < .01) a.mv = 0;
   }
 }
 /* how each part of a body is turned this moment */
 function pose(a, now){
   const sw = Math.sin(a.ph) * .55 * a.mv, bob = Math.abs(Math.sin(a.ph)) * .03 * a.mv;                 /* standing still is still */
-  const q = { lift:bob + (a.jy || 0), bow:0, sway:0, l1:sw, l2:-sw, a1x:-sw * .8, a2x:sw * .8, a1z:-.08, a2z:.08, spin:0 };
+  const q = { lift:bob + (a.jy || 0), bow:.075 * a.mv, sway:0, l1:sw, l2:-sw, a1x:-sw * .8, a2x:sw * .8, a1z:-.3, a2z:.3, spin:0 };
   const u = (now - a.et0) / 1000;
   if (a.emote === "wave" && u < 2.2){ q.a2z = 2.5 + Math.sin(u * 13) * .32; q.a2x = 0; }
   else if (a.emote === "bow" && u < 1.6){ q.bow = Math.sin(Math.PI * u / 1.6) * .55; q.a1x = q.a2x = Math.sin(Math.PI * u / 1.6) * .4; }
@@ -824,9 +954,10 @@ function partMats(a, now){
   const q = pose(a, now), m = a.mesh;
   const base = mm4(Tm(a.x, a.y + q.lift, a.z), RY(a.r + q.spin));
   const up = mm4(base, mm4(Tm(0, .42, 0), mm4(RX(q.bow), mm4(RZ(q.sway), Tm(0, -.42, 0)))));
-  const leg = (s, ang) => mm4(base, mm4(Tm(.1 * s, .44, 0), mm4(RX(ang), Tm(-.1 * s, -.44, 0))));
-  const arm = (s, ax, az) => mm4(up, mm4(Tm(.25 * s, .8, 0), mm4(RZ(az), mm4(RX(ax), Tm(-.25 * s, -.8, 0)))));
-  return [[up, m.b], [leg(-1, q.l1), m.ll], [leg(1, q.l2), m.lr], [arm(-1, q.a1x, q.a1z), m.al], [arm(1, q.a2x, q.a2z), m.ar]];
+  const leg = (s, ang) => mm4(base, mm4(Tm(.08 * s, .42, 0), mm4(RX(ang), Tm(-.08 * s, -.42, 0))));
+  const arm = (s, ax, az) => mm4(up, mm4(Tm(.165 * s, .79, 0), mm4(RZ(az), mm4(RX(ax), Tm(-.165 * s, -.79, 0)))));
+  const out = [[up, m.b], [leg(-1, q.l1), m.ll], [leg(1, q.l2), m.lr], [arm(-1, q.a1x, q.a1z), m.al], [arm(1, q.a2x, q.a2z), m.ar]];
+  out.lift = q.lift; return out;
 }
 
 /* ==========================================================================
@@ -859,7 +990,7 @@ function moveMe(dt){
     else if ((f = floorAt(nx, me.z, me.y)) !== null) me.x = nx;
     else if ((f = floorAt(me.x, nz, me.y)) !== null) me.z = nz;
     me.r += wrap(Math.atan2(vx, vz) - me.r) * Math.min(1, dt * 12);
-    me.ph += s * 5.2; me.mv = Math.min(1, me.mv + dt * 5);
+    me.ph += s * 5.2; me.mv = lerp(me.mv, clamp(speed * Math.min(1, il) / 3, 0, 1.35), Math.min(1, dt * 8));
     stepAcc += s; if (stepAcc > .62){ stepAcc = 0; AUD.step(me.y < -1.4); }
   } else me.mv = Math.max(0, me.mv - dt * 5);
   const f = floorAt(me.x, me.z, me.y); if (f !== null) me.y += (f - me.y) * Math.min(1, dt * 14);
@@ -969,7 +1100,7 @@ function storeBackend(db){
   try { col.limit(120).onSnapshot(sn => { all = sn.docs.map(d => ({ id:d.id, st:d.data() || {} })); emit(); }, () => {}); } catch (_){}
   setInterval(emit, 5000);
   return {
-    kind:"store", sendMs:800, beatMs:8000,
+    kind:"store", sendMs:600, beatMs:8000,
     lobby(cb){ lobbyCb = cb; emit(); },
     async join(s, cb){ srv = s; peerCb = cb; emit(); return true; },
     send(st){ col.doc(MY_ID).set(st).then(netOk, netFail); },
@@ -1018,13 +1149,13 @@ function onPeerList(list){
     const st = cleanState(p.st); if (!st || typeof p.id !== "string") continue;
     const id = p.id.slice(0, 64); seen.add(id);
     let a = PEERS.get(id);
-    if (!a){ a = newAvatar(st.look); a.id = id; a.x = a.tx = st.x; a.y = a.ty = st.y; a.z = a.tz = st.z; a.r = a.tr = st.r; a.lastE = st.et; a.lastM = st.mt; a.name = st.n; PEERS.set(id, a);
+    if (!a){ a = newAvatar(st.look); a.id = id; a.x = st.x; a.y = st.y; a.z = st.z; a.r = st.r; a.lastE = st.et; a.lastM = st.mt; a.name = st.n; PEERS.set(id, a);
       if (inWorld){ AUD.joined(); logLine(st.n, T({ en:"came in", ko:"님이 들어왔어요" }), true); } }
     else {
       if (st.et !== a.lastE){ a.lastE = st.et; if (st.e && st.e !== "sit"){ a.emote = st.e; a.et0 = now; popEmote(a, st.e); } }
       if (st.mt !== a.lastM){ a.lastM = st.mt; if (st.m){ a.msg = st.m; a.msgUntil = now + 6500; logLine(st.n, st.m); AUD.chat(); } }
     }
-    a.tx = st.x; a.ty = st.y; a.tz = st.z; a.tr = st.r; a.tw = st.w; a.name = st.n; a.sit = st.e === "sit";
+    pushSample(a, st, now); a.name = st.n; a.sit = st.e === "sit";
     if (lookKey(st.look) !== lookKey(a.look)){ a.look = st.look; a.mesh = meshFor(st.look); }
   }
   for (const [id, a] of PEERS) if (!seen.has(id)){ PEERS.delete(id); dropTag(id); if (inWorld) logLine(a.name, T({ en:"left", ko:"님이 나갔어요" }), true); }
@@ -1371,7 +1502,7 @@ function useProg(p, VP, clip, below, t){
   if (u.uM) gl.uniformMatrix4fv(u.uM, false, I4);
   if (u.uCam) gl.uniform3fv(u.uCam, camPos); if (u.uSun) gl.uniform3fv(u.uSun, SUN);
   if (u.uT) gl.uniform1f(u.uT, t); if (u.uClip) gl.uniform1f(u.uClip, clip); if (u.uBelow) gl.uniform1f(u.uBelow, below);
-  if (u.uSV) gl.uniformMatrix4fv(u.uSV, false, SV); if (u.uShTex) gl.uniform1f(u.uShTex, 1 / SS); if (u.uAvY) gl.uniform1f(u.uAvY, -99);
+  if (u.uSV) gl.uniformMatrix4fv(u.uSV, false, SV); if (u.uShTex) gl.uniform1f(u.uShTex, 1 / SS); if (u.uAvY) gl.uniform1f(u.uAvY, -99); if (u.uAvP) gl.uniform3f(u.uAvP, 0, -99, 0);
   if (u.uSh){ gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, shTex); gl.uniform1i(u.uSh, 0); }
 }
 const tooClose = () => !making && Math.hypot(camPos[0] - me.x, camPos[1] - me.y - 1, camPos[2] - me.z) < 1.15;   /* the camera is in your own head: look through it */
@@ -1380,7 +1511,8 @@ function drawPeople(p, now){
   for (const a of AVATARS()){
     if (!a.mesh || (a === me && hideMe) || (making && a.npc && Math.hypot(a.x - me.x, a.z - me.z) < 2.4 && Math.abs(a.y - me.y) < 1)) continue;
     if (p.u.uAvY) gl.uniform1f(p.u.uAvY, a.y);
-    for (const [M, part] of partMats(a, now)){ gl.uniformMatrix4fv(p.u.uM, false, M); bindMesh(part); gl.drawArrays(gl.TRIANGLES, 0, part.n); } }
+    const mats = partMats(a, now); if (p.u.uAvP) gl.uniform3f(p.u.uAvP, a.x, a.y + mats.lift, a.z);
+    for (const [M, part] of mats){ gl.uniformMatrix4fv(p.u.uM, false, M); bindMesh(part); gl.drawArrays(gl.TRIANGLES, 0, part.n); } }
   if (p.u.uAvY) gl.uniform1f(p.u.uAvY, -99);
 }
 function drawSky(VP, clip, t){ gl.depthMask(false); useProg(P.sky, VP, clip, 0, t); gl.uniformMatrix4fv(P.sky.u.uM, false, Tm(camPos[0], camPos[1], camPos[2])); bindMesh(SKY); gl.drawArrays(gl.TRIANGLES, 0, SKY.n); gl.depthMask(true); }
@@ -1472,7 +1604,7 @@ if (!initGL()){
   netInit();
 }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
-window.__pool = { AUD, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf };
+window.__pool = { AUD, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
 </script>
 </body>
 </html>
