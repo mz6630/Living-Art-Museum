@@ -282,7 +282,26 @@ function sprite(col, under, vert, capA, capB, v){
   if (under >= 0){ q.fillStyle = shade(PAL[under], -.5); if (vert) q.fillRect(0, R * .24, R, R * .52); else q.fillRect(R * .24, 0, R * .52, R); }
   const ins = R * .07, a0 = capA ? R * .07 : -R * .3, a1 = capB ? R * .93 : R * 1.3;
   if (vert) rough(q, ins, a0, R - ins * 2, a1 - a0, R * .42, jit, r); else rough(q, a0, ins, a1 - a0, R - ins * 2, R * .42, jit, r);
-  q.fillStyle = hex; q.fill(); q.save(); q.clip(); chalk(q, 0, 0, R, R, hex, vert, r);
+  q.fillStyle = hex; q.fill(); q.save(); q.clip(); chalk(q, 0, 0, R, R, hex, vert, r, .45);
+  /* round across its width: dark at the edges, a soft light along the middle */
+  const xa = ins, xb = R - ins, rg = vert ? q.createLinearGradient(xa, 0, xb, 0) : q.createLinearGradient(0, xa, 0, xb);
+  rg.addColorStop(0, "rgba(0,0,0,.42)"); rg.addColorStop(.28, "rgba(0,0,0,0)"); rg.addColorStop(.45, "rgba(255,248,230,.16)"); rg.addColorStop(.62, "rgba(0,0,0,0)"); rg.addColorStop(1, "rgba(0,0,0,.48)");
+  q.fillStyle = rg; q.fillRect(0, 0, R, R);
+  /* the ply: two strands twisted, as slanted grooves with a lit ridge beside each */
+  const pitch = R * .3; q.lineCap = "round";
+  for (let t = -R; t < R * 2; t += pitch){ const ph = t + (v * pitch) / 3;
+    const seg = (o, col, lw) => { q.strokeStyle = col; q.lineWidth = lw; q.beginPath();
+      if (vert){ q.moveTo(xa, ph + o); q.quadraticCurveTo(R / 2, ph + o + R * .14, xb, ph + o + R * .3); } else { q.moveTo(ph + o, xa); q.quadraticCurveTo(ph + o + R * .14, R / 2, ph + o + R * .3, xb); }
+      q.stroke(); };
+    seg(0, "rgba(0,0,0,.3)", Math.max(1, R * .07)); seg(R * .07, "rgba(255,250,236,.2)", Math.max(1, R * .05)); }
+  q.restore();
+  /* loose fibres catching the light at the edges */
+  q.save(); q.lineCap = "round"; q.lineWidth = Math.max(.6, R * .025);
+  for (let k = 0; k < 5; k++){ const along = r() * R, side = r() < .5 ? xa : xb, out = (side === xa ? -1 : 1) * R * (.04 + r() * .07), len = R * (.12 + r() * .2);
+    q.strokeStyle = r() < .6 ? shade(hex, .25) : shade(hex, -.2); q.globalAlpha = .55; q.beginPath();
+    if (vert){ q.moveTo(side - out * .3, along); q.quadraticCurveTo(side + out, along + len * .5, side + out * .4, along + len); } else { q.moveTo(along, side - out * .3); q.quadraticCurveTo(along + len * .5, side + out, along + len, side + out * .4); }
+    q.stroke(); }
+  q.restore(); q.save(); if (vert) rough(q, ins, a0, R - ins * 2, a1 - a0, R * .42, 0, r); else rough(q, a0, ins, a1 - a0, R - ins * 2, R * .42, 0, r); q.clip();
   const dive = (a, b) => { const e = vert ? q.createLinearGradient(0, a, 0, b) : q.createLinearGradient(a, 0, b, 0); e.addColorStop(0, "rgba(0,0,0,.38)"); e.addColorStop(1, "rgba(0,0,0,0)"); q.fillStyle = e; q.fillRect(0, 0, R, R); };
   if (capA) dive(a0, a0 + R * .3); if (capB) dive(a1, a1 - R * .3);
   q.restore(); sprites.set(key, c); return c;
@@ -308,18 +327,6 @@ function makeBG(){
   const c = document.createElement("canvas"); c.width = cv.width; c.height = cv.height; const q = c.getContext("2d"), r = rng(2024), d = DPR;
   q.fillStyle = "#121110"; q.fillRect(0, 0, c.width, c.height);
   q.globalAlpha = .7; q.fillStyle = q.createPattern(TILE.grain, "repeat"); q.fillRect(0, 0, c.width, c.height); q.globalAlpha = 1;
-  const box = [L.x0 - (small ? 8 : 128), L.y0 - 24, L.xw + C + (small ? 8 : 128), L.yc + M * C + 24], bar = $("bar").getBoundingClientRect(), placed = [];
-  const free = (x, y, rr) => !(x + rr > box[0] && x - rr < box[2] && y + rr > box[1] && y - rr < box[3]) && !(y + rr > bar.top - 10 && x + rr > bar.left - 10 && x - rr < bar.right + 10)
-    && !(y - rr < 64 && (x < 240 || x > W - 300)) && placed.every(([px, py, pr]) => Math.hypot(px - x, py - y) > pr + rr + 14);
-  const COLS = ["#9fd27c", "#f2c94c", "#ec8bb8", "#62aee6", "#f39252", "#a8e0d0", "#d9e86a"];
-  const star = (x, y, R, rot, col) => { q.beginPath(); for (let k = 0; k < 10; k++){ const a = rot + k * Math.PI / 5 - Math.PI / 2, rr = (k & 1 ? R * .46 : R) * (1 + (r() - .5) * .12); q.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } q.closePath();
-    q.fillStyle = col; q.fill(); q.save(); q.clip(); chalk(q, x - R, y - R, R * 2, R * 2, col, false, r); q.restore(); };
-  for (let k = 0, stars = 0, dots = 0; k < 600 && (stars < 16 || dots < 28); k++){
-    const isStar = stars < 16 && r() < .55, rr = isStar ? 12 + r() * 12 : 3 + r() * 3, x = r() * W, y = r() * H;
-    if (!free(x, y, rr)) continue; placed.push([x, y, rr]); const col = COLS[Math.floor(r() * COLS.length)];
-    if (isStar){ star(x * d, y * d, rr * d, (r() - .5) * .5, col); stars++; }
-    else { rough(q, (x - rr) * d, (y - rr) * d, rr * 2 * d, rr * 2 * d, rr * d, .6 * d, r); q.fillStyle = col; q.fill(); q.save(); q.clip(); chalk(q, (x - rr) * d, (y - rr) * d, rr * 2 * d, rr * 2 * d, col, false, r); q.restore(); dots++; }
-  }
   BG = c;
 }
 
