@@ -27,7 +27,7 @@ html[lang="ko"]{--serif:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 [hidden]{display:none !important;}
 html,body{height:100%;}
-body{background:#cfe4ec;color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
+body{background:#f1ede4;color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
 html[lang="ko"] body{word-break:keep-all;}
 button,input{font:inherit;color:inherit;background:none;border:0;}
 button{cursor:pointer;}
@@ -351,7 +351,7 @@ function maker(){
 /* materials: 0 plain · 1 stone tiles · 2 pool paint · 3 metal · 4 glass wall · 5 soft (people) · 6 leaves · 7 glowing · 8 glossy (eyes) */
 function buildWorld(){
   const A = maker();
-  const DECK = [.87, .85, .81], COP = [.97, .96, .94], POOL = [.4, .63, .77], PFL = [.4, .63, .77], CON = [.76, .75, .73], WALL = [.95, .95, .94], MET = [.8, .83, .86], GLS = [.6, .7, .76];
+  const DECK = [.95, .92, .86], COP = [.99, .98, .95], POOL = [.4, .63, .77], PFL = [.4, .63, .77], CON = [.86, .83, .78], WALL = [.98, .97, .94], MET = [.82, .84, .87], GLS = [.6, .7, .76];
   /* the deck, a slab with two holes: the pool and the stairwell */
   [[-CXW, CXW, -CZW, -PZ], [-CXW, CXW, PZ, CZW], [-CXW, -PX, -PZ, PZ], [PX, HOLE.x0, -PZ, PZ], [HOLE.x1, CXW, -PZ, PZ], [HOLE.x0, HOLE.x1, -PZ, HOLE.z0], [HOLE.x0, HOLE.x1, HOLE.z1, PZ]]
     .forEach(([x0, x1, z0, z1]) => A.box(x0, -.25, z0, x1, 0, z1, DECK, 1));
@@ -459,19 +459,19 @@ function buildAvatar(L){
     B.ell([0, .57, .228], .15, .06, .03, SHADE(tc, .88), M, 16); }
   if (!dress && !swim) B.torus([0, .515, 0], .283, .012, SHADE(bc, .82), M, 36, 6);               /* the waistband */
   /* the head, ears, face */
-  B.ell([0, HEAD, 0], HR[0], HR[1], HR[2], sk, M, 36);
+  B.ell([0, HEAD, 0], HR[0], HR[1], HR[2], sk, M, 48);
   for (const s of [-1, 1]) B.ell([.365 * s, HEAD - .02, -.01], .055, .075, .05, SHADE(sk, .97), M, 12);
   B.ell([0, HEAD - .045, faceZ(0, HEAD - .045) - .004], .024, .019, .018, SHADE(sk, .94), M, 12);  /* the nose */
   for (const s of [-1, 1]){ const ex = .13 * s, ey = HEAD + .03;
-    if (L.fa === 0) arc(B, ex, ey - .014, .05, .027, .012, ink);
+    if (L.fa === 0) arc(B, ex, ey - .014, .05, .027, .012, ink, 9);
     else if (L.fa === 1){ B.ell([ex, ey, faceZ(ex, ey) - .01], .04, .055, .022, ink, EYE, 14); B.ell([ex + .013 * s, ey + .02, faceZ(ex, ey) + .009], .013, .013, .008, white, EYE, 8);
-      B.ell([ex - .008 * s, ey - .02, faceZ(ex, ey) + .006], .006, .006, .005, white, EYE, 6); arc(B, ex, ey + .085, .035, .008, .007, L.hs ? SHADE(hc, .8) : SHADE(sk, .6)); }
-    else arc(B, ex, ey + .01, .048, -.022, .011, ink);
-    const bx = .215 * s, by = HEAD - .065; B.ell([bx, by, faceZ(bx, by) - .006], .062, .034, .014, [.98, .67, .66], M, 12); }
-  if (L.fa === 0) B.ell([0, HEAD - .105, faceZ(0, HEAD - .105) - .007], .034, .021, .012, [.62, .27, .27], M, 12);
-  else arc(B, 0, HEAD - .1, .036, -.014, .008, [.55, .3, .28]);
+      B.ell([ex - .008 * s, ey - .02, faceZ(ex, ey) + .006], .006, .006, .005, white, EYE, 6); arc(B, ex, ey + .085, .035, .008, .007, L.hs ? SHADE(hc, .8) : SHADE(sk, .6), 9); }
+    else arc(B, ex, ey + .01, .048, -.022, .011, ink, 9);
+    const bx = .215 * s, by = HEAD - .065; B.ell([bx, by, faceZ(bx, by) - .004], .062, .034, .016, [.98, .67, .66], 9, 16); }
+  if (L.fa === 0) B.ell([0, HEAD - .105, faceZ(0, HEAD - .105) - .005], .034, .021, .014, [.62, .27, .27], 9, 16);
+  else arc(B, 0, HEAD - .1, .036, -.014, .008, [.55, .3, .28], 9);
   /* hair */
-  const cap = () => B.ell([0, HEAD + .09, -.035], .39, .305, .385, hc, M, 32);
+  const cap = () => B.ell([0, HEAD + .09, -.035], .392, .308, .388, hc, M, 48);
   const bangs = () => { for (let i = -2; i <= 2; i++){ const x = i * .1, y = HEAD + .165 - Math.abs(i) * .016; B.ell([x, y, faceZ(x, y) - .03], .085, .07, .06, hc, M, 14); } };
   if (L.hs >= 1){ cap(); bangs(); }
   if (L.hs === 1) B.tube([0, HEAD + .38, -.04], [.07, HEAD + .47, -.01], .022, .006, hc, M, 8);
@@ -520,15 +520,21 @@ const VS = `attribute vec3 aP; attribute vec3 aN; attribute vec3 aC; attribute f
 uniform mat4 uVP; uniform mat4 uM;
 varying vec3 vP; varying vec3 vN; varying vec3 vC; varying float vM;
 void main(){ vec4 w = uM * vec4(aP, 1.); vP = w.xyz; vN = (uM * vec4(aN, 0.)).xyz; vC = aC; vM = aM; gl_Position = uVP * w; }`;
+/* the look of an isometric illustration: flat colour in two tones, flat blue cast shadows,
+   a little hatching in the shade, and ink outlines drawn over the top in a second pass */
 const SKYFN = `vec3 skyCol(vec3 d){
   float h = clamp(d.y, -1., 1.);
-  vec3 c = mix(vec3(.86, .91, .95), vec3(.42, .63, .9), pow(max(h, 0.), .55));
-  c = mix(c, vec3(.78, .82, .84), clamp(-h * 3., 0., 1.));
-  float s = max(dot(d, uSun), 0.); c += vec3(1., .93, .8) * (pow(s, 600.) * 2. + pow(s, 8.) * .18);
-  return c; }`;
+  vec3 c = mix(vec3(.96, .94, .89), vec3(.8, .88, .94), smoothstep(.0, .7, h));
+  return mix(c, vec3(.9, .88, .83), clamp(-h * 3., 0., 1.)); }`;
 const NOISE = `float hs(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float ns(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
   return mix(mix(hs(i), hs(i + vec2(1., 0.)), f.x), mix(hs(i + vec2(0., 1.)), hs(i + vec2(1., 1.)), f.x), f.y); }`;
+const CAUST = `float caust(vec2 q, float t){
+  vec2 p = mod(q, 6.2831853) - 250.; vec2 i = p; float c = 1.; float inten = .005;
+  for (int n = 0; n < 4; n++){ float tt = t * (1. - (3.5 / float(n + 1)));
+    i = p + vec2(cos(tt - i.x) + sin(tt + i.y), sin(tt - i.y) + cos(tt + i.x));
+    c += 1. / length(vec2(p.x / (sin(i.x + tt) / inten), p.y / (cos(i.y + tt) / inten))); }
+  c /= 4.; c = 1.17 - pow(c, 1.4); return clamp(abs(c), 0., 1.); }`;
 const SHADOW_FS = `precision highp float; varying vec3 vP; varying vec3 vN; varying vec3 vC; varying float vM;
 vec4 enc(float d){ vec4 e = fract(d * vec4(1., 255., 65025., 16581375.)); e -= e.yzww * vec4(1. / 255., 1. / 255., 1. / 255., 0.); return e; }
 void main(){ gl_FragColor = enc(gl_FragCoord.z); }`;
@@ -540,28 +546,26 @@ void main(){
   if (uClip > .5 && uClip < 1.5 && vP.y > .02) discard;
   if (uClip > 1.5 && vP.y < .004) discard;
   vec3 d = normalize(vP - uCam); vec3 c = skyCol(d);
-  if (d.y > .02){ vec2 p = d.xz / (d.y + .12) * 1.6 + vec2(uT * .012, uT * .005);
-    float cl = ns(p) * .55 + ns(p * 2.1) * .28 + ns(p * 4.3) * .17; cl = smoothstep(.55, .82, cl) * smoothstep(.02, .25, d.y);
-    c = mix(c, vec3(.98, .98, .99), cl * .75); }
+  if (d.y > .03){ vec2 p = d.xz / (d.y + .15) * 1.3 + vec2(uT * .01, uT * .004);
+    float cl = ns(p) * .6 + ns(p * 2.2) * .3 + ns(p * 4.6) * .1;
+    c = mix(c, vec3(.99, .98, .96), smoothstep(.6, .63, cl) * smoothstep(.03, .2, d.y) * .9); }     /* flat paper-cut clouds */
   gl_FragColor = vec4(c, 1.); }`;
 const MAIN_FS = `${DERIV ? "#extension GL_OES_standard_derivatives : enable\n" : ""}precision highp float;
 varying vec3 vP; varying vec3 vN; varying vec3 vC; varying float vM;
 uniform vec3 uCam, uSun; uniform float uT, uClip, uBelow, uShTex, uAvY; uniform mat4 uSV; uniform sampler2D uSh;
 ${SKYFN}
 ${NOISE}
+${CAUST}
 float dec(vec4 e){ return dot(e, vec4(1., 1. / 255., 1. / 65025., 1. / 16581375.)); }
-float shadow(vec3 p, vec3 n, float off){
-  vec4 s = uSV * vec4(p + n * off, 1.); vec3 c = s.xyz * .5 + .5;
+float shadow(vec3 p, vec3 n){
+  vec4 s = uSV * vec4(p + n * .05, 1.); vec3 c = s.xyz * .5 + .5;
   if (c.x < .002 || c.x > .998 || c.y < .002 || c.y > .998 || c.z > 1.) return 1.;
-  float k = 0.;
-  for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) k += step(c.z - .0009, dec(texture2D(uSh, c.xy + vec2(float(i), float(j)) * uShTex)));
-  return mix(1., k / 9., smoothstep(0., .05, min(min(c.x, 1. - c.x), min(c.y, 1. - c.y)))); }
-float caust(vec2 q, float t){
-  vec2 p = mod(q, 6.2831853) - 250.; vec2 i = p; float c = 1.; float inten = .005;
-  for (int n = 0; n < 4; n++){ float tt = t * (1. - (3.5 / float(n + 1)));
-    i = p + vec2(cos(tt - i.x) + sin(tt + i.y), sin(tt - i.y) + cos(tt + i.x));
-    c += 1. / length(vec2(p.x / (sin(i.x + tt) / inten), p.y / (cos(i.y + tt) / inten))); }
-  c /= 4.; c = 1.17 - pow(c, 1.4); return clamp(abs(c), 0., 1.); }        /* 1 on the light's lines, falling away between them */
+  /* 4 x 4 taps weighted bilinearly: a 3 x 3 filter that slides smoothly between texels, so edges never stair-step */
+  vec2 tc = c.xy / uShTex - .5, f = fract(tc), base = (floor(tc) + .5) * uShTex; float k = 0.;
+  for (int i = -1; i <= 2; i++) for (int j = -1; j <= 2; j++){
+    float wx = i == -1 ? 1. - f.x : (i == 2 ? f.x : 1.), wy = j == -1 ? 1. - f.y : (j == 2 ? f.y : 1.);
+    k += wx * wy * step(c.z - .0009, dec(texture2D(uSh, base + vec2(float(i), float(j)) * uShTex))); }
+  return mix(1., smoothstep(.22, .78, k / 9.), smoothstep(0., .05, min(min(c.x, 1. - c.x), min(c.y, 1. - c.y)))); }
 float grout(vec2 g){
   vec2 f = abs(fract(g) - .5);
 ${DERIV ? "  vec2 w = fwidth(g) * 1.2; vec2 l = smoothstep(.47 - w, .47 + w * .2, f); return max(l.x, l.y) * (1. - smoothstep(.15, .45, max(w.x, w.y)));"
@@ -571,88 +575,114 @@ void main(){
   if (uClip > .5 && uClip < 1.5 && vP.y > .02) discard;
   if (uClip > 1.5 && vP.y < .004) discard;
   vec3 n = normalize(vN); vec3 col = vC; float m = vM;
-  vec3 V = normalize(uCam - vP);
-  bool soft = (m > 4.5 && m < 5.5) || m > 7.5;
+  vec3 V = normalize(uCam - vP); float dist = length(uCam - vP);
+  bool soft = (m > 4.5 && m < 5.5) || (m > 7.5 && m < 8.5);
   if (soft && dot(n, V) < -.2) n = -n;
-  if (m > 6.5 && m < 7.5){ gl_FragColor = vec4(col, 1.); return; }
-  if (m > .5 && m < 1.5){ vec2 g = (abs(n.y) > .5 ? vP.xz : (abs(n.x) > .5 ? vP.zy : vP.xy)) / .6;
-    col *= (.95 + .06 * hs(floor(g))) * (1. - grout(g) * .2); }
-  if (m > 1.5 && m < 2.5){                                  /* blue mosaic, a few darker tiles scattered through it */
-    vec2 g = (abs(n.y) > .5 ? vP.xz : (abs(n.x) > .5 ? vP.zy : vP.xy)) / .3;
-    float r = hs(floor(g) + 17.);
-    col = r < .12 ? vec3(.17, .35, .53) : vec3(.4, .63, .77) * (.94 + .1 * hs(floor(g) + 3.));
-    col = mix(col, vec3(.6, .77, .86), grout(g) * .55);
-    if (vP.y > -.25 && vP.y < -.04) col *= .86; }
-  if (m > 5.5 && m < 6.5) col *= .8 + .4 * ns(vP.xz * 3.1 + vec2(vP.y * 2.3, -vP.y * 1.7));
-  float sh = shadow(vP, n, soft ? .09 : .045);
-  if (soft) sh = mix(.42, 1., sh);
-  float ndl = soft ? pow(clamp(dot(n, uSun) * .55 + .45, 0., 1.), 1.25) : max(dot(n, uSun), 0.);
-  float hem = n.y * .5 + .5;
-  float ao = soft ? mix(.7, 1., smoothstep(0., .5, vP.y - uAvY)) : 1.;
-  vec3 amb = mix(vec3(.47, .45, .43), vec3(.68, .78, .9), hem);
-  vec3 L;
+  if (m > 6.5 && m < 7.5 || m > 8.5){ gl_FragColor = vec4(col, 1.); return; }       /* lamps, painted-on face details */
+  vec2 fp = abs(n.y) > .5 ? vP.xz : (abs(n.x) > .5 ? vP.zy : vP.xy);
+  if (m > .5 && m < 1.5){ vec2 g = fp / .6; col = mix(col * (.97 + .04 * hs(floor(g))), vec3(.62, .6, .57), grout(g) * .7); }
+  if (m > 1.5 && m < 2.5){ vec2 g = fp / .3; float r = hs(floor(g) + 17.);
+    col = r < .12 ? vec3(.17, .35, .6) : vec3(.36, .62, .82);
+    col = mix(col, vec3(.62, .8, .9), grout(g) * .6); if (vP.y > -.25 && vP.y < -.04) col *= .84; }
+  if (m > 5.5 && m < 6.5) col *= .9 + .2 * step(.55, ns(vP.xz * 2.2 + vec2(vP.y * 1.9, -vP.y)));
+  /* two tones: lit, or shade; cast shadows in flat blue */
+  float lam = dot(n, uSun);
+  float lit = soft ? smoothstep(-.44, -.3, lam) : smoothstep(-.02, .06, lam);      /* people: shade only round the far side */
+  float sh = soft ? 1. : shadow(vP, n);
+  vec3 SHADE = vec3(.66, .66, .82), BLUE = vec3(.24, .33, .7);
+  vec3 self = col * SHADE, castC = mix(col, BLUE, .62);
+  vec3 c = mix(mix(self, castC, lit), mix(self, col, lit), sh);
   bool under = vP.y < -.06;
-  if (!under){ L = (amb * (soft ? .66 : .6) + vec3(1., .96, .88) * ndl * sh * (soft ? .7 : .82)) * ao; }
-  else {
+  if (under){
     float inPool = step(abs(vP.x), ${(PX + .02).toFixed(2)}) * step(abs(vP.z), ${(PZ + .02).toFixed(2)});
-    vec3 ambU = mix(vec3(.42, .56, .68), vec3(.64, .84, .94), hem);
-    /* caustics: glowing ribbons with two edges, brightest where they cross */
+    vec3 pool = mix(col * vec3(.8, .86, .96), col, lit * .7 + .3);
+    pool = mix(pool * vec3(.72, .8, 1.), pool, sh * .6 + .4);
     vec2 cq = vP.xz * .85 + vec2(vP.y * .3);
-    float v1 = caust(cq, uT * .55), v2 = caust(cq + vec2(.035, .022), uT * .55 + .04), v3 = caust(cq * 1.31 + 3.1, uT * .66 + 1.3);
-    float f1 = pow(v1, 11.), f2 = pow(v2, 11.);                                  /* fine filaments, each ribbon has two edges */
-    float c = max(f1, f2) * 1.5 + f1 * f2 * 3.5 + pow(v3, 13.) * .5 + (pow(v1, 4.) + pow(v2, 4.)) * .1;   /* knots where they cross, a soft glow round them */
-    vec3 pool = ambU * .56 + vec3(.85, .97, 1.) * (ndl * .4 + .12) * sh + vec3(.8, .96, 1.) * c * 1.9 * (.35 + .65 * sh);
+    float v1 = caust(cq, uT * .55), v2 = caust(cq + vec2(.035, .022), uT * .55 + .04);
+    float lines = smoothstep(.86, .93, max(v1, v2)) + smoothstep(.9, .96, min(v1, v2)) * .6;     /* caustics as white ink */
+    pool = mix(pool, vec3(.9, .98, 1.), clamp(lines, 0., 1.) * (soft ? .12 : .75) * (sh * .5 + .5));
     vec3 lamp = vec3(${(PX + .85).toFixed(2)}, -.4, -2.25) - vP; float ld = length(lamp);
-    vec3 hall = amb * .34 + vec3(1., .96, .88) * ndl * sh * .75 + vec3(1., .86, .64) * max(dot(n, lamp / ld), 0.) * .9 / (1. + ld * ld * .35);
-    L = mix(hall, pool, inPool) * ao; }
-  col *= L;
-  if (soft) col += vec3(1., .97, .94) * pow(1. - max(dot(n, V), 0.), 2.6) * .14;
-  if (m > 7.5){ vec3 h = normalize(uSun + V); col += vec3(1.) * pow(max(dot(n, h), 0.), 60.) * .55; }
-  if (m > 2.5 && m < 3.5){ vec3 r = reflect(-V, n); col = col * .55 + skyCol(r) * .35 + pow(max(dot(r, uSun), 0.), 50.) * sh * .9; }
-  if (m > 3.5 && m < 4.5){ vec3 r = reflect(-V, n); float fr = .3 + .55 * pow(1. - max(dot(V, n), 0.), 3.);
-    col = mix(vec3(.17, .21, .24) + vec3(.05) * step(1.6, vP.y), skyCol(r), fr) + pow(max(dot(r, uSun), 0.), 140.) * sh; }
-  float d = length(uCam - vP);
-  if (uBelow > .5 && under) col = mix(col, vec3(.48, .72, .86), 1. - exp(-d * .012));
-  else if (!under) col = mix(col, vec3(.82, .88, .93), 1. - exp(-d * .004));
-  gl_FragColor = vec4(col, 1.); }`;
+    vec3 hall = mix(self, col, lit * sh) * .8 + vec3(.35, .25, .1) * max(dot(n, lamp / ld), 0.) / (1. + ld * ld * .35);
+    c = mix(hall, pool, inPool); }
+  /* hatching in the shade, as if drawn */
+  if (!soft){ float shade = 1. - lit * sh;
+    float hl = smoothstep(.55, .9, sin((fp.x + fp.y) * 40.)) * (1. - smoothstep(5., 16., dist));
+    c *= 1. - hl * shade * .11; }
+  if (m > 2.5 && m < 3.5){ vec3 r = reflect(-V, n); c = mix(c, vec3(1.), step(.92, dot(r, uSun)) * .8); }                    /* metal: one white glint */
+  if (m > 3.5 && m < 4.5){ c = mix(vec3(.72, .8, .84), vec3(.86, .91, .93), step(.5, fract((vP.x + vP.z + vP.y * .7) * .22))) * mix(.92, 1., lit);   /* glass: pale with glare bands */
+    c = mix(c, vec3(.97, .98, .98), step(.93, fract((vP.x + vP.z + vP.y * .7) * .22 + .3)) * .8); }
+  if (m > 7.5 && m < 8.5){ vec3 h = normalize(uSun + V); c += vec3(1.) * step(.9, dot(n, h)) * .4; }
+  if (uBelow > .5 && under) c = mix(c, vec3(.5, .74, .88), 1. - exp(-dist * .01));
+  else if (!under) c = mix(c, vec3(.94, .93, .89), 1. - exp(-dist * .003));
+  gl_FragColor = vec4(c, 1.); }`;
 const WATER_FS = `precision highp float;
 varying vec3 vP; varying vec3 vN; varying vec3 vC; varying float vM;
 uniform sampler2D uRef, uRefl; uniform vec2 uRes; uniform vec3 uCam, uSun; uniform float uT, uBelow, uHasRefl;
 ${SKYFN}
 ${NOISE}
+${CAUST}
 vec2 wv(vec2 p, vec2 d, float f, float s, float a){ return d * cos(dot(p, d) * f + uT * s) * f * a; }
-float rip(vec2 q){ return ns(q) + .5 * ns(q * 2.13 + 7.1); }
-vec3 waveN(vec2 p, float hi){
+vec3 waveN(vec2 p){
   vec2 g = wv(p, vec2(.96, .28), 1.3, .9, .03) + wv(p, vec2(-.37, .93), 2.1, 1.25, .021) + wv(p, vec2(.66, -.75), 3.4, 1.7, .013) + wv(p, vec2(-.98, -.2), 5.3, 2.2, .008);
-  g += (wv(p, vec2(.2, .98), 8.6, 2.9, .0048) + wv(p, vec2(-.6, -.8), 13.1, 3.6, .003) + wv(p, vec2(.8, -.6), 19.7, 4.5, .0018) + wv(p, vec2(-.1, -.99), 27., 5.2, .0011)) * hi;
-  vec2 q = p * 2.2 + vec2(uT * .25, -uT * .18); float e = .07, r0 = rip(q);
-  g += vec2(rip(q + vec2(e, 0.)) - r0, rip(q + vec2(0., e)) - r0) / e * .026 * hi;
   return normalize(vec3(-g.x, 1., -g.y)); }
 vec3 tap(sampler2D s, vec2 uv){ return texture2D(s, clamp(uv, vec2(.002), vec2(.998))).rgb; }
 void main(){
-  float dist = length(uCam - vP), hi = clamp(1.3 - dist / 22., 0., 1.);
-  vec3 n = waveN(vP.xz, hi); vec2 uv = gl_FragCoord.xy / uRes; vec3 V = normalize(uCam - vP); vec3 c;
-  float ed = smoothstep(0., .6, min(${PX.toFixed(2)} - abs(vP.x), ${PZ.toFixed(2)} - abs(vP.z)));     /* calm at the very edge: no sampling past the rim */
+  vec3 n = waveN(vP.xz); vec2 uv = gl_FragCoord.xy / uRes; vec3 V = normalize(uCam - vP); vec3 c;
+  float ed = smoothstep(0., .6, min(${PX.toFixed(2)} - abs(vP.x), ${PZ.toFixed(2)} - abs(vP.z)));
+  float w = caust(vP.xz * 1.25, uT * .7);
+  float rip = smoothstep(.88, .95, w);                                          /* ripples drawn as white lines */
   if (uBelow < .5){
-    vec2 off = n.xz * .06 * ed, px = 1. / uRes;
-    vec3 r = tap(uRef, uv + off) * .5 + (tap(uRef, uv + off + vec2(px.x, 0.)) + tap(uRef, uv + off - vec2(px.x, 0.)) + tap(uRef, uv + off + vec2(0., px.y)) + tap(uRef, uv + off - vec2(0., px.y))) * .125;
-    r = mix(r * vec3(.84, .96, 1.), vec3(.1, .37, .55), .06 + (1. - max(V.y, 0.)) * .34);
+    vec3 r = tap(uRef, uv + n.xz * .045 * ed);
+    r = mix(r, vec3(.3, .66, .82), .22);
     vec3 refl = skyCol(reflect(-V, n));
-    if (uHasRefl > .5){ vec4 q = texture2D(uRefl, clamp(uv + n.xz * .05 * ed, vec2(.002), vec2(.998))); refl = mix(refl, q.rgb, q.a); }
-    float fr = .02 + .98 * pow(1. - max(dot(V, n), 0.), 5.);
-    c = mix(r, refl, clamp(fr, 0., .92));
-    float nh = max(dot(n, normalize(uSun + V)), 0.);
-    c += vec3(1., .97, .9) * (pow(nh, 1400.) * 9. + pow(nh, 140.) * .3);
+    if (uHasRefl > .5){ vec4 q = texture2D(uRefl, clamp(uv + n.xz * .04 * ed, vec2(.002), vec2(.998))); refl = mix(refl, q.rgb, q.a); }
+    float fr = .03 + .6 * pow(1. - max(dot(V, n), 0.), 4.);
+    c = mix(r, refl, clamp(fr, 0., .55));
+    c = mix(c, vec3(.96, 1., 1.), rip * .55 * ed);
+    c = mix(c, vec3(1.), step(.997, dot(n, normalize(uSun + V))) * .9);
   } else {
-    vec2 off = n.xz * .08 * ed, px = 2.4 / uRes; vec3 r = vec3(0.);
+    vec2 off = n.xz * .07 * ed, px = 2. / uRes; vec3 r = vec3(0.);
     for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) r += tap(uRef, uv + off + vec2(float(i), float(j)) * px);
-    r = r / 9. * vec3(.8, .97, 1.) * 1.06 + vec3(.02, .06, .07);
-    c = mix(r, vec3(.36, .62, .78), smoothstep(.3, .1, abs(V.y)) * .7);
-    c += vec3(.9, 1., 1.) * pow(max(dot(n, normalize(vec3(.25, 1., .15))), 0.), 500.) * .35;
+    r = mix(r / 9., vec3(.42, .72, .88), .25);
+    c = mix(r, vec3(.4, .66, .82), smoothstep(.3, .1, abs(V.y)) * .65);
+    c = mix(c, vec3(.92, 1., 1.), rip * .35 * ed);
   }
   gl_FragColor = vec4(c, 1.); }`;
-let P = {}, WORLD = null, SKY = null, WATER = null, SS = 2048, shTex = null, shFB = null, SV = null;
-let rf = { tex:null, fb:null, rb:null, w:0, h:0 }, rl = { tex:null, fb:null, rb:null, w:0, h:0 };
+/* normal and distance, for the ink pass (face details stay out, so they are not outlined) */
+const NRM_FS = `precision highp float; varying vec3 vP; varying vec3 vN; varying vec3 vC; varying float vM;
+uniform vec3 uCam;
+vec2 oct(vec3 n){ n /= (abs(n.x) + abs(n.y) + abs(n.z)); vec2 o = n.xz; if (n.y < 0.) o = (1. - abs(n.zx)) * vec2(n.x >= 0. ? 1. : -1., n.z >= 0. ? 1. : -1.); return o * .5 + .5; }
+void main(){
+  if (vM > 7.5) discard;
+  vec3 n = normalize(vN), V = uCam - vP; float d = length(V); if (dot(n, V) < 0.) n = -n;
+  float dd = clamp(d / 90., 0., .999) * 255.;
+  gl_FragColor = vec4(oct(n), floor(dd) / 255., fract(dd)); }`;
+const INK_VS = `attribute vec3 aP; varying vec2 vU; void main(){ vU = aP.xy * .5 + .5; gl_Position = vec4(aP.xy, 0., 1.); }`;
+const INK_FS = `precision highp float; varying vec2 vU;
+uniform sampler2D uN; uniform vec2 uRes; uniform float uPx;
+${NOISE}
+vec3 decN(vec2 o){ o = o * 2. - 1.; vec3 n = vec3(o.x, 1. - abs(o.x) - abs(o.y), o.y);
+  if (n.y < 0.){ vec2 t = n.xz; n.x = (1. - abs(t.y)) * (t.x >= 0. ? 1. : -1.); n.z = (1. - abs(t.x)) * (t.y >= 0. ? 1. : -1.); } return normalize(n); }
+void get(vec2 uv, out vec3 n, out float d){ vec4 t = texture2D(uN, uv); n = decN(t.rg); d = (t.b + t.a / 255.) * 90.; }
+void main(){
+  vec2 fc = vU * uRes;
+  float wob = ns(fc * .035) - .5;                                              /* a hand's wobble in the line weight */
+  vec2 px = uPx * (1. + wob * .6) / uRes;
+  vec3 n0; float d0; get(vU, n0, d0);
+  /* eight neighbours, blended rather than maxed: the line fades over a pixel or two instead of stepping */
+  float e = 0., wsum = 0.;
+  for (int k = 0; k < 8; k++){
+    float a = float(k) * .785398;
+    vec2 dir = vec2(cos(a), sin(a)); float w = (k == 1 || k == 3 || k == 5 || k == 7) ? .7 : 1.;
+    vec3 n1; float d1; get(vU + dir * px, n1, d1);
+    float dm = min(d0, d1);
+    float ed = max(smoothstep(.55, 1.1, abs(d1 - d0) / (dm * .04 + .06)), smoothstep(.22, .5, 1. - dot(n0, n1)) * step(d0, 88.) * step(d1, 88.));
+    e += ed * w; wsum += w; }
+  e = clamp(e / wsum * 2.6, 0., 1.);
+  e *= 1. - smoothstep(30., 60., d0);
+  gl_FragColor = vec4(.13, .12, .16, e * .88); }`;
+let P = {}, WORLD = null, SKY = null, WATER = null, TRI = null, SS = 2048, shTex = null, shFB = null, SV = null;
+let rf = { tex:null, fb:null, rb:null, w:0, h:0 }, rl = { tex:null, fb:null, rb:null, w:0, h:0 }, nt = { tex:null, fb:null, rb:null, w:0, h:0 };
 const I4 = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
 const MIRROR = new Float32Array([1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
 function upload(v){ const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW); return { buf, n:v.length / ST }; }
@@ -702,8 +732,9 @@ function updateSV(){
 }
 function initGL(){
   if (!gl) return false;
-  P.sh = prog(VS, SHADOW_FS); P.sky = prog(VS, SKY_FS); P.main = prog(VS, MAIN_FS); P.water = prog(VS, WATER_FS);
-  if (!P.sh || !P.sky || !P.main || !P.water) return false;
+  P.sh = prog(VS, SHADOW_FS); P.sky = prog(VS, SKY_FS); P.main = prog(VS, MAIN_FS); P.water = prog(VS, WATER_FS); P.nrm = prog(VS, NRM_FS); P.ink = prog(INK_VS, INK_FS);
+  if (!P.sh || !P.sky || !P.main || !P.water || !P.nrm || !P.ink) return false;
+  TRI = upload([-1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 3, -1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]);
   if (PHONE() || TOUCH) SS = 1024;
   const t = target(SS, SS, false); shTex = t.tex; shFB = t.fb;
   WORLD = buildWorld(); SKY = buildSky(); WATER = buildWater();
@@ -730,7 +761,7 @@ if (!me.name) me.name = randomName();
 me.mesh = null;
 const PEERS = new Map();
 const NPCS = [];
-function makeNpcs(){
+function makeNpcs(){ return;                                     /* only real visitors in the pool now */
   const quiet = [[0, 1, 0, 0, 6, 0, 0, 2], [2, 2, 1, 1, 2, 3, 1, 1], [1, 4, 3, 0, 0, 1, 2, 0], [3, 1, 0, 2, 6, 5, 0, 2], [1, 5, 2, 0, 3, 4, 4, 1],
                  [0, 3, 4, 1, 4, 1, 1, 0], [4, 1, 1, 0, 1, 0, 4, 1], [1, 2, 2, 3, 7, 2, 3, 0], [2, 0, 0, 2, 5, 3, 1, 2]];
   quiet.forEach((k, i) => { const a = newAvatar(lookFrom(k)); a.npc = true; a.below = i >= 5; a.wait = rand(0, 3); a.id = "npc" + i;
@@ -791,7 +822,7 @@ function partMats(a, now){
    6. YOU — walking, the stairs, a little jump; the camera follows behind
    ========================================================================== */
 const SPAWN = { x:0, z:PZ + 2.6, r:Math.PI };
-const view = { yaw:Math.PI, pitch:.4, d:4.8, ty:Math.PI, tp:.4, td:4.8 };
+const view = { yaw:Math.PI, pitch:.5, d:7.2, ty:Math.PI, tp:.5, td:7.2 };
 let camPos = [0, 2, 9], camTgt = [0, 1, 5], making = true, inWorld = false, VPm = null;
 const keys = {};
 const joy = { on:false, x:0, y:0, id:null };
@@ -1000,7 +1031,7 @@ async function enter(srv){
     lastSig = ""; lastSend = 0;
   }
   $("go").disabled = false;
-  if (!inWorld){ me.x = SPAWN.x; me.z = SPAWN.z; me.y = 0; me.r = SPAWN.r; view.yaw = view.ty = Math.PI; view.tp = .4; inWorld = true; setTimeout(() => hint(T(TOUCH ? HINTS.touch : HINTS.keys)), 600); }
+  if (!inWorld){ me.x = SPAWN.x; me.z = SPAWN.z; me.y = 0; me.r = SPAWN.r; view.yaw = view.ty = Math.PI; view.tp = .5; inWorld = true; setTimeout(() => hint(T(TOUCH ? HINTS.touch : HINTS.keys)), 600); }
   making = false; closePops(); document.body.classList.remove("making"); document.body.classList.add("in");
   saveMe(); AUD.unlock(); AUD.start(); renderPill(); maybeSend();
 }
@@ -1134,7 +1165,7 @@ function updateTags(now){
     const t = tagFor(a); keep.add(a.id);
     if (!q || q[2] > 34){ t.el.style.display = "none"; continue; }
     t.el.style.display = ""; t.el.classList.toggle("dim", vis === "dim");
-    const s = clamp(6 / q[2], .62, 1.08);
+    const s = clamp((fov < .8 ? 9 : 6) / q[2], .62, 1.08);
     t.el.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%) scale(${s.toFixed(3)})`;
     t.el.style.zIndex = String(1000 - Math.round(q[2] * 10));
     if (t.nm.textContent !== a.name) t.nm.textContent = a.name;
@@ -1228,13 +1259,13 @@ cv.addEventListener("pointerdown", e => { AUD.unlock(); closePops(); document.bo
   ptrs.set(e.pointerId, { x:e.clientX, y:e.clientY }); try { cv.setPointerCapture(e.pointerId); } catch (_){}
   if (ptrs.size === 2){ const [a, b] = [...ptrs.values()]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); d0 = view.td; } document.body.classList.add("drag"); });
 cv.addEventListener("pointermove", e => { const p = ptrs.get(e.pointerId); if (!p) return;
-  if (ptrs.size === 2){ const o = [...ptrs.entries()].find(([id]) => id !== e.pointerId)[1]; const d = Math.hypot(e.clientX - o.x, e.clientY - o.y); if (pinch0) view.td = clamp(d0 * pinch0 / d, 1.8, 10); p.x = e.clientX; p.y = e.clientY; return; }
+  if (ptrs.size === 2){ const o = [...ptrs.entries()].find(([id]) => id !== e.pointerId)[1]; const d = Math.hypot(e.clientX - o.x, e.clientY - o.y); if (pinch0) view.td = clamp(d0 * pinch0 / d, 2, 14); p.x = e.clientX; p.y = e.clientY; return; }
   const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
   if (making){ me.r -= dx * .012; return; }
   view.ty -= dx * .0065; view.tp = clamp(view.tp + dy * .005, -.6, 1.2); });
 const endPtr = (e) => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch0 = 0; if (!ptrs.size) document.body.classList.remove("drag"); };
 cv.addEventListener("pointerup", endPtr); cv.addEventListener("pointercancel", endPtr);
-cv.addEventListener("wheel", e => { e.preventDefault(); if (!making) view.td = clamp(view.td * Math.exp(e.deltaY * .0012), 1.8, 10); }, { passive:false });
+cv.addEventListener("wheel", e => { e.preventDefault(); if (!making) view.td = clamp(view.td * Math.exp(e.deltaY * .0012), 2, 14); }, { passive:false });
 window.addEventListener("keydown", e => {
   if (e.target === $("say-i")){ if (e.key === "Escape"){ e.target.blur(); closePops(); } return; }
   if (e.target === $("nm")) return;
@@ -1271,11 +1302,12 @@ $("about-x").onclick = () => document.body.classList.remove("about");
    ========================================================================== */
 let W = 0, H = 0, DPR = 1;
 function layout(){
-  DPR = Math.min(window.devicePixelRatio || 1, PHONE() || TOUCH ? 1.5 : 1.75);
+  DPR = Math.min(window.devicePixelRatio || 1, PHONE() || TOUCH ? 1.35 : 1.75);
   W = Math.round(innerWidth * DPR); H = Math.round(innerHeight * DPR);
   if (cv.width !== W || cv.height !== H){ cv.width = W; cv.height = H; }
   const rw = Math.max(64, Math.round(W / 2)), rh = Math.max(64, Math.round(H / 2));
   if (gl && (rf.w !== rw || rf.h !== rh)){ dropTarget(rf); dropTarget(rl); rf = target(rw, rh, true); rl = target(rw, rh, true); }
+  if (gl && (nt.w !== W || nt.h !== H)){ dropTarget(nt); nt = target(W, H, false); }
 }
 window.addEventListener("resize", layout);
 function useProg(p, VP, clip, below, t){
@@ -1298,9 +1330,11 @@ function drawPeople(p, now){
 }
 function drawSky(VP, clip, t){ gl.depthMask(false); useProg(P.sky, VP, clip, 0, t); gl.uniformMatrix4fv(P.sky.u.uM, false, Tm(camPos[0], camPos[1], camPos[2])); bindMesh(SKY); gl.drawArrays(gl.TRIANGLES, 0, SKY.n); gl.depthMask(true); }
 function drawScene(VP, clip, below, t, now){ useProg(P.main, VP, clip, below, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.main, now); }
+let fov = .9;
 function render(t, now){
-  const VP = mm4(persp(PHONE() ? 1.02 : .9, W / H, .06, 600), lookAt(camPos, camTgt)); VPm = VP;
   const below = camPos[1] < 0 ? 1 : 0;
+  fov = lerp(fov, making || below ? (PHONE() ? 1.02 : .9) : (PHONE() ? .78 : .6), .12);          /* a long lens above: nearly isometric */
+  const VP = mm4(persp(fov, W / H, .06, 600), lookAt(camPos, camTgt)); VPm = VP;
   /* the sun's view, for shadows */
   updateSV();
   gl.bindFramebuffer(gl.FRAMEBUFFER, shFB); gl.viewport(0, 0, SS, SS); gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -1311,8 +1345,12 @@ function render(t, now){
   /* what stands round it, mirrored in the surface (from above only) */
   if (!below){ gl.bindFramebuffer(gl.FRAMEBUFFER, rl.fb); gl.viewport(0, 0, rl.w, rl.h); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     drawScene(mm4(VP, MIRROR), 2, 0, t, now); }
+  /* each pixel's normal and distance, for the ink lines */
+  gl.bindFramebuffer(gl.FRAMEBUFFER, nt.fb); gl.viewport(0, 0, nt.w, nt.h); gl.clearColor(.5, .5, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  useProg(P.nrm, VP, 0, 0, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.nrm, now);
+  gl.uniformMatrix4fv(P.nrm.u.uM, false, I4); bindMesh(WATER); gl.drawArrays(gl.TRIANGLES, 0, WATER.n);
   /* the picture */
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, W, H); gl.clearColor(.8, .88, .93, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, W, H); gl.clearColor(.95, .93, .88, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   drawSky(VP, 0, t); drawScene(VP, 0, below, t, now);
   gl.useProgram(P.water.p); const u = P.water.u;
   gl.uniformMatrix4fv(u.uVP, false, VP); gl.uniformMatrix4fv(u.uM, false, I4); gl.uniform3fv(u.uCam, camPos); gl.uniform3fv(u.uSun, SUN); gl.uniform1f(u.uT, t); gl.uniform1f(u.uBelow, below);
@@ -1320,6 +1358,12 @@ function render(t, now){
   gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, rf.tex); gl.uniform1i(u.uRef, 1);
   gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, rl.tex); gl.uniform1i(u.uRefl, 2);
   bindMesh(WATER); gl.drawArrays(gl.TRIANGLES, 0, WATER.n);
+  /* ink over the top */
+  gl.disable(gl.DEPTH_TEST); gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  gl.useProgram(P.ink.p); gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, nt.tex); gl.uniform1i(P.ink.u.uN, 3);
+  gl.uniform2f(P.ink.u.uRes, W, H); gl.uniform1f(P.ink.u.uPx, Math.max(1, DPR * .95));
+  bindMesh(TRI); gl.drawArrays(gl.TRIANGLES, 0, 3);
+  gl.disable(gl.BLEND); gl.enable(gl.DEPTH_TEST); gl.bindTexture(gl.TEXTURE_2D, null);
   gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, null); gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, null); gl.activeTexture(gl.TEXTURE0);
 }
 let lastT = performance.now(), pruneAt = 0, zoneHint = { below:false, up:false };
