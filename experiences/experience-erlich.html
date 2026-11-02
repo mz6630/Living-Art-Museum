@@ -595,17 +595,19 @@ void main(){
   bool under = vP.y < -.06;
   if (under){
     float inPool = step(abs(vP.x), ${(PX + .02).toFixed(2)}) * step(abs(vP.z), ${(PZ + .02).toFixed(2)});
-    vec3 pool = mix(col * vec3(.8, .86, .96), col, lit * .7 + .3);
-    pool = mix(pool * vec3(.72, .8, 1.), pool, sh * .6 + .4);
     vec2 cq = vP.xz * .85 + vec2(vP.y * .3);
-    float v1 = caust(cq, uT * .55), v2 = caust(cq + vec2(.035, .022), uT * .55 + .04);
-    float lines = smoothstep(.86, .93, max(v1, v2)) + smoothstep(.9, .96, min(v1, v2)) * .6;     /* caustics as white ink */
-    pool = mix(pool, vec3(.9, .98, 1.), clamp(lines, 0., 1.) * (soft ? .12 : .75) * (sh * .5 + .5));
+    float v1 = caust(cq, uT * .55), v2 = caust(cq + vec2(.035, .022), uT * .55 + .04), v3 = caust(cq * 1.31 + 3.1, uT * .66 + 1.3);
+    float f1 = pow(v1, 11.), f2 = pow(v2, 11.);
+    float cc = max(f1, f2) * 1.5 + f1 * f2 * 3.5 + pow(v3, 13.) * .5 + (pow(v1, 4.) + pow(v2, 4.)) * .1;     /* glowing ribbons, brightest where they cross */
+    vec3 ambU = mix(vec3(.42, .56, .68), vec3(.64, .84, .94), n.y * .5 + .5);
+    vec3 poolReal = col * (ambU * .56 + vec3(.85, .97, 1.) * (max(lam, 0.) * .4 + .12) * sh + vec3(.8, .96, 1.) * cc * 1.9 * (.35 + .65 * sh));
+    vec3 poolToon = mix(col * vec3(.8, .86, .96), col, lit * .7 + .3) + vec3(.8, .96, 1.) * cc * .25;
+    vec3 pool = soft ? poolToon : poolReal;
     vec3 lamp = vec3(${(PX + .85).toFixed(2)}, -.4, -2.25) - vP; float ld = length(lamp);
     vec3 hall = mix(self, col, lit * sh) * .8 + vec3(.35, .25, .1) * max(dot(n, lamp / ld), 0.) / (1. + ld * ld * .35);
     c = mix(hall, pool, inPool); }
   /* hatching in the shade, as if drawn */
-  if (!soft){ float shade = 1. - lit * sh;
+  if (!soft && !under){ float shade = 1. - lit * sh;
     float hl = smoothstep(.55, .9, sin((fp.x + fp.y) * 40.)) * (1. - smoothstep(5., 16., dist));
     c *= 1. - hl * shade * .11; }
   if (m > 2.5 && m < 3.5){ vec3 r = reflect(-V, n); c = mix(c, vec3(1.), step(.92, dot(r, uSun)) * .8); }                    /* metal: one white glint */
@@ -615,37 +617,47 @@ void main(){
   if (uBelow > .5 && under) c = mix(c, vec3(.5, .74, .88), 1. - exp(-dist * .01));
   else if (!under) c = mix(c, vec3(.94, .93, .89), 1. - exp(-dist * .003));
   gl_FragColor = vec4(c, 1.); }`;
+/* the water keeps the realistic look — for gazing into */
+const SKYW = `vec3 skyCol(vec3 d){
+  float h = clamp(d.y, -1., 1.);
+  vec3 c = mix(vec3(.86, .91, .95), vec3(.42, .63, .9), pow(max(h, 0.), .55));
+  c = mix(c, vec3(.78, .82, .84), clamp(-h * 3., 0., 1.));
+  float s = max(dot(d, uSun), 0.); c += vec3(1., .93, .8) * (pow(s, 600.) * 2. + pow(s, 8.) * .18);
+  return c; }`;
 const WATER_FS = `precision highp float;
 varying vec3 vP; varying vec3 vN; varying vec3 vC; varying float vM;
 uniform sampler2D uRef, uRefl; uniform vec2 uRes; uniform vec3 uCam, uSun; uniform float uT, uBelow, uHasRefl;
-${SKYFN}
+${SKYW}
 ${NOISE}
-${CAUST}
 vec2 wv(vec2 p, vec2 d, float f, float s, float a){ return d * cos(dot(p, d) * f + uT * s) * f * a; }
-vec3 waveN(vec2 p){
+float rip(vec2 q){ return ns(q) + .5 * ns(q * 2.13 + 7.1); }
+vec3 waveN(vec2 p, float hi){
   vec2 g = wv(p, vec2(.96, .28), 1.3, .9, .03) + wv(p, vec2(-.37, .93), 2.1, 1.25, .021) + wv(p, vec2(.66, -.75), 3.4, 1.7, .013) + wv(p, vec2(-.98, -.2), 5.3, 2.2, .008);
+  g += (wv(p, vec2(.2, .98), 8.6, 2.9, .0048) + wv(p, vec2(-.6, -.8), 13.1, 3.6, .003) + wv(p, vec2(.8, -.6), 19.7, 4.5, .0018) + wv(p, vec2(-.1, -.99), 27., 5.2, .0011)) * hi;
+  vec2 q = p * 2.2 + vec2(uT * .25, -uT * .18); float e = .07, r0 = rip(q);
+  g += vec2(rip(q + vec2(e, 0.)) - r0, rip(q + vec2(0., e)) - r0) / e * .026 * hi;
   return normalize(vec3(-g.x, 1., -g.y)); }
 vec3 tap(sampler2D s, vec2 uv){ return texture2D(s, clamp(uv, vec2(.002), vec2(.998))).rgb; }
 void main(){
-  vec3 n = waveN(vP.xz); vec2 uv = gl_FragCoord.xy / uRes; vec3 V = normalize(uCam - vP); vec3 c;
-  float ed = smoothstep(0., .6, min(${PX.toFixed(2)} - abs(vP.x), ${PZ.toFixed(2)} - abs(vP.z)));
-  float w = caust(vP.xz * 1.25, uT * .7);
-  float rip = smoothstep(.88, .95, w);                                          /* ripples drawn as white lines */
+  float dist = length(uCam - vP), hi = clamp(1.3 - dist / 22., 0., 1.);
+  vec3 n = waveN(vP.xz, hi); vec2 uv = gl_FragCoord.xy / uRes; vec3 V = normalize(uCam - vP); vec3 c;
+  float ed = smoothstep(0., .6, min(${PX.toFixed(2)} - abs(vP.x), ${PZ.toFixed(2)} - abs(vP.z)));     /* calm at the very edge: no sampling past the rim */
   if (uBelow < .5){
-    vec3 r = tap(uRef, uv + n.xz * .045 * ed);
-    r = mix(r, vec3(.3, .66, .82), .22);
+    vec2 off = n.xz * .06 * ed, px = 1. / uRes;
+    vec3 r = tap(uRef, uv + off) * .5 + (tap(uRef, uv + off + vec2(px.x, 0.)) + tap(uRef, uv + off - vec2(px.x, 0.)) + tap(uRef, uv + off + vec2(0., px.y)) + tap(uRef, uv + off - vec2(0., px.y))) * .125;
+    r = mix(r * vec3(.84, .96, 1.), vec3(.1, .37, .55), .06 + (1. - max(V.y, 0.)) * .34);
     vec3 refl = skyCol(reflect(-V, n));
-    if (uHasRefl > .5){ vec4 q = texture2D(uRefl, clamp(uv + n.xz * .04 * ed, vec2(.002), vec2(.998))); refl = mix(refl, q.rgb, q.a); }
-    float fr = .03 + .6 * pow(1. - max(dot(V, n), 0.), 4.);
-    c = mix(r, refl, clamp(fr, 0., .55));
-    c = mix(c, vec3(.96, 1., 1.), rip * .55 * ed);
-    c = mix(c, vec3(1.), step(.997, dot(n, normalize(uSun + V))) * .9);
+    if (uHasRefl > .5){ vec4 q = texture2D(uRefl, clamp(uv + n.xz * .05 * ed, vec2(.002), vec2(.998))); refl = mix(refl, q.rgb, q.a); }
+    float fr = .02 + .98 * pow(1. - max(dot(V, n), 0.), 5.);
+    c = mix(r, refl, clamp(fr, 0., .92));
+    float nh = max(dot(n, normalize(uSun + V)), 0.);
+    c += vec3(1., .97, .9) * (pow(nh, 1400.) * 9. + pow(nh, 140.) * .3);
   } else {
-    vec2 off = n.xz * .07 * ed, px = 2. / uRes; vec3 r = vec3(0.);
+    vec2 off = n.xz * .08 * ed, px = 2.4 / uRes; vec3 r = vec3(0.);
     for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) r += tap(uRef, uv + off + vec2(float(i), float(j)) * px);
-    r = mix(r / 9., vec3(.42, .72, .88), .25);
-    c = mix(r, vec3(.4, .66, .82), smoothstep(.3, .1, abs(V.y)) * .65);
-    c = mix(c, vec3(.92, 1., 1.), rip * .35 * ed);
+    r = r / 9. * vec3(.8, .97, 1.) * 1.06 + vec3(.02, .06, .07);
+    c = mix(r, vec3(.36, .62, .78), smoothstep(.3, .1, abs(V.y)) * .7);
+    c += vec3(.9, 1., 1.) * pow(max(dot(n, normalize(vec3(.25, 1., .15))), 0.), 500.) * .35;
   }
   gl_FragColor = vec4(c, 1.); }`;
 /* normal and distance, for the ink pass (face details stay out, so they are not outlined) */
@@ -666,8 +678,7 @@ vec3 decN(vec2 o){ o = o * 2. - 1.; vec3 n = vec3(o.x, 1. - abs(o.x) - abs(o.y),
 void get(vec2 uv, out vec3 n, out float d){ vec4 t = texture2D(uN, uv); n = decN(t.rg); d = (t.b + t.a / 255.) * 90.; }
 void main(){
   vec2 fc = vU * uRes;
-  float wob = ns(fc * .035) - .5;                                              /* a hand's wobble in the line weight */
-  vec2 px = uPx * (1. + wob * .6) / uRes;
+  vec2 px = uPx / uRes;
   vec3 n0; float d0; get(vU, n0, d0);
   /* eight neighbours, blended rather than maxed: the line fades over a pixel or two instead of stepping */
   float e = 0., wsum = 0.;
@@ -798,7 +809,7 @@ function stepPeers(dt){
 }
 /* how each part of a body is turned this moment */
 function pose(a, now){
-  const sw = Math.sin(a.ph) * .55 * a.mv, bob = Math.abs(Math.sin(a.ph)) * .035 * a.mv + Math.sin(now * 2.1 + (a.x || 0)) * .006;
+  const sw = Math.sin(a.ph) * .55 * a.mv, bob = Math.abs(Math.sin(a.ph)) * .03 * a.mv;                 /* standing still is still */
   const q = { lift:bob + (a.jy || 0), bow:0, sway:0, l1:sw, l2:-sw, a1x:-sw * .8, a2x:sw * .8, a1z:-.08, a2z:.08, spin:0 };
   const u = (now - a.et0) / 1000;
   if (a.emote === "wave" && u < 2.2){ q.a2z = 2.5 + Math.sin(u * 13) * .32; q.a2x = 0; }
@@ -855,6 +866,7 @@ function moveMe(dt){
   if (me.jy > 0 || me.vy > 0){ me.vy -= 11 * dt; me.jy = Math.max(0, me.jy + me.vy * dt); if (me.jy === 0) me.vy = 0; }
 }
 function jump(){ if (making || !inWorld || me.jy > 0) return; me.vy = 4; me.jy = .001; emote("jump"); }
+let camD = 0;
 function placeCamera(dt){
   const k = 1 - Math.exp(-dt * 10);
   if (making){
@@ -872,7 +884,8 @@ function placeCamera(dt){
   const below = me.y < -1.4 && zoneOf(me.x, me.y, me.z) !== "stairs";
   let d = view.d;
   for (let i = 1; i <= 30; i++){ const t = view.d * i / 30, p = sub(head, mul(dir, t)); if (!camOK(p[0], p[1], p[2], below)){ d = Math.max(.35, t - view.d / 30 - .12); break; } }
-  const want = sub(head, mul(dir, d));
+  camD = camD ? (d < camD ? d : lerp(camD, d, Math.min(1, dt * 4))) : d;                 /* pull in at once, ease back out */
+  const want = sub(head, mul(dir, camD));
   camPos = camPos.map((v, i) => lerp(v, want[i], Math.min(1, k * 1.6)));
   if (!camOK(camPos[0], camPos[1], camPos[2], below)) camPos = want;
   if (view.pitch >= .06) camTgt = add(head, [0, .1, 0]);
@@ -887,7 +900,7 @@ function placeCamera(dt){
    ========================================================================== */
 const MAX = 20;
 const MY_ID = (() => { try { return crypto.getRandomValues(new Uint32Array(3)).reduce((s, v) => s + v.toString(36), "").slice(0, 16); } catch (_){ return Math.random().toString(36).slice(2, 14); } })();
-const NET = { be:null, kind:"solo", srv:0, counts:[0, 0], ready:false };
+const NET = { be:null, kind:"solo", srv:0, counts:[0, 0], ready:false, err:"" };
 const owners = () => { const w = [window]; try { if (window.parent && window.parent !== window) w.push(window.parent); } catch (_){} return w; };
 const withTimeout = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error("timeout")), ms))]);
 async function findCap(name){
@@ -937,14 +950,14 @@ async function rtdbBackend(cfg, R){
     kind:"rtdb", sendMs:140, beatMs:25000,
     lobby(cb){ lobbyCb = cb; emit(); },
     async join(s, cb){ srv = s; peerCb = cb; mine = D.ref(db, `pool/s${s}/${MY_ID}`); await D.onDisconnect(mine).remove(); emit(); return true; },
-    send(st){ if (mine) D.set(mine, st).catch(() => {}); },
+    send(st){ if (mine) D.set(mine, st).then(netOk, netFail); },
     async leave(){ const r = mine; mine = null; srv = 0; peerCb = null; if (r){ try { await D.onDisconnect(r).cancel(); } catch (_){} D.remove(r).catch(() => {}); } emit(); },
   };
 }
 /* the museum's shared store (Firestore, or claude.ai's own): slower, so fewer, fuller updates */
 function storeBackend(db){
   const col = db.collection("poolLive"); let all = [], lobbyCb = null, peerCb = null, srv = 0, cleaned = 0;
-  const fresh = (p) => Math.abs(Date.now() - (p.st.t || 0)) < 30000;
+  const fresh = (p) => Math.abs(Date.now() - (p.st.t || 0)) < 120000;       /* generous: two devices' clocks may differ */
   const emit = () => {
     const live = all.filter(fresh), c = [0, 0];
     for (const p of live){ const s = p.st.s; if ((s === 1 || s === 2) && p.id !== MY_ID) c[s - 1]++; }
@@ -959,7 +972,7 @@ function storeBackend(db){
     kind:"store", sendMs:800, beatMs:8000,
     lobby(cb){ lobbyCb = cb; emit(); },
     async join(s, cb){ srv = s; peerCb = cb; emit(); return true; },
-    send(st){ col.doc(MY_ID).set(st).catch(() => {}); },
+    send(st){ col.doc(MY_ID).set(st).then(netOk, netFail); },
     async leave(){ srv = 0; peerCb = null; try { await col.doc(MY_ID).delete(); } catch (_){} emit(); },
   };
 }
@@ -970,12 +983,18 @@ function wrapDb(db, R){
   const D = (r) => ({ id:r.id, set:(d) => r.set(Pl(d)), delete:() => r.delete(), get:() => r.get() });
   return { collection:(p) => { const c = db.collection(p); return Object.assign(Q(c), { doc:(id) => D(id ? c.doc(id) : c.doc()) }); } };
 }
+/* say so when nobody can hear us: almost always the Firebase rules not yet published */
+let errShown = false;
+function netOk(){ if (NET.err){ NET.err = ""; renderNet(); renderPill(); } }
+function netFail(e){ const code = (e && (e.code || e.message)) || "error"; if (NET.err !== code){ NET.err = String(code); renderNet(); renderPill(); }
+  if (!errShown && inWorld){ errShown = true; hint(T(NET_ERR), true); } }
+const NET_ERR = { en:"Your position is not reaching the server — publish firestore.rules in the Firebase console (the poolLive rule)", ko:"내 위치가 서버에 저장되지 않아요 — Firebase 콘솔에서 firestore.rules(poolLive 규칙)를 게시해 주세요" };
 async function netInit(){
   renderNet();
   const room = await findCap("room");
   if (room){ try { NET.be = roomBackend(room.c, room.R); } catch (_){ NET.be = null; } }
   if (!NET.be){
-    for (const R of owners()){ let cfg = null; try { cfg = R.LAM_FIREBASE; } catch (_){} if (!cfg || !cfg.apiKey) continue;
+    for (const R of owners()){ let cfg = null; try { cfg = R.LAM_FIREBASE; } catch (_){} if (!cfg || !cfg.apiKey || !cfg.databaseURL) continue;   /* every page decides alike */
       try { NET.be = await rtdbBackend(cfg, R); break; } catch (e){ NET.be = null; } }
   }
   if (!NET.be){ const d = await findCap("db"); if (d){ try { NET.be = storeBackend(wrapDb(d.c, d.R)); } catch (_){ NET.be = null; } } }
@@ -1031,7 +1050,7 @@ async function enter(srv){
     lastSig = ""; lastSend = 0;
   }
   $("go").disabled = false;
-  if (!inWorld){ me.x = SPAWN.x; me.z = SPAWN.z; me.y = 0; me.r = SPAWN.r; view.yaw = view.ty = Math.PI; view.tp = .5; inWorld = true; setTimeout(() => hint(T(TOUCH ? HINTS.touch : HINTS.keys)), 600); }
+  if (!inWorld){ me.x = SPAWN.x; me.z = SPAWN.z; me.y = 0; me.r = SPAWN.r; view.yaw = view.ty = Math.PI; view.tp = .5; inWorld = true; setTimeout(() => hint(T(NET.err ? NET_ERR : TOUCH ? HINTS.touch : HINTS.keys)), 900); }
   making = false; closePops(); document.body.classList.remove("making"); document.body.classList.add("in");
   saveMe(); AUD.unlock(); AUD.start(); renderPill(); maybeSend();
 }
@@ -1112,7 +1131,8 @@ function renderNet(){
     : NET.kind === "room" || NET.kind === "rtdb" ? T({ en:"Live server — everyone moves in real time.", ko:"실시간 서버 — 모두의 움직임이 바로 보여요." })
     : NET.kind === "store" ? T({ en:"Shared store — others appear with a short delay.", ko:"공유 저장소 — 다른 사람이 약간 늦게 움직여 보여요." })
     : T({ en:"No server reachable — you'll be with the museum's own visitors on this device.", ko:"서버에 연결할 수 없어요 — 이 기기에서 미술관 관람객들과 함께해요." });
-  $("net").textContent = t; $("pnet").textContent = t; renderServers();
+  const all = NET.err ? `${t} ${T(NET_ERR)}.` : t;
+  $("net").textContent = all; $("pnet").textContent = all; renderServers();
 }
 function where(){ const z = zoneOf(me.x, me.y, me.z); return T(z === "above" ? { en:"by the pool", ko:"수영장 위" } : z === "stairs" ? { en:"on the stairs", ko:"계단" } : z === "below" ? { en:"under the water", ko:"수영장 아래" } : { en:"the corridor", ko:"복도" }); }
 let lastZone = "";
@@ -1121,6 +1141,8 @@ function renderPill(){
   const solo = !NET.be, el = $("c-t"); $("count").classList.toggle("solo", solo); el.textContent = "";
   const b = document.createElement("b"); b.textContent = solo ? T({ en:"This device", ko:"이 기기" }) : `${T({ en:"Server", ko:"서버" })} ${NET.srv}`; el.appendChild(b);
   el.appendChild(document.createTextNode(solo ? ` · ${where()}` : ` · ${PEERS.size + 1}/${MAX} · ${where()}`));
+  if (NET.err) el.appendChild(document.createTextNode(T({ en:" · not saving", ko:" · 저장 안 됨" })));
+  $("count").classList.toggle("solo", solo || !!NET.err);
   renderServers();
 }
 /* pop-ups above the bar */
@@ -1203,41 +1225,74 @@ const chatFocus = () => document.activeElement === $("say-i") || document.active
 function siteLight(on){ try { if (window.parent !== window){ const ex = window.parent.document.getElementById("s-exp"); if (ex) ex.classList.toggle("light", on); } } catch (_){} }
 
 /* ==========================================================================
-   9. SOUND — above, the pool laps and drips; below, a soft rush of water and
-      bubbles rising. Everything stays bright: nothing below ~250 Hz
+   9. SOUND — above, the sea breathing and the pool lapping at its edge; below,
+      a soft rush of water and bubbles rising. Nothing rumbles (high-passed at 210 Hz)
    ========================================================================== */
 const AUD = (() => {
-  let ctx = null, master = null, white = null, on = true, borrowed = false, amb = null, below = 0, nextPlip = 0, nextBub = 0;
+  /* waves made the way the sea makes them: soft brown noise that swells, brightens as it breaks,
+     fizzes with foam and draws back; small laps against the pool's edge; drops; bubbles under the water.
+     Everything passes a gentle high-pass, so nothing rumbles. */
+  let ctx = null, master = null, white = null, brown = null, on = true, borrowed = false, amb = null, below = 0;
+  let nextWave = 0, nextLap = 0, nextDrop = 0, nextBub = 0;
   function ensure(){ if (ctx) return ctx; const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
     try { const host = window.parent !== window && window.parent.__lamAudio && window.parent.__lamAudio(); if (host && host.state === "running"){ ctx = host; borrowed = true; } } catch (_){}
     if (!ctx){ try { ctx = new AC(); } catch (_){ return null; } }
     master = ctx.createGain(); master.gain.value = on ? .9 : 0;
-    const hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 250; master.connect(hp); hp.connect(ctx.destination);
-    const n = ctx.sampleRate * 2; white = ctx.createBuffer(1, n, ctx.sampleRate); const w = white.getChannelData(0); for (let i = 0; i < n; i++) w[i] = Math.random() * 2 - 1;
+    const hp = ctx.createBiquadFilter(), hp2 = ctx.createBiquadFilter(); hp.type = hp2.type = "highpass"; hp.frequency.value = hp2.frequency.value = 240; hp.Q.value = hp2.Q.value = .6;
+    master.connect(hp); hp.connect(hp2); hp2.connect(ctx.destination);                                   /* steep: nothing low gets through */
+    const n = ctx.sampleRate * 4;
+    white = ctx.createBuffer(1, n, ctx.sampleRate); brown = ctx.createBuffer(1, n, ctx.sampleRate);
+    const w = white.getChannelData(0), b = brown.getChannelData(0); let last = 0;
+    for (let i = 0; i < n; i++){ const r = Math.random() * 2 - 1; w[i] = r; last = (last + .02 * r) / 1.02; b[i] = last * 3.5; }
+    for (let i = 0; i < 2000; i++){ const k = i / 2000; b[i] *= k; b[n - 1 - i] *= k; }       /* loops without a click */
     return ctx; }
   const ok = () => on && ensure() && ctx.state === "running";
-  function burst(tt, dur, f, q, g, f2){ const s = ctx.createBufferSource(); s.buffer = white; const fl = ctx.createBiquadFilter(); fl.type = "bandpass"; fl.frequency.setValueAtTime(f, tt); if (f2) fl.frequency.exponentialRampToValueAtTime(f2, tt + dur); fl.Q.value = q;
-    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(g, tt + Math.min(.012, dur * .25)); a.gain.exponentialRampToValueAtTime(.0001, tt + dur);
-    s.connect(fl); fl.connect(a); a.connect(master); s.start(tt, Math.random()); s.stop(tt + dur + .03); }
-  function tone(tt, f, dur, g, f2, type){ const o = ctx.createOscillator(); o.type = type || "sine"; o.frequency.setValueAtTime(f, tt); if (f2) o.frequency.exponentialRampToValueAtTime(f2, tt + dur);
-    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(g, tt + .006); a.gain.exponentialRampToValueAtTime(.0001, tt + dur); o.connect(a); a.connect(master); o.start(tt); o.stop(tt + dur + .02); }
-  function loop(f, q){ const s = ctx.createBufferSource(); s.buffer = white; s.loop = true; const fl = ctx.createBiquadFilter(); fl.type = "bandpass"; fl.frequency.value = f; fl.Q.value = q;
-    const g = ctx.createGain(); g.gain.value = 0; s.connect(fl); fl.connect(g); g.connect(master); s.start(); return { fl, g }; }
+  const src = (buf, loop) => { const s = ctx.createBufferSource(); s.buffer = buf; s.loop = !!loop; return s; };
+  const filt = (type, f, q) => { const o = ctx.createBiquadFilter(); o.type = type; o.frequency.value = f; o.Q.value = q || .7; return o; };
+  function tone(tt, f, dur, g, f2, type, out){ const o = ctx.createOscillator(); o.type = type || "sine"; o.frequency.setValueAtTime(f, tt); if (f2) o.frequency.exponentialRampToValueAtTime(f2, tt + dur);
+    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(g, tt + .006); a.gain.exponentialRampToValueAtTime(.0001, tt + dur); o.connect(a); a.connect(out || master); o.start(tt); o.stop(tt + dur + .02); }
+  function burst(tt, dur, f, q, g, out){ const s = src(white); const fl = filt("bandpass", f, q); const a = ctx.createGain();
+    a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(g, tt + Math.min(.012, dur * .25)); a.gain.exponentialRampToValueAtTime(.0001, tt + dur);
+    s.connect(fl); fl.connect(a); a.connect(out || master); s.start(tt, Math.random() * 3); s.stop(tt + dur + .03); }
+  /* one wave: it gathers, breaks bright, and draws back over the sand */
+  function wave(tt, k){
+    const len = 6 + Math.random() * 3, peak = 2 + Math.random() * .9;
+    const s = src(brown, true), lp = filt("lowpass", 620, .5), a = ctx.createGain();
+    lp.frequency.setValueAtTime(620, tt); lp.frequency.exponentialRampToValueAtTime(2300 + Math.random() * 700, tt + peak); lp.frequency.exponentialRampToValueAtTime(650, tt + len);
+    a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(.17 * k, tt + peak); a.gain.exponentialRampToValueAtTime(.0001, tt + len);
+    s.connect(lp); lp.connect(a); a.connect(amb.sea); s.start(tt, Math.random() * 3); s.stop(tt + len + .1);
+    const f = src(white, true), bp = filt("bandpass", 4200, .6), fa = ctx.createGain();                  /* the foam */
+    bp.frequency.setValueAtTime(5200, tt + peak); bp.frequency.exponentialRampToValueAtTime(2600, tt + len);
+    fa.gain.setValueAtTime(.0001, tt + peak - .4); fa.gain.exponentialRampToValueAtTime(.022 * k, tt + peak + .2); fa.gain.exponentialRampToValueAtTime(.0001, tt + len - .4);
+    f.connect(bp); bp.connect(fa); fa.connect(amb.sea); f.start(tt + peak - .4, Math.random() * 3); f.stop(tt + len);
+  }
+  /* water slapping softly against the pool's edge */
+  function lap(tt){ const s = src(brown), f0 = 600 + Math.random() * 600, bp = filt("bandpass", f0, 2.4), a = ctx.createGain(), d = .22 + Math.random() * .2;
+    bp.frequency.setValueAtTime(f0, tt); bp.frequency.exponentialRampToValueAtTime(f0 * 1.5, tt + d);
+    a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(.06, tt + .03); a.gain.exponentialRampToValueAtTime(.0001, tt + d);
+    s.connect(bp); bp.connect(a); a.connect(amb.up); s.start(tt, Math.random() * 3); s.stop(tt + d + .05); }
   return {
     unlock(){ if (ensure() && ctx.state !== "running") ctx.resume().catch(() => {}); },
-    start(){ if (amb || !ok()) return; amb = { lap:loop(1300, .6), hiss:loop(3600, 1.6), deep:loop(560, 1.2), rush:loop(1050, 2.2) }; },
+    start(){ if (amb || !ok()) return;
+      const up = ctx.createGain(), dn = ctx.createGain(), sea = ctx.createGain(), muff = filt("lowpass", 650, .6);
+      up.gain.value = 1; dn.gain.value = 0; up.connect(master); dn.connect(master);
+      sea.connect(up); sea.connect(muff); muff.connect(dn);                            /* the sea, clear above and muffled below */
+      const bed = src(brown, true), bl = filt("lowpass", 1100, .5), bg = ctx.createGain(); bg.gain.value = .034;  /* the far, steady surf */
+      bed.connect(bl); bl.connect(bg); bg.connect(sea); bed.start();
+      const deep = src(brown, true), dl = filt("bandpass", 420, .8), dg = ctx.createGain(); dg.gain.value = .085;  /* under the water: a soft rush */
+      deep.connect(dl); dl.connect(dg); dg.connect(dn); deep.start(0, 1.7);
+      amb = { up, dn, sea, dg, bg }; },
     get on(){ return on; }, set on(v){ on = v; if (master) master.gain.setTargetAtTime(v ? .9 : 0, ctx.currentTime, .05); },
     stop(){ if (!ctx) return; try { master.disconnect(); } catch (_){} if (!borrowed) try { ctx.close(); } catch (_){} },
-    /* every frame: crossfade above and below, with slow swells */
-    update(t, depth){ if (!amb || !ok()) return; below = lerp(below, depth, .05); const tt = ctx.currentTime, up = 1 - below;
-      const sw = .62 + .25 * Math.sin(t * 1.7) + .13 * Math.sin(t * 3.9 + 1);
-      amb.lap.g.gain.setTargetAtTime(.022 * sw * up, tt, .12); amb.lap.fl.frequency.setTargetAtTime(1100 + 450 * Math.sin(t * .9), tt, .3);
-      amb.hiss.g.gain.setTargetAtTime(.0045 * up, tt, .2);
-      amb.deep.g.gain.setTargetAtTime(.03 * (.7 + .3 * Math.sin(t * .33)) * below, tt, .25);
-      amb.rush.g.gain.setTargetAtTime(.009 * (.6 + .4 * Math.sin(t * .52 + 2)) * below, tt, .3);
-      if (t > nextPlip && up > .3){ nextPlip = t + rand(1.2, 3.6); const f = rand(1500, 2300); tone(tt, f, .07, .016 * up, f * 1.5); }
-      if (t > nextBub && below > .3){ nextBub = t + rand(1.4, 4.2); const n = 2 + Math.floor(Math.random() * 4); for (let i = 0; i < n; i++){ const f = rand(420, 700); tone(tt + i * rand(.06, .14), f, .11, .02 * below, f * 2.2); } } },
-    step(low){ if (!ok()) return; burst(ctx.currentTime, .045, low ? 1700 : 2600, 4, .014); },
+    update(t, depth){ if (!amb || !ok()) return; below = lerp(below, depth, .04); const tt = ctx.currentTime, up = 1 - below;
+      amb.up.gain.setTargetAtTime(up, tt, .3); amb.dn.gain.setTargetAtTime(below, tt, .3);
+      amb.dg.gain.setTargetAtTime(.085 * (.75 + .25 * Math.sin(t * .31)), tt, .4);
+      if (t > nextWave){ nextWave = t + 5.5 + Math.random() * 3.5; wave(tt + .05, .7 + Math.random() * .5); if (Math.random() < .35) wave(tt + 1.4 + Math.random(), .45); }
+      if (t > nextLap && up > .3){ nextLap = t + .45 + Math.random() * 1.4; lap(tt); if (Math.random() < .4) lap(tt + .12 + Math.random() * .15); }
+      if (t > nextDrop && up > .3){ nextDrop = t + 2.2 + Math.random() * 4; const f = 1300 + Math.random() * 700; tone(tt, f, .08, .012 * up, f * 1.6, "sine", amb.up); }
+      if (t > nextBub && below > .3){ nextBub = t + 1.3 + Math.random() * 3.2; const n = 2 + Math.floor(Math.random() * 5);
+        for (let i = 0; i < n; i++){ const f = 380 + Math.random() * 320; tone(tt + i * (.05 + Math.random() * .12), f, .12, .022 * below, f * 2.3, "sine", amb.dn); } } },
+    step(low){ if (!ok()) return; burst(ctx.currentTime, .045, low ? 1700 : 2600, 4, .012); },
     click(){ if (!ok()) return; tone(ctx.currentTime, 1760, .05, .028, null, "triangle"); },
     chat(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 1568, .08, .03); tone(tt + .07, 2093, .1, .025); },
     joined(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 1175, .12, .022); tone(tt + .1, 1568, .16, .02); },
@@ -1417,7 +1472,7 @@ if (!initGL()){
   netInit();
 }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
-window.__pool = { walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf };
+window.__pool = { AUD, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf };
 </script>
 </body>
 </html>
