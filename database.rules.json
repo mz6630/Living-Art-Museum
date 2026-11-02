@@ -1,0 +1,15 @@
+{
+  "rules": {
+    "pool": {
+      ".read": true,
+      "$srv": {
+        ".validate": "$srv === 's1' || $srv === 's2'",
+        "$id": {
+          ".write": true,
+          ".validate": "newData.hasChildren(['x', 'y', 'z', 't']) && newData.child('x').isNumber() && newData.child('y').isNumber() && newData.child('z').isNumber() && (!newData.child('n').exists() || (newData.child('n').isString() && newData.child('n').val().length <= 16)) && (!newData.child('m').exists() || (newData.child('m').isString() && newData.child('m').val().length <= 60))"
+        }
+      }
+    },
+    "$other": { ".read": false, ".write": false }
+  }
+}

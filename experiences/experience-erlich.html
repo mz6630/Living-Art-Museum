@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Swimming Pool — Living Art Museum</title>
+<meta name="description" content="After Leandro Erlich's Swimming Pool (1999): make a little character, pick a server and meet other visitors around the pool — or take the stairs down and look up at them through the water.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--serif:Fraunces,"Noto Serif KR",Georgia,serif;}
+html[lang="ko"]{--serif:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;}
+/* ==========================================================================
+   SWIMMING POOL — after Leandro Erlich (1999).
+   From above it is a pool full of water; in fact a sheet of glass carries a
+   few centimetres of water, and under it is an empty sky-blue room you can
+   walk into. The people above and the people below become each other's
+   picture. Here it is a shared space: each visitor is a small character,
+   two servers of up to twenty people each.
+   ========================================================================== */
+:root{
+  --ink:#16222b; --ink-dim:rgba(22,34,43,.62); --ink-faint:rgba(22,34,43,.42);
+  --glass-a:rgba(255,255,255,.84); --glass-b:rgba(255,255,255,.64); --glass-line:rgba(0,0,0,.08);
+  --on:#16222b; --on-ink:#fff; --accent:#1f9db3;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{background:#cfe4ec;color:var(--ink);font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;touch-action:none;}
+html[lang="ko"] body{word-break:keep-all;}
+button,input{font:inherit;color:inherit;background:none;border:0;}
+button{cursor:pointer;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px;}
+.glass{background:linear-gradient(180deg,var(--glass-a),var(--glass-b));backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
+  border:1px solid var(--glass-line);box-shadow:0 18px 50px -24px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.75);}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+body.drag #gl{cursor:grabbing;}
+
+.top{position:fixed;top:calc(18px + env(safe-area-inset-top,0px));left:20px;right:20px;z-index:10;display:flex;align-items:center;gap:14px;pointer-events:none;}
+.top > *{pointer-events:auto;}
+.logo{font-size:19px;font-weight:600;letter-spacing:-.018em;line-height:1;white-space:nowrap;text-decoration:none;color:var(--ink);}
+.title{margin-left:auto;text-align:right;max-width:46vw;}
+.title h1{font-family:var(--serif);font-size:16px;font-weight:600;line-height:1.25;}
+.title p{font-size:11.5px;color:var(--ink-dim);margin-top:2px;}
+body.embedded .top{display:none;}
+
+/* ---- name tags and speech, laid over the 3D ---- */
+#tags{position:fixed;inset:0;pointer-events:none;z-index:4;overflow:hidden;}
+.av{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;gap:6px;transform-origin:50% 100%;will-change:transform;}
+.av.dim{opacity:.5;}
+.tg{display:flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;background:rgba(255,255,255,.9);font-size:12px;font-weight:600;color:#25313a;white-space:nowrap;
+  box-shadow:0 6px 16px -8px rgba(0,0,0,.4);}
+.tg .me{display:none;width:19px;height:19px;margin-left:-6px;border-radius:50%;background:#33434e;color:#fff;font-size:10px;font-weight:600;place-items:center;}
+.av.mine .tg .me{display:grid;}
+.bb{max-width:210px;padding:8px 12px;border-radius:14px;background:#fff;color:#1d2328;font-size:12.5px;font-weight:500;line-height:1.4;text-align:center;white-space:normal;
+  box-shadow:0 10px 24px -12px rgba(0,0,0,.45);position:relative;opacity:0;transform:translateY(6px) scale(.96);transition:opacity .25s, transform .25s;}
+.bb.on{opacity:1;transform:none;}
+.bb::after{content:"";position:absolute;left:50%;bottom:-6px;margin-left:-6px;border:6px solid transparent;border-top-color:#fff;border-bottom:0;}
+.emo{position:absolute;bottom:100%;font-size:24px;opacity:0;}
+.emo.go{animation:emo 1.8s ease-out forwards;}
+@keyframes emo{0%{opacity:0;transform:translateY(10px) scale(.6)}20%{opacity:1;transform:translateY(-6px) scale(1.1)}100%{opacity:0;transform:translateY(-46px) scale(1)}}
+.wl{position:absolute;left:0;top:0;padding:5px 10px;border-radius:9px;background:rgba(22,34,43,.82);color:#fff;font-size:11.5px;font-weight:600;white-space:nowrap;letter-spacing:.01em;}
+
+#pill{position:fixed;left:50%;top:calc(18px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:11;display:none;align-items:center;gap:9px;padding:8px 15px;border-radius:999px;font-size:12px;white-space:nowrap;}
+body.in #pill{display:flex;}
+body.embedded #pill{top:calc(70px + env(safe-area-inset-top,0px));}
+#pill .dot{width:7px;height:7px;border-radius:50%;background:#3cc28a;box-shadow:0 0 0 3px rgba(60,194,138,.18);}
+#pill.solo .dot{background:#c9a24a;box-shadow:0 0 0 3px rgba(201,162,74,.2);}
+#pill .k{color:var(--ink-dim);}
+
+#hint{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:12;padding:10px 16px;border-radius:14px;font-size:12.5px;line-height:1.5;
+  max-width:min(520px,calc(100% - 28px));text-align:center;transition:opacity .4s;}
+#hint.off{opacity:0;pointer-events:none;}
+body.making #hint{display:none;}
+
+#log{position:fixed;left:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:6;display:flex;flex-direction:column;gap:4px;pointer-events:none;max-width:min(320px,60vw);}
+#log div{padding:5px 10px;border-radius:10px;background:rgba(255,255,255,.72);font-size:11.5px;color:var(--ink);transition:opacity .8s;}
+#log div b{font-weight:600;margin-right:5px;}
+#log div.old{opacity:0;}
+body:not(.in) #log{display:none;}
+
+/* ---- the bar: emotes, speech, settings ---- */
+#bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:12;display:none;align-items:center;gap:3px;padding:6px;border-radius:20px;max-width:calc(100% - 20px);}
+body.in:not(.making) #bar, body.in:not(.making) #emos{display:flex;}
+#emos{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:12;display:none;align-items:center;gap:2px;padding:6px;border-radius:20px;}
+#emos .chip .t{display:none;}
+@media (min-width:1560px){ #emos .chip .t{display:inline;} }
+.chip{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 11px;border-radius:13px;font-size:12.5px;color:var(--ink-dim);white-space:nowrap;transition:background .2s,color .2s;}
+.chip:hover{color:var(--ink);background:rgba(0,0,0,.05);}
+.chip[aria-pressed="true"]{background:var(--on);color:var(--on-ink);}
+.chip .e{font-size:16px;line-height:1;}
+.ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none;}
+.sep{width:1px;align-self:stretch;margin:6px 3px;background:var(--glass-line);}
+#say{display:flex;align-items:center;gap:4px;padding:3px 3px 3px 12px;border-radius:13px;background:rgba(255,255,255,.7);border:1px solid rgba(0,0,0,.06);}
+#say input{width:190px;font-size:12.5px;padding:5px 0;outline:none;color:var(--ink);}
+#say input::placeholder{color:var(--ink-faint);}
+#say button{padding:6px 10px;border-radius:10px;background:var(--on);color:#fff;font-size:12px;font-weight:600;}
+#snd[aria-pressed="false"] .on, #snd[aria-pressed="true"] .off{display:none;}
+
+/* ---- the joystick (touch) ---- */
+#joy{position:fixed;left:18px;bottom:calc(96px + env(safe-area-inset-bottom,0px));width:112px;height:112px;border-radius:50%;z-index:9;display:none;touch-action:none;
+  background:rgba(255,255,255,.28);border:1px solid rgba(255,255,255,.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+#joy i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(255,255,255,.88);box-shadow:0 6px 16px -8px rgba(0,0,0,.4);}
+#jump{position:fixed;right:18px;bottom:calc(110px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;z-index:9;display:none;font-size:12px;font-weight:600;}
+@media (pointer:coarse){ body.in:not(.making) #joy{display:block;} body.in:not(.making) #jump{display:grid;place-items:center;} }
+@media (max-width:760px){ #jump{right:12px;bottom:calc(100px + env(safe-area-inset-bottom,0px));width:52px;height:52px;} #joy{bottom:calc(84px + env(safe-area-inset-bottom,0px));} }
+
+/* ---- making your character, and choosing a server ---- */
+#make{position:fixed;right:16px;top:calc(18px + env(safe-area-inset-top,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:350px;z-index:20;border-radius:24px;
+  display:none;flex-direction:column;overflow:hidden;}
+body.making #make{display:flex;}
+body.embedded #make{top:calc(70px + env(safe-area-inset-top,0px));}
+#make .sc{flex:1;overflow-y:auto;padding:20px 20px 8px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;}
+#make .tag{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:600;}
+html[lang="ko"] #make .tag{letter-spacing:.06em;}
+#make h2{font-family:var(--serif);font-size:22px;font-weight:600;margin-top:6px;line-height:1.25;}
+#make .lead{font-size:12.5px;line-height:1.6;color:var(--ink-dim);margin-top:6px;}
+.row{margin-top:16px;}
+.row h4{font-size:11px;font-weight:600;color:var(--ink-faint);margin-bottom:8px;letter-spacing:.04em;}
+.name{display:flex;gap:6px;}
+.name input{flex:1;padding:10px 13px;border-radius:12px;background:rgba(255,255,255,.85);border:1px solid rgba(0,0,0,.08);font-size:14px;font-weight:600;outline:none;color:var(--ink);user-select:text;-webkit-user-select:text;}
+.name button{padding:0 12px;border-radius:12px;background:rgba(255,255,255,.85);border:1px solid rgba(0,0,0,.08);font-size:16px;}
+.opts{display:flex;flex-wrap:wrap;gap:6px;}
+.op{padding:7px 11px;border-radius:11px;font-size:12.5px;background:rgba(255,255,255,.7);border:1px solid rgba(0,0,0,.07);color:var(--ink-dim);}
+.op[aria-pressed="true"]{background:var(--on);color:#fff;border-color:var(--on);}
+.sw{width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,.95);box-shadow:0 0 0 1px rgba(0,0,0,.12);}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--on);}
+.servers{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.srv{text-align:left;padding:12px 13px;border-radius:15px;background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.08);}
+.srv b{display:block;font-size:13.5px;}
+.srv span{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-dim);margin-top:4px;}
+.srv span i{width:7px;height:7px;border-radius:50%;background:#3cc28a;}
+.srv.full span i{background:#d9675b;}
+.srv[aria-pressed="true"]{border-color:var(--on);box-shadow:0 0 0 1px var(--on);}
+.srv:disabled{opacity:.5;cursor:default;}
+#net{font-size:11.5px;color:var(--ink-faint);margin-top:9px;line-height:1.5;}
+#make .ft{padding:12px 20px 18px;border-top:1px solid rgba(0,0,0,.06);display:flex;gap:8px;}
+#go{flex:1;padding:13px;border-radius:14px;background:var(--on);color:#fff;font-size:14px;font-weight:600;}
+#go:disabled{opacity:.4;cursor:default;}
+#rnd{padding:0 14px;border-radius:14px;background:rgba(255,255,255,.8);border:1px solid rgba(0,0,0,.08);font-size:12.5px;}
+
+#about{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.97);width:min(460px,calc(100% - 28px));max-height:calc(100% - 120px);overflow:auto;z-index:40;padding:24px 26px;border-radius:22px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;}
+#about.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%);}
+#about .x{position:absolute;right:14px;top:14px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;}
+#about .x svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;}
+#about .tag{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:600;}
+#about h2{font-family:var(--serif);font-size:24px;margin-top:6px;}
+#about p{font-size:13px;line-height:1.7;color:var(--ink-dim);margin-top:10px;}
+#about h3{font-size:12px;margin-top:16px;}
+#about ol{margin:8px 0 0 18px;font-size:12.5px;line-height:1.7;color:var(--ink-dim);}
+
+@media (min-width:761px) and (max-width:1180px){ #bar{left:auto;right:16px;transform:none;} }
+@media (max-width:760px){
+  #make{left:10px;right:10px;width:auto;top:auto;height:min(58%,520px);bottom:calc(10px + env(safe-area-inset-bottom,0px));border-radius:22px;}
+  body.embedded #make{top:auto;}
+  #make .sc{padding:16px 16px 6px;}
+  #make h2{font-size:19px;}
+  #make .lead{display:none;}
+  .row{margin-top:12px;}
+  #bar{gap:1px;padding:5px;bottom:calc(10px + env(safe-area-inset-bottom,0px));left:10px;right:10px;transform:none;max-width:none;}
+  #say{flex:1;min-width:0;}
+  #say input{width:auto;flex:1;min-width:0;}
+  .chip{padding:7px 8px;font-size:11.5px;}
+  #emos{left:auto;right:12px;bottom:calc(178px + env(safe-area-inset-bottom,0px));flex-direction:column;gap:1px;padding:4px;border-radius:18px;}
+  #emos .chip{padding:8px 9px;}
+  #say{padding-left:9px;}
+  #pill{font-size:11px;padding:7px 12px;}
+  #hint{bottom:calc(76px + env(safe-area-inset-bottom,0px));font-size:11.5px;}
+  #log{display:none;}
+  .tg{font-size:11px;}
+  .bb{font-size:11.5px;max-width:170px;}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important;animation:none !important;} }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="tags"></div>
+
+<header class="top">
+  <a class="logo" href="#" onclick="return false">Living Art Museum</a>
+  <div class="title"><h1 id="t-h"></h1><p id="t-p"></p></div>
+</header>
+
+<div id="pill" class="glass"><i class="dot"></i><span id="p-a"></span><span class="k" id="p-b"></span></div>
+<div id="hint" class="glass off"></div>
+<div id="log"></div>
+
+<section id="make" class="glass" aria-labelledby="mk-h">
+  <div class="sc">
+    <div class="tag" id="mk-tag"></div>
+    <h2 id="mk-h"></h2>
+    <p class="lead" id="mk-lead"></p>
+    <div class="row"><h4 id="lb-name"></h4><div class="name"><input id="nm" maxlength="12" autocomplete="off" spellcheck="false"><button id="nm-r" aria-label="Random name">🎲</button></div></div>
+    <div id="looks"></div>
+    <div class="row"><h4 id="lb-srv"></h4><div class="servers" id="srvs"></div><p id="net"></p></div>
+  </div>
+  <div class="ft"><button id="rnd"></button><button id="go"></button></div>
+</section>
+
+<nav id="emos" class="glass">
+  <button class="chip" data-e="wave"><span class="e">👋</span><span class="t"></span></button>
+  <button class="chip" data-e="bow"><span class="e">🙇</span><span class="t"></span></button>
+  <button class="chip" data-e="jump"><span class="e">⤴️</span><span class="t"></span></button>
+  <button class="chip" data-e="dance"><span class="e">💃</span><span class="t"></span></button>
+  <button class="chip" data-e="sit"><span class="e">🪑</span><span class="t"></span></button>
+  <button class="chip" data-e="heart"><span class="e">❤️</span></button>
+</nav>
+<nav id="bar" class="glass">
+  <form id="say" autocomplete="off"><input id="say-i" maxlength="40" enterkeyhint="send"><button type="submit" id="say-b"></button></form>
+  <span class="sep"></span>
+  <button class="chip" id="edit"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-7 8-7s7 2.5 8 7"/></svg></button>
+  <button class="chip" id="snd" aria-pressed="true"><svg class="ico on" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg><svg class="ico off" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
+  <button class="chip" id="info"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
+</nav>
+<div id="joy"><i></i></div>
+<button id="jump" class="glass"></button>
+
+<section id="about" class="glass" aria-labelledby="ab-h">
+  <button class="x" id="about-x" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="tag" id="ab-tag"></div>
+  <h2 id="ab-h"></h2>
+  <p id="ab-p1"></p>
+  <p id="ab-p2"></p>
+  <h3 id="ab-h3"></h3>
+  <ol id="ab-ol"></ol>
+</section>
+
+<script>
+"use strict";
+/* ==========================================================================
+   0. BASICS
+   ========================================================================== */
+const LANG = (() => {
+  let l = (document.documentElement.lang || "en").slice(0, 2);
+  try { const q = new URLSearchParams(location.search).get("lang"); if (q) l = q; } catch (_){}
+  return l === "ko" ? "ko" : "en";
+})();
+document.documentElement.lang = LANG;
+if (LANG === "ko") document.title = "수영장 — Living Art Museum";
+const T = (o) => (o && (o[LANG] ?? o.en)) || "";
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t;
+const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const mul = (a, k) => [a[0] * k, a[1] * k, a[2] * k], dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const norm = (a) => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+const rand = (a, b) => a + Math.random() * (b - a), pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const PHONE = () => matchMedia("(max-width:760px)").matches;
+const TOUCH = matchMedia("(pointer:coarse)").matches;
+
+/* ==========================================================================
+   1. THE PLACE — a courtyard, the pool in the middle, stairs down to the room
+      under the water (metres; y up; the water is at y = 0)
+   ========================================================================== */
+const FLOOR = -2.8, CXW = 14, CZW = 12;               /* the room's floor, the courtyard's half-size */
+const PX = 5, PZ = 3.5;                               /* the pool's half-size */
+const HOLE = { x0:6.6, x1:8.0, z0:-3.0, z1:3.0 };     /* the stairwell, east of the pool */
+const SZ0 = -1.5, RUN = 4.5, NSTEP = 16;              /* sixteen steps from the landing up to the deck */
+const RAD = .27;                                      /* how close a body may come to a wall */
+const stairY = (z) => clamp(-2.8 + (z - SZ0) / RUN * 2.8 + .085, -2.8, 0);
+const inR = (x, z, x0, x1, z0, z1) => x > x0 && x < x1 && z > z0 && z < z1;
+const onStairs = (x, z) => inR(x, z, HOLE.x0 + RAD, HOLE.x1 - RAD, SZ0, HOLE.z1);
+const inPoolRoom = (x, z) => inR(x, z, -PX, PX, -PZ, PZ);
+/* where a body at (x, z), now at height y, would stand — or null where it cannot go */
+function floorAt(x, z, y){
+  if (onStairs(x, z)){ const f = stairY(z); return Math.abs(f - y) < .62 ? f : null; }
+  const low = Math.abs(y - FLOOR) < .62;
+  if (low && inR(x, z, HOLE.x0 + RAD, HOLE.x1 - RAD, HOLE.z0 + RAD, SZ0 + .01)) return FLOOR;                /* the landing */
+  if (low && inR(x, z, PX - .45, HOLE.x0 + RAD + .02, HOLE.z0 + RAD, SZ0 - RAD)) return FLOOR;               /* the corridor, through the door */
+  if (low && inR(x, z, -PX + RAD, PX - RAD, -PZ + RAD, PZ - RAD)) return FLOOR;                               /* the room under the water */
+  if (Math.abs(y) < .62 && inR(x, z, -CXW + RAD, CXW - RAD, -CZW + RAD, CZW - RAD)
+      && !inR(x, z, -PX - .08, PX + .08, -PZ - .08, PZ + .08)                                                 /* not on the water */
+      && !inR(x, z, HOLE.x0 - RAD, HOLE.x1 + RAD, HOLE.z0 - RAD, HOLE.z1)) return 0;                          /* not in the stairwell */
+  return null;
+}
+const zoneOf = (x, y, z) => onStairs(x, z) && y > FLOOR + .15 && y < -.05 ? "stairs" : y < -1.4 ? (inPoolRoom(x, z) ? "below" : "hall") : "above";
+/* may the camera stand here? it keeps to the same side of the water as you */
+function camOK(x, y, z, below){
+  if (inR(x, z, HOLE.x0 + .06, HOLE.x1 - .06, HOLE.z0 + .06, HOLE.z1 - .02) && y > FLOOR + .15) return true;   /* the open stairwell */
+  if (!below) return y > .2 && y < 14 && inR(x, z, -CXW + .2, CXW - .2, -CZW + .2, CZW - .2) && (y < 3.5 || inR(x, z, -CXW + .75, CXW - .75, -CZW + .75, CZW - .75));   /* not in the roof edge */
+  if (y > FLOOR + .12 && y < -.1 && inR(x, z, -PX + .1, PX - .1, -PZ + .1, PZ - .1)) return true;
+  if (y > FLOOR + .12 && y < -.35 && inR(x, z, PX - .2, HOLE.x1 - .05, HOLE.z0 + .05, SZ0 - .05)) return true;
+  return false;
+}
+
+/* ==========================================================================
+   2. GEOMETRY — boxes, tubes and ellipsoids into one vertex list:
+      position, normal, colour, material
+   ========================================================================== */
+const ST = 10;
+function maker(){
+  const v = [];
+  const push = (p, n, k, m) => v.push(p[0], p[1], p[2], n[0], n[1], n[2], k[0], k[1], k[2], m);
+  return {
+    v,
+    box(x0, y0, z0, x1, y1, z1, k, m){
+      const lo = [x0, y0, z0], hi = [x1, y1, z1];
+      for (let ax = 0; ax < 3; ax++) for (const s of [0, 1]){
+        const b1 = (ax + 1) % 3, b2 = (ax + 2) % 3, n = [0, 0, 0]; n[ax] = s ? 1 : -1;
+        const c = (i, j) => { const p = [0, 0, 0]; p[ax] = s ? hi[ax] : lo[ax]; p[b1] = i ? hi[b1] : lo[b1]; p[b2] = j ? hi[b2] : lo[b2]; return p; };
+        [[0, 0], [1, 0], [1, 1], [0, 0], [1, 1], [0, 1]].forEach(([i, j]) => push(c(i, j), n, k, m));
+      }
+    },
+    tube(a, b, r0, r1, k, m, seg){
+      seg = seg || 12; const ax = norm(sub(b, a)), up = Math.abs(ax[1]) > .9 ? [1, 0, 0] : [0, 1, 0], e1 = norm(cross(ax, up)), e2 = cross(ax, e1);
+      const ring = (c, r, i) => { const t = i / seg * Math.PI * 2, d = add(mul(e1, Math.cos(t)), mul(e2, Math.sin(t))); return [add(c, mul(d, r)), d]; };
+      for (let i = 0; i < seg; i++){
+        const [p0, n0] = ring(a, r0, i), [p1, n1] = ring(a, r0, i + 1), [q0] = ring(b, r1, i), [q1] = ring(b, r1, i + 1);
+        push(p0, n0, k, m); push(p1, n1, k, m); push(q1, n1, k, m); push(p0, n0, k, m); push(q1, n1, k, m); push(q0, n0, k, m);
+        push(b, ax, k, m); push(q0, ax, k, m); push(q1, ax, k, m);
+        const na = mul(ax, -1); push(a, na, k, m); push(p1, na, k, m); push(p0, na, k, m);
+      }
+    },
+    ell(c, rx, ry, rz, k, m, seg){
+      seg = seg || 14; const rows = Math.max(6, seg >> 1);
+      const P = (i, j) => { const th = i / rows * Math.PI, ph = j / seg * Math.PI * 2, n = [Math.sin(th) * Math.cos(ph), Math.cos(th), Math.sin(th) * Math.sin(ph)];
+        return [[c[0] + n[0] * rx, c[1] + n[1] * ry, c[2] + n[2] * rz], norm([n[0] / rx, n[1] / ry, n[2] / rz])]; };
+      for (let i = 0; i < rows; i++) for (let j = 0; j < seg; j++){
+        const a = P(i, j), b = P(i + 1, j), cc = P(i + 1, j + 1), d = P(i, j + 1);
+        push(a[0], a[1], k, m); push(b[0], b[1], k, m); push(cc[0], cc[1], k, m); push(a[0], a[1], k, m); push(cc[0], cc[1], k, m); push(d[0], d[1], k, m);
+      }
+    },
+    quad(p0, p1, p2, p3, n, k, m){ [p0, p1, p2, p0, p2, p3].forEach(p => push(p, n, k, m)); },
+  };
+}
+/* materials: 0 plain · 1 stone tiles · 2 pool paint · 3 metal · 4 glass wall · 5 soft (people) · 6 leaves · 7 glowing */
+function buildWorld(){
+  const A = maker();
+  const DECK = [.87, .85, .81], COP = [.97, .96, .94], POOL = [.55, .83, .86], PFL = [.6, .86, .88], CON = [.76, .75, .73], WALL = [.95, .95, .94], MET = [.8, .83, .86], GLS = [.6, .7, .76];
+  /* the deck, a slab with two holes: the pool and the stairwell */
+  [[-CXW, CXW, -CZW, -PZ], [-CXW, CXW, PZ, CZW], [-CXW, -PX, -PZ, PZ], [PX, HOLE.x0, -PZ, PZ], [HOLE.x1, CXW, -PZ, PZ], [HOLE.x0, HOLE.x1, -PZ, HOLE.z0], [HOLE.x0, HOLE.x1, HOLE.z1, PZ]]
+    .forEach(([x0, x1, z0, z1]) => A.box(x0, -.25, z0, x1, 0, z1, DECK, 1));
+  /* the white stone edge of the pool */
+  A.box(-PX - .35, 0, -PZ - .35, PX + .35, .03, -PZ, COP, 0); A.box(-PX - .35, 0, PZ, PX + .35, .03, PZ + .35, COP, 0);
+  A.box(-PX - .35, 0, -PZ, -PX, .03, PZ, COP, 0); A.box(PX, 0, -PZ, PX + .35, .03, PZ, COP, 0);
+  /* the pool: its walls are the room's walls; a door in the east wall */
+  A.box(-PX - .3, FLOOR, -PZ - .3, PX + .3, 0, -PZ, POOL, 2); A.box(-PX - .3, FLOOR, PZ, PX + .3, 0, PZ + .3, POOL, 2);
+  A.box(-PX - .3, FLOOR, -PZ, -PX, 0, PZ, POOL, 2);
+  A.box(PX, FLOOR, -PZ, PX + .3, 0, HOLE.z0, POOL, 2); A.box(PX, FLOOR, SZ0, PX + .3, 0, PZ, POOL, 2); A.box(PX, -.62, HOLE.z0, PX + .3, 0, SZ0, POOL, 2);
+  A.box(-PX, FLOOR - .2, -PZ, PX, FLOOR, PZ, PFL, 2);
+  A.ell([0, FLOOR, 0], .22, .012, .22, [.62, .7, .72], 0, 18);                           /* the drain */
+  /* the steel ladder, down the north wall and over the edge */
+  const lx = 2.4;
+  for (const dx of [-.24, .24]){ const x = lx + dx;
+    A.tube([x, FLOOR, -PZ + .1], [x, .72, -PZ + .1], .028, .028, MET, 3, 8);
+    A.tube([x, .72, -PZ + .1], [x, .86, -PZ - .14], .028, .028, MET, 3, 8);
+    A.tube([x, .86, -PZ - .14], [x, .7, -PZ - .34], .028, .028, MET, 3, 8);
+    A.tube([x, .7, -PZ - .34], [x, 0, -PZ - .34], .028, .028, MET, 3, 8); }
+  for (let y = FLOOR + .3; y < -.1; y += .3) A.tube([lx - .24, y, -PZ + .1], [lx + .24, y, -PZ + .1], .022, .022, MET, 3, 6);
+  /* the corridor and the stairwell, in grey concrete */
+  A.box(PX, FLOOR - .2, HOLE.z0, HOLE.x1, FLOOR, SZ0, CON, 1);
+  A.box(PX + .3, FLOOR, SZ0, HOLE.x0, -.25, SZ0 + .2, CON, 0);
+  A.box(PX + .3, FLOOR, HOLE.z0 - .2, HOLE.x1 + .2, -.25, HOLE.z0, CON, 0);
+  A.box(HOLE.x0 - .2, FLOOR, SZ0, HOLE.x0, -.25, HOLE.z1 + .2, CON, 0);
+  A.box(HOLE.x1, FLOOR, HOLE.z0 - .2, HOLE.x1 + .2, -.25, HOLE.z1 + .2, CON, 0);
+  A.box(HOLE.x0 - .2, FLOOR, HOLE.z1, HOLE.x1 + .2, -.25, HOLE.z1 + .2, CON, 0);
+  for (let i = 0; i < NSTEP; i++){ const z0 = SZ0 + i * RUN / NSTEP; A.box(HOLE.x0, FLOOR, z0, HOLE.x1, FLOOR + (i + 1) * 2.8 / NSTEP, z0 + RUN / NSTEP, DECK, 1); }
+  for (const x of [HOLE.x0 + .1, HOLE.x1 - .1]) A.tube([x, FLOOR + .9, SZ0], [x, .9, HOLE.z1], .03, .03, MET, 3, 8);
+  for (const x of [5.5, 6.15]) A.box(x - .25, -.28, -2.4, x + .25, -.25, -2.1, [1, .95, .84], 7);             /* corridor lights */
+  /* railings round the stairwell, open on the south side */
+  const rail = (a, b) => { A.tube([a[0], .95, a[1]], [b[0], .95, b[1]], .03, .03, MET, 3, 8);
+    const L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / 1.2));
+    for (let i = 0; i <= n; i++){ const t = i / n; A.tube([lerp(a[0], b[0], t), 0, lerp(a[1], b[1], t)], [lerp(a[0], b[0], t), .95, lerp(a[1], b[1], t)], .022, .022, MET, 3, 6); } };
+  rail([HOLE.x0 - .05, HOLE.z1], [HOLE.x0 - .05, HOLE.z0 - .05]); rail([HOLE.x0 - .05, HOLE.z0 - .05], [HOLE.x1 + .05, HOLE.z0 - .05]); rail([HOLE.x1 + .05, HOLE.z0 - .05], [HOLE.x1 + .05, HOLE.z1]);
+  /* the museum round the courtyard: glass walls, a white roof edge */
+  A.box(-CXW, 0, -CZW - .2, CXW, 3.7, -CZW, GLS, 4); A.box(-CXW, 0, CZW, CXW, 3.7, CZW + .2, GLS, 4);
+  A.box(-CXW - .2, 0, -CZW, -CXW, 3.7, CZW, GLS, 4); A.box(CXW, 0, -CZW, CXW + .2, 3.7, CZW, GLS, 4);
+  A.box(-CXW - .6, 3.7, -CZW - .6, CXW + .6, 4.5, -CZW + .5, WALL, 0); A.box(-CXW - .6, 3.7, CZW - .5, CXW + .6, 4.5, CZW + .6, WALL, 0);
+  A.box(-CXW - .6, 3.7, -CZW + .5, -CXW + .5, 4.5, CZW - .5, WALL, 0); A.box(CXW - .5, 3.7, -CZW + .5, CXW + .6, 4.5, CZW - .5, WALL, 0);
+  for (let x = -CXW + 1.6; x < CXW; x += 1.6){ A.box(x - .04, 0, -CZW + .0, x + .04, 3.7, -CZW + .08, WALL, 0); A.box(x - .04, 0, CZW - .08, x + .04, 3.7, CZW, WALL, 0); }
+  for (let z = -CZW + 1.6; z < CZW; z += 1.6){ A.box(-CXW, 0, z - .04, -CXW + .08, 3.7, z + .04, WALL, 0); A.box(CXW - .08, 0, z - .04, CXW, 3.7, z + .04, WALL, 0); }
+  /* planted trees in the corners, benches */
+  for (const [x, z] of [[-CXW + 1.8, -CZW + 1.8], [CXW - 1.8, -CZW + 1.8], [-CXW + 1.8, CZW - 1.8], [CXW - 1.6, CZW - 1.6], [-CXW + 1.8, 0], [CXW - 1.8, -4.6]]){
+    A.box(x - .6, 0, z - .6, x + .6, .5, z + .6, WALL, 0);
+    A.box(x - .52, .5, z - .52, x + .52, .52, z + .52, [.45, .38, .3], 0);
+    A.tube([x, .5, z], [x + .1, 2.4, z - .05], .09, .06, [.45, .35, .27], 0, 8);
+    A.ell([x, 2.7, z], 1.05, .8, 1.0, [.42, .6, .38], 6, 14); A.ell([x + .45, 3.15, z + .2], .7, .6, .7, [.48, .66, .42], 6, 12); A.ell([x - .4, 3.25, z - .2], .65, .55, .65, [.38, .56, .35], 6, 12);
+  }
+  const bench = (x, z, alongX) => { const w = alongX ? 1.9 : .48, d = alongX ? .48 : 1.9;
+    A.box(x - w / 2, .4, z - d / 2, x + w / 2, .47, z + d / 2, [.66, .5, .35], 0);
+    for (const sx of [-1, 1]) A.box(alongX ? x + sx * .75 - .05 : x - .2, 0, alongX ? z - .2 : z + sx * .75 - .05, alongX ? x + sx * .75 + .05 : x + .2, .4, alongX ? z + .2 : z + sx * .75 + .05, [.3, .3, .32], 3); };
+  bench(-3.6, 8.2, true); bench(3.6, 8.2, true); bench(-1.5, -8.4, true); bench(-10.2, 3.2, false); bench(10.6, 2.6, false);
+  A.box(HOLE.x0 - .78, 0, HOLE.z1 + .2, HOLE.x0 - .72, 1.0, HOLE.z1 + .26, [.3, .32, .35], 3);                 /* a sign post beside the stairs */
+  A.box(HOLE.x0 - .98, .8, HOLE.z1 + .21, HOLE.x0 - .52, 1.06, HOLE.z1 + .25, [.2, .25, .3], 0);
+  return upload(A.v);
+}
+function buildSky(){ const A = maker(); A.box(-1, -1, -1, 1, 1, 1, [0, 0, 0], 0); return upload(A.v.map((v, i) => (i % ST) < 3 ? v * 180 : v)); }
+function buildWater(){ const A = maker(); A.quad([-PX, 0, -PZ], [PX, 0, -PZ], [PX, 0, PZ], [-PX, 0, PZ], [0, 1, 0], [1, 1, 1], 0); return upload(A.v); }
+
+/* ==========================================================================
+   3. PEOPLE — a round head, a soft body; legs and arms swing on their own
+   ========================================================================== */
+const SKIN = [[.99, .88, .79], [.96, .79, .66], [.86, .64, .48], [.67, .46, .32], [.46, .31, .21]];
+const HAIRC = [[.17, .13, .12], [.38, .24, .16], [.74, .54, .32], [.94, .8, .45], [.88, .52, .58], [.58, .72, .92]];
+const TOPC = [[.58, .75, .8], [.96, .8, .32], [.96, .57, .52], [.67, .84, .62], [.8, .68, .92], [.97, .96, .93], [.37, .43, .56], [1, .64, .42]];
+const BOTC = [[.25, .3, .37], [.92, .9, .86], [.52, .66, .78], [.86, .72, .56], [.43, .57, .45], [.2, .2, .23]];
+const LOOK_KEYS = ["sk", "hs", "hc", "st", "tc", "bc", "ac", "fa"];
+const LOOK_N = { sk:SKIN.length, hs:6, hc:HAIRC.length, st:4, tc:TOPC.length, bc:BOTC.length, ac:6, fa:3 };
+const lookArr = (L) => LOOK_KEYS.map(k => L[k]);
+const lookFrom = (a) => { const L = {}; LOOK_KEYS.forEach((k, i) => { const v = Array.isArray(a) ? a[i] : 0; L[k] = Number.isInteger(v) && v >= 0 && v < LOOK_N[k] ? v : 0; }); return L; };
+const lookKey = (L) => lookArr(L).join(".");
+const randomLook = () => { const L = {}; LOOK_KEYS.forEach(k => L[k] = Math.floor(Math.random() * LOOK_N[k])); return L; };
+const HEAD = 1.2, HR = [.37, .35, .36];
+const faceZ = (x, y) => HR[2] * Math.sqrt(Math.max(0, 1 - (x / HR[0]) ** 2 - ((y - HEAD) / HR[1]) ** 2));
+function arc(A, cx, cy, w, h, r, k){                         /* a little curve drawn on the face */
+  const pts = []; for (let i = 0; i <= 6; i++){ const t = i / 3 - 1, x = cx + t * w, y = cy + h * (1 - t * t); pts.push([x, y, faceZ(x, y) + .006]); }
+  for (let i = 0; i < 6; i++) A.tube(pts[i], pts[i + 1], r, r, k, 5, 5);
+}
+function buildAvatar(L){
+  const B = maker(), LL = maker(), LR = maker(), AL = maker(), AR = maker(), M = 5;
+  const sk = SKIN[L.sk], hc = HAIRC[L.hc], tc = TOPC[L.tc], bc = BOTC[L.bc], shoe = [.27, .27, .31], white = [.98, .98, .97];
+  const swim = L.st === 3, dress = L.st === 1, hood = L.st === 2;
+  /* legs and feet */
+  for (const [A, s] of [[LL, -1], [LR, 1]]){ const x = .1 * s;
+    A.tube([x, .44, 0], [x, .12, 0], .085, .075, swim || dress ? sk : bc, M, 10);
+    A.ell([x, .07, .035], .09, .065, .13, swim ? sk : shoe, M, 10); }
+  /* the body */
+  if (dress){ B.tube([0, .28, 0], [0, .82, 0], .34, .22, tc, M, 18); B.ell([0, .28, 0], .34, .05, .34, tc, M, 16); }
+  else { B.tube([0, .34, 0], [0, .52, 0], .27, .265, swim ? tc : bc, M, 18); B.ell([0, .34, 0], .27, .06, .27, swim ? tc : bc, M, 16); B.tube([0, .5, 0], [0, .84, 0], .265, .225, tc, M, 18); }
+  B.ell([0, .84, 0], .225, .07, .225, tc, M, 16);
+  if (swim){ B.tube([0, .6, 0], [0, .645, 0], .264, .26, white, M, 18); B.tube([0, .72, 0], [0, .765, 0], .25, .246, white, M, 18); }
+  if (hood) B.ell([0, .96, -.22], .28, .2, .15, tc.map(c => c * .92), M, 14);
+  /* the head, ears, face */
+  B.ell([0, HEAD, 0], HR[0], HR[1], HR[2], sk, M, 20);
+  B.ell([-.36, HEAD - .02, 0], .06, .08, .05, sk, M, 8); B.ell([.36, HEAD - .02, 0], .06, .08, .05, sk, M, 8);
+  const ink = [.2, .16, .15];
+  for (const s of [-1, 1]){ const ex = .13 * s, ey = HEAD + .03;
+    if (L.fa === 0) arc(B, ex, ey - .012, .05, .026, .011, ink);                    /* smiling ^ ^ */
+    else if (L.fa === 1){ B.ell([ex, ey, faceZ(ex, ey) - .008], .042, .056, .025, ink, M, 10); B.ell([ex + .014, ey + .02, faceZ(ex, ey) + .012], .012, .012, .008, white, M, 6); }
+    else arc(B, ex, ey + .01, .048, -.022, .011, ink);                              /* calm ‿ ‿ */
+    const bx = .22 * s, by = HEAD - .07; B.ell([bx, by, faceZ(bx, by) - .006], .06, .034, .016, [.98, .67, .66], M, 10); }
+  arc(B, 0, HEAD - .1, .04, -.016, .009, [.55, .3, .28]);
+  /* hair */
+  const cap = () => B.ell([0, HEAD + .09, -.035], .385, .3, .38, hc, M, 18);
+  if (L.hs >= 1) cap();
+  if (L.hs === 2 || L.hs === 4){ B.ell([-.31, HEAD - .1, -.03], .13, .24, .25, hc, M, 12); B.ell([.31, HEAD - .1, -.03], .13, .24, .25, hc, M, 12); B.ell([0, HEAD - .1, -.18], .34, .27, .22, hc, M, 14); }
+  if (L.hs === 3) B.ell([0, HEAD + .42, -.1], .15, .14, .15, hc, M, 12);
+  if (L.hs === 4) B.ell([0, .88, -.2], .3, .32, .13, hc, M, 14);
+  if (L.hs === 5) for (let i = 0; i < 9; i++){ const a = i / 9 * Math.PI * 2; B.ell([Math.cos(a) * .27, HEAD + .26 + .04 * Math.sin(a * 2), Math.sin(a) * .25 - .06], .13, .12, .13, hc, M, 10); }
+  /* the extra */
+  if (L.ac === 1){ const straw = [.92, .81, .55]; B.ell([0, HEAD + .27, 0], .62, .025, .6, straw, M, 20); B.ell([0, HEAD + .33, -.02], .36, .17, .35, straw, M, 16); B.tube([0, HEAD + .29, -.02], [0, HEAD + .35, -.02], .353, .348, tc, M, 18); }
+  if (L.ac === 2){ const gk = [.1, .12, .15]; for (const s of [-1, 1]) B.ell([.13 * s, HEAD + .035, .35], .1, .065, .025, gk, 3, 12); B.tube([-.04, HEAD + .05, .37], [.04, HEAD + .05, .37], .012, .012, gk, 3, 5); }
+  if (L.ac === 3){ const n = 18; for (let i = 0; i < n; i++){ const a0 = i / n * Math.PI * 2, a1 = (i + 1) / n * Math.PI * 2;
+    B.tube([Math.cos(a0) * .37, .58, Math.sin(a0) * .37], [Math.cos(a1) * .37, .58, Math.sin(a1) * .37], .1, .1, i % 3 === 0 ? white : [.98, .55, .62], M, 10); } }
+  if (L.ac === 4){ B.ell([0, HEAD + .16, 0], .38, .27, .38, tc, M, 18); B.ell([0, HEAD + .22, .32], .22, .022, .2, tc.map(c => c * .9), M, 14); }
+  if (L.ac === 5) for (const s of [-1, 1]){ B.tube([.13 * s, HEAD + .3, -.05], [.17 * s, HEAD + .72, -.08], .065, .055, white, M, 10); B.ell([.17 * s, HEAD + .72, -.08], .055, .06, .055, white, M, 8);
+    B.ell([.15 * s, HEAD + .52, -.025], .028, .16, .02, [.98, .72, .77], M, 8); }
+  /* arms */
+  for (const [A, s] of [[AL, -1], [AR, 1]]){
+    const top = [.26 * s, .82, 0], mid = [.3 * s, .67, 0], end = [.31 * s, .53, 0];
+    if (hood) A.tube(top, end, .072, .066, tc, M, 10);
+    else { A.tube(top, mid, .076, .07, swim ? sk : tc, M, 10); A.tube(mid, end, .062, .058, sk, M, 10); }
+    A.ell([.315 * s, .49, 0], .074, .08, .074, sk, M, 10); }
+  return { b:upload(B.v), ll:upload(LL.v), lr:upload(LR.v), al:upload(AL.v), ar:upload(AR.v), uses:0 };
+}
+const MESHES = new Map();
+function meshFor(L){ const k = lookKey(L); let m = MESHES.get(k); if (!m){ m = buildAvatar(L); MESHES.set(k, m); } return m; }
+function pruneMeshes(){
+  const used = new Set(AVATARS().map(a => lookKey(a.look)));
+  for (const [k, m] of MESHES) if (!used.has(k)){ ["b", "ll", "lr", "al", "ar"].forEach(p => gl.deleteBuffer(m[p].buf)); MESHES.delete(k); }
+}
+
+/* ==========================================================================
+   4. DRAWING — WebGL: a sun with a shadow map, a sky, the world and people;
+      the water samples a second picture of whatever is on the far side of it
+   ========================================================================== */
+const cv = $("gl");
+const gl = cv.getContext("webgl", { antialias:true, alpha:false, powerPreference:"high-performance" });
+const VS = `attribute vec3 aP; attribute vec3 aN; attribute vec3 aC; attribute float aM;
+uniform mat4 uVP; uniform mat4 uM;
+varying vec3 vP; varying vec3 vN; varying vec3 vC; varying float vM;
+void main(){ vec4 w = uM * vec4(aP, 1.); vP = w.xyz; vN = (uM * vec4(aN, 0.)).xyz; vC = aC; vM = aM; gl_Position = uVP * w; }`;
+const SKYFN = `vec3 skyCol(vec3 d){
+  float h = clamp(d.y, -1., 1.);
+  vec3 c = mix(vec3(.86, .91, .95), vec3(.42, .63, .9), pow(max(h, 0.), .55));
+  c = mix(c, vec3(.78, .82, .84), clamp(-h * 3., 0., 1.));
+  float s = max(dot(d, uSun), 0.); c += vec3(1., .93, .8) * (pow(s, 600.) * 2. + pow(s, 8.) * .18);
+  return c; }`;
+const SHADOW_FS = `precision highp float; varying vec3 vP; varying vec3 vN; varying vec3 vC; varying float vM;
+vec4 enc(float d){ vec4 e = fract(d * vec4(1., 255., 65025., 16581375.)); e -= e.yzww * vec4(1. / 255., 1. / 255., 1. / 255., 0.); return e; }
+void main(){ gl_FragColor = enc(gl_FragCoord.z); }`;
+const SKY_FS = `precision highp float; varying vec3 vP; varying vec3 vN; varying vec3 vC; varying float vM;
+uniform vec3 uCam, uSun; uniform float uT, uClip;
+${SKYFN}
+float hs(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float ns(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
+  return mix(mix(hs(i), hs(i + vec2(1., 0.)), f.x), mix(hs(i + vec2(0., 1.)), hs(i + vec2(1., 1.)), f.x), f.y); }
+void main(){
+  if (uClip > .5 && uClip < 1.5 && vP.y > .02) discard;
+  if (uClip > 1.5 && vP.y < .004) discard;
+  vec3 d = normalize(vP - uCam); vec3 c = skyCol(d);
+  if (d.y > .02){ vec2 p = d.xz / (d.y + .12) * 1.6 + vec2(uT * .012, uT * .005);
+    float cl = ns(p) * .55 + ns(p * 2.1) * .28 + ns(p * 4.3) * .17; cl = smoothstep(.55, .82, cl) * smoothstep(.02, .25, d.y);
+    c = mix(c, vec3(.98, .98, .99), cl * .75); }
+  gl_FragColor = vec4(c, 1.); }`;
+const MAIN_FS = `precision highp float;
+varying vec3 vP; varying vec3 vN; varying vec3 vC; varying float vM;
+uniform vec3 uCam, uSun; uniform float uT, uClip, uBelow, uShTex; uniform mat4 uSV; uniform sampler2D uSh;
+${SKYFN}
+float dec(vec4 e){ return dot(e, vec4(1., 1. / 255., 1. / 65025., 1. / 16581375.)); }
+float hs(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float shadow(vec3 p, vec3 n){
+  vec4 s = uSV * vec4(p + n * .035, 1.); vec3 c = s.xyz * .5 + .5;
+  if (c.x < 0. || c.x > 1. || c.y < 0. || c.y > 1.) return 1.;
+  float k = 0.; float o = uShTex * .9;
+  k += step(c.z - .0018, dec(texture2D(uSh, c.xy + vec2(-o, -o))));
+  k += step(c.z - .0018, dec(texture2D(uSh, c.xy + vec2( o, -o))));
+  k += step(c.z - .0018, dec(texture2D(uSh, c.xy + vec2(-o,  o))));
+  k += step(c.z - .0018, dec(texture2D(uSh, c.xy + vec2( o,  o))));
+  return k * .25; }
+float caust(vec2 q, float t){
+  vec2 p = mod(q, 6.2831853) - 250.; vec2 i = p; float c = 1.; float inten = .005;
+  for (int n = 0; n < 4; n++){ float tt = t * (1. - (3.5 / float(n + 1)));
+    i = p + vec2(cos(tt - i.x) + sin(tt + i.y), sin(tt - i.y) + cos(tt + i.x));
+    c += 1. / length(vec2(p.x / (sin(i.x + tt) / inten), p.y / (cos(i.y + tt) / inten))); }
+  c /= 4.; c = 1.17 - pow(c, 1.4); return clamp(pow(abs(c), 8.), 0., 1.); }
+void main(){
+  if (uClip > .5 && uClip < 1.5 && vP.y > .02) discard;
+  if (uClip > 1.5 && vP.y < .004) discard;
+  vec3 n = normalize(vN); vec3 col = vC; float m = vM;
+  vec3 V = normalize(uCam - vP);
+  if (dot(n, V) < 0. && m > 4.5 && m < 5.5) n = -n;
+  if (m > 6.5){ gl_FragColor = vec4(col, 1.); return; }
+  if (m > .5 && m < 1.5){ vec2 g = (abs(n.y) > .5 ? vP.xz : (abs(n.x) > .5 ? vP.zy : vP.xy)) / .6; vec2 f = abs(fract(g) - .5);
+    col *= (.95 + .07 * hs(floor(g))) * (1. - smoothstep(.465, .49, max(f.x, f.y)) * .2); }
+  if (m > 1.5 && m < 2.5){ col *= .96 + .05 * hs(floor(vP.xz * 2.) + floor(vP.y * 2.)); if (vP.y > -.24 && vP.y < -.02) col *= .84; }
+  if (m > 5.5 && m < 6.5) col *= .82 + .32 * hs(floor(vP.xz * 5.) + floor(vP.y * 5.));
+  float sh = shadow(vP, n);
+  float ndl = (m > 4.5 && m < 5.5) ? clamp(dot(n, uSun) * .6 + .4, 0., 1.) : max(dot(n, uSun), 0.);
+  float hem = n.y * .5 + .5;
+  vec3 amb = mix(vec3(.47, .45, .43), vec3(.68, .78, .9), hem);
+  vec3 L;
+  bool under = vP.y < -.03;
+  if (!under){ L = amb * .6 + vec3(1., .96, .88) * ndl * sh * .82; }
+  else {
+    float inPool = step(abs(vP.x), 5.02) * step(abs(vP.z), 3.52);
+    vec3 ambU = mix(vec3(.5, .64, .66), vec3(.74, .93, .96), hem);
+    float c = caust(vP.xz * 1.3 + vec2(vP.y * .4), uT * .7);
+    vec3 pool = ambU * .66 + vec3(.9, 1., .98) * (ndl * .45 + .12) * sh * (.6 + c * 1.5);
+    vec3 lamp = vec3(5.8, -.4, -2.25) - vP; float ld = length(lamp);
+    vec3 hall = amb * .34 + vec3(1., .96, .88) * ndl * sh * .75 + vec3(1., .86, .64) * max(dot(n, lamp / ld), 0.) * .9 / (1. + ld * ld * .35);
+    L = mix(hall, pool, inPool); }
+  col *= L;
+  if (m > 4.5 && m < 5.5) col += vec3(.16, .17, .2) * pow(1. - max(dot(n, V), 0.), 3.) * .6;
+  if (m > 2.5 && m < 3.5){ vec3 r = reflect(-V, n); col = col * .55 + skyCol(r) * .35 + pow(max(dot(r, uSun), 0.), 50.) * sh * .9; }
+  if (m > 3.5 && m < 4.5){ vec3 r = reflect(-V, n); float fr = .3 + .55 * pow(1. - max(dot(V, n), 0.), 3.);
+    col = mix(vec3(.17, .21, .24) + vec3(.05) * step(1.6, vP.y), skyCol(r), fr) + pow(max(dot(r, uSun), 0.), 140.) * sh; }
+  float d = length(uCam - vP);
+  if (uBelow > .5 && under) col = mix(col, vec3(.6, .84, .87), 1. - exp(-d * .012));
+  else if (!under) col = mix(col, vec3(.82, .88, .93), 1. - exp(-d * .005));
+  gl_FragColor = vec4(col, 1.); }`;
+const WATER_FS = `precision highp float;
+varying vec3 vP; varying vec3 vN; varying vec3 vC; varying float vM;
+uniform sampler2D uRef; uniform vec2 uRes; uniform vec3 uCam, uSun; uniform float uT, uBelow;
+${SKYFN}
+vec2 wv(vec2 p, vec2 dir, float f, float sp, float a){ return dir * cos(dot(p, dir) * f + uT * sp) * f * a; }
+vec3 waveN(vec2 p){
+  vec2 g = wv(p, vec2(.958, .287), 2.1, 1.3, .011) + wv(p, vec2(-.371, .928), 3.3, 1.9, .008)
+         + wv(p, vec2(.659, -.753), 5.7, 2.6, .0045) + wv(p, vec2(-.981, -.196), 9.1, 3.4, .0026) + wv(p, vec2(.2, .98), 14.3, 4.1, .0013);
+  return normalize(vec3(-g.x, 1., -g.y)); }
+vec3 tap(vec2 uv){ return texture2D(uRef, clamp(uv, vec2(.002), vec2(.998))).rgb; }
+void main(){
+  vec3 n = waveN(vP.xz); vec2 uv = gl_FragCoord.xy / uRes; vec3 V = normalize(uCam - vP); vec3 c;
+  if (uBelow < .5){
+    vec2 d = n.xz * .05; vec2 px = 1.2 / uRes;
+    vec3 r = tap(uv + d) * .4 + (tap(uv + d + vec2(px.x, 0.)) + tap(uv + d - vec2(px.x, 0.)) + tap(uv + d + vec2(0., px.y)) + tap(uv + d - vec2(0., px.y))) * .15;
+    r = r * vec3(.74, .93, .95) + vec3(0., .025, .035);
+    float fr = .02 + .98 * pow(1. - max(dot(V, n), 0.), 5.);
+    c = mix(r, skyCol(reflect(-V, n)), clamp(fr * .9, 0., .78));
+    vec3 h = normalize(uSun + V); c += vec3(1., .97, .9) * pow(max(dot(n, h), 0.), 300.) * 1.5;
+  } else {
+    vec2 d = n.xz * .08; vec2 px = 2.6 / uRes; vec3 r = vec3(0.);
+    for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) r += tap(uv + d + vec2(float(i), float(j)) * px);
+    r = r / 9. * vec3(.8, .97, 1.) * 1.06 + vec3(.02, .06, .07);
+    float tir = smoothstep(.3, .1, abs(V.y));                 /* only the most glancing view turns to a mirror */
+    c = mix(r, vec3(.44, .74, .78), tir * .7);
+    c += vec3(.8, 1., 1.) * pow(max(n.x * .6 + n.z * .8, 0.) * 9., 3.) * .02;
+  }
+  gl_FragColor = vec4(c, 1.); }`;
+let P = {}, WORLD = null, SKY = null, WATER = null, SS = 2048, shTex = null, shFB = null, rf = { tex:null, fb:null, rb:null, w:0, h:0 }, SV = null;
+const I4 = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+function upload(v){ const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW); return { buf, n:v.length / ST }; }
+function prog(vs, fs){
+  const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)){ console.error(gl.getShaderInfoLog(o)); return null; } return o; };
+  const a = sh(gl.VERTEX_SHADER, vs), b = sh(gl.FRAGMENT_SHADER, fs); if (!a || !b) return null;
+  const p = gl.createProgram(); gl.attachShader(p, a); gl.attachShader(p, b);
+  ["aP", "aN", "aC", "aM"].forEach((n, i) => gl.bindAttribLocation(p, i, n)); gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)){ console.error(gl.getProgramInfoLog(p)); return null; }
+  const u = {}; const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS); for (let i = 0; i < n; i++){ const nm = gl.getActiveUniform(p, i).name; u[nm] = gl.getUniformLocation(p, nm); }
+  return { p, u };
+}
+function bindMesh(m){ gl.bindBuffer(gl.ARRAY_BUFFER, m.buf); const st = ST * 4;
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, st, 0);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, st, 12);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 3, gl.FLOAT, false, st, 24);
+  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3, 1, gl.FLOAT, false, st, 36); }
+function persp(fy, a, n, f){ const k = 1 / Math.tan(fy / 2); return new Float32Array([k / a, 0, 0, 0, 0, k, 0, 0, 0, 0, (f + n) / (n - f), -1, 0, 0, 2 * f * n / (n - f), 0]); }
+function ortho(h, n, f){ return new Float32Array([1 / h, 0, 0, 0, 0, 1 / h, 0, 0, 0, 0, -2 / (f - n), 0, 0, 0, -(f + n) / (f - n), 1]); }
+function lookAt(e, c){ const z = norm(sub(e, c)), x = norm(cross([0, 1, 0], z)), y = cross(z, x);
+  return new Float32Array([x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, -dot(x, e), -dot(y, e), -dot(z, e), 1]); }
+function mm4(a, b){ const o = new Float32Array(16); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++){ let s = 0; for (let k = 0; k < 4; k++) s += a[k * 4 + r] * b[c * 4 + k]; o[c * 4 + r] = s; } return o; }
+const Tm = (x, y, z) => new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1]);
+const RY = (a) => { const c = Math.cos(a), s = Math.sin(a); return new Float32Array([c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, 0, 0, 0, 1]); };
+const RX = (a) => { const c = Math.cos(a), s = Math.sin(a); return new Float32Array([1, 0, 0, 0, 0, c, s, 0, 0, -s, c, 0, 0, 0, 0, 1]); };
+const RZ = (a) => { const c = Math.cos(a), s = Math.sin(a); return new Float32Array([c, s, 0, 0, -s, c, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]); };
+function target(w, h, linear){
+  const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  const f = linear ? gl.LINEAR : gl.NEAREST;
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, f); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, f);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  const rb = gl.createRenderbuffer(); gl.bindRenderbuffer(gl.RENDERBUFFER, rb); gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, w, h);
+  const fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0); gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, rb);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null); return { tex, fb, rb, w, h };
+}
+const SUN = norm([-.42, .9, .38]);
+function initGL(){
+  if (!gl) return false;
+  P.sh = prog(VS, SHADOW_FS); P.sky = prog(VS, SKY_FS); P.main = prog(VS, MAIN_FS); P.water = prog(VS, WATER_FS);
+  if (!P.sh || !P.sky || !P.main || !P.water) return false;
+  if (PHONE() || TOUCH) SS = 1024;
+  const t = target(SS, SS, false); shTex = t.tex; shFB = t.fb;
+  WORLD = buildWorld(); SKY = buildSky(); WATER = buildWater();
+  SV = mm4(ortho(19, 1, 70), lookAt(mul(SUN, 34), [0, 0, 0]));
+  gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
+  return true;
+}
+
+/* ==========================================================================
+   5. EVERYONE IN THE COURTYARD — you, the other visitors, and a few quiet
+      museum-goers who are always here
+   ========================================================================== */
+const NAMES = {
+  ko:[["말랑한", "반짝이는", "느긋한", "촉촉한", "시원한", "보송한", "잔잔한", "포근한", "찰랑이는", "졸린", "동그란", "투명한"], ["물결", "타일", "튜브", "물방울", "수영모", "파도", "오리", "해파리", "구름", "사다리", "수달", "조약돌"]],
+  en:[["Mellow", "Sparkly", "Lazy", "Breezy", "Splashy", "Calm", "Sunny", "Drifty", "Sleepy", "Round", "Clear", "Bubbly"], ["Ripple", "Tile", "Float", "Droplet", "Duck", "Wave", "Cloud", "Ladder", "Otter", "Pebble", "Goggle", "Jelly"]],
+};
+const randomName = () => { const N = NAMES[LANG]; return LANG === "ko" ? `${pick(N[0])} ${pick(N[1])}` : `${pick(N[0])} ${pick(N[1])}`; };
+const cleanText = (s, n) => String(s == null ? "" : s).replace(/[\u0000-\u001f\u007f-\u009f​-‏‪-‮⁠-⁤<>]/g, "").replace(/\s+/g, " ").trim().slice(0, n);
+const LKEY = "lam.pool.v1";
+function newAvatar(look){ return { look, mesh:meshFor(look), x:0, y:0, z:0, r:0, ph:0, mv:0, lift:0, emote:"", et0:0, sit:false, name:"", msg:"", msgUntil:0 }; }
+const me = Object.assign(newAvatar(randomLook()), { id:"me", self:true, vy:0, jy:0, moving:false, et:0, mt:0, run:false });
+(() => { try { const s = JSON.parse(localStorage.getItem(LKEY) || "null"); if (s){ me.look = lookFrom(s.k); me.name = cleanText(s.n, 12); } } catch (_){} })();
+if (!me.name) me.name = randomName();
+me.mesh = null;
+const PEERS = new Map();
+const NPCS = [];
+function makeNpcs(){
+  const quiet = [[0, 1, 0, 0, 6, 0, 0, 2], [2, 2, 1, 1, 2, 3, 1, 1], [1, 4, 3, 0, 0, 1, 2, 0], [3, 1, 0, 2, 6, 5, 0, 2], [0, 3, 4, 1, 4, 1, 1, 0], [4, 1, 1, 0, 1, 0, 4, 1], [1, 2, 2, 3, 7, 2, 3, 0]];
+  quiet.forEach((k, i) => { const a = newAvatar(lookFrom(k)); a.npc = true; a.below = i >= 4; a.wait = rand(0, 3); a.id = "npc" + i;
+    if (a.below){ a.x = rand(-4, 4); a.z = rand(-2.8, 2.8); a.y = FLOOR; } else { a.t = Math.random(); const p = ringAt(a.t); a.x = p[0]; a.z = p[1]; a.y = 0; a.dir = Math.random() < .5 ? 1 : -1; }
+    a.tx = a.x; a.tz = a.z; NPCS.push(a); });
+}
+/* the walk round the pool, a rectangle just outside its edge */
+function ringAt(t){ const w = PX + .65, h = PZ + .65, L = 4 * (w + h); let d = ((t % 1) + 1) % 1 * L;
+  if (d < 2 * w) return [-w + d, -h]; d -= 2 * w; if (d < 2 * h) return [w, -h + d]; d -= 2 * h; if (d < 2 * w) return [w - d, h]; d -= 2 * w; return [-w, h - d]; }
+const AVATARS = () => { const l = NPCS.slice(); if (me.mesh) l.push(me); for (const a of PEERS.values()) l.push(a); return l; };
+function stepNpcs(dt){
+  for (const a of NPCS){
+    if (a.wait > 0){ a.wait -= dt; a.mv = Math.max(0, a.mv - dt * 4);
+      if (!a.below && a.face != null) a.r += wrap(a.face - a.r) * Math.min(1, dt * 4);
+      if (a.wait <= 0){ if (a.below){ a.tx = rand(-4.2, 4.2); a.tz = rand(-2.9, 2.9); } else { a.t += a.dir * rand(.06, .18); if (Math.random() < .2) a.dir *= -1; } }
+      continue; }
+    if (!a.below){ const [gx, gz] = ringAt(a.t); a.tx = gx; a.tz = gz; }
+    const dx = a.tx - a.x, dz = a.tz - a.z, d = Math.hypot(dx, dz), sp = 1.05;
+    if (d < .06){ a.wait = rand(2.2, 6.5); a.face = a.below ? rand(-3, 3) : Math.atan2(-a.x, -a.z); continue; }
+    const s = Math.min(d, sp * dt); a.x += dx / d * s; a.z += dz / d * s; a.r += wrap(Math.atan2(dx, dz) - a.r) * Math.min(1, dt * 6);
+    a.ph += s * 5.2; a.mv = Math.min(1, a.mv + dt * 4);
+  }
+}
+function stepPeers(dt){
+  const k = 1 - Math.exp(-dt * 9);
+  for (const a of PEERS.values()){
+    const dx = a.tx - a.x, dy = a.ty - a.y, dz = a.tz - a.z, d = Math.hypot(dx, dz);
+    if (d > 6 || Math.abs(dy) > 2.5){ a.x = a.tx; a.y = a.ty; a.z = a.tz; }
+    else { a.x += dx * k; a.y += dy * k; a.z += dz * k; }
+    a.r += wrap(a.tr - a.r) * Math.min(1, dt * 10);
+    const sp = d * 9; a.ph += Math.min(d, 6 * dt) * 5.2;
+    a.mv = clamp(lerp(a.mv, (a.tw || sp > .5) ? 1 : 0, Math.min(1, dt * 6)), 0, 1);
+  }
+}
+/* how each part of a body is turned this moment */
+function pose(a, now){
+  const sw = Math.sin(a.ph) * .55 * a.mv, bob = Math.abs(Math.sin(a.ph)) * .035 * a.mv + Math.sin(now * 2.1 + (a.x || 0)) * .006;
+  const q = { lift:bob + (a.jy || 0), bow:0, sway:0, l1:sw, l2:-sw, a1x:-sw * .8, a2x:sw * .8, a1z:-.08, a2z:.08, spin:0 };
+  const u = (now - a.et0) / 1000;
+  if (a.emote === "wave" && u < 2.2){ q.a2z = 2.5 + Math.sin(u * 13) * .32; q.a2x = 0; }
+  else if (a.emote === "bow" && u < 1.6){ q.bow = Math.sin(Math.PI * u / 1.6) * .55; q.a1x = q.a2x = Math.sin(Math.PI * u / 1.6) * .4; }
+  else if (a.emote === "jump" && u < .9){ const v = u / .9; if (!a.self) q.lift += 4 * .55 * v * (1 - v); q.a1z = -2.4; q.a2z = 2.4; }
+  else if (a.emote === "dance" && u < 4){ q.sway = Math.sin(u * 9) * .16; q.a1z = -1.9 - Math.sin(u * 9) * .5; q.a2z = 1.9 - Math.sin(u * 9) * .5; q.l1 = Math.max(0, Math.sin(u * 9)) * .4; q.l2 = Math.max(0, -Math.sin(u * 9)) * .4; q.spin = (1 - Math.cos(Math.PI * Math.min(u / 2, 1))) * Math.PI; q.lift += Math.abs(Math.sin(u * 9)) * .05; }
+  else if (a.emote === "heart" && u < 1.4){ q.lift += Math.max(0, Math.sin(u * 7)) * .08; q.a1z = -.6; q.a2z = .6; q.a1x = q.a2x = -1.2; }
+  if (a.sit){ q.l1 = q.l2 = -1.45; q.lift = -.3; q.a1x = q.a2x = -.35; }
+  return q;
+}
+function partMats(a, now){
+  const q = pose(a, now), m = a.mesh;
+  const base = mm4(Tm(a.x, a.y + q.lift, a.z), RY(a.r + q.spin));
+  const up = mm4(base, mm4(Tm(0, .42, 0), mm4(RX(q.bow), mm4(RZ(q.sway), Tm(0, -.42, 0)))));
+  const leg = (s, ang) => mm4(base, mm4(Tm(.1 * s, .44, 0), mm4(RX(ang), Tm(-.1 * s, -.44, 0))));
+  const arm = (s, ax, az) => mm4(up, mm4(Tm(.26 * s, .82, 0), mm4(RZ(az), mm4(RX(ax), Tm(-.26 * s, -.82, 0)))));
+  return [[up, m.b], [leg(-1, q.l1), m.ll], [leg(1, q.l2), m.lr], [arm(-1, q.a1x, q.a1z), m.al], [arm(1, q.a2x, q.a2z), m.ar]];
+}
+
+/* ==========================================================================
+   6. YOU — walking, the stairs, a little jump; the camera follows behind
+   ========================================================================== */
+const SPAWN = { x:0, z:6.4, r:Math.PI };
+const view = { yaw:Math.PI, pitch:.4, d:4.8, ty:Math.PI, tp:.4, td:4.8 };
+let camPos = [0, 2, 9], camTgt = [0, 1, 5], making = true, inWorld = false, VPm = null;
+const keys = {};
+const joy = { on:false, x:0, y:0, id:null };
+let stepAcc = 0;
+function moveMe(dt){
+  let ix = 0, iz = 0;
+  if (!chatFocus()){
+    if (keys.KeyW || keys.ArrowUp) iz += 1; if (keys.KeyS || keys.ArrowDown) iz -= 1;
+    if (keys.KeyA || keys.ArrowLeft) ix -= 1; if (keys.KeyD || keys.ArrowRight) ix += 1;
+  }
+  if (joy.on){ ix += joy.x; iz += -joy.y; }
+  const il = Math.hypot(ix, iz); if (il > 1){ ix /= il; iz /= il; }
+  const fx = Math.sin(view.yaw), fz = Math.cos(view.yaw), rx = -fz, rz = fx;
+  let vx = (fx * iz + rx * ix), vz = (fz * iz + rz * ix);
+  const speed = (keys.ShiftLeft || keys.ShiftRight || il > .95 && joy.on && Math.hypot(joy.x, joy.y) > .97) ? 5 : 3;
+  me.moving = il > .08 && !making;
+  if (me.moving){
+    if (me.sit){ me.sit = false; }
+    const s = speed * dt * Math.min(1, il);
+    const nx = me.x + vx * s, nz = me.z + vz * s;
+    let f = floorAt(nx, nz, me.y);
+    if (f !== null){ me.x = nx; me.z = nz; }
+    else if ((f = floorAt(nx, me.z, me.y)) !== null) me.x = nx;
+    else if ((f = floorAt(me.x, nz, me.y)) !== null) me.z = nz;
+    me.r += wrap(Math.atan2(vx, vz) - me.r) * Math.min(1, dt * 12);
+    me.ph += s * 5.2; me.mv = Math.min(1, me.mv + dt * 5);
+    stepAcc += s; if (stepAcc > .62){ stepAcc = 0; AUD.step(me.y < -1.4); }
+  } else me.mv = Math.max(0, me.mv - dt * 5);
+  const f = floorAt(me.x, me.z, me.y); if (f !== null) me.y += (f - me.y) * Math.min(1, dt * 14);
+  if (me.jy > 0 || me.vy > 0){ me.vy -= 11 * dt; me.jy = Math.max(0, me.jy + me.vy * dt); if (me.jy === 0) me.vy = 0; }
+}
+function jump(){ if (making || !inWorld || me.jy > 0) return; me.vy = 4; me.jy = .001; emote("jump"); }
+function placeCamera(dt){
+  const k = 1 - Math.exp(-dt * 10);
+  if (making){
+    const fx = Math.sin(me.r), fz = Math.cos(me.r), ph = PHONE(), side = ph ? 0 : .62, D = ph ? 6 : 2.9;
+    const wantT = [me.x + fz * side, me.y + (ph ? -.85 : .82), me.z - fx * side];                    /* desktop: you stand left of the panel; phone: above the sheet */
+    const wantP = [me.x + fx * D + fz * side, me.y + (ph ? 1.5 : 1.22), me.z + fz * D - fx * side];
+    camTgt = camTgt.map((v, i) => lerp(v, wantT[i], k)); camPos = camPos.map((v, i) => lerp(v, wantP[i], k));
+    return;
+  }
+  view.yaw += wrap(view.ty - view.yaw) * Math.min(1, dt * 14); view.pitch = lerp(view.pitch, view.tp, Math.min(1, dt * 14)); view.d = lerp(view.d, view.td, Math.min(1, dt * 8));
+  const head = [me.x, me.y + (me.sit ? .85 : 1.15) + me.jy * .5, me.z];
+  /* the camera sits behind you (never below your head); tilting further up only turns its gaze */
+  const pp = Math.max(view.pitch, .06);
+  const dir = [Math.sin(view.yaw) * Math.cos(pp), -Math.sin(pp), Math.cos(view.yaw) * Math.cos(pp)];
+  const below = me.y < -1.4 && zoneOf(me.x, me.y, me.z) !== "stairs";
+  let d = view.d;
+  for (let i = 1; i <= 30; i++){ const t = view.d * i / 30, p = sub(head, mul(dir, t)); if (!camOK(p[0], p[1], p[2], below)){ d = Math.max(.35, t - view.d / 30 - .12); break; } }
+  const want = sub(head, mul(dir, d));
+  camPos = camPos.map((v, i) => lerp(v, want[i], Math.min(1, k * 1.6)));
+  if (!camOK(camPos[0], camPos[1], camPos[2], below)) camPos = want;
+  if (view.pitch >= .06) camTgt = add(head, [0, .1, 0]);
+  else { const up = Math.min(1.1, (.06 - view.pitch) * 1.4), look = [Math.sin(view.yaw), Math.tan(up) , Math.cos(view.yaw)];
+    camTgt = add(camPos, mul(norm(look), 6)); }
+}
+
+/* ==========================================================================
+   7. THE SHARED ROOM — two servers, twenty each. Whatever the page can
+      reach: the claude.ai room, Firebase Realtime Database, the museum's
+      shared store, or (with none) this device alone
+   ========================================================================== */
+const MAX = 20;
+const MY_ID = (() => { try { return crypto.getRandomValues(new Uint32Array(3)).reduce((s, v) => s + v.toString(36), "").slice(0, 16); } catch (_){ return Math.random().toString(36).slice(2, 14); } })();
+const NET = { be:null, kind:"solo", srv:0, counts:[0, 0], ready:false };
+const owners = () => { const w = [window]; try { if (window.parent && window.parent !== window) w.push(window.parent); } catch (_){} return w; };
+const withTimeout = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error("timeout")), ms))]);
+async function findCap(name){
+  for (let k = 0; k < 4; k++){
+    let asked = false;
+    for (const R of owners()){ try { if (R.claude && typeof R.claude.use === "function"){ asked = true; const c = await withTimeout(Promise.resolve(R.claude.use(name)), 11000); if (c) return { c, R }; } } catch (_){} }
+    if (asked) return null;                                  /* someone answered: it is simply not here */
+    await new Promise(r => setTimeout(r, 600 * (k + 1)));    /* the museum's store may still be starting */
+  }
+  return null;
+}
+/* the claude.ai room: presence carries everything, one named room per server */
+function roomBackend(room, R){
+  let nr = null, unsub = null, lobbyCb = null;
+  const plain = (o) => R.JSON.parse(JSON.stringify(o));
+  try { room.onPeers(ch => { const c = [0, 0]; for (const p of ch.peers){ const s = p.presence && p.presence.srv; if (s === 1 || s === 2) c[s - 1]++; } NET.counts = c; lobbyCb && lobbyCb(c); }, () => {}); } catch (_){}
+  return {
+    kind:"room", sendMs:100, beatMs:15000,
+    lobby(cb){ lobbyCb = cb; },
+    async join(srv, cb){
+      nr = await withTimeout(room.join("erlich-pool-" + srv), 12000);
+      room.presence(plain({ srv })).catch(() => {});
+      unsub = nr.onPeers(ch => cb(ch.peers.filter(p => !p.sameTab && p.kind !== "agent").map(p => ({ id:p.peer, st:p.presence }))), () => {});
+      return true;
+    },
+    send(st){ if (nr) nr.presence(plain(st)).catch(() => {}); },
+    async leave(){ try { unsub && unsub(); } catch (_){} unsub = null; const r = nr; nr = null; try { r && await r.leave(); } catch (_){} room.presence(plain({ srv:null })).catch(() => {}); },
+  };
+}
+/* Firebase Realtime Database: made for exactly this — live, and it clears you when you go */
+async function rtdbBackend(cfg, R){
+  const base = (R && R.LAM_FIREBASE_SDK) || "https://www.gstatic.com/firebasejs/10.12.2";
+  const A = await import(base + "/firebase-app.js"), D = await import(base + "/firebase-database.js");
+  const url = cfg.databaseURL || `https://${cfg.projectId}-default-rtdb.firebaseio.com`;
+  let app; try { app = A.getApp("lam-pool"); } catch (_){ app = A.initializeApp(Object.assign({}, cfg, { databaseURL:url }), "lam-pool"); }
+  const db = D.getDatabase(app);
+  await withTimeout(D.get(D.ref(db, "pool")), 6000);
+  let all = {}, lobbyCb = null, peerCb = null, srv = 0, mine = null;
+  const emit = () => {
+    const c = [0, 0];
+    for (const s of [1, 2]){ const g = all["s" + s] || {}; c[s - 1] = Object.keys(g).length; if (srv === s && !g[MY_ID]) c[s - 1]++; }
+    NET.counts = c; lobbyCb && lobbyCb(c);
+    if (srv && peerCb){ const g = all["s" + srv] || {}; peerCb(Object.keys(g).filter(k => k !== MY_ID).map(k => ({ id:k, st:g[k] }))); }
+  };
+  D.onValue(D.ref(db, "pool"), snap => { all = snap.val() || {}; emit(); }, () => {});
+  return {
+    kind:"rtdb", sendMs:140, beatMs:25000,
+    lobby(cb){ lobbyCb = cb; emit(); },
+    async join(s, cb){ srv = s; peerCb = cb; mine = D.ref(db, `pool/s${s}/${MY_ID}`); await D.onDisconnect(mine).remove(); emit(); return true; },
+    send(st){ if (mine) D.set(mine, st).catch(() => {}); },
+    async leave(){ const r = mine; mine = null; srv = 0; peerCb = null; if (r){ try { await D.onDisconnect(r).cancel(); } catch (_){} D.remove(r).catch(() => {}); } emit(); },
+  };
+}
+/* the museum's shared store (Firestore, or claude.ai's own): slower, so fewer, fuller updates */
+function storeBackend(db){
+  const col = db.collection("poolLive"); let all = [], lobbyCb = null, peerCb = null, srv = 0, cleaned = 0;
+  const fresh = (p) => Math.abs(Date.now() - (p.st.t || 0)) < 30000;
+  const emit = () => {
+    const live = all.filter(fresh), c = [0, 0];
+    for (const p of live){ const s = p.st.s; if ((s === 1 || s === 2) && p.id !== MY_ID) c[s - 1]++; }
+    if (srv) c[srv - 1]++;
+    NET.counts = c; lobbyCb && lobbyCb(c);
+    if (srv && peerCb) peerCb(live.filter(p => p.id !== MY_ID && p.st.s === srv));
+    if (Date.now() - cleaned > 60000){ cleaned = Date.now(); all.filter(p => Date.now() - (p.st.t || 0) > 600000).slice(0, 3).forEach(p => col.doc(p.id).delete().catch(() => {})); }
+  };
+  try { col.limit(120).onSnapshot(sn => { all = sn.docs.map(d => ({ id:d.id, st:d.data() || {} })); emit(); }, () => {}); } catch (_){}
+  setInterval(emit, 5000);
+  return {
+    kind:"store", sendMs:800, beatMs:8000,
+    lobby(cb){ lobbyCb = cb; emit(); },
+    async join(s, cb){ srv = s; peerCb = cb; emit(); return true; },
+    send(st){ col.doc(MY_ID).set(st).catch(() => {}); },
+    async leave(){ srv = 0; peerCb = null; try { await col.doc(MY_ID).delete(); } catch (_){} emit(); },
+  };
+}
+/* hand bodies to the window that owns the store, as its own plain objects */
+function wrapDb(db, R){
+  const Pl = (o) => R.JSON.parse(JSON.stringify(o));
+  const Q = (q) => ({ limit:(n) => Q(q.limit(n)), orderBy:(f, d) => Q(d ? q.orderBy(f, d) : q.orderBy(f)), get:() => q.get(), onSnapshot:(a, b) => q.onSnapshot(a, b) });
+  const D = (r) => ({ id:r.id, set:(d) => r.set(Pl(d)), delete:() => r.delete(), get:() => r.get() });
+  return { collection:(p) => { const c = db.collection(p); return Object.assign(Q(c), { doc:(id) => D(id ? c.doc(id) : c.doc()) }); } };
+}
+async function netInit(){
+  renderNet();
+  const room = await findCap("room");
+  if (room){ try { NET.be = roomBackend(room.c, room.R); } catch (_){ NET.be = null; } }
+  if (!NET.be){
+    for (const R of owners()){ let cfg = null; try { cfg = R.LAM_FIREBASE; } catch (_){} if (!cfg || !cfg.apiKey) continue;
+      try { NET.be = await rtdbBackend(cfg, R); break; } catch (e){ NET.be = null; } }
+  }
+  if (!NET.be){ const d = await findCap("db"); if (d){ try { NET.be = storeBackend(wrapDb(d.c, d.R)); } catch (_){ NET.be = null; } } }
+  NET.kind = NET.be ? NET.be.kind : "solo"; NET.ready = true;
+  if (NET.be) NET.be.lobby(() => { renderServers(); renderPill(); });
+  if (NET.be && inWorld && NET.srv){ try { await NET.be.join(NET.srv, onPeerList); lastSig = ""; } catch (_){} }      /* already walking about: join now */
+  renderServers(); renderNet(); renderPill();
+}
+/* what another page told us, made safe to show */
+const EMOTES = { wave:1, bow:1, jump:1, dance:1, heart:1, sit:1 };
+function cleanState(st){
+  if (!st || typeof st !== "object") return null;
+  const num = (v, a, b, d) => (typeof v === "number" && isFinite(v)) ? clamp(v, a, b) : d;
+  const e = typeof st.e === "string" && EMOTES[st.e] ? st.e : "";
+  return { x:num(st.x, -CXW, CXW, 0), y:num(st.y, FLOOR - .1, 1.5, 0), z:num(st.z, -CZW, CZW, 0), r:num(st.r, -7, 7, 0), w:st.w ? 1 : 0, e, et:num(st.et, 0, 1e15, 0),
+    m:cleanText(st.m, 40), mt:num(st.mt, 0, 1e15, 0), n:cleanText(st.n, 12) || "…", look:lookFrom(st.k) };
+}
+function onPeerList(list){
+  const seen = new Set(), now = performance.now();
+  for (const p of list.slice(0, 60)){
+    const st = cleanState(p.st); if (!st || typeof p.id !== "string") continue;
+    const id = p.id.slice(0, 64); seen.add(id);
+    let a = PEERS.get(id);
+    if (!a){ a = newAvatar(st.look); a.id = id; a.x = a.tx = st.x; a.y = a.ty = st.y; a.z = a.tz = st.z; a.r = a.tr = st.r; a.lastE = st.et; a.lastM = st.mt; a.name = st.n; PEERS.set(id, a);
+      if (inWorld){ AUD.joined(); logLine(st.n, T({ en:"came in", ko:"님이 들어왔어요" }), true); } }
+    else {
+      if (st.et !== a.lastE){ a.lastE = st.et; if (st.e && st.e !== "sit"){ a.emote = st.e; a.et0 = now; popEmote(a, st.e); } }
+      if (st.mt !== a.lastM){ a.lastM = st.mt; if (st.m){ a.msg = st.m; a.msgUntil = now + 6500; logLine(st.n, st.m); AUD.chat(); } }
+    }
+    a.tx = st.x; a.ty = st.y; a.tz = st.z; a.tr = st.r; a.tw = st.w; a.name = st.n; a.sit = st.e === "sit";
+    if (lookKey(st.look) !== lookKey(a.look)){ a.look = st.look; a.mesh = meshFor(st.look); }
+  }
+  for (const [id, a] of PEERS) if (!seen.has(id)){ PEERS.delete(id); dropTag(id); if (inWorld) logLine(a.name, T({ en:"left", ko:"님이 나갔어요" }), true); }
+  renderPill();
+}
+function myState(){
+  return { s:NET.srv, x:+me.x.toFixed(2), y:+me.y.toFixed(2), z:+me.z.toFixed(2), r:+wrap(me.r).toFixed(2), w:me.moving ? 1 : 0, e:me.sit ? "sit" : (me.emote || ""),
+    et:me.et, m:me.msg || "", mt:me.mt, n:me.name, k:lookArr(me.look), t:Date.now() };
+}
+let lastSend = 0, lastSig = "";
+function maybeSend(){
+  if (!inWorld || !NET.be || !NET.srv) return;
+  const now = performance.now(), s = myState(), sig = [s.x, s.y, s.z, s.r, s.w, s.e, s.et, s.mt, s.n, s.k.join("")].join("|");
+  if ((sig !== lastSig && now - lastSend > NET.be.sendMs) || now - lastSend > NET.be.beatMs){ NET.be.send(s); lastSend = now; lastSig = sig; }
+}
+async function enter(srv){
+  if (srv !== NET.srv && NET.be && NET.counts[srv - 1] >= MAX){ hint(T({ en:"That server is full — try the other one", ko:"그 서버는 가득 찼어요 — 다른 서버로 들어가 보세요" }), true); return; }
+  $("go").disabled = true;
+  if (NET.srv !== srv){
+    if (NET.srv && NET.be){ await NET.be.leave(); for (const id of [...PEERS.keys()]) dropTag(id); PEERS.clear(); }
+    NET.srv = srv;
+    if (NET.be){ try { await NET.be.join(srv, onPeerList); } catch (_){ NET.be = null; NET.kind = "solo"; renderNet(); } }
+    lastSig = ""; lastSend = 0;
+  }
+  $("go").disabled = false;
+  if (!inWorld){ me.x = SPAWN.x; me.z = SPAWN.z; me.y = 0; me.r = SPAWN.r; view.yaw = view.ty = Math.PI; view.tp = .4; inWorld = true; setTimeout(() => hint(T(TOUCH ? HINTS.touch : HINTS.keys)), 600); }
+  making = false; document.body.classList.remove("making"); document.body.classList.add("in");
+  saveMe(); AUD.unlock(); AUD.start(); renderPill(); maybeSend();
+}
+function saveMe(){ try { localStorage.setItem(LKEY, JSON.stringify({ k:lookArr(me.look), n:me.name })); } catch (_){} }
+window.addEventListener("pagehide", () => { if (NET.be && NET.srv) NET.be.leave(); });
+
+/* ==========================================================================
+   8. ON SCREEN — the panel, the bar, name tags, speech
+   ========================================================================== */
+const HINTS = {
+  keys:{ en:"WASD or arrows to walk · drag to look round · the stairs by the pool go down under the water", ko:"WASD·방향키로 걷고, 드래그로 둘러봐요 · 수영장 옆 계단을 내려가면 물 아래예요" },
+  touch:{ en:"Joystick to walk · drag to look round · the stairs by the pool go down under the water", ko:"조이스틱으로 걷고, 드래그로 둘러봐요 · 수영장 옆 계단을 내려가면 물 아래예요" },
+  down:{ en:"Under the water — look up: the people above are blurred by the ripples", ko:"물 아래예요 — 올려다보세요. 위의 사람들이 물결에 흐릿하게 보여요" },
+  up:{ en:"Look into the pool — the people down there can see you too", ko:"수영장 안을 들여다보세요 — 아래 사람들도 당신을 보고 있어요" },
+};
+const LOOK_UI = [
+  { k:"fa", lab:{ en:"Face", ko:"표정" }, names:[{ en:"Smile", ko:"웃음" }, { en:"Round eyes", ko:"동글 눈" }, { en:"Calm", ko:"평온" }] },
+  { k:"sk", lab:{ en:"Skin", ko:"피부" }, cols:SKIN },
+  { k:"hs", lab:{ en:"Hair", ko:"머리 모양" }, names:[{ en:"None", ko:"없음" }, { en:"Short", ko:"짧은 머리" }, { en:"Bob", ko:"단발" }, { en:"Bun", ko:"똥머리" }, { en:"Long", ko:"긴 머리" }, { en:"Curly", ko:"곱슬" }] },
+  { k:"hc", lab:{ en:"Hair colour", ko:"머리 색" }, cols:HAIRC },
+  { k:"st", lab:{ en:"Outfit", ko:"옷" }, names:[{ en:"T-shirt", ko:"티셔츠" }, { en:"Dress", ko:"원피스" }, { en:"Hoodie", ko:"후드" }, { en:"Swimsuit", ko:"수영복" }] },
+  { k:"tc", lab:{ en:"Top", ko:"상의 색" }, cols:TOPC },
+  { k:"bc", lab:{ en:"Bottom", ko:"하의 색" }, cols:BOTC },
+  { k:"ac", lab:{ en:"Extra", ko:"소품" }, names:[{ en:"None", ko:"없음" }, { en:"Sun hat", ko:"밀짚모자" }, { en:"Sunglasses", ko:"선글라스" }, { en:"Swim ring", ko:"튜브" }, { en:"Cap", ko:"캡모자" }, { en:"Bunny ears", ko:"토끼 귀" }] },
+];
+const css = (c) => `rgb(${c.map(v => Math.round(v * 255)).join(",")})`;
+function buildPanel(){
+  $("mk-tag").textContent = T({ en:"Leandro Erlich · 1999", ko:"레안드로 에를리치 · 1999" });
+  $("mk-h").textContent = T({ en:"Swimming Pool", ko:"수영장" });
+  $("mk-lead").textContent = T({ en:"Make your swimmer, pick a server and step out by the pool. Up to twenty people share each server — above the water and under it.", ko:"나만의 캐릭터를 만들고 서버를 골라 수영장으로 나가요. 서버마다 20명까지 함께 있어요 — 물 위에서도, 물 아래에서도." });
+  $("lb-name").textContent = T({ en:"Name", ko:"이름" }); $("lb-srv").textContent = T({ en:"Server", ko:"서버" });
+  $("rnd").textContent = T({ en:"Surprise me", ko:"랜덤" });
+  const wrapEl = $("looks"); wrapEl.innerHTML = "";
+  for (const o of LOOK_UI){
+    const row = document.createElement("div"); row.className = "row";
+    const h = document.createElement("h4"); h.textContent = T(o.lab); row.appendChild(h);
+    const box = document.createElement("div"); box.className = "opts";
+    const n = o.cols ? o.cols.length : o.names.length;
+    for (let i = 0; i < n; i++){
+      const b = document.createElement("button"); b.dataset.k = o.k; b.dataset.i = i;
+      if (o.cols){ b.className = "sw"; b.style.background = css(o.cols[i]); b.setAttribute("aria-label", `${T(o.lab)} ${i + 1}`); }
+      else { b.className = "op"; b.textContent = T(o.names[i]); }
+      b.onclick = () => { me.look = Object.assign({}, me.look, { [o.k]:i }); applyLook(); AUD.click(); };
+      box.appendChild(b);
+    }
+    row.appendChild(box); wrapEl.appendChild(row);
+  }
+  $("nm").value = me.name;
+  $("nm").placeholder = T({ en:"Your name", ko:"이름" });
+  $("nm").oninput = () => { me.name = cleanText($("nm").value, 12) || me.name; tagFor(me).nm.textContent = me.name; };
+  $("nm").onblur = () => { $("nm").value = me.name; saveMe(); };
+  $("nm-r").onclick = () => { me.name = randomName(); $("nm").value = me.name; tagFor(me).nm.textContent = me.name; AUD.click(); saveMe(); };
+  $("rnd").onclick = () => { me.look = randomLook(); me.name = randomName(); $("nm").value = me.name; tagFor(me).nm.textContent = me.name; applyLook(); AUD.click(); };
+  $("go").onclick = () => enter(chosen);
+  syncPanel(); renderServers();
+}
+let chosen = 1;
+function applyLook(){ me.mesh = meshFor(me.look); syncPanel(); saveMe(); }
+function syncPanel(){ document.querySelectorAll("#looks [data-k]").forEach(b => b.setAttribute("aria-pressed", String(me.look[b.dataset.k] === +b.dataset.i))); }
+function renderServers(){
+  const box = $("srvs"); if (!box) return; box.innerHTML = "";
+  for (const s of [1, 2]){
+    const n = NET.counts[s - 1], full = NET.be && n >= MAX && NET.srv !== s;
+    const b = document.createElement("button"); b.className = "srv" + (full ? " full" : ""); b.disabled = !!full;
+    b.setAttribute("aria-pressed", String(chosen === s));
+    const t = document.createElement("b"); t.textContent = `${T({ en:"Server", ko:"서버" })} ${s}`;
+    const c = document.createElement("span"); const dotEl = document.createElement("i"); c.appendChild(dotEl);
+    c.appendChild(document.createTextNode(!NET.ready ? T({ en:"connecting…", ko:"연결 중…" }) : NET.be ? (full ? T({ en:"full", ko:"가득 참" }) : `${n}/${MAX}${LANG === "ko" ? "명" : ""}`) : T({ en:"this device", ko:"이 기기만" })));
+    b.appendChild(t); b.appendChild(c);
+    b.onclick = () => { chosen = s; renderServers(); AUD.click(); };
+    box.appendChild(b);
+  }
+  $("go").textContent = inWorld ? (chosen !== NET.srv ? T({ en:`Move to server ${chosen}`, ko:`서버 ${chosen}(으)로 이동` }) : T({ en:"Back to the pool", ko:"수영장으로 돌아가기" })) : T({ en:"Enter", ko:"입장하기" });
+}
+function renderNet(){
+  const el = $("net"); if (!el) return;
+  el.textContent = !NET.ready ? T({ en:"Looking for the live server…", ko:"실시간 서버를 찾는 중…" })
+    : NET.kind === "room" || NET.kind === "rtdb" ? T({ en:"Live server — everyone moves in real time.", ko:"실시간 서버 — 모두의 움직임이 바로 보여요." })
+    : NET.kind === "store" ? T({ en:"Shared store — others appear with a short delay.", ko:"공유 저장소 — 다른 사람이 약간 늦게 움직여 보여요." })
+    : T({ en:"No server reachable — you'll be with the museum's own visitors on this device.", ko:"서버에 연결할 수 없어요 — 이 기기에서 미술관 관람객들과 함께해요." });
+  renderServers();
+}
+function where(){ const z = zoneOf(me.x, me.y, me.z); return T(z === "above" ? { en:"by the pool", ko:"수영장 위" } : z === "stairs" ? { en:"on the stairs", ko:"계단" } : z === "below" ? { en:"under the water", ko:"수영장 아래" } : { en:"the corridor", ko:"복도" }); }
+let lastZone = "";
+function renderPill(){
+  if (!inWorld) return;
+  const solo = !NET.be;
+  $("pill").classList.toggle("solo", solo);
+  $("p-a").textContent = solo ? T({ en:"This device", ko:"이 기기" }) : `${T({ en:"Server", ko:"서버" })} ${NET.srv} · ${PEERS.size + 1}/${MAX}${LANG === "ko" ? "명" : ""}`;
+  $("p-b").textContent = where();
+}
+/* tags */
+const TAGS = new Map();
+function tagFor(a){
+  let t = TAGS.get(a.id); if (t) return t;
+  const el = document.createElement("div"); el.className = "av" + (a === me ? " mine" : "");
+  const bb = document.createElement("div"); bb.className = "bb";
+  const tg = document.createElement("div"); tg.className = "tg";
+  const meB = document.createElement("span"); meB.className = "me"; meB.textContent = T({ en:"Me", ko:"나" });
+  const nm = document.createElement("span"); nm.textContent = a.name;
+  const emo = document.createElement("span"); emo.className = "emo";
+  tg.appendChild(meB); tg.appendChild(nm); el.appendChild(emo); el.appendChild(bb); el.appendChild(tg); $("tags").appendChild(el);
+  t = { el, bb, nm, emo, msg:"" }; TAGS.set(a.id, t); return t;
+}
+function dropTag(id){ const t = TAGS.get(id); if (t){ t.el.remove(); TAGS.delete(id); } }
+const EMO_CH = { wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️" };
+function popEmote(a, e){ if (!EMO_CH[e]) return; const t = tagFor(a); t.emo.textContent = EMO_CH[e]; t.emo.classList.remove("go"); void t.emo.offsetWidth; t.emo.classList.add("go"); }
+function project(p){
+  const M = VPm; if (!M) return null;
+  const x = M[0] * p[0] + M[4] * p[1] + M[8] * p[2] + M[12], y = M[1] * p[0] + M[5] * p[1] + M[9] * p[2] + M[13], w = M[3] * p[0] + M[7] * p[1] + M[11] * p[2] + M[15];
+  if (w < .1) return null; return [(x / w * .5 + .5) * innerWidth, (1 - (y / w * .5 + .5)) * innerHeight, w];
+}
+/* can you see them from where the camera is? (through the water, a little faded) */
+function seen(a){
+  const camBelow = camPos[1] < -.05, z = zoneOf(a.x, a.y, a.z);
+  if (!camBelow){ if (z === "below") return "dim"; if (z === "hall") return null; return "on"; }
+  if (z === "above") return (Math.abs(a.x) < PX + 2.2 && Math.abs(a.z) < PZ + 2.2) ? "dim" : null;
+  return "on";
+}
+const WLABELS = [{ p:[HOLE.x0 - .75, 1.32, HOLE.z1 + .23], t:{ en:"↓ Under the pool", ko:"↓ 수영장 아래로" } }];
+const WL_EL = [];
+function updateTags(now){
+  const keep = new Set();
+  const list = AVATARS().filter(a => !a.npc);
+  for (const a of list){
+    if (a === me && (making || !inWorld || tooClose())) continue;
+    const vis = seen(a), q = vis && project([a.x, a.y + (a.sit ? 1.38 : 1.72) + (a.jy || 0), a.z]);
+    const t = tagFor(a); keep.add(a.id);
+    if (!q || q[2] > 30){ t.el.style.display = "none"; continue; }
+    t.el.style.display = "";
+    t.el.classList.toggle("dim", vis === "dim");
+    const s = clamp(6 / q[2], .62, 1.08);
+    t.el.style.transform = `translate3d(${q[0]}px, ${q[1]}px, 0) translate(-50%, -100%) scale(${s.toFixed(3)})`;
+    t.el.style.zIndex = String(1000 - Math.round(q[2] * 10));
+    if (t.nm.textContent !== a.name) t.nm.textContent = a.name;
+    const showMsg = a.msg && now < a.msgUntil;
+    if (showMsg && t.msg !== a.msg){ t.bb.textContent = a.msg; t.msg = a.msg; }
+    t.bb.classList.toggle("on", !!showMsg); t.bb.style.display = showMsg || t.bb.classList.contains("on") ? "" : "none";
+  }
+  for (const [id, t] of TAGS) if (!keep.has(id)) t.el.style.display = "none";
+  WLABELS.forEach((w, i) => { let el = WL_EL[i]; if (!el){ el = WL_EL[i] = document.createElement("div"); el.className = "wl"; el.textContent = T(w.t); $("tags").appendChild(el); }
+    const q = !making && camPos[1] > -.05 && project(w.p); if (!q || q[2] > 22){ el.style.display = "none"; return; }
+    el.style.display = ""; el.style.transform = `translate3d(${q[0]}px, ${q[1]}px, 0) translate(-50%, -100%) scale(${clamp(7 / q[2], .7, 1.05).toFixed(3)})`; });
+}
+/* speech and moments */
+function emote(e){
+  if (!inWorld || making) return;
+  AUD.unlock();
+  if (e === "sit"){ me.sit = !me.sit; me.emote = ""; me.et = Date.now(); syncBar(); AUD.emote("sit"); return; }
+  me.sit = false; me.emote = e; me.et0 = performance.now(); me.et = Date.now(); popEmote(me, e); AUD.emote(e); syncBar();
+}
+function syncBar(){ document.querySelectorAll("#emos [data-e]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.e === "sit" && me.sit))); }
+function say(text){
+  const m = cleanText(text, 40); if (!m) return;
+  me.msg = m; me.mt = Date.now(); me.msgUntil = performance.now() + 6500; AUD.chat(); logLine(me.name, m);
+}
+function logLine(name, text, quiet){
+  const box = $("log"), d = document.createElement("div"), b = document.createElement("b");
+  b.textContent = name; d.appendChild(b); d.appendChild(document.createTextNode(text)); if (quiet) d.style.color = "rgba(22,34,43,.6)";
+  box.appendChild(d); while (box.children.length > 5) box.firstChild.remove();
+  setTimeout(() => d.classList.add("old"), 11000); setTimeout(() => d.remove(), 12000);
+}
+let hintAt = 0, hintT = 0;
+function hint(s, brief){ const h = $("hint"); h.textContent = s; h.classList.remove("off"); hintAt = performance.now(); clearTimeout(hintT); hintT = setTimeout(() => h.classList.add("off"), brief ? 3600 : 7000); }
+const chatFocus = () => document.activeElement === $("say-i") || document.activeElement === $("nm");
+function siteLight(on){ try { if (window.parent !== window){ const ex = window.parent.document.getElementById("s-exp"); if (ex) ex.classList.toggle("light", on); } } catch (_){} }
+
+/* ==========================================================================
+   9. SOUND — above, the pool laps and drips; below, a soft rush of water and
+      bubbles rising. Everything stays bright: nothing below ~250 Hz
+   ========================================================================== */
+const AUD = (() => {
+  let ctx = null, master = null, white = null, on = true, borrowed = false, amb = null, below = 0, nextPlip = 0, nextBub = 0;
+  function ensure(){ if (ctx) return ctx; const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+    try { const host = window.parent !== window && window.parent.__lamAudio && window.parent.__lamAudio(); if (host && host.state === "running"){ ctx = host; borrowed = true; } } catch (_){}
+    if (!ctx){ try { ctx = new AC(); } catch (_){ return null; } }
+    master = ctx.createGain(); master.gain.value = on ? .9 : 0;
+    const hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 250; master.connect(hp); hp.connect(ctx.destination);
+    const n = ctx.sampleRate * 2; white = ctx.createBuffer(1, n, ctx.sampleRate); const w = white.getChannelData(0); for (let i = 0; i < n; i++) w[i] = Math.random() * 2 - 1;
+    return ctx; }
+  const ok = () => on && ensure() && ctx.state === "running";
+  function burst(tt, dur, f, q, g, f2){ const s = ctx.createBufferSource(); s.buffer = white; const fl = ctx.createBiquadFilter(); fl.type = "bandpass"; fl.frequency.setValueAtTime(f, tt); if (f2) fl.frequency.exponentialRampToValueAtTime(f2, tt + dur); fl.Q.value = q;
+    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(g, tt + Math.min(.012, dur * .25)); a.gain.exponentialRampToValueAtTime(.0001, tt + dur);
+    s.connect(fl); fl.connect(a); a.connect(master); s.start(tt, Math.random()); s.stop(tt + dur + .03); }
+  function tone(tt, f, dur, g, f2, type){ const o = ctx.createOscillator(); o.type = type || "sine"; o.frequency.setValueAtTime(f, tt); if (f2) o.frequency.exponentialRampToValueAtTime(f2, tt + dur);
+    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(g, tt + .006); a.gain.exponentialRampToValueAtTime(.0001, tt + dur); o.connect(a); a.connect(master); o.start(tt); o.stop(tt + dur + .02); }
+  function loop(f, q){ const s = ctx.createBufferSource(); s.buffer = white; s.loop = true; const fl = ctx.createBiquadFilter(); fl.type = "bandpass"; fl.frequency.value = f; fl.Q.value = q;
+    const g = ctx.createGain(); g.gain.value = 0; s.connect(fl); fl.connect(g); g.connect(master); s.start(); return { fl, g }; }
+  return {
+    unlock(){ if (ensure() && ctx.state !== "running") ctx.resume().catch(() => {}); },
+    start(){ if (amb || !ok()) return; amb = { lap:loop(1300, .6), hiss:loop(3600, 1.6), deep:loop(560, 1.2), rush:loop(1050, 2.2) }; },
+    get on(){ return on; }, set on(v){ on = v; if (master) master.gain.setTargetAtTime(v ? .9 : 0, ctx.currentTime, .05); },
+    stop(){ if (!ctx) return; try { master.disconnect(); } catch (_){} if (!borrowed) try { ctx.close(); } catch (_){} },
+    /* every frame: crossfade above and below, with slow swells */
+    update(t, depth){ if (!amb || !ok()) return; below = lerp(below, depth, .05); const tt = ctx.currentTime, up = 1 - below;
+      const sw = .62 + .25 * Math.sin(t * 1.7) + .13 * Math.sin(t * 3.9 + 1);
+      amb.lap.g.gain.setTargetAtTime(.022 * sw * up, tt, .12); amb.lap.fl.frequency.setTargetAtTime(1100 + 450 * Math.sin(t * .9), tt, .3);
+      amb.hiss.g.gain.setTargetAtTime(.0045 * up, tt, .2);
+      amb.deep.g.gain.setTargetAtTime(.03 * (.7 + .3 * Math.sin(t * .33)) * below, tt, .25);
+      amb.rush.g.gain.setTargetAtTime(.009 * (.6 + .4 * Math.sin(t * .52 + 2)) * below, tt, .3);
+      if (t > nextPlip && up > .3){ nextPlip = t + rand(1.2, 3.6); const f = rand(1500, 2300); tone(tt, f, .07, .016 * up, f * 1.5); }
+      if (t > nextBub && below > .3){ nextBub = t + rand(1.4, 4.2); const n = 2 + Math.floor(Math.random() * 4); for (let i = 0; i < n; i++){ const f = rand(420, 700); tone(tt + i * rand(.06, .14), f, .11, .02 * below, f * 2.2); } } },
+    step(low){ if (!ok()) return; burst(ctx.currentTime, .045, low ? 1700 : 2600, 4, .014); },
+    click(){ if (!ok()) return; tone(ctx.currentTime, 1760, .05, .028, null, "triangle"); },
+    chat(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 1568, .08, .03); tone(tt + .07, 2093, .1, .025); },
+    joined(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 1175, .12, .022); tone(tt + .1, 1568, .16, .02); },
+    emote(e){ if (!ok()) return; const tt = ctx.currentTime;
+      if (e === "wave"){ tone(tt, 1319, .1, .03); tone(tt + .09, 1760, .14, .028); }
+      else if (e === "bow"){ tone(tt, 1568, .14, .025); tone(tt + .12, 1175, .2, .022); }
+      else if (e === "jump") tone(tt, 700, .2, .035, 1500, "triangle");
+      else if (e === "dance") [1047, 1319, 1568, 2093, 1568, 1319].forEach((f, i) => tone(tt + i * .11, f, .1, .022, null, "triangle"));
+      else if (e === "heart"){ tone(tt, 1760, .1, .025); tone(tt + .1, 2349, .18, .02); }
+      else if (e === "sit") burst(tt, .06, 2000, 3, .02); },
+  };
+})();
+
+/* ==========================================================================
+   10. INPUT
+   ========================================================================== */
+const ptrs = new Map(); let pinch0 = 0, d0 = 0, dragMoved = 0;
+cv.addEventListener("pointerdown", e => { AUD.unlock(); if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  ptrs.set(e.pointerId, { x:e.clientX, y:e.clientY }); try { cv.setPointerCapture(e.pointerId); } catch (_){}
+  if (ptrs.size === 2){ const [a, b] = [...ptrs.values()]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); d0 = view.td; } dragMoved = 0; document.body.classList.add("drag"); });
+cv.addEventListener("pointermove", e => { const p = ptrs.get(e.pointerId); if (!p) return;
+  if (ptrs.size === 2){ const o = [...ptrs.entries()].find(([id]) => id !== e.pointerId)[1]; const d = Math.hypot(e.clientX - o.x, e.clientY - o.y); if (pinch0) view.td = clamp(d0 * pinch0 / d, 1.8, 9.5); p.x = e.clientX; p.y = e.clientY; return; }
+  const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY; dragMoved += Math.abs(dx) + Math.abs(dy);
+  if (making){ me.r -= dx * .012; return; }
+  view.ty -= dx * .0065; view.tp = clamp(view.tp + dy * .005, -.6, 1.2); });
+const endPtr = (e) => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch0 = 0; if (!ptrs.size) document.body.classList.remove("drag"); };
+cv.addEventListener("pointerup", endPtr); cv.addEventListener("pointercancel", endPtr);
+cv.addEventListener("wheel", e => { e.preventDefault(); if (!making) view.td = clamp(view.td * Math.exp(e.deltaY * .0012), 1.8, 9.5); }, { passive:false });
+window.addEventListener("keydown", e => {
+  if (e.target === $("say-i")){ if (e.key === "Escape") e.target.blur(); return; }
+  if (e.target === $("nm")) return;
+  keys[e.code] = true;
+  if (e.code === "Space"){ e.preventDefault(); jump(); }
+  if (e.code === "Enter" && inWorld && !making){ e.preventDefault(); $("say-i").focus(); }
+  if (/^Arrow/.test(e.code)) e.preventDefault();
+});
+window.addEventListener("keyup", e => { keys[e.code] = false; });
+window.addEventListener("blur", () => { for (const k in keys) keys[k] = false; });
+/* the joystick */
+const jEl = $("joy"), knob = jEl.querySelector("i");
+jEl.addEventListener("pointerdown", e => { joy.on = true; joy.id = e.pointerId; try { jEl.setPointerCapture(e.pointerId); } catch (_){} moveJoy(e); AUD.unlock(); });
+jEl.addEventListener("pointermove", e => { if (joy.on && e.pointerId === joy.id) moveJoy(e); });
+const endJoy = () => { joy.on = false; joy.x = joy.y = 0; knob.style.transform = ""; };
+jEl.addEventListener("pointerup", endJoy); jEl.addEventListener("pointercancel", endJoy);
+function moveJoy(e){ const r = jEl.getBoundingClientRect(), R = r.width / 2; let x = (e.clientX - r.left - R) / (R * .72), y = (e.clientY - r.top - R) / (R * .72); const l = Math.hypot(x, y); if (l > 1){ x /= l; y /= l; } joy.x = x; joy.y = y; knob.style.transform = `translate(${x * R * .62}px, ${y * R * .62}px)`; }
+$("jump").onclick = () => jump();
+document.querySelectorAll("#emos [data-e]").forEach(b => b.onclick = () => emote(b.dataset.e));
+$("say").addEventListener("submit", e => { e.preventDefault(); say($("say-i").value); $("say-i").value = ""; if (TOUCH) $("say-i").blur(); });
+$("edit").onclick = () => { making = true; chosen = NET.srv || 1; document.body.classList.add("making"); renderServers(); AUD.click(); };
+$("snd").onclick = () => { AUD.unlock(); AUD.on = !AUD.on; $("snd").setAttribute("aria-pressed", String(AUD.on)); };
+$("info").onclick = () => { $("about").classList.add("on"); AUD.click(); };
+$("about-x").onclick = () => $("about").classList.remove("on");
+
+/* ==========================================================================
+   11. EVERY FRAME
+   ========================================================================== */
+let W = 0, H = 0, DPR = 1;
+function layout(){
+  DPR = Math.min(window.devicePixelRatio || 1, PHONE() || TOUCH ? 1.5 : 1.75);
+  W = Math.round(innerWidth * DPR); H = Math.round(innerHeight * DPR);
+  if (cv.width !== W || cv.height !== H){ cv.width = W; cv.height = H; }
+  const rw = Math.max(64, Math.round(W / 2)), rh = Math.max(64, Math.round(H / 2));
+  if (gl && (rf.w !== rw || rf.h !== rh)){ if (rf.tex){ gl.deleteTexture(rf.tex); gl.deleteFramebuffer(rf.fb); gl.deleteRenderbuffer(rf.rb); } rf = target(rw, rh, true); }
+}
+window.addEventListener("resize", layout);
+function useProg(p, VP, clip, below, t){
+  gl.useProgram(p.p); const u = p.u;
+  if (u.uVP) gl.uniformMatrix4fv(u.uVP, false, VP);
+  if (u.uM) gl.uniformMatrix4fv(u.uM, false, I4);
+  if (u.uCam) gl.uniform3fv(u.uCam, camPos); if (u.uSun) gl.uniform3fv(u.uSun, SUN);
+  if (u.uT) gl.uniform1f(u.uT, t); if (u.uClip) gl.uniform1f(u.uClip, clip); if (u.uBelow) gl.uniform1f(u.uBelow, below);
+  if (u.uSV) gl.uniformMatrix4fv(u.uSV, false, SV); if (u.uShTex) gl.uniform1f(u.uShTex, 1 / SS);
+  if (u.uSh){ gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, shTex); gl.uniform1i(u.uSh, 0); }
+}
+const tooClose = () => !making && Math.hypot(camPos[0] - me.x, camPos[1] - me.y - 1, camPos[2] - me.z) < 1.15;   /* the camera is in your own head: look through it */
+function drawPeople(p, now){ const hideMe = tooClose(); for (const a of AVATARS()){ if (!a.mesh || (a === me && hideMe) || (making && a.npc && Math.hypot(a.x - me.x, a.z - me.z) < 2.4 && Math.abs(a.y - me.y) < 1)) continue; for (const [M, part] of partMats(a, now)){ gl.uniformMatrix4fv(p.u.uM, false, M); bindMesh(part); gl.drawArrays(gl.TRIANGLES, 0, part.n); } } }
+function drawSky(VP, clip, t){ gl.depthMask(false); useProg(P.sky, VP, clip, 0, t); gl.uniformMatrix4fv(P.sky.u.uM, false, Tm(camPos[0], camPos[1], camPos[2])); bindMesh(SKY); gl.drawArrays(gl.TRIANGLES, 0, SKY.n); gl.depthMask(true); }
+function drawScene(VP, clip, below, t, now){ useProg(P.main, VP, clip, below, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.main, now); }
+function render(t, now){
+  const VP = mm4(persp(PHONE() ? 1.02 : .9, W / H, .06, 600), lookAt(camPos, camTgt)); VPm = VP;
+  const below = camPos[1] < 0 ? 1 : 0;
+  /* the sun's view, for shadows */
+  gl.bindFramebuffer(gl.FRAMEBUFFER, shFB); gl.viewport(0, 0, SS, SS); gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  useProg(P.sh, SV, 0, 0, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.sh, now);
+  /* what lies on the far side of the water */
+  gl.bindFramebuffer(gl.FRAMEBUFFER, rf.fb); gl.viewport(0, 0, rf.w, rf.h); gl.clearColor(.55, .8, .84, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  drawSky(VP, below ? 2 : 1, t); drawScene(VP, below ? 2 : 1, below, t, now);
+  /* the picture */
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, W, H); gl.clearColor(.8, .88, .93, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  drawSky(VP, 0, t); drawScene(VP, 0, below, t, now);
+  gl.useProgram(P.water.p); const u = P.water.u;
+  gl.uniformMatrix4fv(u.uVP, false, VP); gl.uniformMatrix4fv(u.uM, false, I4); gl.uniform3fv(u.uCam, camPos); gl.uniform3fv(u.uSun, SUN); gl.uniform1f(u.uT, t); gl.uniform1f(u.uBelow, below);
+  gl.uniform2f(u.uRes, W, H); gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, rf.tex); gl.uniform1i(u.uRef, 1);
+  bindMesh(WATER); gl.drawArrays(gl.TRIANGLES, 0, WATER.n);
+}
+let lastT = performance.now(), pruneAt = 0, zoneHint = { below:false, up:false };
+function frame(now){
+  const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; const t = now / 1000;
+  moveMe(dt); stepPeers(dt); stepNpcs(dt); placeCamera(dt);
+  if (me.emote && now - me.et0 > 4200) me.emote = "";
+  render(t, now); updateTags(now); maybeSend();
+  const z = zoneOf(me.x, me.y, me.z);
+  if (inWorld && z !== lastZone){ lastZone = z; renderPill();
+    if (z === "below" && !zoneHint.below){ zoneHint.below = true; hint(T(HINTS.down)); }
+    if (z === "above" && zoneHint.below && !zoneHint.up){ zoneHint.up = true; hint(T(HINTS.up)); } }
+  AUD.update(t, me.y < -1.4 || camPos[1] < -.05 ? 1 : (z === "stairs" ? clamp(-me.y / 2.8, 0, 1) : 0));
+  if (now > pruneAt){ pruneAt = now + 15000; pruneMeshes(); }
+  requestAnimationFrame(frame);
+}
+
+/* ==========================================================================
+   12. START
+   ========================================================================== */
+function about(){
+  $("t-h").textContent = T({ en:"Swimming Pool", ko:"수영장" }); $("t-p").textContent = T({ en:"Leandro Erlich · 1999", ko:"레안드로 에를리치 · 1999" });
+  $("ab-tag").textContent = T({ en:"Leandro Erlich · 1999", ko:"레안드로 에를리치 · 1999" });
+  $("ab-h").textContent = T({ en:"Swimming Pool", ko:"수영장" });
+  $("ab-p1").textContent = T({ en:"From above it is a pool full of water. In fact a sheet of glass carries a few centimetres of water, and under it is an empty sky-blue room. Visitors go down a separate way and look up, through the ripples, at the people looking down.", ko:"위에서 보면 물이 가득 찬 수영장이지만, 사실은 유리판 위에 얇게 물을 깔고 그 아래를 하늘색 빈 방으로 만든 작품이에요. 관람객은 다른 길로 내려가 물결 너머로 내려다보는 사람들을 올려다봐요." });
+  $("ab-p2").textContent = T({ en:"The people above and the people below become each other's picture — looking and being looked at keep changing places. It is permanently installed at the 21st Century Museum of Contemporary Art, Kanazawa.", ko:"위의 사람과 아래의 사람은 서로에게 작품이 돼요 — 보는 사람과 보이는 사람이 계속 자리를 바꾸죠. 일본 가나자와 21세기 미술관에 상설 설치되어 있어요." });
+  $("ab-h3").textContent = T({ en:"Here", ko:"이 공간에서" });
+  const ol = $("ab-ol"); ol.innerHTML = "";
+  [{ en:"Make a character and pick one of two servers — up to twenty people share each", ko:"캐릭터를 꾸미고 두 서버 중 하나를 골라요 — 서버마다 20명까지 함께해요" },
+   { en:"Walk with WASD or the arrows (the joystick on a phone), drag to look round, scroll to zoom", ko:"WASD·방향키(휴대폰은 조이스틱)로 걷고, 드래그로 둘러보고, 휠로 거리를 바꿔요" },
+   { en:"Take the stairs by the pool down: through the water the people above are blurred, and the sound turns to water", ko:"수영장 옆 계단으로 내려가면 물결 너머로 위의 사람들이 흐릿하게 보이고, 물속 소리가 들려요" },
+   { en:"Say something, wave, bow, jump, dance or sit down at the edge", ko:"말풍선을 띄우고, 손 흔들기·인사·점프·춤·앉기로 만나요" }]
+    .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); ol.appendChild(li); });
+  const lab = { wave:{ en:"Wave", ko:"손 흔들기" }, bow:{ en:"Bow", ko:"인사" }, jump:{ en:"Jump", ko:"점프" }, dance:{ en:"Dance", ko:"춤" }, sit:{ en:"Sit", ko:"앉기" } };
+  document.querySelectorAll("#emos [data-e]").forEach(b => { const s = b.querySelector(".t"); if (s && lab[b.dataset.e]) s.textContent = T(lab[b.dataset.e]); b.title = T(lab[b.dataset.e] || { en:"Heart", ko:"하트" }); });
+  $("say-i").placeholder = T({ en:"Say something…", ko:"말하기…" }); $("say-b").textContent = T({ en:"Send", ko:"보내기" });
+  $("edit").title = T({ en:"Character & server", ko:"캐릭터·서버" }); $("snd").title = T({ en:"Sound", ko:"소리" }); $("info").title = T({ en:"About the work", ko:"작품 설명" });
+  $("jump").textContent = T({ en:"Jump", ko:"점프" });
+}
+document.body.classList.add("making");
+layout();
+if (!initGL()){
+  document.body.innerHTML = `<p style="padding:40px;font:14px Inter,sans-serif">${T({ en:"This room needs WebGL.", ko:"이 공간은 WebGL이 필요해요." })}</p>`;
+} else {
+  about(); siteLight(true);
+  me.mesh = meshFor(me.look);
+  me.x = 0; me.z = PZ + .62; me.y = 0; me.r = 0; camPos = [0, 1.3, PZ + 4]; camTgt = [0, .8, PZ];
+  makeNpcs(); buildPanel();
+  requestAnimationFrame(frame);
+  netInit();
+}
+["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
+window.__pool = { walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf };
+</script>
+</body>
+</html>
