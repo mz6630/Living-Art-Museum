@@ -1884,6 +1884,15 @@ const PR_DOOR = { x0:(PX(641) + PX(766)) / 2 - 1.0, x1:(PX(641) + PX(766)) / 2 +
 { const k = SEGS.findIndex(sg => sg[1] === LINK_Z && sg[3] === LINK_Z && sg[0] === ROOM_R.x0 && sg[2] === ROOM_L.x1);
   if (k >= 0) SEGS.splice(k, 1, [ROOM_R.x0, LINK_Z, PR_DOOR.x1, LINK_Z], [PR_DOOR.x0, LINK_Z, ROOM_L.x1, LINK_Z]); }
 SEGS.push([PR.x0, PR.z0, PR.x0, PR.z1], [PR.x0, PR.z1, PR.x1, PR.z1], [PR.x1, PR.z1, PR.x1, PR.z0]);
+/* the courtyard between the two wings, open to the sky, with Erlich's pool sunk in it — as at Kanazawa,
+   where the pool sits in an open court among the galleries. One door in from the hall's west wall. */
+const CY = { x0:ROOM_L.x1, x1:ROOM_R.x0, z0:PR.z1, z1:RM.z1 };
+const CY_DOOR = { z0:4.6, z1:6.6 };
+const POOL = { x0:-1.51, x1:2.19, z0:1.3, z1:9.9, D:2.8 }, COPE = 0.3;
+const inCY = (x, z) => x > CY.x0 && x < CY.x1 && z > CY.z0 && z < CY.z1;
+SEGS.push([CY.x0, PR.z1, PR.x0, PR.z1], [PR.x1, PR.z1, CY.x1, PR.z1], [CY.x0, RM.z1, CY.x1, RM.z1]);
+{ const k = SEGS.findIndex(sg => sg[0] === ROOM_R.x0 && sg[2] === ROOM_R.x0 && sg[1] === RM.z1 && sg[3] === LINK_Z);
+  if (k >= 0) SEGS.splice(k, 1, [ROOM_R.x0, RM.z1, ROOM_R.x0, CY_DOOR.z1], [ROOM_R.x0, CY_DOOR.z0, ROOM_R.x0, LINK_Z]); }
 const COLS_POS = [[202, 210], [202, 759], [569, 759], [1260, 210], [837, 519], [1260, 519], [837, 759], [1260, 759]]
   .map(([u, v]) => [PX(u), PZ(v)]);                             /* the columns, where the plan puts them */
 const LOBBY = { x:PX(1048), z:PZ(636) };                       /* an open floor now: nothing stands in it */
@@ -1927,15 +1936,17 @@ const WORKS_3D = [
   { id:"clouds",     w:WM("clouds"),   x:(ROOM_L.x1 + ROOM_R.x0) / 2, y:5.7, z:(RM.z0 + LINK_Z) / 2 },
   /* Lozano-Hemmer — Pulse Room: its own small dark room off the passage */
   { id:"pulse",      w:WM("pulse"),    x:(PR.x0 + PR.x1) / 2, y:2.4, z:(PR.z0 + PR.z1) / 2 },
+  /* Erlich — Swimming Pool: sunk in the open courtyard, people in the room beneath it */
+  { id:"erlich",     w:WM("erlich"),   x:(POOL.x0 + POOL.x1) / 2, y:0.2, z:(POOL.z0 + POOL.z1) / 2, reach:3.2, box:[(POOL.x1 - POOL.x0) / 2 + 0.25, (POOL.z1 - POOL.z0) / 2 + 0.25] },
 ];
 const W3 = (id) => WORKS_3D.find(o => o.id === id);
-const START = { x:LOBBY.x, z:1.0, yaw:0 };                      /* arrive in the hall, facing the installations */
+const START = { x:LOBBY.x, z:2.2, yaw:0 };                      /* arrive in the hall, a few steps back from the installations */
 /* four moods: the ceiling opens for three of them and the sky changes with it */
 const MOODS = [
   { id:0, name:"gallery light", roof:true,  amb:0.34, gain:0.85, sky:null, tint:0,
     lights:[ {x:8.2,z:-6.6,r:5.2,fam:2}, {x:14.8,z:-9.6,r:5.8,fam:1}, {x:16.9,z:-3.75,r:5.2,fam:1}, {x:8.2,z:-2.4,r:3.6,fam:1},
              {x:LOBBY.x,z:LOBBY.z,r:6.5,fam:1}, {x:13.1,z:10.2,r:5.6,fam:2},
-             {x:-13,z:-10,r:5,fam:2}, {x:-17.6,z:-5.4,r:6.2,fam:2}, {x:-13.6,z:-2.2,r:4.8,fam:2}, {x:-13.6,z:2.6,r:4.2,fam:2},
+             {x:-13,z:-10,r:5,fam:2}, {x:-17.6,z:-5.4,r:6.2,fam:2}, {x:-13.6,z:-2.2,r:4.8,fam:2}, {x:-13.6,z:2.6,r:4.2,fam:2}, {x:0.34,z:5.6,r:6.8,fam:1},
              {x:-17.6,z:5.4,r:5.4,fam:2}, {x:-11,z:9.6,r:7.5,fam:2}, {x:-4,z:3,r:4.2,fam:1}, {x:0.3,z:-8.3,r:5.5,fam:1}, {x:PX(703),z:PZ(408),r:3.2,fam:2} ] },
   { id:1, name:"morning · after Seurat and Monet", roof:false, amb:0.58, gain:0.95, sky:"day", tint:14,
     lights:[ {x:-5,z:-7,r:6.2,fam:9}, {x:5.6,z:-16,r:5.4,fam:9}, {x:0,z:0,r:9,fam:1}, {x:0,z:-12,r:8,fam:14} ] },
@@ -2308,6 +2319,23 @@ function buildWorld(){
     });
   }
 
+  /* Erlich — Swimming Pool: a steel ladder hooked over the coping, and in the room under the water,
+     people standing on its floor and looking up through it */
+  { for (const lx of [0.66, 1.16]){
+      for (let a = 0; a <= Math.PI; a += 0.06) put(lx, 0.55 + Math.sin(a) * 0.32, POOL.z0 - 0.16 + (1 - Math.cos(a)) * 0.12, 0.88, 6);
+      for (let y = 0.55; y >= -POOL.D + 0.1; y -= 0.03) put(lx, y, POOL.z0 + 0.08, y > 0 ? 0.88 : 0.7, 6); }
+    for (let y = -0.25; y >= -2.2; y -= 0.38) for (let x = 0.66; x <= 1.16; x += 0.025) put(x, y, POOL.z0 + 0.08, 0.66, 6);
+    const FIG = [[-0.55, 3.4, 16], [1.25, 4.9, 14], [0.05, 7.1, 12], [1.45, 8.5, 16], [-0.8, 8.9, 15]];
+    FIG.forEach(([fx, fz, cl], n) => {
+      const y0 = -POOL.D, tilt = (n % 2 ? 1 : -1) * 0.2;
+      const ring = (cx, cy, cz, rx, rz, fam, bb) => { for (let a = 0; a < 6.28; a += 0.35) put(cx + Math.cos(a + tilt) * rx, cy, cz + Math.sin(a + tilt) * rz, bb * (0.75 + 0.25 * Math.cos(a)), fam); };
+      for (const sx of [-0.09, 0.09]) for (let y = 0; y < 0.82; y += 0.05) ring(fx + sx, y0 + y, fz, 0.07, 0.07, 16, 0.5);           /* legs */
+      for (let y = 0.82; y < 1.42; y += 0.04) ring(fx, y0 + y, fz, 0.21 - (y > 1.3 ? (y - 1.3) : 0), 0.13, cl, 0.78);                  /* body */
+      for (const sx of [-0.25, 0.25]) for (let y = 0.85; y < 1.36; y += 0.05) ring(fx + sx, y0 + y, fz, 0.05, 0.05, cl, 0.55);         /* arms */
+      for (let a = 0; a < 6.28; a += 0.4) for (let b2 = -1.4; b2 <= 1.4; b2 += 0.35)                                                      /* a head, tipped up */
+        put(fx + Math.cos(a) * Math.cos(b2) * 0.12, y0 + 1.58 + Math.sin(b2) * 0.13, fz + Math.sin(a) * Math.cos(b2) * 0.12, b2 > 0.6 ? 0.5 : 0.74, b2 > 0.6 ? 16 : 17);
+    }); }
+
   /* Albers — a wall hanging, woven from a real draft: warp stripes of cream, black and peach run down it,
      weft bands of cream, red and black cross them; some blocks in plain weave, some with the warp floating
      on top, some with the weft — the way her Bauhaus hangings build a grid out of the weave itself.
@@ -2464,8 +2492,31 @@ function setCell(idx, b, fam){
   ti[idx] = t;
 }
 
+/* one cell of the pool: through a skin of rippling water, down to the floor of the room below it —
+   or to the pool's own tiled wall — with light netting the surface as it sways */
+function poolCell(idx, s, d, dxr, dzr, inv, ts){
+  const h0 = d / inv, sx = cam.x + dxr * h0, sz = cam.z + dzr * h0;
+  const fb = (cam.y + POOL.D) / s, hb = fb / inv, bx = cam.x + dxr * hb, bz = cam.z + dzr * hb;
+  let f, fam, b;
+  if (bx > POOL.x0 && bx < POOL.x1 && bz > POOL.z0 && bz < POOL.z1){                       /* the floor below, pale blue tiles */
+    f = fb; const tile = (Math.floor(bx / 0.9) + Math.floor(bz / 0.9)) & 1;
+    fam = 8; b = 0.3 + tile * 0.08;
+  } else {                                                                                  /* a wall of the pool */
+    let te = 1e9;
+    if (dxr > 1e-6) te = Math.min(te, (POOL.x1 - sx) / dxr); else if (dxr < -1e-6) te = Math.min(te, (POOL.x0 - sx) / dxr);
+    if (dzr > 1e-6) te = Math.min(te, (POOL.z1 - sz) / dzr); else if (dzr < -1e-6) te = Math.min(te, (POOL.z0 - sz) / dzr);
+    f = (h0 + Math.max(0, te)) * inv; const y = cam.y - s * f;
+    const line = Math.abs(((y * 3.3) % 1 + 1) % 1 - .5) > .44;
+    fam = y > -0.4 ? 20 : y > -1.7 ? 14 : 16; b = Math.max(0.2, 0.66 + y * 0.13) * (line ? 0.72 : 1);
+  }
+  const n = Math.sin(sx * 3.1 + ts * 1.1 + Math.sin(sz * 2.3 - ts * 0.8) * 1.6) * Math.sin(sz * 2.7 - ts * 0.9 + Math.sin(sx * 1.9 + ts * 0.6) * 1.4);
+  if (n > 0.6){ fam = n > 0.82 ? 9 : 1; b = 0.7 + n * 0.45; f = d; }                       /* light caught on the surface */
+  else b *= 0.82 + 0.22 * n;
+  depth[idx] = f; setCell(idx, b * (1 / (1 + d * 0.045)), fam);
+}
 function renderSpace(){
   depth.fill(1e9); gi.fill(0); ci.fill(0); ti.fill(0);
+  const tSec = performance.now() / 1000;
   const focal = cols * 0.58;
   const cx0 = cols / 2, cy0 = rows / 2 + cam.pitch * focal * ASPECT;
   const fwdX = -Math.sin(cam.yaw), fwdZ = -Math.cos(cam.yaw);
@@ -2493,7 +2544,7 @@ function renderSpace(){
     const perp = Math.max(0.35, tE * inv);
     const hx = cam.x + dx * tE, hz = cam.z + dz * tE;
     const camInPR = cam.z > LINK_Z && cam.x > PR.x0 && cam.x < PR.x1;
-    const prDim = (kind === 0 && hx > PR.x0 - .01 && hx < PR.x1 + .01 && (hz > LINK_Z + .01 || camInPR && hz > LINK_Z - .01) && hz < PR.z1 + .01) ? .26 : 1;   /* the Pulse Room is dark */
+    const prDim = (kind === 0 && cam.z < PR.z1 && hx > PR.x0 - .01 && hx < PR.x1 + .01 && (hz > LINK_Z + .01 || camInPR && hz > LINK_Z - .01) && hz < PR.z1 + .01) ? .26 : 1;   /* the Pulse Room is dark */
     const fade = 1 / (1 + perp * 0.06);
     const L = lightAt(hx, hz);
 
@@ -2532,6 +2583,10 @@ function renderSpace(){
       if (d <= 0 || d > 95) continue;
       const wx = cam.x + dx * d / inv, wz = cam.z + dz * d / inv;
       const idx = r * cols + c;
+      if (wx > POOL.x0 - COPE && wx < POOL.x1 + COPE && wz > POOL.z0 - COPE && wz < POOL.z1 + COPE){
+        if (wx > POOL.x0 && wx < POOL.x1 && wz > POOL.z0 && wz < POOL.z1){ poolCell(idx, (r - cy0) / vScale, d, dx, dz, inv, tSec); continue; }
+        const L3 = lightAt(wx, wz), joint = Math.abs(((wx + wz) % 0.6 + 0.6) % 0.6 - 0.3) < 0.025;       /* the white stone coping */
+        depth[idx] = d; setCell(idx, (0.62 + L3.v * 0.42) * (joint ? 0.8 : 1) * (1 / (1 + d * 0.045)), 28); continue; }
       const L2 = lightAt(wx, wz);
       const tile = (Math.floor(wx / 2.4) + Math.floor(wz / 2.4)) & 1;
       const seam = (Math.abs(((wx % 2.4) + 2.4) % 2.4 - 1.2) < 0.08 || Math.abs(((wz % 2.4) + 2.4) % 2.4 - 1.2) < 0.08);
@@ -2554,6 +2609,7 @@ function renderSpace(){
       const d = ((roomH - cam.y) / ((cy0 - r) / vScale));
       if (d <= 0 || d > 80) continue;
       const wx = cam.x + dx * d / inv, wz = cam.z + dz * d / inv;
+      if (inCY(wx, wz)){ drawSky(idx, (cy0 - r) / vScale, cam.yaw + camX, c, r, "day"); continue; }
       const coffer = (Math.abs(((wx % 3) + 3) % 3 - 1.5) < 0.16 || Math.abs(((wz % 3) + 3) % 3 - 1.5) < 0.16);
       const oculus = Math.hypot(wx - 12, wz + 5.4) < 3.4;
       let fam = coffer ? 22 : 23, b = (coffer ? 0.26 : 0.12) * (1 / (1 + d * 0.05));
@@ -2640,18 +2696,18 @@ function renderSpace(){
 }
 
 /* ---- the sky, written in glyphs: morning, sunset, night ---- */
-function drawSky(idx, el, az, c, r){
+function drawSky(idx, el, az, c, r, sky = mood.sky){
   const t = Math.min(1, Math.max(0, el * 1.5));           /* 0 at the horizon, 1 overhead */
   const n1 = hash(Math.floor(az * 9), Math.floor(el * 16));
   const n2 = hash(Math.floor(az * 23) + 7, Math.floor(el * 31));
   let fam, b;
-  if (mood.sky === "day"){
+  if (sky === "day"){
     const cloud = Math.sin(az * 3.1 + el * 5) * 0.5 + 0.5;
     const puff = cloud > 0.62 && n1 > 0.3;
     fam = puff ? 9 : (t > 0.55 ? 1 : 8);
     b = (puff ? 1.15 : 0.72 + 0.34 * (1 - t)) * (0.88 + n2 * 0.26);
     if (!puff && n2 > 0.93) { fam = 9; b = 1.0; }                     /* sparkle on the water-lily light */
-  } else if (mood.sky === "dusk"){
+  } else if (sky === "dusk"){
     const band = Math.sin(el * 7.5 + az * 0.6) * 0.5 + 0.5;
     fam = t < 0.22 ? 11 : t < 0.5 ? 10 : (band > 0.6 ? 11 : 15);
     b = (1.15 - t * 0.34) * (0.84 + n1 * 0.4);
@@ -2665,7 +2721,7 @@ function drawSky(idx, el, az, c, r){
   }
   /* the sky keeps its empty black, as in the reference grids */
   const star = fam === 13 || fam === 9;
-  const gap = mood.sky === "night" ? 0.30 : mood.sky === "dusk" ? 0.26 : 0.22;
+  const gap = sky === "night" ? 0.30 : sky === "dusk" ? 0.26 : 0.22;
   if (!star && n2 < gap) return;
   depth[idx] = 900;
   setCell(idx, Math.max(0.3, b), fam);
@@ -2684,6 +2740,10 @@ function drawMinimap(){
   mmx.fillStyle = "rgba(255,255,255,.06)"; mmx.fill();
   mmx.strokeStyle = "rgba(255,255,255,.34)"; mmx.lineWidth = 2; mmx.stroke();
   mmx.fillStyle = "rgba(255,255,255,.06)"; mmx.fillRect(px(PR.x0), pz(PR.z0), (PR.x1 - PR.x0) * sc, (PR.z1 - PR.z0) * sc);      /* the Pulse Room */
+  mmx.fillStyle = "rgba(255,255,255,.04)"; mmx.fillRect(px(CY.x0), pz(CY.z0), (CY.x1 - CY.x0) * sc, (CY.z1 - CY.z0) * sc);      /* the courtyard */
+  mmx.strokeStyle = "rgba(255,255,255,.34)"; mmx.beginPath(); mmx.moveTo(px(CY.x0), pz(CY.z1)); mmx.lineTo(px(CY.x1), pz(CY.z1)); mmx.stroke();
+  mmx.fillStyle = "rgba(90,180,235,.55)"; mmx.fillRect(px(POOL.x0), pz(POOL.z0), (POOL.x1 - POOL.x0) * sc, (POOL.z1 - POOL.z0) * sc);   /* the pool */
+  mmx.clearRect(px(CY.x1) - 2, pz(CY_DOOR.z0), 4, (CY_DOOR.z1 - CY_DOOR.z0) * sc);                                               /* its door */
   mmx.strokeStyle = "rgba(255,255,255,.34)"; mmx.lineWidth = 2; mmx.beginPath(); mmx.moveTo(px(PR.x0), pz(PR.z0)); mmx.lineTo(px(PR.x0), pz(PR.z1)); mmx.lineTo(px(PR.x1), pz(PR.z1)); mmx.lineTo(px(PR.x1), pz(PR.z0)); mmx.stroke();
   mmx.fillStyle = "rgba(255,255,255,.34)";
   mmx.fillRect(px(DWALL.x0), pz(DWALL.z0) - 1.5, (DWALL.x1 - DWALL.x0) * sc, 3);          /* the display wall */
@@ -2734,8 +2794,10 @@ function step(dt){
   }
   /* nearest work */
   let best = null, bd = 5.2;
+  const inCourt = inCY(cam.x, cam.z);                       /* the courtyard keeps to itself: no label through its walls */
   for (const o of WORKS_3D){
-    const d = Math.hypot(cam.x - o.x, cam.z - o.z);
+    if (inCY(o.x, o.z) !== inCourt) continue;
+    const d = Math.hypot(cam.x - o.x, cam.z - o.z) - (o.reach || 0);
     if (d < bd){ bd = d; best = o; }
   }
   if (best !== near3D){
@@ -2764,7 +2826,7 @@ let phoneArrived = false;
 function phoneArrive(){
   if (!PHONE() || phoneArrived) return;
   phoneArrived = true;
-  const pm = W3("pumpkin"); cam.x = pm.x; cam.z = pm.z + 3.8; cam.yaw = look.yaw = 0; cam.pitch = look.pitch = 0; velX = velZ = 0;
+  cam.x = START.x; cam.z = START.z; cam.yaw = look.yaw = START.yaw; cam.pitch = look.pitch = 0; velX = velZ = 0;
 }
 function walkable(x, z){
   const m = 0.55;
@@ -2774,7 +2836,9 @@ function walkable(x, z){
   const inLink = x > ROOM_L.x0 + m && x < ROOM_R.x1 - m && z > RM.z0 + m && z < LINK_Z - m;
   const inPR = x > PR.x0 + m && x < PR.x1 - m && z > PR.z0 + m && z < PR.z1 - m;
   const inDoor = x > PR_DOOR.x0 + .4 && x < PR_DOOR.x1 - .4 && z > PR.z0 - m - .1 && z < PR.z0 + m + .1;
-  if (!(inL || inR || inLink || inPR || inDoor)) return false;
+  const inCourt = x > CY.x0 + m && x < CY.x1 - m && z > CY.z0 + m && z < CY.z1 - m;
+  const inCDoor = z > CY_DOOR.z0 + .4 && z < CY_DOOR.z1 - .4 && x > CY.x1 - m - .1 && x < CY.x1 + m + .1;
+  if (!(inL || inR || inLink || inPR || inDoor || inCourt || inCDoor)) return false;
   if (x < DWALL.x1 + m && z > DWALL.z0 - m && z < DWALL.z1 + m) return false;              /* the display wall */
   for (const [cx, cz] of COLS_POS) if (Math.hypot(x - cx, z - cz) < 1.25) return false;
   for (const o of WORKS_3D){                                                                /* plinths, the tank, the TV tower */
@@ -2870,7 +2934,7 @@ async function enterSpace(){
   if (!OBJ.n) buildWorld();
   /* arrive in the hall, by the lobby, facing the installations */
   cam.x = START.x; cam.z = START.z; cam.yaw = look.yaw = START.yaw; cam.pitch = look.pitch = 0; velX = velZ = 0;
-  if (PHONE()){ const pm = W3("pumpkin"); cam.x = pm.x; cam.z = pm.z + 3.8; phoneArrived = true; }   /* a phone arrives at a work */
+  if (PHONE()) phoneArrived = true;                /* a phone arrives at the same spot: no label in the way, free to walk */
   settleStart = performance.now();                 /* static first, then the room */
   running = true; lastT = performance.now(); requestAnimationFrame(frame);
   SFX.settle();
