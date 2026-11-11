@@ -79,6 +79,18 @@ body.making #hint{display:none;}
 .emo{position:absolute;bottom:100%;font-size:24px;opacity:0;}
 .emo.go{animation:emo 1.8s ease-out forwards;}
 @keyframes emo{0%{opacity:0;transform:translateY(10px) scale(.6)}20%{opacity:1;transform:translateY(-6px) scale(1.1)}100%{opacity:0;transform:translateY(-46px) scale(1)}}
+.seat{position:absolute;left:0;top:0;width:52px;height:30px;padding:0;border:0;background:none;pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent;will-change:transform;}
+.seat::before{content:"";position:absolute;left:9px;top:8px;width:30px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.96);background:rgba(255,255,255,.3);
+  box-shadow:0 0 12px rgba(255,255,255,.75);animation:seatP 1.7s ease-in-out infinite;}
+.seat:hover::before{background:rgba(255,255,255,.6);}
+@keyframes seatP{50%{transform:scale(1.14);opacity:.7;}}
+#sitb{position:absolute;left:0;top:0;display:none;align-items:center;gap:7px;padding:8px 14px 8px 12px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:#25231c;
+  font:600 12.5px/1 inherit;font-family:inherit;white-space:nowrap;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);pointer-events:auto;cursor:pointer;will-change:transform;}
+#sitb.on{display:flex;}
+#sitb.fix{position:fixed;left:50%;top:auto;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) !important;}
+#sitb:hover{background:#fff;}
+#sitb kbd{font:600 10px/1 "JetBrains Mono",monospace;padding:3px 5px;border-radius:5px;background:rgba(37,35,28,.09);color:#5a5648;}
+@media (hover:none){ #sitb kbd{display:none;} }
 .wl{position:absolute;left:0;top:0;padding:5px 10px;border-radius:9px;background:rgba(22,21,15,.82);color:#fff;font-size:11.5px;font-weight:600;white-space:nowrap;}
 
 #log{position:fixed;left:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:6;display:flex;flex-direction:column;align-items:flex-start;gap:4px;pointer-events:none;max-width:min(320px,60vw);}
@@ -1161,7 +1173,7 @@ function moveMe(dt){
   if (il > .08) goal = null;                                                               /* keys or the stick take over */
   else if (goal && !making){                                                               /* walking to where you clicked */
     const dx = goal.x - me.x, dz = goal.z - me.z, d = Math.hypot(dx, dz);
-    if (goal.seat && (d < .3 || goal.stuck > .45 && d < 1.2)){ const st = goal.seat; goal = null; sitBench(st); }
+    if (goal.seat && (d < .3 || goal.stuck > .3 && d < 2.2)){ const st = goal.seat; goal = null; sitBench(st); }
     else if (d < .18 || goal.stuck > .45){ goal = null; }
     else { vx = dx / d; vz = dz / d; il = Math.min(1, d / .35); goal.last = [me.x, me.z]; } }
   const speed = (keys.ShiftLeft || keys.ShiftRight || il > .95 && joy.on && Math.hypot(joy.x, joy.y) > .97 || goal && goal.run) ? 5 : 3;
@@ -1170,10 +1182,11 @@ function moveMe(dt){
     if (me.sit){ me.sit = false; me.bench = false; }
     const s = speed * dt * Math.min(1, il);
     const nx = me.x + vx * s, nz = me.z + vz * s;
-    let f = floorAt(nx, nz, me.y);
+    const inB = Math.abs(me.y) < .3 && onBench(me.x, me.z, .14) >= 0, blk = (x, z) => !inB && Math.abs(me.y) < .3 && onBench(x, z, .14) >= 0;   /* benches are solid — but you can always step off one */
+    let f = blk(nx, nz) ? null : floorAt(nx, nz, me.y);
     if (f !== null){ me.x = nx; me.z = nz; }
-    else if ((f = floorAt(nx, me.z, me.y)) !== null) me.x = nx;
-    else if ((f = floorAt(me.x, nz, me.y)) !== null) me.z = nz;
+    else if (!blk(nx, me.z) && (f = floorAt(nx, me.z, me.y)) !== null) me.x = nx;
+    else if (!blk(me.x, nz) && (f = floorAt(me.x, nz, me.y)) !== null) me.z = nz;
     me.r += wrap(Math.atan2(vx, vz) - me.r) * Math.min(1, dt * 12);
     me.ph += s * 5.2; me.mv = lerp(me.mv, clamp(speed * Math.min(1, il) / 3, 0, 1.35), Math.min(1, dt * 8));
     stepAcc += s; if (stepAcc > .62){ stepAcc = 0; AUD.step(me.y < -1.4); }
@@ -1189,12 +1202,54 @@ function walkTo(cx, cy, run){
   const f = norm(sub(camTgt, camPos)), r = norm(cross(f, [0, 1, 0])), u = cross(r, f), th = Math.tan(fov / 2);
   const nx = (cx / innerWidth) * 2 - 1, ny = 1 - (cy / innerHeight) * 2;
   const d = norm(add(f, add(mul(r, nx * th * W / H), mul(u, ny * th))));
-  const y0 = me.y; if (Math.abs(d[1]) < 1e-4) return; const t = (y0 - camPos[1]) / d[1]; if (t <= 0 || t > 80) return;
-  const gx = camPos[0] + d[0] * t, gz = camPos[2] + d[2] * t;
-  const bi = Math.abs(y0) < .3 ? onBench(gx, gz, .25) : -1, st = bi >= 0 ? seatNear(gx, gz, 3, bi) : null;
-  if (st){ goal = { x:st.x + Math.sin(st.r) * .55, z:st.z + Math.cos(st.r) * .55, y:0, stuck:0, last:null, run:!!run, seat:st }; }   /* a bench: walk up to it and sit */
+  const y0 = me.y;
+  let hb = null;                                                                                   /* the pointer on a bench: the nearest free seat on it */
+  if (Math.abs(y0) < .3) BENCHES.forEach(([bx, bz, ax], i) => { const hw = (ax ? .95 : .24) + .1, hd = (ax ? .24 : .95) + .1, tb = rayBox(camPos, d, [bx - hw, 0, bz - hd], [bx + hw, .52, bz + hd]);
+    if (tb !== null && (!hb || tb < hb.t)) hb = { t:tb, i, x:camPos[0] + d[0] * tb, z:camPos[2] + d[2] * tb }; });
+  const t = Math.abs(d[1]) < 1e-4 ? -1 : (y0 - camPos[1]) / d[1];
+  if (!hb && (t <= 0 || t > 80)) return;
+  const gx = hb ? hb.x : camPos[0] + d[0] * t, gz = hb ? hb.z : camPos[2] + d[2] * t;
+  const bi = hb ? hb.i : Math.abs(y0) < .3 ? onBench(gx, gz, .25) : -1, st = bi >= 0 ? seatNear(gx, gz, 3, bi) : null;
+  if (st){ goSit(st, run); return; }                                                               /* a bench: walk up to it and sit */
+  else if (bi >= 0){ hint(T({ en:"That bench is full", ko:"그 벤치는 자리가 다 찼어요" })); return; }
   else goal = { x:gx, z:gz, y:y0, stuck:0, last:null, run:!!run };
   const el = $("goal"); el.classList.remove("go"); void el.offsetWidth; el.classList.add("go"); AUD.click();
+}
+const rayBox = (o, d, lo, hi) => { let t0 = 0, t1 = 1e9;
+  for (let k = 0; k < 3; k++){ if (Math.abs(d[k]) < 1e-9){ if (o[k] < lo[k] || o[k] > hi[k]) return null; continue; }
+    let a = (lo[k] - o[k]) / d[k], b = (hi[k] - o[k]) / d[k]; if (a > b){ const c = a; a = b; b = c; }
+    t0 = Math.max(t0, a); t1 = Math.min(t1, b); if (t0 > t1) return null; }
+  return t0; };
+/* walk round to the front of a seat, then sit; close enough already, sit now */
+function goSit(st, run){
+  if (making || !inWorld || Math.abs(me.y) > .3) return;
+  const fx = st.x + Math.sin(st.r) * .55, fz = st.z + Math.cos(st.r) * .55;
+  if (Math.hypot(fx - me.x, fz - me.z) < .35 || Math.hypot(st.x - me.x, st.z - me.z) < .5){ sitBench(st); return; }
+  goal = { x:fx, z:fz, y:0, stuck:0, last:null, run:!!run, seat:st };
+  const el = $("goal"); el.classList.remove("go"); void el.offsetWidth; el.classList.add("go"); AUD.click();
+}
+function standUp(){ if (!me.sit) return; me.sit = false; me.bench = false; me.et = Date.now(); syncBar(); AUD.click(); }
+const seatFree = (st) => { for (const a of PEERS.values()) if (a.sit && Math.hypot(a.x - st.x, a.z - st.z) < .3) return false; return true; };
+/* near a bench: a ring on every free seat, and a button over the nearest — or, sitting, one to stand */
+const SEAT_EL = [];
+function updateSeats(){
+  const on = inWorld && !making && Math.abs(me.y) < .3 && camPos[1] > -.05;
+  let n = 0, near = null, nd = 2.4;
+  if (on && !me.sit) for (const st of SEATS){ const dd = Math.hypot(st.x - me.x, st.z - me.z); if (dd > 7 || !seatFree(st)) continue;
+    const q = project([st.x, .5, st.z]); if (!q) continue;
+    if (dd < nd){ nd = dd; near = st; }
+    let el = SEAT_EL[n]; if (!el){ el = SEAT_EL[n] = document.createElement("button"); el.type = "button"; el.className = "seat"; el.onclick = () => goSit(el._st); $("tags").appendChild(el); }
+    el._st = st; el.setAttribute("aria-label", T({ en:"Sit here", ko:"여기 앉기" })); el.style.display = "";
+    el.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -50%) scale(${clamp(6.5 / q[2], .55, 1.35).toFixed(3)})`; n++; }
+  for (let i = n; i < SEAT_EL.length; i++) SEAT_EL[i].style.display = "none";
+  let b = $("sitb");
+  if (!b){ b = document.createElement("button"); b.id = "sitb"; b.type = "button"; b.innerHTML = "<span></span><kbd>E</kbd>"; $("tags").appendChild(b);
+    b.onclick = () => { if (me.sit) standUp(); else if (b._st) goSit(b._st); }; }
+  const sitting = on && me.sit && me.bench, q = sitting ? [0, 0, 1] : on && near ? project([near.x, .78, near.z]) : null;
+  b.classList.toggle("on", !!q); b.classList.toggle("fix", sitting); if (!q) return;
+  b._st = near; const lab = T(sitting ? { en:"Stand up", ko:"일어서기" } : { en:"Sit here", ko:"여기 앉기" });
+  if (b.firstChild.textContent !== lab) b.firstChild.textContent = lab;
+  if (!sitting) b.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`;
 }
 /* the nearest free seat — nobody already sitting on it */
 function seatNear(x, z, rad, onlyBench){
@@ -1671,6 +1726,7 @@ window.addEventListener("keydown", e => {
   if (e.key === "Escape"){ closePops(); document.body.classList.remove("about"); return; }
   keys[e.code] = true;
   if (e.code === "Space"){ e.preventDefault(); jump(); }
+  if (e.code === "KeyE" && inWorld && !making && !e.repeat){ if (me.sit) standUp(); else { const st = Math.abs(me.y) < .3 && seatNear(me.x, me.z, 2.4); if (st) goSit(st); } }
   if (e.code === "Enter" && inWorld && !making){ e.preventDefault(); openSay(); }
   if (/^Arrow/.test(e.code)) e.preventDefault();
 });
@@ -1784,7 +1840,7 @@ function frame(now){
   const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; const t = now / 1000;
   moveMe(dt); stepPeers(dt); stepNpcs(dt); placeCamera(dt);
   if (me.emote && now - me.et0 > 4200) me.emote = "";
-  render(t, now); updateTags(now); maybeSend();
+  render(t, now); updateTags(now); updateSeats(); maybeSend();
   { const el = $("goal"), p = goal && inWorld && !making ? project([goal.x, goal.y + .02, goal.z]) : null;           /* where you are walking to */
     if (p){ const k = clamp(9 / p[2], .45, 1.6); el.style.transform = `translate(${p[0]}px, ${p[1]}px) translate(-50%, -50%) scale(${k})`; el.classList.add("on"); } else el.classList.remove("on"); }
   const z = zoneOf(me.x, me.y, me.z);
@@ -1810,7 +1866,7 @@ function about(){
   [{ en:"Make a character and pick one of two servers — up to twenty people share each", ko:"캐릭터를 꾸미고 두 서버 중 하나를 골라요 — 서버마다 20명까지 함께해요" },
    { en:"Click the ground to walk there (shift-click to run) — or WASD, the arrows, the joystick on a phone; drag to look round, scroll to zoom", ko:"바닥을 클릭하면 그곳까지 걸어가요(Shift+클릭은 달리기) — WASD·방향키·휴대폰 조이스틱도 돼요. 드래그로 둘러보고, 휠로 거리를 바꿔요" },
    { en:"Take the stairs by the pool down: through the water the people above are blurred, and the sound turns to water", ko:"수영장 옆 계단으로 내려가면 물결 너머로 위의 사람들이 흐릿하게 보이고, 물속 소리가 들려요" },
-   { en:"Talk (Enter), wave, bow, jump, dance or sit — click a bench and you walk over and sit on it", ko:"말하기(Enter), 손 흔들기·인사·점프·춤·앉기로 만나요 — 벤치를 누르면 걸어가서 앉아요" }]
+   { en:"Talk (Enter), wave, bow, jump, dance or sit — near a bench every free seat shows a ring: click it, or press E, to sit", ko:"말하기(Enter), 손 흔들기·인사·점프·춤·앉기로 만나요 — 벤치 가까이 가면 빈자리에 동그라미가 떠요. 누르거나 E 키로 앉아요" }]
     .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); ol.appendChild(li); });
   const lab = { wave:{ en:"Wave", ko:"손 흔들기" }, bow:{ en:"Bow", ko:"인사" }, jump:{ en:"Jump", ko:"점프" }, dance:{ en:"Dance", ko:"춤" }, sit:{ en:"Sit", ko:"앉기" }, heart:{ en:"Heart", ko:"하트" } };
   document.querySelectorAll("#pop-emo [data-e]").forEach(b => { b.querySelector(".lb").textContent = T(lab[b.dataset.e]); });
