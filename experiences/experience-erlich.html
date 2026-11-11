@@ -448,7 +448,7 @@ const HAIRC = [[.17, .13, .12], [.38, .24, .16], [.74, .54, .32], [.94, .8, .45]
 const TOPC = [[.58, .75, .8], [.96, .8, .32], [.96, .57, .52], [.67, .84, .62], [.8, .68, .92], [.97, .96, .93], [.37, .43, .56], [1, .64, .42]];
 const BOTC = [[.25, .3, .37], [.92, .9, .86], [.52, .66, .78], [.86, .72, .56], [.43, .57, .45], [.2, .2, .23]];
 const LOOK_KEYS = ["sk", "hs", "hc", "st", "tc", "bc", "ac", "fa"];
-const LOOK_N = { sk:SKIN.length, hs:6, hc:HAIRC.length, st:6, tc:TOPC.length, bc:BOTC.length, ac:6, fa:7 };
+const LOOK_N = { sk:SKIN.length, hs:9, hc:HAIRC.length, st:6, tc:TOPC.length, bc:BOTC.length, ac:6, fa:7 };
 const lookArr = (L) => LOOK_KEYS.map(k => L[k]);
 const lookFrom = (a) => { const L = {}; LOOK_KEYS.forEach((k, i) => { const v = Array.isArray(a) ? a[i] : 0; L[k] = Number.isInteger(v) && v >= 0 && v < LOOK_N[k] ? v : 0; }); return L; };
 const lookKey = (L) => lookArr(L).join(".");
@@ -621,43 +621,95 @@ function buildAvatar(L){
   F = M1; oval(0, HEAD - .156, .03, .03, .006, mouthIn); oval(0, HEAD - .174, .018, .01, .01, [.96, .52, .55], 0, 0, Math.PI);      /* talking */
   F = M2; oval(0, HEAD - .148, .05, .044, .006, mouthIn, 0, Math.PI, Math.PI * 2); oval(0, HEAD - .184, .027, .017, .01, [.96, .52, .55], 0, 0, Math.PI);   /* laughing */
   F = B;
-  /* ---- hair: smooth, with a blunt fringe ---- */
+  /* ---- hair: one smooth shell over the head with a real hairline — clear of the ears, a point in front
+     of each, down to the nape — and then what each style is made of: thick rounded locks for the fringe,
+     a hanging bob, buns, braids, tails, spikes ---- */
   const hp = (a, y, o) => { const kh = Math.sqrt(Math.max(0, 1 - ((y - HEAD) / HR[1]) ** 2)), kc = Math.sqrt(Math.max(0, 1 - ((y - CAP[1]) / CR[1]) ** 2));
     const h = [Math.sin(a) * HR[0] * kh, Math.cos(a) * HR[2] * kh], c = [Math.sin(a) * CR[0] * kc, CAP[2] + Math.cos(a) * CR[2] * kc], p = Math.hypot(h[0], h[1]) > Math.hypot(c[0], c[1]) ? h : c;
     return [p[0] + Math.sin(a) * o, y, p[1] + Math.cos(a) * o]; };
   const at = (a, y, r) => [Math.sin(a) * r, y, Math.cos(a) * r];
   const HC = [0, HEAD - .1, -.05];
-  /* the fringe, with the hair down by the cheeks: cut(a) is where it ends, sweep turns it to one side */
-  const fringe = (aMax, cut, sweep) => { const G = [], C = 30, R = 8;
-    for (let r = 0; r <= R; r++){ const t = r / R, row = [];
-      for (let j = 0; j <= C; j++){ const a0 = -aMax + 2 * aMax * j / C, a = a0 + (sweep || 0) * t * Math.cos(a0), y = lerp(HEAD + .38, cut(a0), t);
-        row.push(hp(a, y, lerp(-.03, .03, Math.min(1, t * 1.6)))); }
+  /* a point lifted off the head along its normal: azimuth a (0 = the face), polar angle th (0 = the crown) */
+  const PT = (a, th, lift) => { const sr = Math.sin(th), x = Math.sin(a) * HR[0] * sr, z = Math.cos(a) * HR[2] * sr, y = HEAD + HR[1] * Math.cos(th);
+    const n = norm([x / (HR[0] * HR[0]), (y - HEAD) / (HR[1] * HR[1]), z / (HR[2] * HR[2])]);
+    return [x + n[0] * lift, y + n[1] * lift, z + n[2] * lift]; };
+  const thAt = (y) => Math.acos(clamp((y - HEAD) / HR[1], -1, 1));
+  const PL = (a, y, lift) => PT(a, thAt(y), lift);
+  const table = (T) => (a) => { const A = Math.abs(((a + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI);
+    for (let i = 1; i < T.length; i++) if (A <= T[i][0]){ const u = sstep(0, 1, (A - T[i - 1][0]) / (T[i][0] - T[i - 1][0])); return HEAD + lerp(T[i - 1][1], T[i][1], u); }
+    return HEAD + T[T.length - 1][1]; };
+  /* hairlines, by azimuth: the forehead (under the fringe), the temple, a point in front of the ear, over the ear, the nape */
+  const SHORT = [[0, .17], [.86, .17], [1.0, .08], [1.18, .02], [1.31, -.075], [1.41, .02], [1.54, .085], [1.68, .1], [1.84, .075], [2.02, .01], [2.45, -.12], [Math.PI, -.19]];
+  const UP = [[0, .21], [.7, .2]].concat(SHORT.slice(2));
+  const TIED = [[0, .17], [.86, .17], [1.0, .08], [1.18, .03], [1.31, -.04], [1.41, .03], [1.54, .09], [1.68, .11], [1.84, .09], [2.02, .04], [2.45, -.06], [Math.PI, -.12]];
+  const BOB = [[0, .17], [.84, .17], [.96, .02], [1.08, -.25], [1.3, -.31], [Math.PI, -.31]];
+  const shell = (line, thick, hang) => { const C = 80, R = 16, G = [];
+    for (let r = 0; r <= R + 1; r++){ const row = [];
+      for (let j = 0; j <= C; j++){ const a = j / C * Math.PI * 2, yl = line(a), u = Math.min(1, r / R), th = thAt(yl) * u;
+        let p = r > R ? PL(a, yl + .006, -.005) : PT(a, th, (thick + .02 * (1 - u) * (1 - u)) * (1 - sstep(.7, 1, u)) + .005);
+        if (hang && p[1] < HEAD + .03){                                                                     /* below the ear it hangs, then turns under */
+          const rr = Math.hypot(p[0], p[2]) || 1, f = sstep(HEAD + .03, HEAD - .08, p[1]);
+          const want = r > R ? hang - .06 : hang * (1 - .1 * sstep(.78, 1, u)), to = lerp(rr, Math.max(rr, want), f);
+          p = [p[0] * to / rr, p[1], p[2] * to / rr]; }
+        row.push(p); }
       G.push(row); }
-    G.push(G[R].map((p, j) => { const a0 = -aMax + 2 * aMax * j / C, a = a0 + (sweep || 0) * Math.cos(a0); return hp(a, p[1] + .006, -.01); }));
-    B.grid(G, hc, HAIR, HC); };
-  const blunt = (sideLen, h) => (a) => HEAD + (h || .085) + .02 * a * a - sstep(.98, 1.16, Math.abs(a)) * (sideLen + .1 + (h || .085));
-  /* hair down the sides and back: rows of [y, r] — r 0 follows the head, a negative r turns the edge inwards */
-  const shell = (rows) => { const G = [], C = 30, a0 = .98, a1 = Math.PI * 2 - .98;
-    for (const [y, r] of rows){ const row = [];
-      for (let j = 0; j <= C; j++){ const a = lerp(a0, a1, j / C), s = hp(a, y, .014);
-        row.push(r === 0 ? s : r < 0 ? at(a, y, -r) : at(a, y, Math.max(Math.hypot(s[0], s[2]), r))); }
-      G.push(row); }
-    B.grid(G, hc, HAIR, HC); };
-  if (L.hs >= 1) B.ell(CAP, CR[0], CR[1], CR[2], hc, HAIR, 48);
-  if (L.hs === 0){                                                                                             /* a crop: short at the sides, the front brushed up */
-    B.ell([0, HEAD + .15, -.06], .4, .29, .39, hc, HAIR, 48);
-    B.ell([0, HEAD + .36, .08], .3, .13, .22, hc, HAIR, 32);
-    for (const x of [-.16, 0, .15]) B.strand([[x, HEAD + .41, .25], [x, HEAD + .48, .11], [x * .92, HEAD + .48, -.06], [x * .8, HEAD + .43, -.22]], [.055, .06, .05, .01], [.022, .026, .02, .006], [1, 0, 0], hc, HAIR, 10);
-    for (const s of [-1, 1]) B.ell([.365 * s, HEAD + .09, -.05], .05, .1, .12, hc, HAIR, 14); }
-  if (L.hs === 1){ fringe(1.42, (a) => blunt(.02, .11 + .03 * a)(a), .22); }                                   /* short, swept to one side */
-  if (L.hs === 2){ fringe(1.1, blunt(.05)); shell([[HEAD + .33, 0], [HEAD + .2, 0], [HEAD + .08, 0], [HEAD - .03, .46], [HEAD - .15, .472], [HEAD - .24, .46], [HEAD - .285, .43], [HEAD - .27, -.37]]); }
-  if (L.hs === 3){ fringe(1.42, blunt(.0)); B.ell([0, HEAD + .44, -.1], .17, .16, .17, hc, HAIR, 28); B.torus([0, HEAD + .32, -.09], .09, .026, tc, M, 20, 8); }
-  if (L.hs === 4){ fringe(1.1, blunt(.12)); shell([[HEAD + .33, 0], [HEAD + .2, 0], [HEAD + .08, 0], [HEAD - .06, .455], [HEAD - .22, .44], [.88, .405], [.76, .395], [.66, .39], [.6, .37], [.61, -.3]]); }
-  if (L.hs === 5){
-    for (let i = 0; i < 24; i++){ const a = i * 2.39996, v = i / 24, y = HEAD + .44 - v * .5; if (Math.cos(a) > .55 && y < HEAD + .28) continue;
-      const r = .1 + (i % 3) * .015; B.ell(hp(a, y, .02), r, r * .92, r, hc, HAIR, 18); }
-    for (let i = -3; i <= 3; i++){ const a = i * .27, y = HEAD + .2 - Math.abs(i) * .022; B.ell(hp(a, y, .01), .075, .068, .065, hc, HAIR, 16); }
-  }
+    B.grid(G, hc, HAIR, HC); return G; };
+  /* a thick lock: from the crown down to its tip, lying on the hair and then on the forehead */
+  const lock = (a0, a1, yTip, w, tip, top) => { const ts = [0, .2, .4, .6, .76, .9, 1], ws = [.72, .9, 1, 1, .94, .78, tip], tk = [.022, .028, .032, .032, .03, .025, .017];
+    const P = ts.map(t => PL(lerp(a0, a1, t * t), lerp(top || HEAD + .3, yTip, t), lerp(.054, .021, sstep(.3, 1, t))));
+    B.strand(P, ws.map(v => v * w), tk, [Math.cos(a1), 0, -Math.sin(a1)], hc, HAIR, 12); };
+  const fringe = (L4) => L4.forEach(([a0, a1, y, w, tip]) => lock(a0, a1, HEAD + y, w, tip));
+  const roll = (P, r) => B.strand(P, P.map((_, i) => r * (i === P.length - 1 ? .6 : 1)), P.map((_, i) => r * (i === P.length - 1 ? .6 : 1)), [0, 1, 0], hc, HAIR, 10);
+  const tieAt = (p, n) => B.torus(p, .042, .016, tc, M, 16, 6);
+  const S = L.hs;
+  if (S === 0){                                                                                                 /* swept up: forehead clear, the front lifted back over the crown */
+    shell(table(UP), .045);
+    for (const a of [-.48, -.16, .16, .48]){ const P = [], W = [], T = [];
+      [[a, 1.0, .02], [a * .96, .8, .072], [a * .9, .56, .088], [a * .85, .32, .084], [a * .8, .1, .074], [Math.PI - a * .7, .2, .062], [Math.PI - a * .6, .42, .052]]
+        .forEach(([aa, th, lf], i) => { P.push(PT(aa, th, lf)); W.push(.105 * [.8, 1, 1, 1, .95, .85, .6][i]); T.push(.03); });
+      B.strand(P, W, T, [Math.cos(a), 0, -Math.sin(a)], hc, HAIR, 12); } }
+  if (S === 1){                                                                                                 /* short, parted, swept to one side */
+    shell(table(SHORT), .05);
+    fringe([[-.62, -.5, .14, .09, .3], [-.36, -.18, .11, .1, .32], [-.08, .12, .095, .105, .34], [.2, .42, .1, .1, .32], [.5, .72, .12, .095, .3], [.78, .92, .1, .07, .3]]); }
+  if (S === 2){                                                                                                 /* a bob, hanging to the jaw, a blunt fringe */
+    const G = shell(table(BOB), .05, .435);
+    fringe([[-.78, -.8, .085, .09, .72], [-.47, -.48, .08, .095, .72], [-.16, -.16, .078, .095, .72], [.16, .16, .078, .095, .72], [.47, .48, .08, .095, .72], [.78, .8, .085, .09, .72]]);
+    for (const j of [Math.round(.97 / (Math.PI * 2) * 80), Math.round((1 - .97 / (Math.PI * 2)) * 80)]) roll(G.slice(6, -1).map(row => row[j]), .016); }
+  if (S === 3){                                                                                                 /* a big bun on top */
+    shell(table(TIED), .045);
+    fringe([[-.72, -.74, .1, .09, .5], [-.42, -.43, .09, .095, .5], [-.13, -.13, .085, .095, .5], [.15, .15, .085, .095, .5], [.44, .45, .09, .095, .5], [.73, .75, .1, .09, .5]]);
+    B.ell([0, HEAD + .49, -.07], .17, .16, .17, hc, HAIR, 32); B.torus([0, HEAD + .37, -.06], .1, .028, tc, M, 22, 8); }
+  if (S === 4){                                                                                                 /* long, parted in the middle */
+    const G = shell(table(BOB), .05, .435);
+    fringe([[-.05, -.3, .13, .1, .45], [-.32, -.58, .1, .1, .45], [-.6, -.84, .06, .09, .45], [.05, .3, .13, .1, .45], [.32, .58, .1, .1, .45], [.6, .84, .06, .09, .45]]);
+    const C2 = 48, a0 = 1.2, a1 = Math.PI * 2 - 1.2, ys = [HEAD - .16, HEAD - .3, .9, .82, .74, .68, .67], rs = [.445, .45, .415, .39, .38, .365, .335], G2 = [];
+    ys.forEach((y, i) => { const row = []; for (let j = 0; j <= C2; j++){ const a = lerp(a0, a1, j / C2), back = Math.max(0, -Math.cos(a));
+      const q = at(a, y + (i === ys.length - 1 ? .03 : 0), rs[i]); row.push([q[0], q[1], q[2] - back * .04 * (i > 1 ? 1 : 0)]); } G2.push(row); });
+    B.grid(G2, hc, HAIR, [0, .95, -.05]);
+    for (const j of [0, C2]) roll(G2.slice(0, -2).map(row => row[j]), .018); }
+  if (S === 5){                                                                                                 /* curls all over */
+    shell(table(SHORT), .04);
+    for (let i = 0; i < 46; i++){ const a = i * 2.39996, th = .15 + 1.95 * Math.sqrt((i + .5) / 46), y = HEAD + HR[1] * Math.cos(th);
+      if (y < table(SHORT)(a) + .03 || (Math.cos(a) > .5 && y < HEAD + .2)) continue;
+      const r = .072 + (i % 3) * .012; B.ell(PT(a, th, .05), r, r * .92, r, i % 4 ? hc : SHADE(hc, .92), HAIR, 18); }
+    for (let i = -4; i <= 4; i++) B.ell(PL(i * .21, HEAD + .19 - Math.abs(i) * .015, .04), .06, .056, .05, hc, HAIR, 16); }
+  if (S === 6 || S === 7){                                                                                      /* in two: plaits, or bunches */
+    shell(table(TIED), .045);
+    fringe([[-.72, -.74, .1, .09, .55], [-.42, -.43, .09, .095, .55], [-.13, -.13, .085, .095, .55], [.15, .15, .085, .095, .55], [.44, .45, .09, .095, .55], [.73, .75, .1, .09, .55]]);
+    for (const s of [-1, 1]){
+      if (S === 6){ const t0 = PL(1.95 * s, HEAD - .1, .05);                                                    /* a plait behind each ear */
+        for (let k = 0; k < 6; k++){ const y = t0[1] - .02 - k * .075, x = t0[0] + s * (.02 + k * .006), z = t0[2] + .02 + k * .012, sw = (k % 2 ? 1 : -1) * .014;
+          B.ell([x + sw, y, z], .05, .052, .05, k % 2 ? hc : SHADE(hc, .94), HAIR, 16); }
+        const end = [t0[0] + s * .056, t0[1] - .47, t0[2] + .1]; tieAt(end); B.strand([end, [end[0], end[1] - .05, end[2]], [end[0], end[1] - .1, end[2] + .01]], [.04, .045, .012], [.04, .045, .012], [1, 0, 0], hc, HAIR, 10); }
+      else { const t0 = PL(1.66 * s, HEAD + .15, .06); tieAt(t0);                                               /* a bunch at each side, above the ear */
+        B.strand([t0, [t0[0] + s * .09, t0[1] + .035, t0[2] - .01], [t0[0] + s * .19, t0[1] + .0, t0[2] - .02], [t0[0] + s * .24, t0[1] - .11, t0[2] - .02], [t0[0] + s * .23, t0[1] - .22, t0[2] - .01], [t0[0] + s * .18, t0[1] - .29, t0[2]]],
+                 [.07, .1, .11, .095, .065, .014], [.07, .095, .1, .088, .06, .014], [0, 1, 0], hc, HAIR, 14); } } }
+  if (S === 8){                                                                                                 /* spiky */
+    shell(table(SHORT), .05);
+    fringe([[-.6, -.66, .12, .09, .12], [-.3, -.33, .1, .095, .12], [0, 0, .09, .1, .12], [.3, .33, .1, .095, .12], [.6, .66, .12, .09, .12]]);
+    [[.1, .5, .1], [-.32, .55, .09], [.5, .6, .085], [-.05, .2, .1], [.36, .25, .09], [-.42, .3, .09], [1.1, .7, .08], [-1.1, .7, .08], [1.9, .62, .08], [-1.9, .62, .08], [2.6, .45, .09], [-2.6, .45, .09], [Math.PI, .22, .1]].forEach(([a, th, len]) => {
+      const b = PT(a, th, .03), n = norm(sub(PT(a, th, .1), b)), d = norm(add(mul(n, .8), [-Math.sin(a) * .5, .25, -Math.cos(a) * .9])), tipP = add(b, mul(d, len));
+      B.strand([b, add(b, add(mul(d, len * .5), mul(n, .012))), tipP], [.085, .06, .007], [.065, .046, .007], [Math.cos(a), 0, -Math.sin(a)], hc, HAIR, 10); }); }
   /* ---- the extra ---- */
   const shiftZ = (from, dz) => { for (let i = from; i < B.v.length; i += ST) B.v[i + 2] += dz; };
   if (L.ac === 1){ const straw = [.93, .8, .52], n0 = B.v.length;
@@ -1314,7 +1366,7 @@ const HINTS = {
 const LOOK_UI = [
   { k:"fa", lab:{ en:"Face", ko:"표정" }, names:[{ en:"Round eyes", ko:"동글 눈" }, { en:"Calm", ko:"평온" }, { en:"Sparkly", ko:"초롱 눈" }, { en:"Dots", ko:"점 눈" }, { en:"Cat-eye", ko:"새침 눈" }, { en:"Dazed", ko:"멍한 눈" }, { en:"Gentle", ko:"순한 눈" }] },
   { k:"sk", lab:{ en:"Skin", ko:"피부" }, cols:SKIN },
-  { k:"hs", lab:{ en:"Hair", ko:"머리 모양" }, names:[{ en:"Quiff", ko:"업스타일" }, { en:"Short", ko:"짧은 머리" }, { en:"Bob", ko:"단발" }, { en:"Bun", ko:"똥머리" }, { en:"Long", ko:"긴 머리" }, { en:"Curly", ko:"곱슬" }] },
+  { k:"hs", lab:{ en:"Hair", ko:"머리 모양" }, names:[{ en:"Swept up", ko:"업스타일" }, { en:"Short", ko:"짧은 머리" }, { en:"Bob", ko:"단발" }, { en:"Bun", ko:"똥머리" }, { en:"Long", ko:"긴 머리" }, { en:"Curly", ko:"곱슬" }, { en:"Plaits", ko:"땋은 양갈래" }, { en:"Bunches", ko:"양갈래" }, { en:"Spiky", ko:"삐죽 머리" }] },
   { k:"hc", lab:{ en:"Hair colour", ko:"머리 색" }, cols:HAIRC },
   { k:"st", lab:{ en:"Outfit", ko:"옷" }, names:[{ en:"T-shirt", ko:"티셔츠" }, { en:"Dress", ko:"원피스" }, { en:"Hoodie", ko:"후드" }, { en:"Swimsuit", ko:"수영복" }, { en:"Aloha shirt", ko:"하와이안 셔츠" }, { en:"Dungarees", ko:"멜빵바지" }] },
   { k:"tc", lab:{ en:"Top", ko:"상의 색" }, cols:TOPC },
