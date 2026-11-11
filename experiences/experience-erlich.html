@@ -1295,7 +1295,11 @@ function placeCamera(dt){
       shared store, or (with none) this device alone
    ========================================================================== */
 const MAX = 20;
-const MY_ID = (() => { try { return crypto.getRandomValues(new Uint32Array(3)).reduce((s, v) => s + v.toString(36), "").slice(0, 16); } catch (_){ return Math.random().toString(36).slice(2, 14); } })();
+const ID_KEY = "lam-pool-id";
+const MY_ID = (() => { let id = null;                                                    /* this tab's id: kept while away, handed back on return — so you never meet your own ghost */
+  try { id = sessionStorage.getItem(ID_KEY); sessionStorage.removeItem(ID_KEY); } catch (_){}   /* taken out while in use: a duplicated tab gets its own */
+  if (id && /^[a-z0-9]{8,16}$/.test(id)) return id;
+  try { return crypto.getRandomValues(new Uint32Array(3)).reduce((s, v) => s + v.toString(36), "").slice(0, 16); } catch (_){ return Math.random().toString(36).slice(2, 14); } })();
 const NET = { be:null, kind:"solo", srv:0, counts:[0, 0], ready:false, err:"" };
 const owners = () => { const w = [window]; try { if (window.parent && window.parent !== window) w.push(window.parent); } catch (_){} return w; };
 const withTimeout = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error("timeout")), ms))]);
@@ -1353,14 +1357,18 @@ async function rtdbBackend(cfg, R){
 /* the museum's shared store (Firestore, or claude.ai's own): slower, so fewer, fuller updates */
 function storeBackend(db){
   const col = db.collection("poolLive"); let all = [], lobbyCb = null, peerCb = null, srv = 0, cleaned = 0;
-  const fresh = (p) => Math.abs(Date.now() - (p.st.t || 0)) < 120000;       /* generous: two devices' clocks may differ */
+  const heard = new Map();                                                   /* id → when its stamp last changed, by this page's clock */
+  const fresh = (p) => { const now = Date.now(), t = p.st.t || 0; let h = heard.get(p.id);
+    if (!h || h.t !== t){ h = { t, at:now, moved:!!h }; heard.set(p.id, h); }
+    return h.moved ? now - h.at < 26000                                        /* seen beating here: gone after three missed beats */
+                   : Math.abs(now - t) < 20000; };                             /* not yet: trust its own stamp, briefly */
   const emit = () => {
     const live = all.filter(fresh), c = [0, 0];
     for (const p of live){ const s = p.st.s; if ((s === 1 || s === 2) && p.id !== MY_ID) c[s - 1]++; }
     if (srv) c[srv - 1]++;
     NET.counts = c; lobbyCb && lobbyCb(c);
     if (srv && peerCb) peerCb(live.filter(p => p.id !== MY_ID && p.st.s === srv));
-    if (Date.now() - cleaned > 60000){ cleaned = Date.now(); all.filter(p => Date.now() - (p.st.t || 0) > 600000).slice(0, 3).forEach(p => col.doc(p.id).delete().catch(() => {})); }
+    if (Date.now() - cleaned > 60000){ cleaned = Date.now(); all.filter(p => p.id !== MY_ID && Date.now() - (p.st.t || 0) > 180000).slice(0, 3).forEach(p => col.doc(p.id).delete().catch(() => {})); }
   };
   try { col.limit(120).onSnapshot(sn => { all = sn.docs.map(d => ({ id:d.id, st:d.data() || {} })); emit(); }, () => {}); } catch (_){}
   setInterval(emit, 5000);
@@ -1370,6 +1378,9 @@ function storeBackend(db){
     async join(s, cb){ srv = s; peerCb = cb; emit(); return true; },
     send(st){ col.doc(MY_ID).set(st).then(netOk, netFail); },
     async leave(){ srv = 0; peerCb = null; try { await col.doc(MY_ID).delete(); } catch (_){} emit(); },
+    bye(){ for (const R of owners()){ let cfg = null; try { cfg = R.LAM_FIREBASE; } catch (_){} if (!cfg || !cfg.apiKey || !cfg.projectId) continue;   /* the tab is closing: a request that outlives it */
+      try { fetch(`https://firestore.googleapis.com/v1/projects/${encodeURIComponent(cfg.projectId)}/databases/(default)/documents/poolLive/${MY_ID}?key=${encodeURIComponent(cfg.apiKey)}`, { method:"DELETE", keepalive:true }).catch(() => {}); } catch (_){}
+      return; } },
   };
 }
 /* hand bodies to the window that owns the store, as its own plain objects */
@@ -1451,7 +1462,8 @@ async function enter(srv){
   saveMe(); AUD.unlock(); AUD.start(); renderPill(); maybeSend();
 }
 function saveMe(){ try { localStorage.setItem(LKEY, JSON.stringify({ k:lookArr(me.look), n:me.name })); } catch (_){} }
-window.addEventListener("pagehide", () => { if (NET.be && NET.srv) NET.be.leave(); });
+window.addEventListener("pagehide", () => { if (NET.be && NET.srv){ NET.be.leave(); if (NET.be.bye) NET.be.bye(); }
+  try { sessionStorage.setItem(ID_KEY, MY_ID); } catch (_){} });
 
 /* ==========================================================================
    8. ON SCREEN — the panel, the bar and its pop-ups, name tags, speech
