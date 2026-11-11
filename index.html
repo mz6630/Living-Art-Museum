@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261111123853";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261111124901";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -22781,6 +22781,9 @@ function floorAt(x, z, y){
 }
 const zoneOf = (x, y, z) => onStairs(x, z) && y > FLOOR + .15 && y < -.05 ? "stairs" : y < -1.4 ? (inPoolRoom(x, z) ? "below" : "hall") : "above";
 const TREES = [[-CXW + 1.8, -CZW + 1.8], [CXW - 1.8, -CZW + 1.8], [-CXW + 1.8, CZW - 1.8], [CXW - 1.6, CZW - 1.6], [-CXW + 1.8, 0], [CXW - 1.8, -6], [-7.5, -CZW + 1.8], [7.5, CZW - 1.8]];
+const BENCHES = [[-4.5, PZ + 4.6, true], [4.5, PZ + 4.6, true], [-3, -PZ - 4.4, true], [4, -PZ - 4.4, true], [-PX - 4.6, 2.5, false], [HOLE.x1 + 3.4, -6, false]];
+const SEATS = BENCHES.flatMap(([x, z, ax], b) => [-.6, 0, .6].map(o => ({ b, x:ax ? x + o : x, z:ax ? z : z + o, r:ax ? (z > 0 ? Math.PI : 0) : (x < 0 ? Math.PI / 2 : -Math.PI / 2) })));
+const onBench = (x, z, pad) => BENCHES.findIndex(([bx, bz, ax]) => Math.abs(x - bx) < (ax ? .95 : .24) + pad && Math.abs(z - bz) < (ax ? .24 : .95) + pad);
 /* may the camera stand here? it keeps to the same side of the water as you, and out of the trees */
 function camOK(x, y, z, below){
   if (y > .3) for (const [tx, tz] of TREES) if (Math.hypot(x - tx, z - tz) < (y > 1.6 ? 1.5 : .8)) return false;
@@ -22921,7 +22924,7 @@ function buildWorld(){
   const bench = (x, z, alongX) => { const w = alongX ? 1.9 : .48, d = alongX ? .48 : 1.9;
     A.box(x - w / 2, .4, z - d / 2, x + w / 2, .47, z + d / 2, [.66, .5, .35], 0);
     for (const sx of [-1, 1]) A.box(alongX ? x + sx * .75 - .05 : x - .2, 0, alongX ? z - .2 : z + sx * .75 - .05, alongX ? x + sx * .75 + .05 : x + .2, .4, alongX ? z + .2 : z + sx * .75 + .05, [.3, .3, .32], 3); };
-  bench(-4.5, PZ + 4.6, true); bench(4.5, PZ + 4.6, true); bench(-3, -PZ - 4.4, true); bench(4, -PZ - 4.4, true); bench(-PX - 4.6, 2.5, false); bench(HOLE.x1 + 3.4, -6, false);
+  BENCHES.forEach(([x, z, ax]) => bench(x, z, ax));
   A.box(HOLE.x0 - .78, 0, HOLE.z1 + .2, HOLE.x0 - .72, 1.0, HOLE.z1 + .26, [.3, .32, .35], 3);                 /* a sign post beside the stairs */
   A.box(HOLE.x0 - .98, .8, HOLE.z1 + .21, HOLE.x0 - .52, 1.06, HOLE.z1 + .25, [.2, .25, .3], 0);
   return upload(A.v);
@@ -22934,11 +22937,11 @@ function buildSky(){ const A = maker(); A.box(-1, -1, -1, 1, 1, 1, [0, 0, 0], 0)
       a soft bean of a body; legs and arms swing on their own
    ========================================================================== */
 const SKIN = [[.99, .88, .79], [.96, .79, .66], [.86, .64, .48], [.67, .46, .32], [.46, .31, .21]];
-const HAIRC = [[.17, .13, .12], [.38, .24, .16], [.74, .54, .32], [.94, .8, .45], [.88, .52, .58], [.58, .72, .92]];
+const HAIRC = [[.17, .13, .12], [.38, .24, .16], [.74, .54, .32], [.94, .8, .45], [.88, .52, .58], [.58, .72, .92], [.84, .4, .2], [.8, .8, .82], [.52, .8, .68], [.66, .54, .86]];
 const TOPC = [[.58, .75, .8], [.96, .8, .32], [.96, .57, .52], [.67, .84, .62], [.8, .68, .92], [.97, .96, .93], [.37, .43, .56], [1, .64, .42]];
 const BOTC = [[.25, .3, .37], [.92, .9, .86], [.52, .66, .78], [.86, .72, .56], [.43, .57, .45], [.2, .2, .23]];
 const LOOK_KEYS = ["sk", "hs", "hc", "st", "tc", "bc", "ac", "fa"];
-const LOOK_N = { sk:SKIN.length, hs:9, hc:HAIRC.length, st:6, tc:TOPC.length, bc:BOTC.length, ac:6, fa:7 };
+const LOOK_N = { sk:SKIN.length, hs:9, hc:HAIRC.length, st:6, tc:TOPC.length, bc:BOTC.length, ac:9, fa:7 };
 const lookArr = (L) => LOOK_KEYS.map(k => L[k]);
 const lookFrom = (a) => { const L = {}; LOOK_KEYS.forEach((k, i) => { const v = Array.isArray(a) ? a[i] : 0; L[k] = Number.isInteger(v) && v >= 0 && v < LOOK_N[k] ? v : 0; }); return L; };
 const lookKey = (L) => lookArr(L).join(".");
@@ -22959,7 +22962,7 @@ const rAt = (y) => { for (let i = 1; i < TORSO.length - 1; i++){ const a = TORSO
 const fN = (x, y) => norm([x / (HR[0] * HR[0]), (y - HEAD) / (HR[1] * HR[1]), Math.max(faceZ(x, y), .02) / (HR[2] * HR[2])]);
 const fP = (x, y, o) => { const n = fN(x, y); return [x + n[0] * o, y + n[1] * o, faceZ(x, y) + n[2] * o]; };
 const CAP = [0, HEAD + .1, -.05], CR = [.42, .335, .405];
-const IRIS = [[.33, .2, .13], [.42, .26, .15], [.45, .3, .17], [.24, .42, .72], [.55, .3, .3], [.26, .44, .74]];
+const IRIS = [[.33, .2, .13], [.42, .26, .15], [.45, .3, .17], [.24, .42, .72], [.55, .3, .3], [.26, .44, .74], [.32, .46, .22], [.36, .46, .6], [.18, .5, .48], [.44, .32, .64]];
 const SHOE = [[.28, .45, .84], [.86, .32, .3], [.32, .32, .36], [.96, .62, .22], [.34, .6, .42], [.62, .44, .82]];
 function buildAvatar(L){
   const B = maker(), LL = maker(), LR = maker(), AL = maker(), AR = maker(), M = 5, GLOSS = 8, PAINT = 9, HAIR = 10;
@@ -22983,8 +22986,13 @@ function buildAvatar(L){
     if (overall){ A.tube([x, .17, 0], [x, .12, 0], .064, .064, SHADE(bc, 1.14), M, 16); A.torus([x, .17, 0], .064, .008, SHADE(bc, .8), M, 16, 5); }   /* rolled cuffs */
     if (tee) A.tube([x, .15, 0], [x, .07, 0], .048, .047, white, M, 14);
     if (dress){ A.tube([x, .26, 0], [x, .07, 0], .048, .046, white, M, 14); A.torus([x, .255, 0], .05, .013, white, M, 16, 6); }
-    if (swim || aloha){ A.ell([x, .04, .03], .05, .036, .092, sk, M, 16); A.ell([x, .011, .03], .064, .012, .11, aloha ? [.62, .42, .26] : [.98, .82, .32], M, 18);
-      for (const d of [-1, 1]) A.tube([x + .04 * d, .022, -.005], [x, .055, .078], .008, .008, [.3, .62, .9], M, 6); }
+    if (swim || aloha){ const sole = aloha ? [.62, .42, .26] : [.98, .82, .32], band = aloha ? [.86, .32, .28] : [.24, .58, .92];
+      A.ell([x, .05, .035], .045, .032, .09, sk, M, 18); A.ell([x, .048, .104], .04, .024, .03, sk, M, 14);                    /* the foot */
+      A.ell([x, .016, .035], .06, .016, .112, sole, M, 20);                                                                    /* a thick sole */
+      const top = (dx, dz) => .05 + .032 * Math.sqrt(Math.max(0, 1 - (dx / .045) ** 2 - ((dz - .035) / .09) ** 2)) + .006;
+      for (const d of [-1, 1]){ const P = [[0, .096], [.016, .07], [.032, .04], [.044, .008]].map(([dx, dz]) => [x + dx * d, top(dx * .92, dz), dz]);
+        A.strand(P, [.009, .011, .012, .012], [.006, .007, .007, .007], [0, 1, 0], band, M, 8); }
+      A.ell([x, top(0, .098) - .002, .1], .011, .011, .011, band, M, 10); }
     else if (dress){ const mj = [.82, .2, .24]; A.ell([x, .058, .03], .06, .05, .098, mj, GLOSS, 18); A.ell([x, .018, .03], .063, .018, .102, [.45, .14, .16], M, 18);
       A.tube([x - .055, .088, .04], [x + .055, .088, .04], .01, .01, mj, M, 6); }
     else { const up = hood ? [.3, .32, .38] : SHOE[L.bc % SHOE.length];
@@ -23132,6 +23140,7 @@ function buildAvatar(L){
   const SHORT = [[0, .17], [.86, .17], [1.0, .08], [1.18, .02], [1.31, -.075], [1.41, .02], [1.54, .085], [1.68, .1], [1.84, .075], [2.02, .01], [2.45, -.12], [Math.PI, -.19]];
   const UP = [[0, .21], [.7, .2]].concat(SHORT.slice(2));
   const TIED = [[0, .17], [.86, .17], [1.0, .08], [1.18, .03], [1.31, -.04], [1.41, .03], [1.54, .09], [1.68, .11], [1.84, .09], [2.02, .04], [2.45, -.06], [Math.PI, -.12]];
+  const PLAIT = [[0, .17], [.86, .17], [1.0, .08], [1.18, .03], [1.31, -.04], [1.41, .03], [1.54, .09], [1.68, .1], [1.86, .02], [2.05, -.13], [2.3, -.17], [2.6, -.13], [Math.PI, -.1]];
   const BOB = [[0, .17], [.84, .17], [.96, .02], [1.08, -.25], [1.3, -.31], [Math.PI, -.31]];
   const shell = (line, thick, hang) => { const C = 80, R = 16, G = [];
     for (let r = 0; r <= R + 1; r++){ const row = [];
@@ -23184,13 +23193,14 @@ function buildAvatar(L){
       const r = .072 + (i % 3) * .012; B.ell(PT(a, th, .05), r, r * .92, r, i % 4 ? hc : SHADE(hc, .92), HAIR, 18); }
     for (let i = -4; i <= 4; i++) B.ell(PL(i * .21, HEAD + .19 - Math.abs(i) * .015, .04), .06, .056, .05, hc, HAIR, 16); }
   if (S === 6 || S === 7){                                                                                      /* in two: plaits, or bunches */
-    shell(table(TIED), .045);
+    shell(table(S === 6 ? PLAIT : TIED), .045);
     fringe([[-.72, -.74, .1, .09, .55], [-.42, -.43, .09, .095, .55], [-.13, -.13, .085, .095, .55], [.15, .15, .085, .095, .55], [.44, .45, .09, .095, .55], [.73, .75, .1, .09, .55]]);
     for (const s of [-1, 1]){
-      if (S === 6){ const t0 = PL(1.95 * s, HEAD - .1, .05);                                                    /* a plait behind each ear */
-        for (let k = 0; k < 6; k++){ const y = t0[1] - .02 - k * .075, x = t0[0] + s * (.02 + k * .006), z = t0[2] + .02 + k * .012, sw = (k % 2 ? 1 : -1) * .014;
-          B.ell([x + sw, y, z], .05, .052, .05, k % 2 ? hc : SHADE(hc, .94), HAIR, 16); }
-        const end = [t0[0] + s * .056, t0[1] - .47, t0[2] + .1]; tieAt(end); B.strand([end, [end[0], end[1] - .05, end[2]], [end[0], end[1] - .1, end[2] + .01]], [.04, .045, .012], [.04, .045, .012], [1, 0, 0], hc, HAIR, 10); }
+      if (S === 6){ const t0 = PL(2.2 * s, HEAD - .15, .03);                                                    /* a plait, gathered out of the hair behind each ear */
+        B.strand([PL(2.08 * s, HEAD + .03, .05), PL(2.15 * s, HEAD - .07, .05), t0], [.06, .062, .056], [.045, .05, .05], [0, 1, 0], hc, HAIR, 12);
+        for (let k = 0; k < 6; k++){ const y = t0[1] - .045 - k * .07, x = t0[0] + s * .012 * k, z = t0[2] + .006 * k, sw = (k % 2 ? 1 : -1) * .013;
+          B.ell([x + sw, y, z], .048, .05, .048, k % 2 ? hc : SHADE(hc, .93), HAIR, 16); }
+        const end = [t0[0] + s * .075, t0[1] - .46, t0[2] + .035]; tieAt(end); B.strand([end, [end[0], end[1] - .05, end[2]], [end[0], end[1] - .1, end[2] + .01]], [.04, .045, .012], [.04, .045, .012], [1, 0, 0], hc, HAIR, 10); }
       else { const t0 = PL(1.66 * s, HEAD + .15, .06); tieAt(t0);                                               /* a bunch at each side, above the ear */
         B.strand([t0, [t0[0] + s * .09, t0[1] + .035, t0[2] - .01], [t0[0] + s * .19, t0[1] + .0, t0[2] - .02], [t0[0] + s * .24, t0[1] - .11, t0[2] - .02], [t0[0] + s * .23, t0[1] - .22, t0[2] - .01], [t0[0] + s * .18, t0[1] - .29, t0[2]]],
                  [.07, .1, .11, .095, .065, .014], [.07, .095, .1, .088, .06, .014], [0, 1, 0], hc, HAIR, 14); } } }
@@ -23206,16 +23216,43 @@ function buildAvatar(L){
     B.lathe([[0, HEAD + .29], [.68, HEAD + .25], [.72, HEAD + .232], [.68, HEAD + .22], [0, HEAD + .26]], straw, M, 44);
     B.lathe([[.445, HEAD + .25], [.45, HEAD + .34], [.41, HEAD + .46], [.28, HEAD + .52], [0, HEAD + .53]], straw, M, 36);
     B.lathe([[.452, HEAD + .262], [.455, HEAD + .31]], tc, M, 36); shiftZ(n0, -.05); }
-  if (L.ac === 2){ const gk = [.1, .12, .15];
-    for (const s of [-1, 1]){ const x = ex * s, z = faceZ(x, ey) + .05; B.ell([x, ey + .004, z], .1, .09, .022, gk, GLOSS, 20); B.ell([x + .03 * s, ey + .04, z + .02], .025, .014, .006, [.5, .55, .62], PAINT, 10);
-      B.tube([.245 * s, ey + .02, z - .03], [.39 * s, ey + .02, -.03], .01, .01, gk, 3, 6); }
-    B.tube([-.05, ey + .03, faceZ(0, ey) + .055], [.05, ey + .03, faceZ(0, ey) + .055], .012, .012, gk, 3, 6); }
+  /* a closed ring of tube round an oval standing in front of the face */
+  const rim = (cx, cy, rx, ry, z, r, k, m) => { const n = 20, P = [];
+    for (let i = 0; i <= n; i++){ const t = i / n * Math.PI * 2, x = cx + Math.cos(t) * rx, y = cy + Math.sin(t) * ry; P.push([x, y, Math.max(z, faceZ(x, y) + .012)]); }
+    for (let i = 0; i < n; i++) B.tube(P[i], P[i + 1], r, r, k, m || M, 6); };
+  if (L.ac === 2){ const fr = [.14, .1, .1], lens = [.12, .16, .2];                                                /* round sunglasses: rims, dark lenses, a bridge, arms to the ears */
+    for (const s of [-1, 1]){ const x = ex * s, z = faceZ(x, ey) + .03;
+      B.ell([x, ey + .002, z - .006], .078, .07, .016, lens, GLOSS, 22); rim(x, ey + .002, .08, .072, z, .011, fr, GLOSS);
+      B.tube([x + .046 * s, ey + .034, z + .012], [x + .02 * s, ey + .05, z + .012], .008, .006, [.62, .68, .76], PAINT, 6);        /* a glint */
+      B.tube([x + .078 * s, ey + .02, z - .005], [.405 * s, ey + .03, -.05], .009, .009, fr, M, 6); }
+    const zb = faceZ(0, ey + .02) + .038; for (let k = 0; k < 4; k++){ const u0 = k / 4, u1 = (k + 1) / 4, f = (u) => [lerp(-.07, .07, u), ey + .025 + Math.sin(Math.PI * u) * .016, zb];
+      B.tube(f(u0), f(u1), .009, .009, fr, GLOSS, 6); } }
   if (L.ac === 3) B.torus([0, .56, 0], .29, .085, white, M, 30, 14, i => (Math.floor(i / 5) % 2) ? white : [.98, .52, .6]);
   if (L.ac === 4){ const n0 = B.v.length;
     B.lathe([[.45, HEAD + .12], [.452, HEAD + .22], [.4, HEAD + .36], [.26, HEAD + .45], [0, HEAD + .475]], tc, M, 40); shiftZ(n0, -.05);
     B.ell([0, HEAD + .145, .36], .26, .022, .2, SHADE(tc, .86), M, 22); B.ell([0, HEAD + .475, -.05], .035, .022, .035, SHADE(tc, .8), M, 10); }
-  if (L.ac === 5) for (const s of [-1, 1]){ B.tube([.13 * s, HEAD + .33, -.07], [.18 * s, HEAD + .78, -.1], .066, .056, white, M, 14); B.ell([.18 * s, HEAD + .78, -.1], .056, .062, .056, white, M, 12);
-    B.ell([.165 * s, HEAD + .58, -.042], .028, .16, .02, [.98, .72, .77], M, 10); }
+  if (L.ac === 5){ const band = SHADE(tc, 1.05), fur = [.98, .97, .95], pink = [.98, .7, .76];                 /* a bunny headband: a band over the crown, two tall ears */
+    const BP = []; for (let k = -6; k <= 6; k++){ const th = Math.abs(k) / 6 * 1.42; BP.push(PT(k < 0 ? -Math.PI / 2 : Math.PI / 2, th, .085 + .01 * (1 - Math.abs(k) / 6)).map((v, i) => i === 2 ? v + .05 : v)); }
+    for (let k = 0; k < BP.length - 1; k++) B.tube(BP[k], BP[k + 1], .017, .017, band, M, 8);
+    for (const s of [-1, 1]){ const b = PT(s * Math.PI / 2, .32, .09).map((v, i) => i === 2 ? v + .05 : v), tip = [b[0] + s * .07, b[1] + .3, b[2] - .02];
+      B.strand([b, [b[0] + s * .03, b[1] + .12, b[2]], [b[0] + s * .06, b[1] + .23, b[2] - .01], tip], [.035, .058, .052, .012], [.028, .032, .03, .01], [1, 0, 0], fur, M, 12);
+      B.strand([[b[0] + s * .01, b[1] + .05, b[2] + .022], [b[0] + s * .032, b[1] + .13, b[2] + .026], [b[0] + s * .058, b[1] + .22, b[2] + .018], [tip[0] - s * .008, tip[1] - .04, tip[2] + .01]], [.016, .03, .026, .006], [.008, .01, .01, .005], [1, 0, 0], pink, M, 10); } }
+  if (L.ac === 6){ const col = SHADE(tc, 1.05), glass = [.62, .86, .96];                                         /* swimming goggles, strap round the back */
+    for (const s of [-1, 1]){ const x = ex * s, z = faceZ(x, ey) + .032;
+      B.ell([x, ey, z - .004], .072, .062, .022, glass, GLOSS, 20); rim(x, ey, .076, .066, z, .016, col);
+      B.tube([x + .05 * s, ey + .028, z + .016], [x + .028 * s, ey + .042, z + .016], .007, .005, [1, 1, 1], PAINT, 6); }
+    B.tube([-.068, ey + .01, faceZ(0, ey) + .04], [.068, ey + .01, faceZ(0, ey) + .04], .01, .01, col, M, 6);
+    const SP = []; for (let k = 0; k <= 16; k++){ const a = lerp(.62, Math.PI * 2 - .62, k / 16); SP.push(PL(a, ey + .02, .072)); }
+    for (let k = 0; k < SP.length - 1; k++) B.tube(SP[k], SP[k + 1], .013, .013, SHADE(col, .8), M, 6); }
+  if (L.ac === 7){ const p = PL(1.05, HEAD + .2, .075), pet = [.99, .84, .9], mid = [.98, .8, .3];             /* a flower pinned over one ear, and a leaf */
+    for (let k = 0; k < 5; k++){ const t = k * 1.2566 + .3, d = [Math.cos(t) * .05, Math.sin(t) * .05]; B.ell([p[0] + d[0] * .8, p[1] + d[1], p[2] + d[0] * .5], .042, .042, .022, pet, M, 12); }
+    B.ell([p[0], p[1], p[2] + .014], .024, .024, .018, mid, M, 10);
+    B.strand([[p[0] - .03, p[1] - .03, p[2] - .01], [p[0] - .07, p[1] - .06, p[2] - .03], [p[0] - .1, p[1] - .07, p[2] - .05]], [.012, .024, .004], [.006, .008, .004], [0, 1, 0], [.4, .7, .4], M, 8); }
+  if (L.ac === 8){ const p = PT(.5, .5, .085), col = [.92, .3, .4];                                               /* a big ribbon bow */
+    B.ell(p, .032, .03, .028, col, M, 12);
+    for (const s of [-1, 1]){ B.strand([p, [p[0] + s * .07, p[1] + .05, p[2] - .01], [p[0] + s * .12, p[1] + .02, p[2] - .02], [p[0] + s * .1, p[1] - .04, p[2] - .02], [p[0] + s * .03, p[1] - .01, p[2]]],
+                                       [.026, .055, .062, .05, .026], [.022, .028, .03, .028, .022], [0, 0, 1], col, M, 10);
+      B.strand([[p[0] + s * .01, p[1] - .02, p[2]], [p[0] + s * .04, p[1] - .09, p[2] - .005], [p[0] + s * .055, p[1] - .14, p[2] - .01]], [.02, .022, .012], [.008, .008, .006], [0, 0, 1], SHADE(col, .9), M, 8); } }
   /* ---- arms: short sleeves, thin arms, big round hands ---- */
   for (const [A, s] of [[AL, -1], [AR, 1]]){
     const sh = [.165 * s, .79, 0], el = [.19 * s, .7, 0], hd = [.215 * s, .56, 0];
@@ -23571,7 +23608,8 @@ function pose(a, now){
   else if (a.emote === "jump" && u < .9){ const v = u / .9; if (!a.self) q.lift += 4 * .55 * v * (1 - v); q.a1z = -2.4; q.a2z = 2.4; }
   else if (a.emote === "dance" && u < 4){ q.sway = Math.sin(u * 9) * .16; q.a1z = -1.9 - Math.sin(u * 9) * .5; q.a2z = 1.9 - Math.sin(u * 9) * .5; q.l1 = Math.max(0, Math.sin(u * 9)) * .4; q.l2 = Math.max(0, -Math.sin(u * 9)) * .4; q.spin = (1 - Math.cos(Math.PI * Math.min(u / 2, 1))) * Math.PI; q.lift += Math.abs(Math.sin(u * 9)) * .05; }
   else if (a.emote === "heart" && u < 1.4){ q.lift += Math.max(0, Math.sin(u * 7)) * .08; q.a1z = -.6; q.a2z = .6; q.a1x = q.a2x = -1.2; }
-  if (a.sit){ q.l1 = q.l2 = -1.45; q.lift = -.3; q.a1x = q.a2x = -.35; }
+  if (a.sit && a.bench){ q.l1 = q.l2 = -1.3; q.lift = .06; q.a1x = q.a2x = -.25; q.a1z = -.14; q.a2z = .14; }   /* on a bench */
+  else if (a.sit){ q.l1 = q.l2 = -1.45; q.lift = -.3; q.a1x = q.a2x = -.35; }
   return q;
 }
 /* the face, alive: a blink every few seconds (now and then two), a smile through an emote,
@@ -23620,12 +23658,13 @@ function moveMe(dt){
   if (il > .08) goal = null;                                                               /* keys or the stick take over */
   else if (goal && !making){                                                               /* walking to where you clicked */
     const dx = goal.x - me.x, dz = goal.z - me.z, d = Math.hypot(dx, dz);
-    if (d < .18 || goal.stuck > .45){ goal = null; }
+    if (goal.seat && (d < .3 || goal.stuck > .45 && d < 1.2)){ const st = goal.seat; goal = null; sitBench(st); }
+    else if (d < .18 || goal.stuck > .45){ goal = null; }
     else { vx = dx / d; vz = dz / d; il = Math.min(1, d / .35); goal.last = [me.x, me.z]; } }
   const speed = (keys.ShiftLeft || keys.ShiftRight || il > .95 && joy.on && Math.hypot(joy.x, joy.y) > .97 || goal && goal.run) ? 5 : 3;
   me.moving = il > .08 && !making;
   if (me.moving){
-    if (me.sit){ me.sit = false; }
+    if (me.sit){ me.sit = false; me.bench = false; }
     const s = speed * dt * Math.min(1, il);
     const nx = me.x + vx * s, nz = me.z + vz * s;
     let f = floorAt(nx, nz, me.y);
@@ -23649,9 +23688,21 @@ function walkTo(cx, cy, run){
   const d = norm(add(f, add(mul(r, nx * th * W / H), mul(u, ny * th))));
   const y0 = me.y; if (Math.abs(d[1]) < 1e-4) return; const t = (y0 - camPos[1]) / d[1]; if (t <= 0 || t > 80) return;
   const gx = camPos[0] + d[0] * t, gz = camPos[2] + d[2] * t;
-  goal = { x:gx, z:gz, y:y0, stuck:0, last:null, run:!!run };
+  const bi = Math.abs(y0) < .3 ? onBench(gx, gz, .25) : -1, st = bi >= 0 ? seatNear(gx, gz, 3, bi) : null;
+  if (st){ goal = { x:st.x + Math.sin(st.r) * .55, z:st.z + Math.cos(st.r) * .55, y:0, stuck:0, last:null, run:!!run, seat:st }; }   /* a bench: walk up to it and sit */
+  else goal = { x:gx, z:gz, y:y0, stuck:0, last:null, run:!!run };
   const el = $("goal"); el.classList.remove("go"); void el.offsetWidth; el.classList.add("go"); AUD.click();
 }
+/* the nearest free seat — nobody already sitting on it */
+function seatNear(x, z, rad, onlyBench){
+  let best = null, bd = rad;
+  for (const st of SEATS){ if (onlyBench != null && st.b !== onlyBench) continue;
+    const d = Math.hypot(st.x - x, st.z - z); if (d >= bd) continue;
+    let taken = false; for (const a of PEERS.values()) if (a.sit && Math.hypot(a.x - st.x, a.z - st.z) < .3) taken = true;
+    if (!taken){ bd = d; best = st; } }
+  return best;
+}
+function sitBench(st){ goal = null; me.x = st.x; me.z = st.z; me.r = st.r; me.sit = true; me.bench = true; me.emote = ""; me.et = Date.now(); syncBar(); AUD.emote("sit"); }
 function jump(){ if (making || !inWorld || me.jy > 0) return; me.vy = 4; me.jy = .001; emote("jump"); }
 let camD = 0;
 function placeCamera(dt){
@@ -23664,7 +23715,7 @@ function placeCamera(dt){
     return;
   }
   view.yaw += wrap(view.ty - view.yaw) * Math.min(1, dt * 14); view.pitch = lerp(view.pitch, view.tp, Math.min(1, dt * 14)); view.d = lerp(view.d, view.td, Math.min(1, dt * 8));
-  const head = [me.x, me.y + (me.sit ? .85 : 1.15) + me.jy * .5, me.z];
+  const head = [me.x, me.y + (me.sit ? (me.bench ? 1.2 : .85) : 1.15) + me.jy * .5, me.z];
   /* the camera sits behind you (never below your head); tilting further up only turns its gaze */
   const pp = Math.max(view.pitch, .06);
   const dir = [Math.sin(view.yaw) * Math.cos(pp), -Math.sin(pp), Math.cos(view.yaw) * Math.cos(pp)];
@@ -23791,7 +23842,7 @@ async function netInit(){
   renderServers(); renderNet(); renderPill();
 }
 /* what another page told us, made safe to show */
-const EMOTES = { wave:1, bow:1, jump:1, dance:1, heart:1, sit:1 };
+const EMOTES = { wave:1, bow:1, jump:1, dance:1, heart:1, sit:1, bench:1 };
 function cleanState(st){
   if (!st || typeof st !== "object") return null;
   const num = (v, a, b, d) => (typeof v === "number" && isFinite(v)) ? clamp(v, a, b) : d;
@@ -23808,17 +23859,17 @@ function onPeerList(list){
     if (!a){ a = newAvatar(st.look); a.id = id; a.x = st.x; a.y = st.y; a.z = st.z; a.r = st.r; a.lastE = st.et; a.lastM = st.mt; a.name = st.n; PEERS.set(id, a);
       if (inWorld){ AUD.joined(); logLine(st.n, T({ en:"came in", ko:"님이 들어왔어요" }), true); } }
     else {
-      if (st.et !== a.lastE){ a.lastE = st.et; if (st.e && st.e !== "sit"){ a.emote = st.e; a.et0 = now; popEmote(a, st.e); } }
+      if (st.et !== a.lastE){ a.lastE = st.et; if (st.e && st.e !== "sit" && st.e !== "bench"){ a.emote = st.e; a.et0 = now; popEmote(a, st.e); } }
       if (st.mt !== a.lastM){ a.lastM = st.mt; if (st.m){ a.msg = st.m; a.msgUntil = now + 6500; logLine(st.n, st.m); AUD.chat(); } }
     }
-    pushSample(a, st, now); a.name = st.n; a.sit = st.e === "sit";
+    pushSample(a, st, now); a.name = st.n; a.sit = st.e === "sit" || st.e === "bench"; a.bench = st.e === "bench";
     if (lookKey(st.look) !== lookKey(a.look)){ a.look = st.look; a.mesh = meshFor(st.look); }
   }
   for (const [id, a] of PEERS) if (!seen.has(id)){ PEERS.delete(id); dropTag(id); if (inWorld) logLine(a.name, T({ en:"left", ko:"님이 나갔어요" }), true); }
   renderPill();
 }
 function myState(){
-  return { s:NET.srv, x:+me.x.toFixed(2), y:+me.y.toFixed(2), z:+me.z.toFixed(2), r:+wrap(me.r).toFixed(2), w:me.moving ? 1 : 0, e:me.sit ? "sit" : (me.emote || ""),
+  return { s:NET.srv, x:+me.x.toFixed(2), y:+me.y.toFixed(2), z:+me.z.toFixed(2), r:+wrap(me.r).toFixed(2), w:me.moving ? 1 : 0, e:me.sit ? (me.bench ? "bench" : "sit") : (me.emote || ""),
     et:me.et, m:me.msg || "", mt:me.mt, n:me.name, k:lookArr(me.look), t:Date.now() };
 }
 let lastSend = 0, lastSig = "";
@@ -23861,7 +23912,7 @@ const LOOK_UI = [
   { k:"st", lab:{ en:"Outfit", ko:"옷" }, names:[{ en:"T-shirt", ko:"티셔츠" }, { en:"Dress", ko:"원피스" }, { en:"Hoodie", ko:"후드" }, { en:"Swimsuit", ko:"수영복" }, { en:"Aloha shirt", ko:"하와이안 셔츠" }, { en:"Dungarees", ko:"멜빵바지" }] },
   { k:"tc", lab:{ en:"Top", ko:"상의 색" }, cols:TOPC },
   { k:"bc", lab:{ en:"Bottom", ko:"하의 색" }, cols:BOTC },
-  { k:"ac", lab:{ en:"Extra", ko:"소품" }, names:[{ en:"None", ko:"없음" }, { en:"Sun hat", ko:"밀짚모자" }, { en:"Sunglasses", ko:"선글라스" }, { en:"Swim ring", ko:"튜브" }, { en:"Cap", ko:"캡모자" }, { en:"Bunny ears", ko:"토끼 귀" }] },
+  { k:"ac", lab:{ en:"Extra", ko:"소품" }, names:[{ en:"None", ko:"없음" }, { en:"Sun hat", ko:"밀짚모자" }, { en:"Sunglasses", ko:"선글라스" }, { en:"Swim ring", ko:"튜브" }, { en:"Cap", ko:"캡모자" }, { en:"Bunny band", ko:"토끼 머리띠" }, { en:"Goggles", ko:"물안경" }, { en:"Flower pin", ko:"꽃핀" }, { en:"Ribbon", ko:"리본" }] },
 ];
 const css = (c) => `rgb(${c.map(v => Math.round(v * 255)).join(",")})`;
 let chosen = 1;
@@ -23970,7 +24021,7 @@ function updateTags(now){
   for (const a of AVATARS()){
     if (a.npc) continue;
     if (a === me && (making || !inWorld || tooClose())) continue;
-    const vis = seen(a), q = vis && project([a.x, a.y + (a.sit ? 1.4 : 1.76) + (a.jy || 0), a.z]);
+    const vis = seen(a), q = vis && project([a.x, a.y + (a.sit ? (a.bench ? 1.82 : 1.4) : 1.76) + (a.jy || 0), a.z]);
     const t = tagFor(a); keep.add(a.id);
     if (!q || q[2] > 34){ t.el.style.display = "none"; continue; }
     t.el.style.display = ""; t.el.classList.toggle("dim", vis === "dim");
@@ -23991,7 +24042,8 @@ function updateTags(now){
 function emote(e){
   if (!inWorld || making) return;
   AUD.unlock();
-  if (e === "sit"){ me.sit = !me.sit; me.emote = ""; me.et = Date.now(); syncBar(); AUD.emote("sit"); return; }
+  if (e === "sit"){ if (!me.sit){ const st = Math.abs(me.y) < .3 && seatNear(me.x, me.z, 1.8); if (st){ sitBench(st); return; } }   /* by a bench: sit on it */
+    me.sit = !me.sit; me.bench = false; me.emote = ""; me.et = Date.now(); syncBar(); AUD.emote("sit"); return; }
   me.sit = false; me.emote = e; me.et0 = performance.now(); me.et = Date.now(); popEmote(me, e); AUD.emote(e); syncBar();
 }
 function syncBar(){ document.querySelectorAll("#pop-emo [data-e]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.e === "sit" && me.sit))); }
@@ -24255,7 +24307,7 @@ function about(){
   [{ en:"Make a character and pick one of two servers — up to twenty people share each", ko:"캐릭터를 꾸미고 두 서버 중 하나를 골라요 — 서버마다 20명까지 함께해요" },
    { en:"Click the ground to walk there (shift-click to run) — or WASD, the arrows, the joystick on a phone; drag to look round, scroll to zoom", ko:"바닥을 클릭하면 그곳까지 걸어가요(Shift+클릭은 달리기) — WASD·방향키·휴대폰 조이스틱도 돼요. 드래그로 둘러보고, 휠로 거리를 바꿔요" },
    { en:"Take the stairs by the pool down: through the water the people above are blurred, and the sound turns to water", ko:"수영장 옆 계단으로 내려가면 물결 너머로 위의 사람들이 흐릿하게 보이고, 물속 소리가 들려요" },
-   { en:"Talk (Enter), wave, bow, jump, dance or sit down at the edge", ko:"말하기(Enter), 손 흔들기·인사·점프·춤·앉기로 만나요" }]
+   { en:"Talk (Enter), wave, bow, jump, dance or sit — click a bench and you walk over and sit on it", ko:"말하기(Enter), 손 흔들기·인사·점프·춤·앉기로 만나요 — 벤치를 누르면 걸어가서 앉아요" }]
     .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); ol.appendChild(li); });
   const lab = { wave:{ en:"Wave", ko:"손 흔들기" }, bow:{ en:"Bow", ko:"인사" }, jump:{ en:"Jump", ko:"점프" }, dance:{ en:"Dance", ko:"춤" }, sit:{ en:"Sit", ko:"앉기" }, heart:{ en:"Heart", ko:"하트" } };
   document.querySelectorAll("#pop-emo [data-e]").forEach(b => { b.querySelector(".lb").textContent = T(lab[b.dataset.e]); });
