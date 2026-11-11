@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261111124901";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261111130722";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -22941,7 +22941,7 @@ const HAIRC = [[.17, .13, .12], [.38, .24, .16], [.74, .54, .32], [.94, .8, .45]
 const TOPC = [[.58, .75, .8], [.96, .8, .32], [.96, .57, .52], [.67, .84, .62], [.8, .68, .92], [.97, .96, .93], [.37, .43, .56], [1, .64, .42]];
 const BOTC = [[.25, .3, .37], [.92, .9, .86], [.52, .66, .78], [.86, .72, .56], [.43, .57, .45], [.2, .2, .23]];
 const LOOK_KEYS = ["sk", "hs", "hc", "st", "tc", "bc", "ac", "fa"];
-const LOOK_N = { sk:SKIN.length, hs:9, hc:HAIRC.length, st:6, tc:TOPC.length, bc:BOTC.length, ac:9, fa:7 };
+const LOOK_N = { sk:SKIN.length, hs:9, hc:HAIRC.length, st:6, tc:TOPC.length, bc:BOTC.length, ac:8, fa:7 };
 const lookArr = (L) => LOOK_KEYS.map(k => L[k]);
 const lookFrom = (a) => { const L = {}; LOOK_KEYS.forEach((k, i) => { const v = Array.isArray(a) ? a[i] : 0; L[k] = Number.isInteger(v) && v >= 0 && v < LOOK_N[k] ? v : 0; }); return L; };
 const lookKey = (L) => lookArr(L).join(".");
@@ -23231,24 +23231,17 @@ function buildAvatar(L){
   if (L.ac === 4){ const n0 = B.v.length;
     B.lathe([[.45, HEAD + .12], [.452, HEAD + .22], [.4, HEAD + .36], [.26, HEAD + .45], [0, HEAD + .475]], tc, M, 40); shiftZ(n0, -.05);
     B.ell([0, HEAD + .145, .36], .26, .022, .2, SHADE(tc, .86), M, 22); B.ell([0, HEAD + .475, -.05], .035, .022, .035, SHADE(tc, .8), M, 10); }
-  if (L.ac === 5){ const band = SHADE(tc, 1.05), fur = [.98, .97, .95], pink = [.98, .7, .76];                 /* a bunny headband: a band over the crown, two tall ears */
-    const BP = []; for (let k = -6; k <= 6; k++){ const th = Math.abs(k) / 6 * 1.42; BP.push(PT(k < 0 ? -Math.PI / 2 : Math.PI / 2, th, .085 + .01 * (1 - Math.abs(k) / 6)).map((v, i) => i === 2 ? v + .05 : v)); }
-    for (let k = 0; k < BP.length - 1; k++) B.tube(BP[k], BP[k + 1], .017, .017, band, M, 8);
-    for (const s of [-1, 1]){ const b = PT(s * Math.PI / 2, .32, .09).map((v, i) => i === 2 ? v + .05 : v), tip = [b[0] + s * .07, b[1] + .3, b[2] - .02];
-      B.strand([b, [b[0] + s * .03, b[1] + .12, b[2]], [b[0] + s * .06, b[1] + .23, b[2] - .01], tip], [.035, .058, .052, .012], [.028, .032, .03, .01], [1, 0, 0], fur, M, 12);
-      B.strand([[b[0] + s * .01, b[1] + .05, b[2] + .022], [b[0] + s * .032, b[1] + .13, b[2] + .026], [b[0] + s * .058, b[1] + .22, b[2] + .018], [tip[0] - s * .008, tip[1] - .04, tip[2] + .01]], [.016, .03, .026, .006], [.008, .01, .01, .005], [1, 0, 0], pink, M, 10); } }
-  if (L.ac === 6){ const col = SHADE(tc, 1.05), glass = [.62, .86, .96];                                         /* swimming goggles, strap round the back */
-    for (const s of [-1, 1]){ const x = ex * s, z = faceZ(x, ey) + .032;
-      B.ell([x, ey, z - .004], .072, .062, .022, glass, GLOSS, 20); rim(x, ey, .076, .066, z, .016, col);
-      B.tube([x + .05 * s, ey + .028, z + .016], [x + .028 * s, ey + .042, z + .016], .007, .005, [1, 1, 1], PAINT, 6); }
-    B.tube([-.068, ey + .01, faceZ(0, ey) + .04], [.068, ey + .01, faceZ(0, ey) + .04], .01, .01, col, M, 6);
-    const SP = []; for (let k = 0; k <= 16; k++){ const a = lerp(.62, Math.PI * 2 - .62, k / 16); SP.push(PL(a, ey + .02, .072)); }
-    for (let k = 0; k < SP.length - 1; k++) B.tube(SP[k], SP[k + 1], .013, .013, SHADE(col, .8), M, 6); }
-  if (L.ac === 7){ const p = PL(1.05, HEAD + .2, .075), pet = [.99, .84, .9], mid = [.98, .8, .3];             /* a flower pinned over one ear, and a leaf */
+  if (L.ac === 5){ const fur = [.98, .97, .95], pink = [.98, .72, .78];                                           /* bunny ears: no band, two soft ears coming up out of the hair */
+    for (const s of [-1, 1]){ const b = PT(s * (Math.PI / 2 + .12), .46, .012), tip = [b[0] + s * .095, b[1] + .33, b[2] - .03];
+      B.strand([b, [b[0] + s * .012, b[1] + .08, b[2]], [b[0] + s * .04, b[1] + .17, b[2] - .008], [b[0] + s * .072, b[1] + .26, b[2] - .02], tip],
+               [.05, .06, .066, .054, .014], [.034, .034, .032, .028, .012], [1, 0, 0], fur, M, 14);
+      B.strand([[b[0] + s * .014, b[1] + .1, b[2] + .026], [b[0] + s * .04, b[1] + .17, b[2] + .026], [b[0] + s * .068, b[1] + .245, b[2] + .016], [tip[0] - s * .01, tip[1] - .05, tip[2] + .012]],
+               [.02, .036, .03, .006], [.007, .009, .009, .005], [1, 0, 0], pink, M, 10); } }
+  if (L.ac === 6){ const p = PL(1.05, HEAD + .2, .075), pet = [.99, .84, .9], mid = [.98, .8, .3];             /* a flower pinned over one ear, and a leaf */
     for (let k = 0; k < 5; k++){ const t = k * 1.2566 + .3, d = [Math.cos(t) * .05, Math.sin(t) * .05]; B.ell([p[0] + d[0] * .8, p[1] + d[1], p[2] + d[0] * .5], .042, .042, .022, pet, M, 12); }
     B.ell([p[0], p[1], p[2] + .014], .024, .024, .018, mid, M, 10);
     B.strand([[p[0] - .03, p[1] - .03, p[2] - .01], [p[0] - .07, p[1] - .06, p[2] - .03], [p[0] - .1, p[1] - .07, p[2] - .05]], [.012, .024, .004], [.006, .008, .004], [0, 1, 0], [.4, .7, .4], M, 8); }
-  if (L.ac === 8){ const p = PT(.5, .5, .085), col = [.92, .3, .4];                                               /* a big ribbon bow */
+  if (L.ac === 7){ const p = PT(.5, .5, .085), col = [.92, .3, .4];                                               /* a big ribbon bow */
     B.ell(p, .032, .03, .028, col, M, 12);
     for (const s of [-1, 1]){ B.strand([p, [p[0] + s * .07, p[1] + .05, p[2] - .01], [p[0] + s * .12, p[1] + .02, p[2] - .02], [p[0] + s * .1, p[1] - .04, p[2] - .02], [p[0] + s * .03, p[1] - .01, p[2]]],
                                        [.026, .055, .062, .05, .026], [.022, .028, .03, .028, .022], [0, 0, 1], col, M, 10);
@@ -23912,7 +23905,7 @@ const LOOK_UI = [
   { k:"st", lab:{ en:"Outfit", ko:"옷" }, names:[{ en:"T-shirt", ko:"티셔츠" }, { en:"Dress", ko:"원피스" }, { en:"Hoodie", ko:"후드" }, { en:"Swimsuit", ko:"수영복" }, { en:"Aloha shirt", ko:"하와이안 셔츠" }, { en:"Dungarees", ko:"멜빵바지" }] },
   { k:"tc", lab:{ en:"Top", ko:"상의 색" }, cols:TOPC },
   { k:"bc", lab:{ en:"Bottom", ko:"하의 색" }, cols:BOTC },
-  { k:"ac", lab:{ en:"Extra", ko:"소품" }, names:[{ en:"None", ko:"없음" }, { en:"Sun hat", ko:"밀짚모자" }, { en:"Sunglasses", ko:"선글라스" }, { en:"Swim ring", ko:"튜브" }, { en:"Cap", ko:"캡모자" }, { en:"Bunny band", ko:"토끼 머리띠" }, { en:"Goggles", ko:"물안경" }, { en:"Flower pin", ko:"꽃핀" }, { en:"Ribbon", ko:"리본" }] },
+  { k:"ac", lab:{ en:"Extra", ko:"소품" }, names:[{ en:"None", ko:"없음" }, { en:"Sun hat", ko:"밀짚모자" }, { en:"Sunglasses", ko:"선글라스" }, { en:"Swim ring", ko:"튜브" }, { en:"Cap", ko:"캡모자" }, { en:"Bunny ears", ko:"토끼 귀" }, { en:"Flower pin", ko:"꽃핀" }, { en:"Ribbon", ko:"리본" }] },
 ];
 const css = (c) => `rgb(${c.map(v => Math.round(v * 255)).join(",")})`;
 let chosen = 1;
