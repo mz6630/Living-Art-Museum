@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261111120746";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261111121125";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -23033,14 +23033,14 @@ function buildAvatar(L){
       B.ell([cx, y, cz], .01, .01, .012, heart, PAINT, 8); });
   } else if (overall){                                                                                       /* dungarees over a T-shirt */
     B.lathe(TORSO, tc, M, 44, BODY_Z); B.torus([0, .846, 0], .08, .016, SHADE(tc, .88), M, 24, 8);
-    B.lathe([[0, .37], [.18, .37], [.207, .39], [.217, .46], [.215, .55], [rAt(.6) + .008, .6]], bc, M, 44, BODY_Z);
-    const G = [.58, .61, .64, .67, .7, .72].map(y => { const row = []; for (let x = -.1; x <= .1001; x += .02) row.push([x, y, Math.sqrt(Math.max(0, (rAt(y) + .008) ** 2 - x * x)) * BODY_Z]); return row; });
+    B.lathe([[0, .37], [.18, .37], [.207, .39], [.219, .45]].concat([.48, .5, .53, .56, .6].map(y => [rAt(y) + .011, y])), bc, M, 44, BODY_Z);   /* always outside the shirt */
+    const G = [.57, .6, .63, .66, .69, .72].map(y => { const row = []; for (let x = -.1; x <= .1001; x += .02) row.push([x, y, Math.sqrt(Math.max(0, (rAt(y) + .012) ** 2 - x * x)) * BODY_Z]); return row; });
     B.grid(G, bc, M, [0, .65, -.1]);                                                                         /* the bib */
     B.ell([0, .65, zf(.65) + .012], .048, .034, .008, SHADE(bc, .84), M, 14);                                 /* its pocket */
     for (const d of [-1, 1]){ strap(.085 * d, .7, .01, bc, .022); B.ell([.085 * d, .705, Math.sqrt((rAt(.705) + .016) ** 2 - .0072) * BODY_Z], .014, .014, .008, [.96, .8, .36], M, 10); }
   } else {                                                                                                     /* the swimsuit */
     B.lathe(TORSO, sk, M, 44, BODY_Z);
-    B.lathe([[0, .38], [.17, .38], [.2, .41], [.214, .47]].concat([.53, .58, .63, .68, .72].map(y => [rAt(y) + .006, y])), tc, M, 44, BODY_Z);
+    B.lathe([[0, .38], [.17, .38], [.2, .41], [.216, .46]].concat([.48, .5, .53, .58, .63, .68, .72].map(y => [rAt(y) + .007, y])), tc, M, 44, BODY_Z);
     for (const y of [.5, .58, .66]) band(y, y + .028, rAt(y) + .008, rAt(y + .028) + .008, white);
     for (const d of [-1, 1]) strap(.088 * d, .7, .006, tc, .017);
   }
