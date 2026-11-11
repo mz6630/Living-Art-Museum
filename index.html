@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261111121125";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261111121630";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -22938,7 +22938,7 @@ const HAIRC = [[.17, .13, .12], [.38, .24, .16], [.74, .54, .32], [.94, .8, .45]
 const TOPC = [[.58, .75, .8], [.96, .8, .32], [.96, .57, .52], [.67, .84, .62], [.8, .68, .92], [.97, .96, .93], [.37, .43, .56], [1, .64, .42]];
 const BOTC = [[.25, .3, .37], [.92, .9, .86], [.52, .66, .78], [.86, .72, .56], [.43, .57, .45], [.2, .2, .23]];
 const LOOK_KEYS = ["sk", "hs", "hc", "st", "tc", "bc", "ac", "fa"];
-const LOOK_N = { sk:SKIN.length, hs:6, hc:HAIRC.length, st:6, tc:TOPC.length, bc:BOTC.length, ac:6, fa:3 };
+const LOOK_N = { sk:SKIN.length, hs:6, hc:HAIRC.length, st:6, tc:TOPC.length, bc:BOTC.length, ac:6, fa:7 };
 const lookArr = (L) => LOOK_KEYS.map(k => L[k]);
 const lookFrom = (a) => { const L = {}; LOOK_KEYS.forEach((k, i) => { const v = Array.isArray(a) ? a[i] : 0; L[k] = Number.isInteger(v) && v >= 0 && v < LOOK_N[k] ? v : 0; }); return L; };
 const lookKey = (L) => lookArr(L).join(".");
@@ -23049,26 +23049,57 @@ function buildAvatar(L){
   for (const s of [-1, 1]){ B.ell([.385 * s, HEAD - .05, -.03], .055, .09, .072, sk, M, 18); B.ell([.418 * s, HEAD - .05, -.02], .024, .052, .04, SHADE(sk, .86), M, 12); }
   B.ell([0, HEAD - .088, faceZ(0, HEAD - .088) - .012], .03, .025, .028, mix3(sk, [1, .48, .38], .5), M, 14);   /* a little nose */
   const ex = .15, ey = HEAD - .04, iris = IRIS[L.hc], lash = [.2, .12, .1];
-  for (const s of [-1, 1]){ const x = ex * s;
-    if (L.fa === 0) arc(B, x, ey - .022, .058, .04, .015, lash, PAINT);                                       /* happy: closed in a smile */
-    else if (L.fa === 1){                                                                                        /* oval eyes, a coloured iris, a shine */
+  const pupil = SHADE(iris, .32), mouthIn = [.45, .13, .15];
+  /* seven ways to look: each draws one eye (s = which side) */
+  const EYES = [
+    (x, s) => {                                                                                                 /* round: an oval, a coloured iris, a shine */
       oval(x, ey + .004, .075, .096, .004, lash, 0, .18, Math.PI - .18);
       oval(x, ey, .067, .085, .008, white);
-      oval(x - .006 * s, ey - .012, .053, .066, .012, iris); oval(x - .006 * s, ey - .016, .028, .036, .015, SHADE(iris, .35));
+      oval(x - .006 * s, ey - .012, .053, .066, .012, iris); oval(x - .006 * s, ey - .016, .028, .036, .015, pupil);
       oval(x + .012 * s, ey + .02, .017, .02, .018, white); oval(x - .022 * s, ey - .04, .007, .007, .018, white);
-      stroke(x + .06 * s, ey + .056, x + .086 * s, ey + .074, .01, .005, lash); }
-    else {                                                                                                       /* calm: lids half down */
+      stroke(x + .06 * s, ey + .056, x + .086 * s, ey + .074, .01, .005, lash); },
+    (x, s) => {                                                                                                 /* calm: lids half down */
       const lid = ey + .024, cut = (r, cy) => Math.asin(clamp((lid - cy) / r, -1, 1));
       let t = cut(.085, ey); oval(x, ey, .067, .085, .008, white, 0, Math.PI - t, Math.PI * 2 + t);
       const ix = x - .004 * s, iy = ey - .018; t = cut(.062, iy); oval(ix, iy, .05, .062, .012, iris, 0, Math.PI - t, Math.PI * 2 + t);
-      t = cut(.034, iy - .004); oval(ix, iy - .004, .027, .034, .015, SHADE(iris, .35), 0, Math.PI - t, Math.PI * 2 + t);
-      arc(B, x, lid - .004, .07, .008, .012, lash, PAINT); }
-    if (!L.hs) oval(x, ey + .13, .046, .017, .006, SHADE(hc, .7), -.1 * s);                               /* the forehead shows: brows */
+      t = cut(.034, iy - .004); oval(ix, iy - .004, .027, .034, .015, pupil, 0, Math.PI - t, Math.PI * 2 + t);
+      arc(B, x, lid - .004, .07, .008, .012, lash, PAINT); },
+    (x, s) => {                                                                                                 /* sparkly: big glossy eyes, two lashes */
+      oval(x, ey + .006, .079, .1, .004, lash, 0, .1, Math.PI - .1);
+      oval(x, ey, .07, .088, .008, white);
+      oval(x - .004 * s, ey - .008, .061, .076, .012, iris); oval(x - .004 * s, ey - .016, .036, .046, .015, pupil);
+      oval(x + .017 * s, ey + .022, .024, .028, .018, white); oval(x - .021 * s, ey - .036, .011, .011, .018, white); oval(x + .026 * s, ey - .032, .006, .006, .018, white);
+      stroke(x + .062 * s, ey + .052, x + .092 * s, ey + .072, .01, .004, lash); stroke(x + .072 * s, ey + .03, x + .1 * s, ey + .04, .009, .004, lash); },
+    (x, s) => {                                                                                                 /* dot: small dark eyes and a flick of lash */
+      oval(x, ey - .012, .031, .043, .008, lash); oval(x + .009 * s, ey + .006, .009, .011, .012, white);
+      stroke(x + .022 * s, ey + .028, x + .042 * s, ey + .046, .007, .004, lash); },
+    (x, s) => { const r = .2 * s;                                                                              /* cat-eye: almond, lifted at the corner, a wing */
+      oval(x, ey + .006, .084, .074, .004, lash, r, .2, Math.PI - .2);
+      oval(x, ey, .074, .062, .008, white, r);
+      oval(x - .008 * s, ey - .006, .044, .052, .012, iris); oval(x - .008 * s, ey - .01, .023, .03, .015, pupil);
+      oval(x + .006 * s, ey + .016, .013, .015, .018, white);
+      stroke(x + .068 * s, ey + .03, x + .1 * s, ey + .056, .011, .004, lash); },
+    (x, s) => {                                                                                                 /* dazed: wide white eyes, tiny pupils */
+      oval(x, ey, .074, .082, .004, lash); oval(x, ey, .065, .073, .008, white);
+      oval(x - .004 * s, ey - .004, .017, .021, .012, pupil); },
+    (x, s) => { const r = -.16 * s;                                                                            /* gentle: drooping at the outer corner */
+      oval(x, ey + .004, .08, .088, .004, lash, r, .2, Math.PI - .2);
+      oval(x, ey, .071, .077, .008, white, r);
+      oval(x - .004 * s, ey - .012, .05, .058, .012, iris); oval(x - .004 * s, ey - .016, .026, .032, .015, pupil);
+      oval(x + .012 * s, ey + .012, .015, .017, .018, white);
+      stroke(x + .072 * s, ey + .006, x + .092 * s, ey - .014, .01, .004, lash); },
+  ];
+  for (const s of [-1, 1]){ const x = ex * s;
+    (EYES[L.fa] || EYES[0])(x, s);
+    if (!L.hs) oval(x, ey + .13, .046, .017, .006, SHADE(hc, .7), (L.fa === 6 ? .16 : -.1) * s);           /* the forehead shows: brows */
     oval(.248 * s, HEAD - .128, .052, .03, .005, mix3(sk, [.98, .55, .55], .45)); }                         /* cheeks */
-  if (L.fa === 0){ oval(0, HEAD - .15, .05, .045, .006, [.45, .13, .15], 0, Math.PI, Math.PI * 2);
-    oval(0, HEAD - .186, .028, .018, .01, [.96, .52, .55], 0, 0, Math.PI); }
-  else if (L.fa === 1) arc(B, 0, HEAD - .15, .058, -.026, .008, ink, PAINT);
-  else arc(B, .006, HEAD - .152, .044, -.016, .008, ink, PAINT);
+  /* and a mouth to go with each */
+  if (L.fa === 2){ oval(0, HEAD - .148, .046, .04, .006, mouthIn, 0, Math.PI, Math.PI * 2); oval(0, HEAD - .181, .025, .016, .01, [.96, .52, .55], 0, 0, Math.PI); }
+  else if (L.fa === 4){ arc(B, -.016, HEAD - .148, .017, -.011, .007, ink, PAINT); arc(B, .016, HEAD - .148, .017, -.011, .007, ink, PAINT); }
+  else if (L.fa === 5) oval(0, HEAD - .156, .017, .021, .006, mouthIn);
+  else if (L.fa === 1) arc(B, .006, HEAD - .152, .044, -.016, .008, ink, PAINT);
+  else if (L.fa === 3) arc(B, 0, HEAD - .15, .042, -.02, .008, ink, PAINT);
+  else arc(B, 0, HEAD - .15, .058, -.026, .008, ink, PAINT);
   /* ---- hair: smooth, with a blunt fringe ---- */
   const hp = (a, y, o) => { const kh = Math.sqrt(Math.max(0, 1 - ((y - HEAD) / HR[1]) ** 2)), kc = Math.sqrt(Math.max(0, 1 - ((y - CAP[1]) / CR[1]) ** 2));
     const h = [Math.sin(a) * HR[0] * kh, Math.cos(a) * HR[2] * kh], c = [Math.sin(a) * CR[0] * kc, CAP[2] + Math.cos(a) * CR[2] * kc], p = Math.hypot(h[0], h[1]) > Math.hypot(c[0], c[1]) ? h : c;
@@ -23745,7 +23776,7 @@ const HINTS = {
   up:{ en:"Look into the pool — the people down there can see you too", ko:"수영장 안을 들여다보세요 — 아래 사람들도 당신을 보고 있어요" },
 };
 const LOOK_UI = [
-  { k:"fa", lab:{ en:"Face", ko:"표정" }, names:[{ en:"Smile", ko:"웃음" }, { en:"Round eyes", ko:"동글 눈" }, { en:"Calm", ko:"평온" }] },
+  { k:"fa", lab:{ en:"Face", ko:"표정" }, names:[{ en:"Round eyes", ko:"동글 눈" }, { en:"Calm", ko:"평온" }, { en:"Sparkly", ko:"초롱 눈" }, { en:"Dots", ko:"점 눈" }, { en:"Cat-eye", ko:"새침 눈" }, { en:"Dazed", ko:"멍한 눈" }, { en:"Gentle", ko:"순한 눈" }] },
   { k:"sk", lab:{ en:"Skin", ko:"피부" }, cols:SKIN },
   { k:"hs", lab:{ en:"Hair", ko:"머리 모양" }, names:[{ en:"Quiff", ko:"업스타일" }, { en:"Short", ko:"짧은 머리" }, { en:"Bob", ko:"단발" }, { en:"Bun", ko:"똥머리" }, { en:"Long", ko:"긴 머리" }, { en:"Curly", ko:"곱슬" }] },
   { k:"hc", lab:{ en:"Hair colour", ko:"머리 색" }, cols:HAIRC },
