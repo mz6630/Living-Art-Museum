@@ -1184,6 +1184,10 @@ const SFX = (() => {
   return {
     ready(){ return !!ctx && ctx.state === "running"; },
     context(){ return ensure(); },
+    /* a room that borrowed this context may have left sounds running in it: close it, start fresh next time */
+    release(){ if (!ctx) return; try { ctx.close(); } catch (_){} ctx = null; master = null; amb = null; ambGain = null; },
+    /* resting: hold every sound, and pick up again where it was */
+    rest(v){ if (!ctx) return; try { v ? ctx.suspend() : ctx.resume(); } catch (_){} },
     unlock(){ ensure(); if (pending){ const f = pending; pending = null; f(); } },
     setOn(v){ on = v; if (master) master.gain.value = v ? 0.72 : 0; },
     /* a switch for the gallery lights */
@@ -1318,7 +1322,8 @@ const SFX = (() => {
 })();
 window.addEventListener("pointerdown", () => SFX.unlock(), { once:false });
 /* the rooms borrow this, already woken by the click that opened them */
-window.__lamAudio = () => SFX.context();
+let audioLent = false;
+window.__lamAudio = () => { audioLent = true; return SFX.context(); };
 window.addEventListener("keydown", () => SFX.unlock(), { once:false });
 const wait = (ms) => new Promise(r => setTimeout(r, reduce ? Math.min(ms, 60) : ms));
 
@@ -2960,6 +2965,43 @@ window.__openStandalone = (id) => {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 120000);
 };
+/* ---- an experience, put away properly: its page goes, and if it borrowed the site's sound,
+   that sound goes with it (loops left playing in a borrowed context would outlive the page) ---- */
+function unmountExp(){
+  const fr = $("expframe");
+  if (expOpen || fr.getAttribute("srcdoc")) fr.srcdoc = "";
+  expOpen = null;
+  if (audioLent){ audioLent = false; SFX.release(); }
+}
+/* given to every experience before its own code runs: it keeps a list of the page's sound and
+   its animation loop, so the site can hold both still while no one is there */
+const REST_SHIM = "<scr" + `ipt>(function(){var AC=window.AudioContext||window.webkitAudioContext,L=[];
+if(AC){var W=function(o){var c=o?new AC(o):new AC();L.push(c);return c;};W.prototype=AC.prototype;window.AudioContext=W;if(window.webkitAudioContext)window.webkitAudioContext=W;}
+var raf=window.requestAnimationFrame.bind(window),q=[],z=false;window.requestAnimationFrame=function(f){if(z){q.push(f);return 0;}return raf(f);};
+window.__lamRest=function(r){z=!!r;L.forEach(function(c){try{if(c.state!=="closed"){r?c.suspend():c.resume();}}catch(e){}});
+document.querySelectorAll("audio,video").forEach(function(m){if(r){if(!m.paused){m.dataset.lamWas="1";m.pause();}}else if(m.dataset.lamWas){delete m.dataset.lamWas;m.play().catch(function(){});}});
+if(!r){var k=q;q=[];k.forEach(function(f){raf(f);});}};})();</scr` + "ipt>";
+/* ---- rest: three minutes with nothing touched, or the tab put away — the sound stops and
+   everything stands still; the next touch, or coming back, picks it all up again ---- */
+const REST_MS = 3 * 60 * 1000;
+let lastPoke = Date.now(), resting = false, restedSpace = false;
+function rest(on){
+  if (on === resting) return; resting = on;
+  SFX.rest(on);
+  try { const w = $("expframe").contentWindow; if (w && w.__lamRest) w.__lamRest(on); } catch (_){}
+  if (on && scene === "space" && running){ running = false; restedSpace = true; }
+  if (!on && restedSpace){ restedSpace = false; if (scene === "space" && !running){ running = true; lastT = performance.now(); requestAnimationFrame(frame); } }
+}
+function poke(){ lastPoke = Date.now(); if (resting && !document.hidden) rest(false); }
+["pointerdown", "pointermove", "keydown", "wheel", "touchstart"].forEach(ev => window.addEventListener(ev, poke, { capture:true, passive:true }));
+$("expframe").addEventListener("load", () => {                     /* what happens inside an experience counts too */
+  try { const w = $("expframe").contentWindow; ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"].forEach(ev => w.addEventListener(ev, poke, { capture:true, passive:true })); } catch (_){}
+  if (resting) try { $("expframe").contentWindow.__lamRest(true); } catch (_){}
+});
+setInterval(() => { if (!resting && Date.now() - lastPoke > REST_MS) rest(true); }, 5000);
+window.__lamRestTest = (v) => rest(v);                              /* for testing: rest now */
+document.addEventListener("visibilitychange", () => { if (document.hidden) rest(true); else { lastPoke = Date.now(); rest(false); } });
+
 function openWork(id, title){
   if (!EXPERIENCES[id]){ if (PROTO.has(id)){ protoToast(title); return; } toast3d(t("toast.next", title)); return; }
   if (!(scene === "exp" && expOpen === id)) noteStep();
@@ -2967,7 +3009,9 @@ function openWork(id, title){
   lastView = scene === "exp" ? lastView : scene;
   const fr = $("expframe");
   if (expOpen !== id){
+    unmountExp();
     const src = $(EXPERIENCES[id]).textContent.replace(/<!--SCRIPT_END-->/g, "</scr" + "ipt>")
+                                              .replace("<head>", "<head>" + REST_SHIM)
                                               .replace('<html lang="en">', `<html lang="${LANG}">`)
                                               .replace("<body>", '<body class="embedded">');
     fr.srcdoc = src;
@@ -3409,7 +3453,7 @@ $("z-out").onclick = () => zoomAt(1 / 1.3, salon.clientWidth / 2, salon.clientHe
 function gotoView(v){
   if (v === scene) return;
   noteStep();
-  if (scene === "exp"){ $("expframe").srcdoc = ""; expOpen = null; }
+  if (scene === "exp") unmountExp();
   SFX.click();
   if (v === "space"){
     if (!OBJ.n) buildWorld();

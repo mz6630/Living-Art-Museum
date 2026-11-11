@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261109160159";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261111113346";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -1185,6 +1185,10 @@ const SFX = (() => {
   return {
     ready(){ return !!ctx && ctx.state === "running"; },
     context(){ return ensure(); },
+    /* a room that borrowed this context may have left sounds running in it: close it, start fresh next time */
+    release(){ if (!ctx) return; try { ctx.close(); } catch (_){} ctx = null; master = null; amb = null; ambGain = null; },
+    /* resting: hold every sound, and pick up again where it was */
+    rest(v){ if (!ctx) return; try { v ? ctx.suspend() : ctx.resume(); } catch (_){} },
     unlock(){ ensure(); if (pending){ const f = pending; pending = null; f(); } },
     setOn(v){ on = v; if (master) master.gain.value = v ? 0.72 : 0; },
     /* a switch for the gallery lights */
@@ -1319,7 +1323,8 @@ const SFX = (() => {
 })();
 window.addEventListener("pointerdown", () => SFX.unlock(), { once:false });
 /* the rooms borrow this, already woken by the click that opened them */
-window.__lamAudio = () => SFX.context();
+let audioLent = false;
+window.__lamAudio = () => { audioLent = true; return SFX.context(); };
 window.addEventListener("keydown", () => SFX.unlock(), { once:false });
 const wait = (ms) => new Promise(r => setTimeout(r, reduce ? Math.min(ms, 60) : ms));
 
@@ -2961,6 +2966,43 @@ window.__openStandalone = (id) => {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 120000);
 };
+/* ---- an experience, put away properly: its page goes, and if it borrowed the site's sound,
+   that sound goes with it (loops left playing in a borrowed context would outlive the page) ---- */
+function unmountExp(){
+  const fr = $("expframe");
+  if (expOpen || fr.getAttribute("srcdoc")) fr.srcdoc = "";
+  expOpen = null;
+  if (audioLent){ audioLent = false; SFX.release(); }
+}
+/* given to every experience before its own code runs: it keeps a list of the page's sound and
+   its animation loop, so the site can hold both still while no one is there */
+const REST_SHIM = "<scr" + `ipt>(function(){var AC=window.AudioContext||window.webkitAudioContext,L=[];
+if(AC){var W=function(o){var c=o?new AC(o):new AC();L.push(c);return c;};W.prototype=AC.prototype;window.AudioContext=W;if(window.webkitAudioContext)window.webkitAudioContext=W;}
+var raf=window.requestAnimationFrame.bind(window),q=[],z=false;window.requestAnimationFrame=function(f){if(z){q.push(f);return 0;}return raf(f);};
+window.__lamRest=function(r){z=!!r;L.forEach(function(c){try{if(c.state!=="closed"){r?c.suspend():c.resume();}}catch(e){}});
+document.querySelectorAll("audio,video").forEach(function(m){if(r){if(!m.paused){m.dataset.lamWas="1";m.pause();}}else if(m.dataset.lamWas){delete m.dataset.lamWas;m.play().catch(function(){});}});
+if(!r){var k=q;q=[];k.forEach(function(f){raf(f);});}};})();</scr` + "ipt>";
+/* ---- rest: three minutes with nothing touched, or the tab put away — the sound stops and
+   everything stands still; the next touch, or coming back, picks it all up again ---- */
+const REST_MS = 3 * 60 * 1000;
+let lastPoke = Date.now(), resting = false, restedSpace = false;
+function rest(on){
+  if (on === resting) return; resting = on;
+  SFX.rest(on);
+  try { const w = $("expframe").contentWindow; if (w && w.__lamRest) w.__lamRest(on); } catch (_){}
+  if (on && scene === "space" && running){ running = false; restedSpace = true; }
+  if (!on && restedSpace){ restedSpace = false; if (scene === "space" && !running){ running = true; lastT = performance.now(); requestAnimationFrame(frame); } }
+}
+function poke(){ lastPoke = Date.now(); if (resting && !document.hidden) rest(false); }
+["pointerdown", "pointermove", "keydown", "wheel", "touchstart"].forEach(ev => window.addEventListener(ev, poke, { capture:true, passive:true }));
+$("expframe").addEventListener("load", () => {                     /* what happens inside an experience counts too */
+  try { const w = $("expframe").contentWindow; ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"].forEach(ev => w.addEventListener(ev, poke, { capture:true, passive:true })); } catch (_){}
+  if (resting) try { $("expframe").contentWindow.__lamRest(true); } catch (_){}
+});
+setInterval(() => { if (!resting && Date.now() - lastPoke > REST_MS) rest(true); }, 5000);
+window.__lamRestTest = (v) => rest(v);                              /* for testing: rest now */
+document.addEventListener("visibilitychange", () => { if (document.hidden) rest(true); else { lastPoke = Date.now(); rest(false); } });
+
 function openWork(id, title){
   if (!EXPERIENCES[id]){ if (PROTO.has(id)){ protoToast(title); return; } toast3d(t("toast.next", title)); return; }
   if (!(scene === "exp" && expOpen === id)) noteStep();
@@ -2968,7 +3010,9 @@ function openWork(id, title){
   lastView = scene === "exp" ? lastView : scene;
   const fr = $("expframe");
   if (expOpen !== id){
+    unmountExp();
     const src = $(EXPERIENCES[id]).textContent.replace(/<!--SCRIPT_END-->/g, "</scr" + "ipt>")
+                                              .replace("<head>", "<head>" + REST_SHIM)
                                               .replace('<html lang="en">', `<html lang="${LANG}">`)
                                               .replace("<body>", '<body class="embedded">');
     fr.srcdoc = src;
@@ -3410,7 +3454,7 @@ $("z-out").onclick = () => zoomAt(1 / 1.3, salon.clientWidth / 2, salon.clientHe
 function gotoView(v){
   if (v === scene) return;
   noteStep();
-  if (scene === "exp"){ $("expframe").srcdoc = ""; expOpen = null; }
+  if (scene === "exp") unmountExp();
   SFX.click();
   if (v === "space"){
     if (!OBJ.n) buildWorld();
@@ -22439,6 +22483,11 @@ body.embedded #count{top:calc(70px + env(safe-area-inset-top,0px));}
 #count b{color:var(--ink);font-weight:500;}
 #count i{width:6px;height:6px;border-radius:50%;background:#2fb47c;flex:none;}
 #count.solo i{background:#c9a24a;}
+#goal{position:fixed;left:0;top:0;width:46px;height:18px;border-radius:50%;border:2.5px solid rgba(255,255,255,.95);box-shadow:0 0 14px rgba(255,255,255,.55);pointer-events:none;z-index:5;opacity:0;transition:opacity .25s;}
+#goal.on{opacity:1;}
+#goal::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:2px solid rgba(255,255,255,.8);opacity:0;}
+#goal.go::after{animation:goal .6s ease-out;}
+@keyframes goal{from{opacity:1;transform:scale(.4);}to{opacity:0;transform:scale(1.7);}}
 #hint{position:fixed;left:50%;top:var(--hint-y,64px);transform:translate(-50%,0);z-index:11;padding:9px 15px;border-radius:999px;font-size:12.5px;color:var(--ink);white-space:nowrap;
   pointer-events:none;transition:opacity .5s;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;}
 body.embedded #hint{--hint-y:116px;}
@@ -22569,6 +22618,7 @@ body.about #about{display:block;}
 </header>
 
 <div id="count" class="glass"><i></i><span id="c-t"></span></div>
+<div id="goal" aria-hidden="true"></div>
 <div id="hint" class="glass off"></div>
 <div id="log"></div>
 
@@ -22925,7 +22975,7 @@ function buildAvatar(L){
       const ix = x - .004 * s, iy = ey - .018; t = cut(.062, iy); oval(ix, iy, .05, .062, .012, iris, 0, Math.PI - t, Math.PI * 2 + t);
       t = cut(.034, iy - .004); oval(ix, iy - .004, .027, .034, .015, SHADE(iris, .35), 0, Math.PI - t, Math.PI * 2 + t);
       arc(B, x, lid - .004, .07, .008, .012, lash, PAINT); }
-    if (!L.hs) oval(x, ey + .13, .045, .016, .006, SHADE(sk, .6), -.1 * s);
+    if (!L.hs) oval(x, ey + .13, .046, .017, .006, SHADE(hc, .7), -.1 * s);                               /* the forehead shows: brows */
     oval(.248 * s, HEAD - .128, .052, .03, .005, mix3(sk, [.98, .55, .55], .45)); }                         /* cheeks */
   if (L.fa === 0){ oval(0, HEAD - .15, .05, .045, .006, [.45, .13, .15], 0, Math.PI, Math.PI * 2);
     oval(0, HEAD - .186, .028, .018, .01, [.96, .52, .55], 0, 0, Math.PI); }
@@ -22954,6 +23004,11 @@ function buildAvatar(L){
       G.push(row); }
     B.grid(G, hc, HAIR, HC); };
   if (L.hs >= 1) B.ell(CAP, CR[0], CR[1], CR[2], hc, HAIR, 48);
+  if (L.hs === 0){                                                                                             /* a crop: short at the sides, the front brushed up */
+    B.ell([0, HEAD + .15, -.06], .4, .29, .39, hc, HAIR, 48);
+    B.ell([0, HEAD + .36, .08], .3, .13, .22, hc, HAIR, 32);
+    for (const x of [-.16, 0, .15]) B.strand([[x, HEAD + .41, .25], [x, HEAD + .48, .11], [x * .92, HEAD + .48, -.06], [x * .8, HEAD + .43, -.22]], [.055, .06, .05, .01], [.022, .026, .02, .006], [1, 0, 0], hc, HAIR, 10);
+    for (const s of [-1, 1]) B.ell([.365 * s, HEAD + .09, -.05], .05, .1, .12, hc, HAIR, 14); }
   if (L.hs === 1){ fringe(1.42, (a) => blunt(.02, .11 + .03 * a)(a), .22); }                                   /* short, swept to one side */
   if (L.hs === 2){ fringe(1.1, blunt(.05)); shell([[HEAD + .33, 0], [HEAD + .2, 0], [HEAD + .08, 0], [HEAD - .03, .46], [HEAD - .15, .472], [HEAD - .24, .46], [HEAD - .285, .43], [HEAD - .27, -.37]]); }
   if (L.hs === 3){ fringe(1.42, blunt(.0)); B.ell([0, HEAD + .44, -.1], .17, .16, .17, hc, HAIR, 28); B.torus([0, HEAD + .32, -.09], .09, .026, tc, M, 20, 8); }
@@ -23362,10 +23417,15 @@ function moveMe(dt){
     if (keys.KeyA || keys.ArrowLeft) ix -= 1; if (keys.KeyD || keys.ArrowRight) ix += 1;
   }
   if (joy.on){ ix += joy.x; iz += -joy.y; }
-  const il = Math.hypot(ix, iz); if (il > 1){ ix /= il; iz /= il; }
+  let il = Math.hypot(ix, iz); if (il > 1){ ix /= il; iz /= il; }
   const fx = Math.sin(view.yaw), fz = Math.cos(view.yaw), rx = -fz, rz = fx;
   let vx = (fx * iz + rx * ix), vz = (fz * iz + rz * ix);
-  const speed = (keys.ShiftLeft || keys.ShiftRight || il > .95 && joy.on && Math.hypot(joy.x, joy.y) > .97) ? 5 : 3;
+  if (il > .08) goal = null;                                                               /* keys or the stick take over */
+  else if (goal && !making){                                                               /* walking to where you clicked */
+    const dx = goal.x - me.x, dz = goal.z - me.z, d = Math.hypot(dx, dz);
+    if (d < .18 || goal.stuck > .45){ goal = null; }
+    else { vx = dx / d; vz = dz / d; il = Math.min(1, d / .35); goal.last = [me.x, me.z]; } }
+  const speed = (keys.ShiftLeft || keys.ShiftRight || il > .95 && joy.on && Math.hypot(joy.x, joy.y) > .97 || goal && goal.run) ? 5 : 3;
   me.moving = il > .08 && !making;
   if (me.moving){
     if (me.sit){ me.sit = false; }
@@ -23378,9 +23438,22 @@ function moveMe(dt){
     me.r += wrap(Math.atan2(vx, vz) - me.r) * Math.min(1, dt * 12);
     me.ph += s * 5.2; me.mv = lerp(me.mv, clamp(speed * Math.min(1, il) / 3, 0, 1.35), Math.min(1, dt * 8));
     stepAcc += s; if (stepAcc > .62){ stepAcc = 0; AUD.step(me.y < -1.4); }
+    if (goal && goal.last){ const moved = Math.hypot(me.x - goal.last[0], me.z - goal.last[1]); goal.stuck = moved < s * .25 ? goal.stuck + dt : 0; }   /* a wall in the way: stop */
   } else me.mv = Math.max(0, me.mv - dt * 5);
   const f = floorAt(me.x, me.z, me.y); if (f !== null) me.y += (f - me.y) * Math.min(1, dt * 14);
   if (me.jy > 0 || me.vy > 0){ me.vy -= 11 * dt; me.jy = Math.max(0, me.jy + me.vy * dt); if (me.jy === 0) me.vy = 0; }
+}
+/* a click on the ground: the point under the pointer, on the level you are standing on */
+let goal = null;
+function walkTo(cx, cy, run){
+  if (making || !inWorld) return;
+  const f = norm(sub(camTgt, camPos)), r = norm(cross(f, [0, 1, 0])), u = cross(r, f), th = Math.tan(fov / 2);
+  const nx = (cx / innerWidth) * 2 - 1, ny = 1 - (cy / innerHeight) * 2;
+  const d = norm(add(f, add(mul(r, nx * th * W / H), mul(u, ny * th))));
+  const y0 = me.y; if (Math.abs(d[1]) < 1e-4) return; const t = (y0 - camPos[1]) / d[1]; if (t <= 0 || t > 80) return;
+  const gx = camPos[0] + d[0] * t, gz = camPos[2] + d[2] * t;
+  goal = { x:gx, z:gz, y:y0, stuck:0, last:null, run:!!run };
+  const el = $("goal"); el.classList.remove("go"); void el.offsetWidth; el.classList.add("go"); AUD.click();
 }
 function jump(){ if (making || !inWorld || me.jy > 0) return; me.vy = 4; me.jy = .001; emote("jump"); }
 let camD = 0;
@@ -23578,7 +23651,7 @@ window.addEventListener("pagehide", () => { if (NET.be && NET.srv) NET.be.leave(
    8. ON SCREEN — the panel, the bar and its pop-ups, name tags, speech
    ========================================================================== */
 const HINTS = {
-  keys:{ en:"WASD or arrows to walk · drag to look round · the stairs by the pool go down under the water", ko:"WASD·방향키로 걷고, 드래그로 둘러봐요 · 수영장 옆 계단을 내려가면 물 아래예요" },
+  keys:{ en:"Click the ground (or WASD) to walk · drag to look round · the stairs by the pool go down under the water", ko:"바닥을 클릭하거나 WASD·방향키로 걷고, 드래그로 둘러봐요 · 수영장 옆 계단을 내려가면 물 아래예요" },
   touch:{ en:"Joystick to walk · drag to look round · the stairs by the pool go under the water", ko:"조이스틱으로 걷고, 드래그로 둘러봐요 · 수영장 옆 계단은 물 아래로 이어져요" },
   down:{ en:"Under the water — look up: the people above are blurred by the ripples", ko:"물 아래예요 — 올려다보세요. 위의 사람들이 물결에 흐릿하게 보여요" },
   up:{ en:"Look into the pool — the people down there can see you too", ko:"수영장 안을 들여다보세요 — 아래 사람들도 당신을 보고 있어요" },
@@ -23586,7 +23659,7 @@ const HINTS = {
 const LOOK_UI = [
   { k:"fa", lab:{ en:"Face", ko:"표정" }, names:[{ en:"Smile", ko:"웃음" }, { en:"Round eyes", ko:"동글 눈" }, { en:"Calm", ko:"평온" }] },
   { k:"sk", lab:{ en:"Skin", ko:"피부" }, cols:SKIN },
-  { k:"hs", lab:{ en:"Hair", ko:"머리 모양" }, names:[{ en:"None", ko:"없음" }, { en:"Short", ko:"짧은 머리" }, { en:"Bob", ko:"단발" }, { en:"Bun", ko:"똥머리" }, { en:"Long", ko:"긴 머리" }, { en:"Curly", ko:"곱슬" }] },
+  { k:"hs", lab:{ en:"Hair", ko:"머리 모양" }, names:[{ en:"Quiff", ko:"업스타일" }, { en:"Short", ko:"짧은 머리" }, { en:"Bob", ko:"단발" }, { en:"Bun", ko:"똥머리" }, { en:"Long", ko:"긴 머리" }, { en:"Curly", ko:"곱슬" }] },
   { k:"hc", lab:{ en:"Hair colour", ko:"머리 색" }, cols:HAIRC },
   { k:"st", lab:{ en:"Outfit", ko:"옷" }, names:[{ en:"T-shirt", ko:"티셔츠" }, { en:"Dress", ko:"원피스" }, { en:"Hoodie", ko:"후드" }, { en:"Swimsuit", ko:"수영복" }] },
   { k:"tc", lab:{ en:"Top", ko:"상의 색" }, cols:TOPC },
@@ -23828,14 +23901,16 @@ const AUD = (() => {
    ========================================================================== */
 const ptrs = new Map(); let pinch0 = 0, d0 = 0;
 cv.addEventListener("pointerdown", e => { AUD.unlock(); closePops(); document.body.classList.remove("about"); if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-  ptrs.set(e.pointerId, { x:e.clientX, y:e.clientY }); try { cv.setPointerCapture(e.pointerId); } catch (_){}
+  ptrs.set(e.pointerId, { x:e.clientX, y:e.clientY, ox:e.clientX, oy:e.clientY, t:performance.now(), n:ptrs.size }); try { cv.setPointerCapture(e.pointerId); } catch (_){}
   if (ptrs.size === 2){ const [a, b] = [...ptrs.values()]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); d0 = view.td; } document.body.classList.add("drag"); });
 cv.addEventListener("pointermove", e => { const p = ptrs.get(e.pointerId); if (!p) return;
   if (ptrs.size === 2){ const o = [...ptrs.entries()].find(([id]) => id !== e.pointerId)[1]; const d = Math.hypot(e.clientX - o.x, e.clientY - o.y); if (pinch0) view.td = clamp(d0 * pinch0 / d, 2, 14); p.x = e.clientX; p.y = e.clientY; return; }
   const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
   if (making){ me.r -= dx * .012; return; }
   view.ty -= dx * .0065; view.tp = clamp(view.tp + dy * .005, -.6, 1.2); });
-const endPtr = (e) => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch0 = 0; if (!ptrs.size) document.body.classList.remove("drag"); };
+const endPtr = (e) => { const p = ptrs.get(e.pointerId);
+  if (p && e.type === "pointerup" && p.n === 0 && ptrs.size === 1 && Math.hypot(e.clientX - p.ox, e.clientY - p.oy) < 7 && performance.now() - p.t < 450 && e.button === 0) walkTo(e.clientX, e.clientY, e.shiftKey);
+  ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch0 = 0; if (!ptrs.size) document.body.classList.remove("drag"); };
 cv.addEventListener("pointerup", endPtr); cv.addEventListener("pointercancel", endPtr);
 cv.addEventListener("wheel", e => { e.preventDefault(); if (!making) view.td = clamp(view.td * Math.exp(e.deltaY * .0012), 2, 14); }, { passive:false });
 window.addEventListener("keydown", e => {
@@ -23945,6 +24020,8 @@ function frame(now){
   moveMe(dt); stepPeers(dt); stepNpcs(dt); placeCamera(dt);
   if (me.emote && now - me.et0 > 4200) me.emote = "";
   render(t, now); updateTags(now); maybeSend();
+  { const el = $("goal"), p = goal && inWorld && !making ? project([goal.x, goal.y + .02, goal.z]) : null;           /* where you are walking to */
+    if (p){ const k = clamp(9 / p[2], .45, 1.6); el.style.transform = `translate(${p[0]}px, ${p[1]}px) translate(-50%, -50%) scale(${k})`; el.classList.add("on"); } else el.classList.remove("on"); }
   const z = zoneOf(me.x, me.y, me.z);
   if (inWorld && z !== lastZone){ lastZone = z; renderPill();
     if (z === "below" && !zoneHint.below){ zoneHint.below = true; hint(T(HINTS.down)); }
@@ -23966,7 +24043,7 @@ function about(){
   $("ab-h3").textContent = T({ en:"Here", ko:"이 공간에서" });
   const ol = $("ab-ol"); ol.innerHTML = "";
   [{ en:"Make a character and pick one of two servers — up to twenty people share each", ko:"캐릭터를 꾸미고 두 서버 중 하나를 골라요 — 서버마다 20명까지 함께해요" },
-   { en:"Walk with WASD or the arrows (the joystick on a phone), drag to look round, scroll to zoom", ko:"WASD·방향키(휴대폰은 조이스틱)로 걷고, 드래그로 둘러보고, 휠로 거리를 바꿔요" },
+   { en:"Click the ground to walk there (shift-click to run) — or WASD, the arrows, the joystick on a phone; drag to look round, scroll to zoom", ko:"바닥을 클릭하면 그곳까지 걸어가요(Shift+클릭은 달리기) — WASD·방향키·휴대폰 조이스틱도 돼요. 드래그로 둘러보고, 휠로 거리를 바꿔요" },
    { en:"Take the stairs by the pool down: through the water the people above are blurred, and the sound turns to water", ko:"수영장 옆 계단으로 내려가면 물결 너머로 위의 사람들이 흐릿하게 보이고, 물속 소리가 들려요" },
    { en:"Talk (Enter), wave, bow, jump, dance or sit down at the edge", ko:"말하기(Enter), 손 흔들기·인사·점프·춤·앉기로 만나요" }]
     .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); ol.appendChild(li); });
