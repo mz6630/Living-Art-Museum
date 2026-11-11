@@ -274,8 +274,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 .prow{position:absolute;left:50%;top:50%;transform-style:preserve-3d;will-change:transform;}
 .pane{position:absolute;width:min(27vw,340px);aspect-ratio:3/4;left:0;top:0;
   transform-origin:50% 50%;opacity:0;transition:opacity .35s var(--ease), transform .7s var(--ease);}
-.pane .inner{position:absolute;inset:0;overflow:hidden;opacity:.86;mix-blend-mode:multiply;
-  outline:1px solid rgba(0,0,0,.08);box-shadow:0 30px 70px -40px rgba(0,0,0,.5);transition:opacity .18s linear;}
+.pane .inner{position:absolute;inset:0;overflow:hidden;opacity:.86;
+  outline:1px solid rgba(0,0,0,.08);box-shadow:0 26px 44px -30px rgba(0,0,0,.45);transition:opacity .18s linear;}
+.lite .pane .inner{box-shadow:none;}
 .pane svg{width:100%;height:100%;display:block;}
 .pane img.ph{width:100%;height:100%;display:block;object-fit:contain;}
 .pane canvas{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .18s linear;}
@@ -1511,6 +1512,8 @@ function applyLang(){
   $("expframe").title = t("exp.frame");
   expOpen = null;                                   /* an experience mounts again in the new language */
   if (typeof relabelViews === "function") relabelViews();
+  idle(() => buildPanes());                         /* the intro's pictures, read and drawn ahead while the desktop waits */
+  setTimeout(() => idle(() => { if (!OBJ.n && !launching) buildWorld(); }), 900);      /* and the room, before anyone asks for it */
 }
 /* back to the very start: the desktop, powered off */
 function goHome(){
@@ -1560,6 +1563,7 @@ async function launch(){
   $("display").style.transition = "transform .8s var(--ease), opacity .45s .4s";
   $("display").style.transform = "scale(3.1)";
   $("display").style.opacity = "0";
+  if (!OBJ.n){ await wait(40); buildWorld(); }       /* build the room now, while the screen's own zoom carries the eye */
   await wait(470); if (skipped) return;
 
   buildPanes();
@@ -1586,7 +1590,7 @@ const paneCols = (el) => Math.max(8, Math.round(CELLS_Y * (+el.dataset.ar || 0.7
 function samplePhoto(i, im, el){
   const cx = paneCols(el), cy = CELLS_Y, sx = cx * 4, sy = cy * 4;
   const a = document.createElement("canvas"); a.width = sx; a.height = sy;
-  const g = a.getContext("2d"); g.imageSmoothingQuality = "high";
+  const g = a.getContext("2d", { willReadFrequently:true }); g.imageSmoothingQuality = "high";
   g.drawImage(im, 0, 0, sx, sy);
   let d; try { d = g.getImageData(0, 0, sx, sy).data; } catch (e){ return; }
   const out = new Float32Array(cx * cy * 3);
@@ -1606,7 +1610,7 @@ function buildPanes(){
     const src = PHOTO[w.id];
     el.className = src ? "pane photo" : "pane";
     el.dataset.ar = "0.75";
-    el.innerHTML = `<span class="inner">${src ? `<img class="ph" alt="" src="${src}">` : art(i)}</span><canvas></canvas><span class="clip"><span class="scan"></span></span><span class="cap">${String(i+1).padStart(2,"0")} ${loc(w).title}</span>`;
+    el.innerHTML = `<span class="inner">${src ? `<img class="ph" alt="" decoding="async" src="${src}">` : art(i)}</span><canvas></canvas><span class="clip"><span class="scan"></span></span><span class="cap">${String(i+1).padStart(2,"0")} ${loc(w).title}</span>`;
     if (src){
       const im = el.querySelector("img");
       const fit = () => {
@@ -1615,13 +1619,15 @@ function buildPanes(){
         samplePhoto(i, im, el);
         if (!entering) placePanes();
       };
-      if (im.complete) fit(); else im.addEventListener("load", fit, { once:true });
+      const go = () => (im.decode ? im.decode().catch(() => {}) : Promise.resolve()).then(() => idle(fit));
+      if (im.complete) go(); else im.addEventListener("load", go, { once:true });
     }
     prow.appendChild(el);
     return el;
   });
   paneCaption();
   placePanes();
+  warmPanes();
 }
 
 function paneCaption(){
@@ -1646,8 +1652,48 @@ function placePanes(){
 }
 window.addEventListener("resize", () => { if (panes.length && !entering) placePanes(); });
 
+/* the intro keeps to a budget: smaller canvases on a phone, a touch screen or a slow machine */
+const LITE = PHONE() || matchMedia("(pointer:coarse)").matches || (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
+if (LITE) document.documentElement.classList.add("lite");
+const paneDPR = () => Math.min(window.devicePixelRatio || 1, LITE ? 1.15 : 1.5);
+const paneSize = (el) => [parseFloat(el.style.width) || el.clientWidth, parseFloat(el.style.height) || el.clientHeight];
+/* the finished glyph picture of one pane — every tile at its tone, every glyph in place — drawn once and kept */
+function paneSheet(el, index){
+  const P = PANE_RGB[index]; if (!P) return null;
+  const [w, h] = paneSize(el), d = paneDPR(); if (!w || !h) return null;
+  const key = `${w}x${h}@${d}`; if (el._sheet && el._sheetKey === key) return el._sheet;
+  const CX = paneCols(el), CY = CELLS_Y, cw = w / CX, ch = h / CY;
+  const c = el._sheet || document.createElement("canvas"); c.width = Math.round(w * d); c.height = Math.round(h * d);
+  const g = c.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, w, h);
+  g.font = `${Math.round(Math.min(ch, cw * 1.6) * 0.9)}px "JetBrains Mono", monospace`; g.textBaseline = "middle"; g.textAlign = "center";
+  const lag = new Float32Array(CX * CY);
+  for (let y = 0; y < CY; y++) for (let x = 0; x < CX; x++){
+    const o = (y * CX + x) * 3, r = P[o], gg = P[o + 1], bb = P[o + 2], L = (0.299 * r + 0.587 * gg + 0.114 * bb) / 255, f = 0.62 + L * 0.2;
+    g.globalAlpha = 1; g.fillStyle = `rgb(${r * f | 0},${gg * f | 0},${bb * f | 0})`; g.fillRect(x * cw, y * ch, cw + .6, ch + .6);
+    const t = Math.max(1, Math.min(GLYPHS.length - 1, Math.round((0.1 + L * 0.9) * (GLYPHS.length - 1))));
+    g.globalAlpha = L > 0.6 ? .85 : .9;
+    g.fillStyle = L > 0.6 ? `rgb(${r * .35 | 0},${gg * .35 | 0},${bb * .35 | 0})` : `rgb(${r + (255 - r) * .6 | 0},${gg + (255 - gg) * .6 | 0},${bb + (255 - bb) * .6 | 0})`;
+    g.fillText(GLYPHS[t], x * cw + cw / 2, y * ch + ch / 2 + .5);
+    lag[y * CX + x] = (x / CX) * 0.35 + (y / CY) * 0.2 + hash(x + index * 7, y) * 0.25;      /* each cell's place in the soft diagonal wave */
+  }
+  g.globalAlpha = 1; el._sheet = c; el._sheetKey = key; el._lag = lag;
+  return c;
+}
+/* draw the sheets ahead, one at a time, while nothing else is happening */
+const idle = (f) => window.requestIdleCallback ? requestIdleCallback(f, { timeout:400 }) : setTimeout(() => f(null), 40);
+function warmPanes(){
+  if (!panes.length) return;
+  const todo = panes.map((_, i) => i), tries = new Array(panes.length).fill(0);
+  const step = (dl) => {
+    do { const i = todo.shift(); if (i === undefined) return;
+      if (!paneSheet(panes[i], i) && tries[i]++ < 40) todo.push(i);                     /* its photo is not read yet: later */
+    } while (todo.length && dl && dl.timeRemaining() > 8);
+    if (todo.length) idle(step); };
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => idle(step));
+}
+
 /* a photo becomes glyphs in two soft movements: it coarsens into a mosaic that settles on the glyph grid,
-   then each tile darkens to its own tone and its glyph surfaces — cell by cell, in a gentle wave */
+   then the glyph picture comes through it cell by cell, in a gentle wave — one mask per frame, not a thousand letters */
 const smooth = (u) => u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u);
 function photoToGlyphs(el, g, img, P, w, h, CX, CY, cw, ch, index, p){
   const e1 = smooth(p / 0.58), e2 = smooth((p - 0.38) / 0.62);
@@ -1656,29 +1702,26 @@ function photoToGlyphs(el, g, img, P, w, h, CX, CY, cw, ch, index, p){
     const cols = Math.max(CX, Math.round(w * Math.pow(CX / w, e1))), rows = Math.max(CY, Math.round(h * Math.pow(CY / h, e1)));
     const sc = el._sc || (el._sc = document.createElement("canvas"));
     if (sc.width !== cols || sc.height !== rows){ sc.width = cols; sc.height = rows; }
-    const q = sc.getContext("2d"); q.imageSmoothingQuality = "high"; q.drawImage(img, 0, 0, cols, rows);
+    let src = el._src; const sw = Math.round(w), sh = Math.round(h);
+    if (!src || src.width !== sw || src.height !== sh){ src = el._src = document.createElement("canvas"); src.width = sw; src.height = sh; src.getContext("2d").drawImage(img, 0, 0, sw, sh); }
+    const q = sc.getContext("2d"); q.imageSmoothingQuality = "low"; q.drawImage(src, 0, 0, cols, rows);
     g.imageSmoothingEnabled = cols > w * 0.6; g.drawImage(sc, 0, 0, w, h); g.imageSmoothingEnabled = true;
   }
-  /* 2 — the glyphs */
+  /* 2 — the glyphs, through a mask with one pixel per cell */
   if (e2 > 0){
-    g.font = `${Math.round(Math.min(ch, cw * 1.6) * 0.9)}px "JetBrains Mono", monospace`;
-    g.textBaseline = "middle"; g.textAlign = "center";
-    for (let y = 0; y < CY; y++) for (let x = 0; x < CX; x++){
-      const o = (y * CX + x) * 3, r = P[o], gg = P[o + 1], bb = P[o + 2];
-      const L = (0.299 * r + 0.587 * gg + 0.114 * bb) / 255;
-      const lag = (x / CX) * 0.35 + (y / CY) * 0.2 + hash(x + index * 7, y) * 0.25;   /* a soft diagonal wave */
-      const k = smooth((e2 * 1.8 - lag) / 1);
-      const f = 1 - (1 - (0.62 + L * 0.2)) * k;                                     /* the tile eases to its tone */
-      g.globalAlpha = e2 < 1 ? Math.min(1, e2 * 2.2) : 1;
-      g.fillStyle = `rgb(${r * f | 0},${gg * f | 0},${bb * f | 0})`; g.fillRect(x * cw, y * ch, cw + .6, ch + .6);
-      if (k > 0.02){
-        const t = Math.max(1, Math.min(GLYPHS.length - 1, Math.round((0.1 + L * 0.9) * (GLYPHS.length - 1))));
-        g.globalAlpha = k * (L > 0.6 ? .85 : .9);
-        g.fillStyle = L > 0.6 ? `rgb(${r * .35 | 0},${gg * .35 | 0},${bb * .35 | 0})` : `rgb(${r + (255 - r) * .6 | 0},${gg + (255 - gg) * .6 | 0},${bb + (255 - bb) * .6 | 0})`;
-        g.fillText(GLYPHS[t], x * cw + cw / 2, y * ch + ch / 2 + .5);
-      }
-    }
-    g.globalAlpha = 1;
+    const sheet = paneSheet(el, index); if (!sheet) return;
+    const m = el._mask || (el._mask = document.createElement("canvas"));
+    if (m.width !== CX || m.height !== CY){ m.width = CX; m.height = CY; el._md = null; }
+    const mq = m.getContext("2d"), md = el._md || (el._md = mq.createImageData(CX, CY)), D = md.data, lag = el._lag;
+    for (let i = 0, n = CX * CY; i < n; i++) D[i * 4 + 3] = 255 * smooth(e2 * 1.8 - lag[i]);
+    mq.putImageData(md, 0, 0);
+    const T = el._tmp || (el._tmp = document.createElement("canvas"));
+    if (T.width !== sheet.width || T.height !== sheet.height){ T.width = sheet.width; T.height = sheet.height; }
+    const tq = T.getContext("2d");
+    tq.globalCompositeOperation = "copy"; tq.drawImage(sheet, 0, 0);
+    tq.globalCompositeOperation = "destination-in"; tq.imageSmoothingEnabled = false; tq.drawImage(m, 0, 0, T.width, T.height);
+    tq.globalCompositeOperation = "source-over";
+    g.drawImage(T, 0, 0, w, h);
   }
   const cvp = el.querySelector("canvas");
   cvp.style.opacity = String(0.86 + 0.14 * e1);
@@ -1690,7 +1733,7 @@ function digitise(el, index, p){
   const cvp = el.querySelector("canvas");
   const w = el.clientWidth, h = el.clientHeight;
   if (!w || !h) return;
-  const d = Math.min(window.devicePixelRatio || 1, 2);
+  const d = paneDPR();
   if (cvp.width !== Math.round(w*d) || cvp.height !== Math.round(h*d)){ cvp.width = Math.round(w*d); cvp.height = Math.round(h*d); }
   const g = cvp.getContext("2d");
   g.setTransform(d, 0, 0, d, 0, 0);
@@ -1760,12 +1803,14 @@ async function runTransition(){
     if (count === Math.floor(N * 0.62)) $("pcaption").textContent = t("panes.enter");
   };
   const t0 = performance.now();
+  try { row.animate([{ transform:`translate3d(${x0}px, 0, -60px) rotateY(0deg)` }, { transform:`translate3d(${x1}px, 0, 460px) rotateY(2deg)` }],
+                    { duration:driftMs, easing:"cubic-bezier(.37,0,.63,1)", fill:"forwards" }); }
+  catch (_){ row.style.transform = `translate3d(${x1}px, 0, 460px) rotateY(2deg)`; }
   await new Promise((done) => {
     const frame = () => {
       if (skipped) return done();
       const u = Math.min(1, (performance.now() - t0) / driftMs), e = ease(u);
       const rx = x0 + (x1 - x0) * e;
-      row.style.transform = `translate3d(${rx}px, 0, ${-60 + 520 * e}px) rotateY(${2 * e}deg)`;
       /* a work is read once its middle comes within a little of the centre of the screen */
       panes.forEach((el, i) => { if (!started[i] && rx + (+el.dataset.x) < W * (PHONE() ? 0.4 : 0.3)) for (let j = 0; j <= i; j++) read(j); });
       if (u > 0.78) panes.forEach((el, i) => read(i));              /* nobody is left unread */
@@ -1967,6 +2012,18 @@ const cv = $("grid"), ctx = cv.getContext("2d", { alpha:false });
 const CELL_W = 13, CELL_H = 19, FONT = '16px "JetBrains Mono", ui-monospace, monospace';
 const ASPECT = CELL_W / CELL_H;
 let cols = 0, rows = 0, dpr = 1;
+/* the room looks after its own frame rate: when frames run long the glyphs grow a little (fewer of them
+   to work out) and the canvas uses fewer pixels; when there is room again it steps back up */
+const GQ = [{ s:1, d:1 }, { s:1.12, d:.85 }, { s:1.26, d:.72 }, { s:1.42, d:.62 }];
+let gq = (PHONE() || matchMedia("(pointer:coarse)").matches) ? 1 : 0, gqAcc = 0, gqN = 0, gqGood = 0;
+function tuneGrid(ms){
+  if (ms > 250) return;                                   /* a pause, not a slow frame */
+  gqAcc += ms; gqN++; if (gqAcc < 1500) return;
+  const avg = gqAcc / gqN; gqAcc = 0; gqN = 0;
+  if (avg > 30 && gq < GQ.length - 1){ gq++; gqGood = 0; sizeGrid(); }
+  else if (avg < 17){ if (++gqGood >= 4 && gq > 0){ gq--; gqGood = 0; sizeGrid(); } }
+  else gqGood = 0;
+}
 let depth, gi, ci, ti;
 const cam = { x:0, y:1.7, z:9, yaw:0, pitch:0 };
 const look = { yaw:0, pitch:0 };      /* where the head is heading */
@@ -2003,8 +2060,10 @@ const beat3 = (ph) => Math.min(1, Math.exp(-ph * 11) * (ph < .015 ? ph / .015 : 
   db.collection("pulseRoom").orderBy("t", "desc").limit(25).onSnapshot(sn => { const L = sn.docs.map(d => d.data()).filter(p => p && typeof p.b === "number");
     L.forEach((p, i) => { if (BULBS3[i]){ BULBS3[i].bpm = p.b; BULBS3[i].ph = (p.t % 997) / 997; } }); }, () => {}); } catch (_){} })();
 function buildWorld(){
-  const X = [], Y = [], Z = [], B = [], C = [];
-  const put = (x, y, z, b, c) => { X.push(x); Y.push(y); Z.push(z); B.push(b); C.push(c); };
+  /* points go straight into typed arrays that double as they fill — no millions of little pushes */
+  let cap = 1 << 16, NP = 0, X = new Float32Array(cap), Y = new Float32Array(cap), Z = new Float32Array(cap), B = new Float32Array(cap), C = new Uint8Array(cap);
+  const grow = () => { cap *= 2; const g = (a) => { const b = new a.constructor(cap); b.set(a); return b; }; X = g(X); Y = g(Y); Z = g(Z); B = g(B); C = g(C); };
+  const put = (x, y, z, b, c) => { if (NP === cap) grow(); X[NP] = x; Y[NP] = y; Z[NP] = z; B[NP] = b; C[NP] = c; NP++; };
   let seed = 7; const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
   /* a canvas hung flat on a wall: (u, v) run 0..1 from the viewer's top left */
   const onWall = (o, face, w, h) => (u, v, lift = 0) => {
@@ -2438,24 +2497,24 @@ function buildWorld(){
         put(bx + Math.sin(th) * Math.cos(ph) * .32, by + Math.cos(th) * .32, bz + Math.sin(th) * Math.sin(ph) * .32, .42, 2); G.push(gid); }
       put(bx, by, bz, 1, 13); G.push(gid); put(bx, by - .02, bz, 1, 13); G.push(gid);                  /* the filament */
     }
-    PULSE_G = { start:X.length - G.length, g:Int16Array.from(G) };
+    PULSE_G = { start:NP - G.length, g:Int16Array.from(G) };
   }
 
-  OBJ = { x:Float32Array.from(X), y:Float32Array.from(Y), z:Float32Array.from(Z),
-          b:Float32Array.from(B), c:Uint8Array.from(C), n:X.length };
+  OBJ = { x:X.slice(0, NP), y:Y.slice(0, NP), z:Z.slice(0, NP), b:B.slice(0, NP), c:C.slice(0, NP), n:NP };
 }
 
 function sizeGrid(){
-  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const Q = GQ[gq];
+  dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2) * Q.d);
   const w = cv.clientWidth || window.innerWidth, h = cv.clientHeight || window.innerHeight;
   cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-  cols = Math.max(24, Math.floor(w / CELL_W));
-  rows = Math.max(16, Math.floor(h / CELL_H));
+  cols = Math.max(24, Math.floor(w / (CELL_W * Q.s)));
+  rows = Math.max(16, Math.floor(h / (CELL_H * Q.s)));
   depth = new Float32Array(cols * rows);
   gi = new Uint8Array(cols * rows);
   ci = new Uint8Array(cols * rows);
   ti = new Uint8Array(cols * rows);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.setTransform(dpr * Q.s, 0, 0, dpr * Q.s, 0, 0);
   ctx.font = FONT; ctx.textBaseline = "top";
 }
 
@@ -2665,7 +2724,7 @@ function renderSpace(){
   }
 
   /* ---- paint: a colour tile under every glyph, then the glyph ---- */
-  const W = cv.width / dpr, H = cv.height / dpr;
+  const W = cv.width / (dpr * GQ[gq].s), H = cv.height / (dpr * GQ[gq].s);
   ctx.fillStyle = "#0c0d11"; ctx.fillRect(0, 0, W, H);
   const lift = lightsUp ? 2 : 0;
   ctx.font = FONT;
@@ -2856,6 +2915,7 @@ function walkable(x, z){
 /* ---- loop ---- */
 function frame(t){
   if (!running) return;
+  tuneGrid(t - lastT);
   const dt = Math.min(0.05, (t - lastT) / 1000 || 0.016); lastT = t;
   step(dt);
   renderSpace(t);

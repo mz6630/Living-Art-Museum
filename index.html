@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261111113346";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261111120746";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -275,8 +275,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 .prow{position:absolute;left:50%;top:50%;transform-style:preserve-3d;will-change:transform;}
 .pane{position:absolute;width:min(27vw,340px);aspect-ratio:3/4;left:0;top:0;
   transform-origin:50% 50%;opacity:0;transition:opacity .35s var(--ease), transform .7s var(--ease);}
-.pane .inner{position:absolute;inset:0;overflow:hidden;opacity:.86;mix-blend-mode:multiply;
-  outline:1px solid rgba(0,0,0,.08);box-shadow:0 30px 70px -40px rgba(0,0,0,.5);transition:opacity .18s linear;}
+.pane .inner{position:absolute;inset:0;overflow:hidden;opacity:.86;
+  outline:1px solid rgba(0,0,0,.08);box-shadow:0 26px 44px -30px rgba(0,0,0,.45);transition:opacity .18s linear;}
+.lite .pane .inner{box-shadow:none;}
 .pane svg{width:100%;height:100%;display:block;}
 .pane img.ph{width:100%;height:100%;display:block;object-fit:contain;}
 .pane canvas{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .18s linear;}
@@ -1512,6 +1513,8 @@ function applyLang(){
   $("expframe").title = t("exp.frame");
   expOpen = null;                                   /* an experience mounts again in the new language */
   if (typeof relabelViews === "function") relabelViews();
+  idle(() => buildPanes());                         /* the intro's pictures, read and drawn ahead while the desktop waits */
+  setTimeout(() => idle(() => { if (!OBJ.n && !launching) buildWorld(); }), 900);      /* and the room, before anyone asks for it */
 }
 /* back to the very start: the desktop, powered off */
 function goHome(){
@@ -1561,6 +1564,7 @@ async function launch(){
   $("display").style.transition = "transform .8s var(--ease), opacity .45s .4s";
   $("display").style.transform = "scale(3.1)";
   $("display").style.opacity = "0";
+  if (!OBJ.n){ await wait(40); buildWorld(); }       /* build the room now, while the screen's own zoom carries the eye */
   await wait(470); if (skipped) return;
 
   buildPanes();
@@ -1587,7 +1591,7 @@ const paneCols = (el) => Math.max(8, Math.round(CELLS_Y * (+el.dataset.ar || 0.7
 function samplePhoto(i, im, el){
   const cx = paneCols(el), cy = CELLS_Y, sx = cx * 4, sy = cy * 4;
   const a = document.createElement("canvas"); a.width = sx; a.height = sy;
-  const g = a.getContext("2d"); g.imageSmoothingQuality = "high";
+  const g = a.getContext("2d", { willReadFrequently:true }); g.imageSmoothingQuality = "high";
   g.drawImage(im, 0, 0, sx, sy);
   let d; try { d = g.getImageData(0, 0, sx, sy).data; } catch (e){ return; }
   const out = new Float32Array(cx * cy * 3);
@@ -1607,7 +1611,7 @@ function buildPanes(){
     const src = PHOTO[w.id];
     el.className = src ? "pane photo" : "pane";
     el.dataset.ar = "0.75";
-    el.innerHTML = `<span class="inner">${src ? `<img class="ph" alt="" src="${src}">` : art(i)}</span><canvas></canvas><span class="clip"><span class="scan"></span></span><span class="cap">${String(i+1).padStart(2,"0")} ${loc(w).title}</span>`;
+    el.innerHTML = `<span class="inner">${src ? `<img class="ph" alt="" decoding="async" src="${src}">` : art(i)}</span><canvas></canvas><span class="clip"><span class="scan"></span></span><span class="cap">${String(i+1).padStart(2,"0")} ${loc(w).title}</span>`;
     if (src){
       const im = el.querySelector("img");
       const fit = () => {
@@ -1616,13 +1620,15 @@ function buildPanes(){
         samplePhoto(i, im, el);
         if (!entering) placePanes();
       };
-      if (im.complete) fit(); else im.addEventListener("load", fit, { once:true });
+      const go = () => (im.decode ? im.decode().catch(() => {}) : Promise.resolve()).then(() => idle(fit));
+      if (im.complete) go(); else im.addEventListener("load", go, { once:true });
     }
     prow.appendChild(el);
     return el;
   });
   paneCaption();
   placePanes();
+  warmPanes();
 }
 
 function paneCaption(){
@@ -1647,8 +1653,48 @@ function placePanes(){
 }
 window.addEventListener("resize", () => { if (panes.length && !entering) placePanes(); });
 
+/* the intro keeps to a budget: smaller canvases on a phone, a touch screen or a slow machine */
+const LITE = PHONE() || matchMedia("(pointer:coarse)").matches || (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
+if (LITE) document.documentElement.classList.add("lite");
+const paneDPR = () => Math.min(window.devicePixelRatio || 1, LITE ? 1.15 : 1.5);
+const paneSize = (el) => [parseFloat(el.style.width) || el.clientWidth, parseFloat(el.style.height) || el.clientHeight];
+/* the finished glyph picture of one pane — every tile at its tone, every glyph in place — drawn once and kept */
+function paneSheet(el, index){
+  const P = PANE_RGB[index]; if (!P) return null;
+  const [w, h] = paneSize(el), d = paneDPR(); if (!w || !h) return null;
+  const key = `${w}x${h}@${d}`; if (el._sheet && el._sheetKey === key) return el._sheet;
+  const CX = paneCols(el), CY = CELLS_Y, cw = w / CX, ch = h / CY;
+  const c = el._sheet || document.createElement("canvas"); c.width = Math.round(w * d); c.height = Math.round(h * d);
+  const g = c.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, w, h);
+  g.font = `${Math.round(Math.min(ch, cw * 1.6) * 0.9)}px "JetBrains Mono", monospace`; g.textBaseline = "middle"; g.textAlign = "center";
+  const lag = new Float32Array(CX * CY);
+  for (let y = 0; y < CY; y++) for (let x = 0; x < CX; x++){
+    const o = (y * CX + x) * 3, r = P[o], gg = P[o + 1], bb = P[o + 2], L = (0.299 * r + 0.587 * gg + 0.114 * bb) / 255, f = 0.62 + L * 0.2;
+    g.globalAlpha = 1; g.fillStyle = `rgb(${r * f | 0},${gg * f | 0},${bb * f | 0})`; g.fillRect(x * cw, y * ch, cw + .6, ch + .6);
+    const t = Math.max(1, Math.min(GLYPHS.length - 1, Math.round((0.1 + L * 0.9) * (GLYPHS.length - 1))));
+    g.globalAlpha = L > 0.6 ? .85 : .9;
+    g.fillStyle = L > 0.6 ? `rgb(${r * .35 | 0},${gg * .35 | 0},${bb * .35 | 0})` : `rgb(${r + (255 - r) * .6 | 0},${gg + (255 - gg) * .6 | 0},${bb + (255 - bb) * .6 | 0})`;
+    g.fillText(GLYPHS[t], x * cw + cw / 2, y * ch + ch / 2 + .5);
+    lag[y * CX + x] = (x / CX) * 0.35 + (y / CY) * 0.2 + hash(x + index * 7, y) * 0.25;      /* each cell's place in the soft diagonal wave */
+  }
+  g.globalAlpha = 1; el._sheet = c; el._sheetKey = key; el._lag = lag;
+  return c;
+}
+/* draw the sheets ahead, one at a time, while nothing else is happening */
+const idle = (f) => window.requestIdleCallback ? requestIdleCallback(f, { timeout:400 }) : setTimeout(() => f(null), 40);
+function warmPanes(){
+  if (!panes.length) return;
+  const todo = panes.map((_, i) => i), tries = new Array(panes.length).fill(0);
+  const step = (dl) => {
+    do { const i = todo.shift(); if (i === undefined) return;
+      if (!paneSheet(panes[i], i) && tries[i]++ < 40) todo.push(i);                     /* its photo is not read yet: later */
+    } while (todo.length && dl && dl.timeRemaining() > 8);
+    if (todo.length) idle(step); };
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => idle(step));
+}
+
 /* a photo becomes glyphs in two soft movements: it coarsens into a mosaic that settles on the glyph grid,
-   then each tile darkens to its own tone and its glyph surfaces — cell by cell, in a gentle wave */
+   then the glyph picture comes through it cell by cell, in a gentle wave — one mask per frame, not a thousand letters */
 const smooth = (u) => u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u);
 function photoToGlyphs(el, g, img, P, w, h, CX, CY, cw, ch, index, p){
   const e1 = smooth(p / 0.58), e2 = smooth((p - 0.38) / 0.62);
@@ -1657,29 +1703,26 @@ function photoToGlyphs(el, g, img, P, w, h, CX, CY, cw, ch, index, p){
     const cols = Math.max(CX, Math.round(w * Math.pow(CX / w, e1))), rows = Math.max(CY, Math.round(h * Math.pow(CY / h, e1)));
     const sc = el._sc || (el._sc = document.createElement("canvas"));
     if (sc.width !== cols || sc.height !== rows){ sc.width = cols; sc.height = rows; }
-    const q = sc.getContext("2d"); q.imageSmoothingQuality = "high"; q.drawImage(img, 0, 0, cols, rows);
+    let src = el._src; const sw = Math.round(w), sh = Math.round(h);
+    if (!src || src.width !== sw || src.height !== sh){ src = el._src = document.createElement("canvas"); src.width = sw; src.height = sh; src.getContext("2d").drawImage(img, 0, 0, sw, sh); }
+    const q = sc.getContext("2d"); q.imageSmoothingQuality = "low"; q.drawImage(src, 0, 0, cols, rows);
     g.imageSmoothingEnabled = cols > w * 0.6; g.drawImage(sc, 0, 0, w, h); g.imageSmoothingEnabled = true;
   }
-  /* 2 — the glyphs */
+  /* 2 — the glyphs, through a mask with one pixel per cell */
   if (e2 > 0){
-    g.font = `${Math.round(Math.min(ch, cw * 1.6) * 0.9)}px "JetBrains Mono", monospace`;
-    g.textBaseline = "middle"; g.textAlign = "center";
-    for (let y = 0; y < CY; y++) for (let x = 0; x < CX; x++){
-      const o = (y * CX + x) * 3, r = P[o], gg = P[o + 1], bb = P[o + 2];
-      const L = (0.299 * r + 0.587 * gg + 0.114 * bb) / 255;
-      const lag = (x / CX) * 0.35 + (y / CY) * 0.2 + hash(x + index * 7, y) * 0.25;   /* a soft diagonal wave */
-      const k = smooth((e2 * 1.8 - lag) / 1);
-      const f = 1 - (1 - (0.62 + L * 0.2)) * k;                                     /* the tile eases to its tone */
-      g.globalAlpha = e2 < 1 ? Math.min(1, e2 * 2.2) : 1;
-      g.fillStyle = `rgb(${r * f | 0},${gg * f | 0},${bb * f | 0})`; g.fillRect(x * cw, y * ch, cw + .6, ch + .6);
-      if (k > 0.02){
-        const t = Math.max(1, Math.min(GLYPHS.length - 1, Math.round((0.1 + L * 0.9) * (GLYPHS.length - 1))));
-        g.globalAlpha = k * (L > 0.6 ? .85 : .9);
-        g.fillStyle = L > 0.6 ? `rgb(${r * .35 | 0},${gg * .35 | 0},${bb * .35 | 0})` : `rgb(${r + (255 - r) * .6 | 0},${gg + (255 - gg) * .6 | 0},${bb + (255 - bb) * .6 | 0})`;
-        g.fillText(GLYPHS[t], x * cw + cw / 2, y * ch + ch / 2 + .5);
-      }
-    }
-    g.globalAlpha = 1;
+    const sheet = paneSheet(el, index); if (!sheet) return;
+    const m = el._mask || (el._mask = document.createElement("canvas"));
+    if (m.width !== CX || m.height !== CY){ m.width = CX; m.height = CY; el._md = null; }
+    const mq = m.getContext("2d"), md = el._md || (el._md = mq.createImageData(CX, CY)), D = md.data, lag = el._lag;
+    for (let i = 0, n = CX * CY; i < n; i++) D[i * 4 + 3] = 255 * smooth(e2 * 1.8 - lag[i]);
+    mq.putImageData(md, 0, 0);
+    const T = el._tmp || (el._tmp = document.createElement("canvas"));
+    if (T.width !== sheet.width || T.height !== sheet.height){ T.width = sheet.width; T.height = sheet.height; }
+    const tq = T.getContext("2d");
+    tq.globalCompositeOperation = "copy"; tq.drawImage(sheet, 0, 0);
+    tq.globalCompositeOperation = "destination-in"; tq.imageSmoothingEnabled = false; tq.drawImage(m, 0, 0, T.width, T.height);
+    tq.globalCompositeOperation = "source-over";
+    g.drawImage(T, 0, 0, w, h);
   }
   const cvp = el.querySelector("canvas");
   cvp.style.opacity = String(0.86 + 0.14 * e1);
@@ -1691,7 +1734,7 @@ function digitise(el, index, p){
   const cvp = el.querySelector("canvas");
   const w = el.clientWidth, h = el.clientHeight;
   if (!w || !h) return;
-  const d = Math.min(window.devicePixelRatio || 1, 2);
+  const d = paneDPR();
   if (cvp.width !== Math.round(w*d) || cvp.height !== Math.round(h*d)){ cvp.width = Math.round(w*d); cvp.height = Math.round(h*d); }
   const g = cvp.getContext("2d");
   g.setTransform(d, 0, 0, d, 0, 0);
@@ -1761,12 +1804,14 @@ async function runTransition(){
     if (count === Math.floor(N * 0.62)) $("pcaption").textContent = t("panes.enter");
   };
   const t0 = performance.now();
+  try { row.animate([{ transform:`translate3d(${x0}px, 0, -60px) rotateY(0deg)` }, { transform:`translate3d(${x1}px, 0, 460px) rotateY(2deg)` }],
+                    { duration:driftMs, easing:"cubic-bezier(.37,0,.63,1)", fill:"forwards" }); }
+  catch (_){ row.style.transform = `translate3d(${x1}px, 0, 460px) rotateY(2deg)`; }
   await new Promise((done) => {
     const frame = () => {
       if (skipped) return done();
       const u = Math.min(1, (performance.now() - t0) / driftMs), e = ease(u);
       const rx = x0 + (x1 - x0) * e;
-      row.style.transform = `translate3d(${rx}px, 0, ${-60 + 520 * e}px) rotateY(${2 * e}deg)`;
       /* a work is read once its middle comes within a little of the centre of the screen */
       panes.forEach((el, i) => { if (!started[i] && rx + (+el.dataset.x) < W * (PHONE() ? 0.4 : 0.3)) for (let j = 0; j <= i; j++) read(j); });
       if (u > 0.78) panes.forEach((el, i) => read(i));              /* nobody is left unread */
@@ -1968,6 +2013,18 @@ const cv = $("grid"), ctx = cv.getContext("2d", { alpha:false });
 const CELL_W = 13, CELL_H = 19, FONT = '16px "JetBrains Mono", ui-monospace, monospace';
 const ASPECT = CELL_W / CELL_H;
 let cols = 0, rows = 0, dpr = 1;
+/* the room looks after its own frame rate: when frames run long the glyphs grow a little (fewer of them
+   to work out) and the canvas uses fewer pixels; when there is room again it steps back up */
+const GQ = [{ s:1, d:1 }, { s:1.12, d:.85 }, { s:1.26, d:.72 }, { s:1.42, d:.62 }];
+let gq = (PHONE() || matchMedia("(pointer:coarse)").matches) ? 1 : 0, gqAcc = 0, gqN = 0, gqGood = 0;
+function tuneGrid(ms){
+  if (ms > 250) return;                                   /* a pause, not a slow frame */
+  gqAcc += ms; gqN++; if (gqAcc < 1500) return;
+  const avg = gqAcc / gqN; gqAcc = 0; gqN = 0;
+  if (avg > 30 && gq < GQ.length - 1){ gq++; gqGood = 0; sizeGrid(); }
+  else if (avg < 17){ if (++gqGood >= 4 && gq > 0){ gq--; gqGood = 0; sizeGrid(); } }
+  else gqGood = 0;
+}
 let depth, gi, ci, ti;
 const cam = { x:0, y:1.7, z:9, yaw:0, pitch:0 };
 const look = { yaw:0, pitch:0 };      /* where the head is heading */
@@ -2004,8 +2061,10 @@ const beat3 = (ph) => Math.min(1, Math.exp(-ph * 11) * (ph < .015 ? ph / .015 : 
   db.collection("pulseRoom").orderBy("t", "desc").limit(25).onSnapshot(sn => { const L = sn.docs.map(d => d.data()).filter(p => p && typeof p.b === "number");
     L.forEach((p, i) => { if (BULBS3[i]){ BULBS3[i].bpm = p.b; BULBS3[i].ph = (p.t % 997) / 997; } }); }, () => {}); } catch (_){} })();
 function buildWorld(){
-  const X = [], Y = [], Z = [], B = [], C = [];
-  const put = (x, y, z, b, c) => { X.push(x); Y.push(y); Z.push(z); B.push(b); C.push(c); };
+  /* points go straight into typed arrays that double as they fill — no millions of little pushes */
+  let cap = 1 << 16, NP = 0, X = new Float32Array(cap), Y = new Float32Array(cap), Z = new Float32Array(cap), B = new Float32Array(cap), C = new Uint8Array(cap);
+  const grow = () => { cap *= 2; const g = (a) => { const b = new a.constructor(cap); b.set(a); return b; }; X = g(X); Y = g(Y); Z = g(Z); B = g(B); C = g(C); };
+  const put = (x, y, z, b, c) => { if (NP === cap) grow(); X[NP] = x; Y[NP] = y; Z[NP] = z; B[NP] = b; C[NP] = c; NP++; };
   let seed = 7; const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
   /* a canvas hung flat on a wall: (u, v) run 0..1 from the viewer's top left */
   const onWall = (o, face, w, h) => (u, v, lift = 0) => {
@@ -2439,24 +2498,24 @@ function buildWorld(){
         put(bx + Math.sin(th) * Math.cos(ph) * .32, by + Math.cos(th) * .32, bz + Math.sin(th) * Math.sin(ph) * .32, .42, 2); G.push(gid); }
       put(bx, by, bz, 1, 13); G.push(gid); put(bx, by - .02, bz, 1, 13); G.push(gid);                  /* the filament */
     }
-    PULSE_G = { start:X.length - G.length, g:Int16Array.from(G) };
+    PULSE_G = { start:NP - G.length, g:Int16Array.from(G) };
   }
 
-  OBJ = { x:Float32Array.from(X), y:Float32Array.from(Y), z:Float32Array.from(Z),
-          b:Float32Array.from(B), c:Uint8Array.from(C), n:X.length };
+  OBJ = { x:X.slice(0, NP), y:Y.slice(0, NP), z:Z.slice(0, NP), b:B.slice(0, NP), c:C.slice(0, NP), n:NP };
 }
 
 function sizeGrid(){
-  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const Q = GQ[gq];
+  dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2) * Q.d);
   const w = cv.clientWidth || window.innerWidth, h = cv.clientHeight || window.innerHeight;
   cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-  cols = Math.max(24, Math.floor(w / CELL_W));
-  rows = Math.max(16, Math.floor(h / CELL_H));
+  cols = Math.max(24, Math.floor(w / (CELL_W * Q.s)));
+  rows = Math.max(16, Math.floor(h / (CELL_H * Q.s)));
   depth = new Float32Array(cols * rows);
   gi = new Uint8Array(cols * rows);
   ci = new Uint8Array(cols * rows);
   ti = new Uint8Array(cols * rows);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.setTransform(dpr * Q.s, 0, 0, dpr * Q.s, 0, 0);
   ctx.font = FONT; ctx.textBaseline = "top";
 }
 
@@ -2666,7 +2725,7 @@ function renderSpace(){
   }
 
   /* ---- paint: a colour tile under every glyph, then the glyph ---- */
-  const W = cv.width / dpr, H = cv.height / dpr;
+  const W = cv.width / (dpr * GQ[gq].s), H = cv.height / (dpr * GQ[gq].s);
   ctx.fillStyle = "#0c0d11"; ctx.fillRect(0, 0, W, H);
   const lift = lightsUp ? 2 : 0;
   ctx.font = FONT;
@@ -2857,6 +2916,7 @@ function walkable(x, z){
 /* ---- loop ---- */
 function frame(t){
   if (!running) return;
+  tuneGrid(t - lastT);
   const dt = Math.min(0.05, (t - lastT) / 1000 || 0.016); lastT = t;
   step(dt);
   renderSpace(t);
@@ -22878,7 +22938,7 @@ const HAIRC = [[.17, .13, .12], [.38, .24, .16], [.74, .54, .32], [.94, .8, .45]
 const TOPC = [[.58, .75, .8], [.96, .8, .32], [.96, .57, .52], [.67, .84, .62], [.8, .68, .92], [.97, .96, .93], [.37, .43, .56], [1, .64, .42]];
 const BOTC = [[.25, .3, .37], [.92, .9, .86], [.52, .66, .78], [.86, .72, .56], [.43, .57, .45], [.2, .2, .23]];
 const LOOK_KEYS = ["sk", "hs", "hc", "st", "tc", "bc", "ac", "fa"];
-const LOOK_N = { sk:SKIN.length, hs:6, hc:HAIRC.length, st:4, tc:TOPC.length, bc:BOTC.length, ac:6, fa:3 };
+const LOOK_N = { sk:SKIN.length, hs:6, hc:HAIRC.length, st:6, tc:TOPC.length, bc:BOTC.length, ac:6, fa:3 };
 const lookArr = (L) => LOOK_KEYS.map(k => L[k]);
 const lookFrom = (a) => { const L = {}; LOOK_KEYS.forEach((k, i) => { const v = Array.isArray(a) ? a[i] : 0; L[k] = Number.isInteger(v) && v >= 0 && v < LOOK_N[k] ? v : 0; }); return L; };
 const lookKey = (L) => lookArr(L).join(".");
@@ -22904,7 +22964,7 @@ const SHOE = [[.28, .45, .84], [.86, .32, .3], [.32, .32, .36], [.96, .62, .22],
 function buildAvatar(L){
   const B = maker(), LL = maker(), LR = maker(), AL = maker(), AR = maker(), M = 5, GLOSS = 8, PAINT = 9, HAIR = 10;
   const sk = SKIN[L.sk], hc = HAIRC[L.hc], tc = TOPC[L.tc], bc = BOTC[L.bc], white = [.98, .97, .95], ink = [.2, .13, .12];
-  const swim = L.st === 3, dress = L.st === 1, hood = L.st === 2, tee = L.st === 0;
+  const swim = L.st === 3, dress = L.st === 1, hood = L.st === 2, tee = L.st === 0, aloha = L.st === 4, overall = L.st === 5;
   const mix3 = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
   /* ---- painting on the face ---- */
   const paint = (pts, o, k) => { let cx = 0, cy = 0; for (const p of pts){ cx += p[0]; cy += p[1]; } cx /= pts.length; cy /= pts.length;
@@ -22915,13 +22975,14 @@ function buildAvatar(L){
     paint(pts, o, k); };
   const stroke = (x0, y0, x1, y1, r0, r1, k) => B.tube(fP(x0, y0, .007), fP(x1, y1, .007), r0, r1, k, PAINT, 8);
   /* ---- legs, socks and shoes ---- */
-  for (const [A, s] of [[LL, -1], [LR, 1]]){ const x = .08 * s, lc = hood ? bc : sk, lr = hood ? .058 : .045;
+  for (const [A, s] of [[LL, -1], [LR, 1]]){ const x = .08 * s, lc = hood || overall ? bc : sk, lr = hood || overall ? .058 : .045;
     A.ell([x, .41, 0], lr + .006, .05, lr + .006, lc, M, 14);
     A.tube([x, .42, 0], [x, .08, 0], lr, lr * .92, lc, M, 14);
     if (hood) A.torus([x, .12, 0], .054, .014, SHADE(bc, .86), M, 16, 6);
+    if (overall){ A.tube([x, .17, 0], [x, .12, 0], .064, .064, SHADE(bc, 1.14), M, 16); A.torus([x, .17, 0], .064, .008, SHADE(bc, .8), M, 16, 5); }   /* rolled cuffs */
     if (tee) A.tube([x, .15, 0], [x, .07, 0], .048, .047, white, M, 14);
     if (dress){ A.tube([x, .26, 0], [x, .07, 0], .048, .046, white, M, 14); A.torus([x, .255, 0], .05, .013, white, M, 16, 6); }
-    if (swim){ A.ell([x, .04, .03], .05, .036, .092, sk, M, 16); A.ell([x, .011, .03], .064, .012, .11, [.98, .82, .32], M, 18);
+    if (swim || aloha){ A.ell([x, .04, .03], .05, .036, .092, sk, M, 16); A.ell([x, .011, .03], .064, .012, .11, aloha ? [.62, .42, .26] : [.98, .82, .32], M, 18);
       for (const d of [-1, 1]) A.tube([x + .04 * d, .022, -.005], [x, .055, .078], .008, .008, [.3, .62, .9], M, 6); }
     else if (dress){ const mj = [.82, .2, .24]; A.ell([x, .058, .03], .06, .05, .098, mj, GLOSS, 18); A.ell([x, .018, .03], .063, .018, .102, [.45, .14, .16], M, 18);
       A.tube([x - .055, .088, .04], [x + .055, .088, .04], .01, .01, mj, M, 6); }
@@ -22931,9 +22992,17 @@ function buildAvatar(L){
   /* ---- the body and clothes ---- */
   const band = (y0, y1, r0, r1, k) => B.lathe([[r0, y0], [Math.max(r0, r1) + .004, (y0 + y1) / 2], [r1, y1]], k, M, 40, BODY_Z);
   const zf = (y) => rAt(y) * BODY_Z;
+  /* a strap laid over the shoulder, on the body all the way: up the front, over the top, down the back */
+  const strap = (x, y0, out, k, w) => {
+    const zAt = (y) => Math.sqrt(Math.max(0, (rAt(y) + out) ** 2 - x * x)) * BODY_Z;
+    let yt = .78; while (yt < .86 && rAt(yt) + out > Math.abs(x)) yt += .002;
+    const ys = []; for (let y = y0; y < yt - .012; y += .02) ys.push(y); ys.push(yt - .012, yt - .005);
+    const P = ys.map(y => [x, y, zAt(y)]).concat([[x, yt, 0]], ys.slice().reverse().map(y => [x, y, -zAt(y)]));
+    B.strand(P, P.map(() => w), P.map(() => .006), [1, 0, 0], k, M, 8); };
+  const shorts = () => B.lathe([[0, .37], [.18, .37], [.205, .39], [.212, .45], [.206, .5]], bc, M, 40, BODY_Z);
   if (tee){
     B.lathe(TORSO, tc, M, 44, BODY_Z); band(.47, .495, .202, .22, SHADE(tc, .92));
-    B.lathe([[0, .37], [.18, .37], [.205, .39], [.212, .45], [.206, .5]], bc, M, 40, BODY_Z);
+    shorts();
     B.torus([0, .846, 0], .08, .016, SHADE(tc, .88), M, 24, 8);
     const em = L.tc === 5 ? [.95, .5, .55] : [.99, .97, .94];                                                /* a little heart print */
     for (const d of [-1, 1]) B.ell([.022 * d, .68, zf(.68) - .004], .027, .027, .012, em, PAINT, 16);
@@ -22950,11 +23019,30 @@ function buildAvatar(L){
     B.ell([0, .875, -.15], .23, .14, .14, SHADE(tc, .92), M, 20); B.torus([0, .86, -.02], .13, .026, SHADE(tc, .92), M, 24, 8);
     B.ell([0, .58, zf(.58) + .006], .13, .06, .02, SHADE(tc, .92), M, 18);
     for (const d of [-1, 1]){ B.tube([.042 * d, .83, .1], [.048 * d, .7, zf(.7) + .016], .008, .008, white, M, 6); B.ell([.048 * d, .69, zf(.69) + .016], .013, .018, .013, white, M, 8); }
-  } else {
+  } else if (aloha){                                                                                         /* a loose aloha shirt, open at the neck, flowers all over */
+    B.lathe(TORSO.map(([r, y]) => [r ? r + .009 : 0, y]), tc, M, 44, BODY_Z); band(.465, .495, .21, .228, SHADE(tc, .9));
+    shorts();
+    B.tube([0, .852, zf(.85) + .006], [0, .75, zf(.75) + .011], .05, .004, sk, PAINT, 12);                        /* the open collar */
+    for (const d of [-1, 1]) B.strand([[.03 * d, .848, zf(.848) + .012], [.062 * d, .8, zf(.8) + .014], [.04 * d, .735, zf(.735) + .012]], [.026, .03, .004], [.006, .006, .004], [1, 0, 0], SHADE(tc, .84), M, 8);
+    for (const y of [.69, .61, .53]) B.ell([.004, y, zf(y) + .01], .011, .011, .007, white, M, 8);
+    const petal = mix3(tc, [1, 1, 1], .7), heart = [.98, .78, .28];
+    [[-.7, .74], [.55, .7], [-.2, .57], [.75, .54], [-.8, .52], [.15, .79], [2.6, .7], [3.4, .58], [3.0, .76], [2.4, .52], [3.8, .72]].forEach(([a, y]) => {
+      const r = rAt(y) * 1.04, cx = Math.sin(a) * r, cz = Math.cos(a) * r * BODY_Z;
+      for (let k = 0; k < 5; k++){ const t = k * 1.2566, ox = Math.cos(t) * .02, oy = Math.sin(t) * .02;
+        B.ell([cx + ox * Math.cos(a), y + oy, cz - ox * Math.sin(a)], .015, .015, .015, petal, PAINT, 8); }
+      B.ell([cx, y, cz], .01, .01, .012, heart, PAINT, 8); });
+  } else if (overall){                                                                                       /* dungarees over a T-shirt */
+    B.lathe(TORSO, tc, M, 44, BODY_Z); B.torus([0, .846, 0], .08, .016, SHADE(tc, .88), M, 24, 8);
+    B.lathe([[0, .37], [.18, .37], [.207, .39], [.217, .46], [.215, .55], [rAt(.6) + .008, .6]], bc, M, 44, BODY_Z);
+    const G = [.58, .61, .64, .67, .7, .72].map(y => { const row = []; for (let x = -.1; x <= .1001; x += .02) row.push([x, y, Math.sqrt(Math.max(0, (rAt(y) + .008) ** 2 - x * x)) * BODY_Z]); return row; });
+    B.grid(G, bc, M, [0, .65, -.1]);                                                                         /* the bib */
+    B.ell([0, .65, zf(.65) + .012], .048, .034, .008, SHADE(bc, .84), M, 14);                                 /* its pocket */
+    for (const d of [-1, 1]){ strap(.085 * d, .7, .01, bc, .022); B.ell([.085 * d, .705, Math.sqrt((rAt(.705) + .016) ** 2 - .0072) * BODY_Z], .014, .014, .008, [.96, .8, .36], M, 10); }
+  } else {                                                                                                     /* the swimsuit */
     B.lathe(TORSO, sk, M, 44, BODY_Z);
     B.lathe([[0, .38], [.17, .38], [.2, .41], [.214, .47]].concat([.53, .58, .63, .68, .72].map(y => [rAt(y) + .006, y])), tc, M, 44, BODY_Z);
     for (const y of [.5, .58, .66]) band(y, y + .028, rAt(y) + .008, rAt(y + .028) + .008, white);
-    for (const d of [-1, 1]) B.tube([.085 * d, .72, zf(.72) - .01], [.085 * d, .8, -.03], .015, .015, tc, M, 8);
+    for (const d of [-1, 1]) strap(.088 * d, .7, .006, tc, .017);
   }
   /* ---- the head: big and round, ears like halves of a ball ---- */
   B.ell([0, HEAD, 0], HR[0], HR[1], HR[2], sk, M, 48);
@@ -23661,7 +23749,7 @@ const LOOK_UI = [
   { k:"sk", lab:{ en:"Skin", ko:"피부" }, cols:SKIN },
   { k:"hs", lab:{ en:"Hair", ko:"머리 모양" }, names:[{ en:"Quiff", ko:"업스타일" }, { en:"Short", ko:"짧은 머리" }, { en:"Bob", ko:"단발" }, { en:"Bun", ko:"똥머리" }, { en:"Long", ko:"긴 머리" }, { en:"Curly", ko:"곱슬" }] },
   { k:"hc", lab:{ en:"Hair colour", ko:"머리 색" }, cols:HAIRC },
-  { k:"st", lab:{ en:"Outfit", ko:"옷" }, names:[{ en:"T-shirt", ko:"티셔츠" }, { en:"Dress", ko:"원피스" }, { en:"Hoodie", ko:"후드" }, { en:"Swimsuit", ko:"수영복" }] },
+  { k:"st", lab:{ en:"Outfit", ko:"옷" }, names:[{ en:"T-shirt", ko:"티셔츠" }, { en:"Dress", ko:"원피스" }, { en:"Hoodie", ko:"후드" }, { en:"Swimsuit", ko:"수영복" }, { en:"Aloha shirt", ko:"하와이안 셔츠" }, { en:"Dungarees", ko:"멜빵바지" }] },
   { k:"tc", lab:{ en:"Top", ko:"상의 색" }, cols:TOPC },
   { k:"bc", lab:{ en:"Bottom", ko:"하의 색" }, cols:BOTC },
   { k:"ac", lab:{ en:"Extra", ko:"소품" }, names:[{ en:"None", ko:"없음" }, { en:"Sun hat", ko:"밀짚모자" }, { en:"Sunglasses", ko:"선글라스" }, { en:"Swim ring", ko:"튜브" }, { en:"Cap", ko:"캡모자" }, { en:"Bunny ears", ko:"토끼 귀" }] },
@@ -23948,11 +24036,23 @@ $("about-x").onclick = () => document.body.classList.remove("about");
    11. EVERY FRAME
    ========================================================================== */
 let W = 0, H = 0, DPR = 1;
+/* the pool looks after its own frame rate: when frames run long it draws fewer pixels and a smaller
+   reflection; when there is room again it steps back up. One step at a time, a few seconds apart. */
+const QL = [{ d:1, r:2 }, { d:.84, r:2 }, { d:.7, r:2.6 }, { d:.58, r:3.2 }];
+let ql = 0, qAcc = 0, qN = 0, qGood = 0;
+function tuneQuality(ms){
+  if (ms > 250 || !inWorld && !making) return;
+  qAcc += ms; qN++; if (qAcc < 2000) return;
+  const avg = qAcc / qN; qAcc = 0; qN = 0;
+  if (avg > 30 && ql < QL.length - 1){ ql++; qGood = 0; layout(); }
+  else if (avg < 17){ if (++qGood >= 4 && ql > 0){ ql--; qGood = 0; layout(); } }
+  else qGood = 0;
+}
 function layout(){
-  DPR = Math.min(window.devicePixelRatio || 1, PHONE() || TOUCH ? 1.35 : 1.75);
+  DPR = Math.max(.6, Math.min(window.devicePixelRatio || 1, PHONE() || TOUCH ? 1.35 : 1.75) * QL[ql].d);
   W = Math.round(innerWidth * DPR); H = Math.round(innerHeight * DPR);
   if (cv.width !== W || cv.height !== H){ cv.width = W; cv.height = H; }
-  const rw = Math.max(64, Math.round(W / 2)), rh = Math.max(64, Math.round(H / 2));
+  const rw = Math.max(64, Math.round(W / QL[ql].r)), rh = Math.max(64, Math.round(H / QL[ql].r));
   if (gl && (rf.w !== rw || rf.h !== rh)){ dropTarget(rf); dropTarget(rl); rf = target(rw, rh, true); rl = target(rw, rh, true); }
   if (gl && (nt.w !== W || nt.h !== H)){ dropTarget(nt); nt = target(W, H, false); }
 }
@@ -24016,6 +24116,7 @@ function render(t, now){
 }
 let lastT = performance.now(), pruneAt = 0, zoneHint = { below:false, up:false };
 function frame(now){
+  tuneQuality(now - lastT);
   const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; const t = now / 1000;
   moveMe(dt); stepPeers(dt); stepNpcs(dt); placeCamera(dt);
   if (me.emote && now - me.et0 > 4200) me.emote = "";
