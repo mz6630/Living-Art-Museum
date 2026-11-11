@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261111121630";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261111122305";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -22967,13 +22967,14 @@ function buildAvatar(L){
   const swim = L.st === 3, dress = L.st === 1, hood = L.st === 2, tee = L.st === 0, aloha = L.st === 4, overall = L.st === 5;
   const mix3 = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
   /* ---- painting on the face ---- */
+  let F = B;                                                                                                  /* where the face paint goes */
   const paint = (pts, o, k) => { let cx = 0, cy = 0; for (const p of pts){ cx += p[0]; cy += p[1]; } cx /= pts.length; cy /= pts.length;
     const C = fP(cx, cy, o), n = fN(cx, cy);
-    for (let i = 0; i < pts.length; i++){ const a = pts[i], b = pts[(i + 1) % pts.length], P1 = fP(a[0], a[1], o), P2 = fP(b[0], b[1], o); B.quad(C, P1, P2, P2, n, k, PAINT); } };
+    for (let i = 0; i < pts.length; i++){ const a = pts[i], b = pts[(i + 1) % pts.length], P1 = fP(a[0], a[1], o), P2 = fP(b[0], b[1], o); F.quad(C, P1, P2, P2, n, k, PAINT); } };
   const oval = (cx, cy, rx, ry, o, k, rot, t0, t1) => { const r = rot || 0, a0 = t0 == null ? 0 : t0, a1 = t1 == null ? Math.PI * 2 : t1, full = a1 - a0 > 6.28, n = 30, pts = [];
     for (let i = 0; i < (full ? n : n + 1); i++){ const t = a0 + (a1 - a0) * i / n, x = Math.cos(t) * rx, y = Math.sin(t) * ry; pts.push([cx + x * Math.cos(r) - y * Math.sin(r), cy + x * Math.sin(r) + y * Math.cos(r)]); }
     paint(pts, o, k); };
-  const stroke = (x0, y0, x1, y1, r0, r1, k) => B.tube(fP(x0, y0, .007), fP(x1, y1, .007), r0, r1, k, PAINT, 8);
+  const stroke = (x0, y0, x1, y1, r0, r1, k) => F.tube(fP(x0, y0, .007), fP(x1, y1, .007), r0, r1, k, PAINT, 8);
   /* ---- legs, socks and shoes ---- */
   for (const [A, s] of [[LL, -1], [LR, 1]]){ const x = .08 * s, lc = hood || overall ? bc : sk, lr = hood || overall ? .058 : .045;
     A.ell([x, .41, 0], lr + .006, .05, lr + .006, lc, M, 14);
@@ -23063,7 +23064,7 @@ function buildAvatar(L){
       let t = cut(.085, ey); oval(x, ey, .067, .085, .008, white, 0, Math.PI - t, Math.PI * 2 + t);
       const ix = x - .004 * s, iy = ey - .018; t = cut(.062, iy); oval(ix, iy, .05, .062, .012, iris, 0, Math.PI - t, Math.PI * 2 + t);
       t = cut(.034, iy - .004); oval(ix, iy - .004, .027, .034, .015, pupil, 0, Math.PI - t, Math.PI * 2 + t);
-      arc(B, x, lid - .004, .07, .008, .012, lash, PAINT); },
+      arc(F, x, lid - .004, .07, .008, .012, lash, PAINT); },
     (x, s) => {                                                                                                 /* sparkly: big glossy eyes, two lashes */
       oval(x, ey + .006, .079, .1, .004, lash, 0, .1, Math.PI - .1);
       oval(x, ey, .07, .088, .008, white);
@@ -23089,17 +23090,27 @@ function buildAvatar(L){
       oval(x + .012 * s, ey + .012, .015, .017, .018, white);
       stroke(x + .072 * s, ey + .006, x + .092 * s, ey - .014, .01, .004, lash); },
   ];
+  /* the eyes and the mouth are made three ways each and swapped as they move: open, a blink, a smile;
+     the mouth at rest, talking, laughing */
+  const E0 = maker(), E1 = maker(), E2 = maker(), M0 = maker(), M1 = maker(), M2 = maker();
   for (const s of [-1, 1]){ const x = ex * s;
-    (EYES[L.fa] || EYES[0])(x, s);
+    F = E0; (EYES[L.fa] || EYES[0])(x, s);
+    F = E1; arc(F, x, ey - .008, .062, -.013, .012, lash, PAINT);                                             /* shut for a blink */
+    F = E2; arc(F, x, ey - .022, .058, .04, .015, lash, PAINT);                                               /* closed in a smile */
+    F = B;
     if (!L.hs) oval(x, ey + .13, .046, .017, .006, SHADE(hc, .7), (L.fa === 6 ? .16 : -.1) * s);           /* the forehead shows: brows */
     oval(.248 * s, HEAD - .128, .052, .03, .005, mix3(sk, [.98, .55, .55], .45)); }                         /* cheeks */
   /* and a mouth to go with each */
+  F = M0;
   if (L.fa === 2){ oval(0, HEAD - .148, .046, .04, .006, mouthIn, 0, Math.PI, Math.PI * 2); oval(0, HEAD - .181, .025, .016, .01, [.96, .52, .55], 0, 0, Math.PI); }
-  else if (L.fa === 4){ arc(B, -.016, HEAD - .148, .017, -.011, .007, ink, PAINT); arc(B, .016, HEAD - .148, .017, -.011, .007, ink, PAINT); }
+  else if (L.fa === 4){ arc(F, -.016, HEAD - .148, .017, -.011, .007, ink, PAINT); arc(F, .016, HEAD - .148, .017, -.011, .007, ink, PAINT); }
   else if (L.fa === 5) oval(0, HEAD - .156, .017, .021, .006, mouthIn);
-  else if (L.fa === 1) arc(B, .006, HEAD - .152, .044, -.016, .008, ink, PAINT);
-  else if (L.fa === 3) arc(B, 0, HEAD - .15, .042, -.02, .008, ink, PAINT);
-  else arc(B, 0, HEAD - .15, .058, -.026, .008, ink, PAINT);
+  else if (L.fa === 1) arc(F, .006, HEAD - .152, .044, -.016, .008, ink, PAINT);
+  else if (L.fa === 3) arc(F, 0, HEAD - .15, .042, -.02, .008, ink, PAINT);
+  else arc(F, 0, HEAD - .15, .058, -.026, .008, ink, PAINT);
+  F = M1; oval(0, HEAD - .156, .03, .03, .006, mouthIn); oval(0, HEAD - .174, .018, .01, .01, [.96, .52, .55], 0, 0, Math.PI);      /* talking */
+  F = M2; oval(0, HEAD - .148, .05, .044, .006, mouthIn, 0, Math.PI, Math.PI * 2); oval(0, HEAD - .184, .027, .017, .01, [.96, .52, .55], 0, 0, Math.PI);   /* laughing */
+  F = B;
   /* ---- hair: smooth, with a blunt fringe ---- */
   const hp = (a, y, o) => { const kh = Math.sqrt(Math.max(0, 1 - ((y - HEAD) / HR[1]) ** 2)), kc = Math.sqrt(Math.max(0, 1 - ((y - CAP[1]) / CR[1]) ** 2));
     const h = [Math.sin(a) * HR[0] * kh, Math.cos(a) * HR[2] * kh], c = [Math.sin(a) * CR[0] * kc, CAP[2] + Math.cos(a) * CR[2] * kc], p = Math.hypot(h[0], h[1]) > Math.hypot(c[0], c[1]) ? h : c;
@@ -23161,13 +23172,14 @@ function buildAvatar(L){
     else { A.ell(sh, .07, .068, .068, tc, M, 16); A.tube(sh, el, .07, .064, tc, M, 16); A.torus([el[0], el[1] + .006, 0], .062, .012, dress ? white : SHADE(tc, .9), M, 16, 6);
       A.tube(el, hd, .038, .036, sk, M, 14); }
     A.ell([hd[0] + .004 * s, hd[1] - .03, .004], .066, .068, .064, sk, M, 18); }
-  return { b:upload(B.v), ll:upload(LL.v), lr:upload(LR.v), al:upload(AL.v), ar:upload(AR.v) };
+  return { b:upload(B.v), ll:upload(LL.v), lr:upload(LR.v), al:upload(AL.v), ar:upload(AR.v),
+           e:[upload(E0.v), upload(E1.v), upload(E2.v)], m:[upload(M0.v), upload(M1.v), upload(M2.v)] };
 }
 const MESHES = new Map();
 function meshFor(L){ const k = lookKey(L); let m = MESHES.get(k); if (!m){ m = buildAvatar(L); MESHES.set(k, m); } return m; }
 function pruneMeshes(){
   const used = new Set(AVATARS().map(a => lookKey(a.look)));
-  for (const [k, m] of MESHES) if (!used.has(k)){ ["b", "ll", "lr", "al", "ar"].forEach(p => gl.deleteBuffer(m[p].buf)); MESHES.delete(k); }
+  for (const [k, m] of MESHES) if (!used.has(k)){ ["b", "ll", "lr", "al", "ar"].forEach(p => gl.deleteBuffer(m[p].buf)); m.e.concat(m.m).forEach(x => gl.deleteBuffer(x.buf)); MESHES.delete(k); }
 }
 
 /* ==========================================================================
@@ -23510,13 +23522,27 @@ function pose(a, now){
   if (a.sit){ q.l1 = q.l2 = -1.45; q.lift = -.3; q.a1x = q.a2x = -.35; }
   return q;
 }
+/* the face, alive: a blink every few seconds (now and then two), a smile through an emote,
+   the mouth working while a message is being said — longer messages, longer talk */
+function faceOf(a, now){
+  if (!a.blinkAt) a.blinkAt = now + 800 + Math.random() * 3000;
+  if (now > a.blinkAt + 140) a.blinkAt = now + (Math.random() < .2 ? 260 : 2400 + Math.random() * 3600);
+  const happy = a.emote && a.emote !== "sit" && now - a.et0 < 2800;
+  let eye = happy ? 2 : now >= a.blinkAt ? 1 : 0, mouth = happy ? 2 : 0;
+  const t0 = a.msgUntil - 6500, len = Math.min(3800, 600 + (a.msg || "").length * 110);
+  if (a.msg && now > t0 && now < t0 + len){ const u = (now - t0) / 1000;
+    mouth = happy ? 2 : Math.sin(u * 17 + Math.sin(u * 6.3) * 2.2) > -.15 ? 1 : 0;
+    if (u < .14) eye = 1; }                                                                   /* a blink as they start */
+  return [eye, mouth];
+}
 function partMats(a, now){
   const q = pose(a, now), m = a.mesh;
   const base = mm4(Tm(a.x, a.y + q.lift, a.z), RY(a.r + q.spin));
   const up = mm4(base, mm4(Tm(0, .42, 0), mm4(RX(q.bow), mm4(RZ(q.sway), Tm(0, -.42, 0)))));
   const leg = (s, ang) => mm4(base, mm4(Tm(.08 * s, .42, 0), mm4(RX(ang), Tm(-.08 * s, -.42, 0))));
   const arm = (s, ax, az) => mm4(up, mm4(Tm(.165 * s, .79, 0), mm4(RZ(az), mm4(RX(ax), Tm(-.165 * s, -.79, 0)))));
-  const out = [[up, m.b], [leg(-1, q.l1), m.ll], [leg(1, q.l2), m.lr], [arm(-1, q.a1x, q.a1z), m.al], [arm(1, q.a2x, q.a2z), m.ar]];
+  const [eye, mouth] = faceOf(a, now);
+  const out = [[up, m.b], [leg(-1, q.l1), m.ll], [leg(1, q.l2), m.lr], [arm(-1, q.a1x, q.a1z), m.al], [arm(1, q.a2x, q.a2z), m.ar], [up, m.e[eye]], [up, m.m[mouth]]];
   out.lift = q.lift; return out;
 }
 
@@ -24199,7 +24225,7 @@ if (!initGL()){
   netInit();
 }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
-window.__pool = { AUD, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
+window.__pool = { faceOf, AUD, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
 <!--SCRIPT_END-->
 </body>
 </html>
