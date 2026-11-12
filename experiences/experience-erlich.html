@@ -96,6 +96,13 @@ body.making #hint{display:none;}
 #sitb{position:absolute;left:0;top:0;display:none;align-items:center;gap:7px;padding:8px 14px 8px 12px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:#25231c;
   font:600 12.5px/1 inherit;font-family:inherit;white-space:nowrap;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);pointer-events:auto;cursor:pointer;will-change:transform;}
 #sitb.on{display:flex;}
+#ballb{position:absolute;left:0;top:0;display:none;align-items:center;gap:7px;padding:8px 14px 8px 12px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:#25231c;
+  font:600 12.5px/1 inherit;font-family:inherit;white-space:nowrap;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);pointer-events:auto;cursor:pointer;will-change:transform;}
+#ballb.on{display:flex;}
+#ballb.fix{position:fixed;left:50%;top:auto;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) !important;}
+#ballb kbd{font:600 10px/1 "JetBrains Mono",monospace;padding:3px 5px;border-radius:5px;background:rgba(37,35,28,.09);color:#5a5648;}
+#ballb .bd{width:14px;height:14px;border-radius:50%;background:conic-gradient(#ee434d 0 60deg,#fbf8f0 0 120deg,#3f7fe8 0 180deg,#fbf8f0 0 240deg,#fcc534 0 300deg,#fbf8f0 0);box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);}
+@media (hover:none){ #ballb kbd{display:none;} }
 #sitb.fix{position:fixed;left:50%;top:auto;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) !important;}
 #sitb:hover{background:#fff;}
 #sitb kbd{font:600 10px/1 "JetBrains Mono",monospace;padding:3px 5px;border-radius:5px;background:rgba(37,35,28,.09);color:#5a5648;}
@@ -1172,7 +1179,8 @@ function pose(a, now){
   else if (a.emote === "jump" && u < .9){ const v = u / .9; if (!a.self) q.lift += 4 * .55 * v * (1 - v); q.a1z = -2.4; q.a2z = 2.4; }
   else if (a.emote === "dance" && u < 4){ q.sway = Math.sin(u * 9) * .16; q.a1z = -1.9 - Math.sin(u * 9) * .5; q.a2z = 1.9 - Math.sin(u * 9) * .5; q.l1 = Math.max(0, Math.sin(u * 9)) * .4; q.l2 = Math.max(0, -Math.sin(u * 9)) * .4; q.spin = (1 - Math.cos(Math.PI * Math.min(u / 2, 1))) * Math.PI; q.lift += Math.abs(Math.sin(u * 9)) * .05; }
   else if (a.emote === "heart" && u < 1.4){ q.lift += Math.max(0, Math.sin(u * 7)) * .08; q.a1z = -.6; q.a2z = .6; q.a1x = q.a2x = -1.2; }
-  if (a === me && AIM.on){ q.a2z = 2.3; q.a2x = .9; q.a1z = -.55; }                 /* winding up */
+  if (BALL.holder === a && !(a === me && AIM.on)){ q.a1x = q.a2x = -1.25; q.a1z = -.32; q.a2z = .32; }       /* holding the ball out in front */
+  else if (a === me && AIM.on){ q.a2z = 2.3; q.a2x = .9; q.a1z = -.55; }                 /* winding up */
   else if (a.thr && now - a.thr < 380){ const v = (now - a.thr) / 380; q.a2z = 2.3 - 1.5 * v; q.a2x = .9 - 2.2 * Math.sin(Math.PI * Math.min(1, v * 1.3)); }   /* the throw */
   if (a.sit && a.bench){ q.l1 = q.l2 = -1.3; q.lift = .06; q.a1x = q.a2x = -.25; q.a1z = -.14; q.a2z = .14; }   /* on a bench */
   else if (a.sit){ q.l1 = q.l2 = -1.45; q.lift = -.3; q.a1x = q.a2x = -.35; }
@@ -1224,7 +1232,8 @@ function moveMe(dt){
   if (il > .08) goal = null;                                                               /* keys or the stick take over */
   else if (goal && !making){                                                               /* walking to where you clicked */
     const dx = goal.x - me.x, dz = goal.z - me.z, d = Math.hypot(dx, dz);
-    if (goal.seat && (d < .3 || goal.stuck > .3 && d < 2.2)){ const st = goal.seat; goal = null; sitBench(st); }
+    if (goal.ball && Math.hypot(BALL.x - me.x, BALL.z - me.z) < 1.1){ goal = null; grabBall(false); }
+    else if (goal.seat && (d < .3 || goal.stuck > .3 && d < 2.2)){ const st = goal.seat; goal = null; sitBench(st); }
     else if (d < .18 || goal.stuck > .45){ goal = null; }
     else { vx = dx / d; vz = dz / d; il = Math.min(1, d / .35); goal.last = [me.x, me.z]; } }
   const speed = (keys.ShiftLeft || keys.ShiftRight || il > .95 && joy.on && Math.hypot(joy.x, joy.y) > .97 || goal && goal.run) ? 5 : 3;
@@ -1250,6 +1259,7 @@ function moveMe(dt){
 let goal = null;
 function walkTo(cx, cy, run){
   if (making || !inWorld) return;
+  if (ballAt(cx, cy, run)) return;                                                                 /* the ball under the finger: go and pick it up */
   if (wishAt(cx, cy)) return;                                                                      /* a coin under the finger: read it */
   const f = norm(sub(camTgt, camPos)), r = norm(cross(f, [0, 1, 0])), u = cross(r, f), th = Math.tan(fov / 2);
   const nx = (cx / innerWidth) * 2 - 1, ny = 1 - (cy / innerHeight) * 2;
@@ -1470,7 +1480,7 @@ function cleanState(st){
   const num = (v, a, b, d) => (typeof v === "number" && isFinite(v)) ? clamp(v, a, b) : d;
   const e = typeof st.e === "string" && EMOTES[st.e] ? st.e : "";
   return { x:num(st.x, -CXW, CXW, 0), y:num(st.y, FLOOR - .1, 1.5, 0), z:num(st.z, -CZW, CZW, 0), r:num(st.r, -7, 7, 0), w:st.w ? 1 : 0, e, et:num(st.et, 0, 1e15, 0),
-    m:cleanText(st.m, 40), mt:num(st.mt, 0, 1e15, 0), n:cleanText(st.n, 12) || "…", look:lookFrom(st.k), f:typeof st.f === "string" ? st.f.slice(0, 48) : "" };
+    m:cleanText(st.m, 40), mt:num(st.mt, 0, 1e15, 0), n:cleanText(st.n, 12) || "…", look:lookFrom(st.k), f:typeof st.f === "string" ? st.f.slice(0, 48) : "", b:typeof st.b === "string" ? st.b.slice(0, 60) : "" };
 }
 function onPeerList(list){
   const seen = new Set(), now = performance.now();
@@ -1478,28 +1488,29 @@ function onPeerList(list){
     const st = cleanState(p.st); if (!st || typeof p.id !== "string") continue;
     const id = p.id.slice(0, 64); seen.add(id);
     let a = PEERS.get(id);
-    if (!a){ a = newAvatar(st.look); a.id = id; a.x = st.x; a.y = st.y; a.z = st.z; a.r = st.r; a.lastE = st.et; a.lastM = st.mt; a.lastF = st.f; a.name = st.n; PEERS.set(id, a);
+    if (!a){ a = newAvatar(st.look); a.id = id; a.x = st.x; a.y = st.y; a.z = st.z; a.r = st.r; a.lastE = st.et; a.lastM = st.mt; a.lastF = st.f; a.lastB = st.b; a.name = st.n; PEERS.set(id, a); if (st.b) ballFrom(a, st.b, true);
       if (inWorld){ AUD.joined(); logLine(st.n, T({ en:"came in", ko:"님이 들어왔어요" }), true); } }
     else {
       if (st.et !== a.lastE){ a.lastE = st.et; if (st.e && st.e !== "sit" && st.e !== "bench"){ a.emote = st.e; a.et0 = now; popEmote(a, st.e); } }
       if (st.f !== a.lastF){ a.lastF = st.f; if (st.f && inWorld) onFx(a, st.f); }
+      if (st.b !== a.lastB){ a.lastB = st.b; if (st.b) ballFrom(a, st.b, false); }
       if (st.mt !== a.lastM){ a.lastM = st.mt; if (st.m){ a.msg = st.m; a.msgUntil = now + 6500; logLine(st.n, st.m); AUD.chat(); } }
     }
     pushSample(a, st, now); a.name = st.n; a.sit = st.e === "sit" || st.e === "bench"; a.bench = st.e === "bench";
     if (lookKey(st.look) !== lookKey(a.look)){ a.look = st.look; a.mesh = meshFor(st.look); }
   }
-  for (const [id, a] of PEERS) if (!seen.has(id)){ PEERS.delete(id); dropTag(id); if (inWorld) logLine(a.name, T({ en:"left", ko:"님이 나갔어요" }), true); }
+  for (const [id, a] of PEERS) if (!seen.has(id)){ if (BALL.holder === a) dropBall(a, false); PEERS.delete(id); dropTag(id); if (inWorld) logLine(a.name, T({ en:"left", ko:"님이 나갔어요" }), true); }
   renderPill();
 }
 function myState(){
   return { s:NET.srv, x:+me.x.toFixed(2), y:+me.y.toFixed(2), z:+me.z.toFixed(2), r:+wrap(me.r).toFixed(2), w:me.moving ? 1 : 0, e:me.sit ? (me.bench ? "bench" : "sit") : (me.emote || ""),
-    et:me.et, m:me.msg || "", mt:me.mt, n:me.name, k:lookArr(me.look), t:Date.now(), ...(FX.f && !FX.blocked && performance.now() - FX.at < 4000 ? { f:FX.f } : {}) };
+    et:me.et, m:me.msg || "", mt:me.mt, n:me.name, k:lookArr(me.look), t:Date.now(), ...(FX.f && !FX.blocked && performance.now() - FX.at < 4000 ? { f:FX.f } : {}), ...(BALL.mine && !FX.blocked ? { b:BALL.mine } : {}) };
 }
 let lastSend = 0, lastSig = "";
 function maybeSend(){
   if (!inWorld || !NET.be || !NET.srv) return;
-  const now = performance.now(), s = myState(), sig = [s.x, s.y, s.z, s.r, s.w, s.e, s.et, s.mt, s.n, s.k.join(""), s.f || ""].join("|");
-  if ((sig !== lastSig && now - lastSend > NET.be.sendMs) || now - lastSend > NET.be.beatMs){ FX.sent = !!s.f; NET.be.send(s); lastSend = now; lastSig = sig; }
+  const now = performance.now(), s = myState(), sig = [s.x, s.y, s.z, s.r, s.w, s.e, s.et, s.mt, s.n, s.k.join(""), s.f || "", s.b || ""].join("|");
+  if ((sig !== lastSig && now - lastSend > NET.be.sendMs) || now - lastSend > NET.be.beatMs){ FX.sent = !!(s.f || s.b); NET.be.send(s); lastSend = now; lastSig = sig; }
 }
 async function enter(srv){
   if (srv !== NET.srv && NET.be && NET.counts[srv - 1] >= MAX){ hint(T({ en:"That server is full — try the other one", ko:"그 서버는 가득 찼어요 — 다른 서버로 들어가 보세요" }), true); return; }
@@ -1768,6 +1779,9 @@ const AUD = (() => {
       else if (e === "sit") burst(tt, .06, 2000, 3, .02); },
     coin(k){ if (!ok() || k <= 0) return; const tt = ctx.currentTime; tone(tt, 2637, .1, .026 * k); tone(tt + .07, 3520, .32, .018 * k); tone(tt + .16, 4186, .3, .01 * k); },
     plop(k){ if (!ok() || k <= 0) return; const tt = ctx.currentTime; tone(tt, 1150, .11, .024 * k, 2100); burst(tt, .14, 2200, 2, .014 * k); },
+    kick(k){ if (!ok() || k <= 0) return; const tt = ctx.currentTime; tone(tt, 540, .09, .045 * k, 330, "triangle"); burst(tt, .05, 1400, 2.5, .022 * k); },
+    bounce(k){ if (!ok() || k <= 0) return; const tt = ctx.currentTime; tone(tt, 470, .07, .03 * k, 360, "triangle"); },
+    grab(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 880, .06, .03, 1320, "triangle"); burst(tt, .04, 2600, 3, .012); },
     stretch(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 760, .12, .012, 1150, "triangle"); },
     toss(k){ if (!ok() || k <= 0) return; const tt = ctx.currentTime; burst(tt, .15, 1800, 2, .02 * k); tone(tt, 600, .16, .014 * k, 1150, "triangle"); },
     splash(k, pool){ if (!ok() || k <= 0) return; const tt = ctx.currentTime;                                  /* a pop, then the water */
@@ -1801,6 +1815,11 @@ function balMeshes(){
            A.ell([0, -.122, 0], .016, .014, .016, SHADE(k, .78), 5, 8);
            A.ell([-.04, .05, .075], .018, .028, .008, [1, 1, 1], 9, 8); })),
          drop:one(A => A.ell([0, 0, 0], .034, .042, .034, [.78, .92, 1], 8, 8)),
+         ball:one(A => { const cols = [[.98, .97, .94], [.93, .26, .3], [.98, .97, .94], [.25, .5, .92], [.98, .97, .94], [.99, .78, .2]];   /* six panels, white caps */
+           for (let L = 0; L < 6; L++){ const G = []; for (let i = 0; i <= 10; i++){ const th = i / 10 * Math.PI, row = [];
+               for (let j = 0; j <= 5; j++){ const ph = (L + j / 5) / 6 * Math.PI * 2; row.push([Math.sin(th) * Math.cos(ph) * BR, Math.cos(th) * BR, Math.sin(th) * Math.sin(ph) * BR]); } G.push(row); }
+             A.grid(G, cols[L], 5, [0, 0, 0]); }
+           A.ell([0, BR - .003, 0], .052, .012, .052, [.98, .97, .94], 5, 12); A.ell([0, -BR + .003, 0], .052, .012, .052, [.98, .97, .94], 5, 12); }),
          dot:one(A => A.ell([0, 0, 0], .042, .042, .042, [1, 1, 1], 5, 10)),
          ring:one(A => A.torus([0, 0, 0], 1, .045, [.94, .98, 1], 8, 28, 5)),
          mark:one(A => { A.torus([0, 0, 0], 1, .07, [1, 1, 1], 5, 32, 6); A.torus([0, 0, 0], .42, .05, [1, 1, 1], 5, 24, 6); }),
@@ -1820,6 +1839,7 @@ function setM(x, y, z, sx, sy, sz, ry){ const c = Math.cos(ry || 0), s = Math.si
 function drawBalloons(p){
   if (!BM) return; const u = p.u, sh = p === P.sh, nr = p === P.nrm;
   const put = (m, M) => { gl.uniformMatrix4fv(u.uM, false, M); bindMesh(m); gl.drawArrays(gl.TRIANGLES, 0, m.n); };
+  if (BM.ball && !(PASS === "rf" && camPos[1] > 0 && BALL.y > 0)) put(BM.ball, ballM());                  /* the beach ball */
   for (const b of BALS) if (b.on) put(BM.bal[b.k], setM(b.x, b.y, b.z, 1.4 * (1 - b.sq * .5), 1.4 * (1 + b.sq), 1.4 * (1 - b.sq * .5), b.spin));
   if (AIM.on && (PASS === "main" || nr)) drawArc(put);                                                     /* the arc: drawn, and inked */
   if (sh || nr || PASS === "mirror") return;                                                              /* the small things: no shadow, no ink */
@@ -1827,6 +1847,8 @@ function drawBalloons(p){
   for (const r of RINGS) if (r.on && r.s > .02) put(BM.ring, setM(r.x, r.y, r.z, r.s, 1, r.s, 0));
   for (const w of WETS) if (w.on) put(BM.wet, setM(w.x, .007, w.z, w.s, 1, w.s, 0));
   if (WISH.mesh) put(WISH.mesh, setM(0, 0, 0, 1, 1, 1, 0));                                               /* the coins on the glass */
+  if (PASS === "main" && BALL.holder === null && Math.hypot(BALL.x - me.x, BALL.z - me.z) < 1.6 && BALL.y < 1.2 && Math.abs(me.y) < .4){   /* within reach: a ring under it */
+    const k = .3 + Math.sin(performance.now() / 160) * .02; put(BM.mark, setM(BALL.x, .02, BALL.z, k, 1, k, performance.now() / 900)); }
   for (const c of FCOINS) if (c.on) put(BM.coin, coinM(c));
   if (WISH.shown && PASS === "main"){ const q = WISH.shown, k = .2 + Math.sin(performance.now() / 160) * .015; put(BM.markGold, setM(q.x, .012, q.z, k, 1, k, 0)); }
 }
@@ -1837,6 +1859,7 @@ function drawArc(put){                                                          
 }
 /* where to aim, and what it takes to get there */
 const canThrow = (say) => { if (!inWorld || making) return false;
+  if (BALL.holder === me && AIM.kind !== "ball" && !AIM.on && say === true && AIM.kindAsk !== "ball"){ hint(T({ en:"Put the ball down first (G)", ko:"먼저 공을 내려놓아요 (G)" })); return false; }
   if (me.y < -.5){ if (say) hint(T({ en:"Balloons are thrown from up by the pool", ko:"물풍선은 위층 수영장 가에서 던질 수 있어요" })); return false; } return true; };
 const flight = (d) => ({ T:360 + d * 68, h:.45 + d * .15 });
 function groundAt(cx, cy){
@@ -1847,9 +1870,10 @@ function groundAt(cx, cy){
 function aimUpdate(){
   let [x, z] = groundAt(AIM.cx, AIM.cy), dx = x - me.x, dz = z - me.z, d = Math.hypot(dx, dz);
   if (d < .7){ dx = Math.sin(me.r); dz = Math.cos(me.r); d = 1; x = me.x + dx * .7; z = me.z + dz * .7; }
-  if (d > RANGE){ x = me.x + dx / d * RANGE; z = me.z + dz / d * RANGE; }
+  const rg = AIM.kind === "ball" ? 12 : RANGE; if (d > rg){ x = me.x + dx / d * rg; z = me.z + dz / d * rg; }
   x = clamp(x, -CXW + .3, CXW - .3); z = clamp(z, -CZW + .3, CZW - .3);
-  if (AIM.kind === "coin"){ x = clamp(x, -PX + .5, PX - .5); z = clamp(z, -PZ + .5, PZ - .5); }           /* a coin only ever goes into the water */
+  if (AIM.kind === "coin"){ x = clamp(x, -PX + .5, PX - .5); z = clamp(z, -PZ + .5, PZ - .5); }
+  if (AIM.kind === "ball" && !ballOk(x, z)){ for (let i = 0; i < 12 && !ballOk(x, z); i++){ x = lerp(x, me.x, .15); z = lerp(z, me.z, .15); } }   /* only where a ball can land */           /* a coin only ever goes into the water */
   let tgt = null, bd = AIM.kind === "coin" ? -1 : .85;                                                                    /* close to someone: it goes to them */
   for (const a of AVATARS()){ if (a === me || Math.abs(a.y - me.y) > .6) continue; const e = Math.hypot(a.x - x, a.z - z); if (e < bd){ bd = e; tgt = a; } }
   if (tgt && Math.hypot(tgt.x - me.x, tgt.z - me.z) <= RANGE + .5){ x = tgt.x; z = tgt.z; } else tgt = null;
@@ -1857,6 +1881,8 @@ function aimUpdate(){
   if (!me.sit) me.r = Math.atan2(x - me.x, z - me.z);
   const fx = Math.sin(me.r), fz = Math.cos(me.r), x0 = me.x + fx * .22, z0 = me.z + fz * .22, y0 = me.y + 1.2, { h } = flight(AIM.d);
   const ph = (performance.now() / 700) % 1, n = ARC_N; let k = 0;                              /* dots that march along the arc */
+  if (AIM.kind === "ball"){ const v = throwV(x, z); for (let i = 0; i < n; i++){ const u = (i + ph) / n; if (u > .97) continue; const t = u * v.T;   /* the ball's own flight */
+      AIM.P[k * 3] = v.x0 + v.vx * t; AIM.P[k * 3 + 1] = v.y0 + v.vy * t - 4.9 * t * t; AIM.P[k * 3 + 2] = v.z0 + v.vz * t; k++; } AIM.n = k; return; }
   for (let i = 0; i < n; i++){ const v = (i + ph) / n; if (v > .97) continue;
     AIM.P[k * 3] = lerp(x0, x, v); AIM.P[k * 3 + 1] = lerp(y0, me.y + .1, v) + 4 * h * v * (1 - v); AIM.P[k * 3 + 2] = lerp(z0, z, v); k++; }
   AIM.n = k;
@@ -1866,6 +1892,7 @@ function setArmed(on){ AIM.armed = on; $("b-bal").setAttribute("aria-pressed", S
                        : { en:"Click and hold, drag to aim — let go to throw (or hold F). Click the balloon again to stop", ko:"클릭한 채로 끌어서 조준하고, 놓으면 던져요(F를 눌러도 돼요). 물풍선 버튼을 다시 누르면 꺼져요" })); }
 function pressForAim(e){
   if (!canThrow(false) || ptrs.size !== 1) return;
+  if (BALL.holder === me){ startAim(e.pointerId, e.clientX, e.clientY, "ball"); return; }       /* holding the ball: straight to aiming */
   if (AIM.coin){ startAim(e.pointerId, e.clientX, e.clientY, "coin"); return; }               /* a wish waiting to be thrown */
   if (AIM.armed){ startAim(e.pointerId, e.clientX, e.clientY); return; }                      /* armed: straight away */
   AIM.wait = true; AIM.wid = e.pointerId; const h = $("aimHold");                              /* otherwise: hold still a moment */
@@ -1874,7 +1901,7 @@ function pressForAim(e){
 }
 function stopHold(){ AIM.wait = false; clearTimeout(AIM.holdT); $("aimHold").classList.remove("on"); }
 function startAim(id, cx, cy, kind){
-  if (!canThrow(true)) return; stopHold();
+  AIM.kindAsk = kind || "bal"; const ok = canThrow(true); AIM.kindAsk = ""; if (!ok) return; stopHold();
   AIM.kind = kind || "bal"; AIM.on = true; AIM.id = id; AIM.cx = cx; AIM.cy = cy; balMeshes(); aimUpdate(); document.body.classList.add("aiming"); AUD.stretch();
   if (navigator.vibrate) try { navigator.vibrate(12); } catch (_){}
 }
@@ -1882,6 +1909,7 @@ function cancelAim(){ AIM.on = false; AIM.id = null; AIM.tgt = null; stopHold();
 function releaseAim(){
   if (!AIM.on) return; aimUpdate(); const now = performance.now(), { x, z } = AIM, kind = AIM.kind; cancelAim();
   if (kind === "coin"){ throwWish(x, z); return; }
+  if (kind === "ball"){ throwBall(x, z); return; }
   if (now - AIM.last < 450) return; AIM.last = now;
   const fx = Math.sin(me.r), fz = Math.cos(me.r), x0 = me.x + fx * .22, z0 = me.z + fz * .22, k = Math.floor(Math.random() * BAL_COL.length);
   me.thr = now; launch(me, x0, me.y + 1.2, z0, x, z, k);
@@ -2032,6 +2060,107 @@ function wishAt(cx, cy){                                                        
 }
 
 /* ==========================================================================
+   9d. THE BEACH BALL — kick it by walking into it (jump for a high one), pick it
+       up (G, or tap it), carry it, aim and throw it. Rolls on the deck, floats on
+       the water, bounces off walls, benches and people. Whoever touched it last
+       carries its state in the place they already send, so a newcomer finds it
+       where it is.
+   ========================================================================== */
+const BR = .24, BALL_HOME = [3.2, PZ + 2.3];
+const BALL = { x:BALL_HOME[0], y:BR, z:BALL_HOME[1], vx:0, vy:0, vz:0, R:[1, 0, 0, 0, 1, 0, 0, 0, 1], holder:null, stamp:0, seq:0, mine:"", lastKick:0, noKick:0, by:null, rest:0 };
+const ballOk = (x, z) => inPool(x, z) || (() => { const f = floorAt(x, z, 0); return f !== null && Math.abs(f) < .05 && onBench(x, z, .05) < 0; })();
+function ballM(){ const r = BALL.R; MX[0] = r[0]; MX[1] = r[3]; MX[2] = r[6]; MX[3] = 0; MX[4] = r[1]; MX[5] = r[4]; MX[6] = r[7]; MX[7] = 0;
+  MX[8] = r[2]; MX[9] = r[5]; MX[10] = r[8]; MX[11] = 0; MX[12] = BALL.x; MX[13] = BALL.y; MX[14] = BALL.z; MX[15] = 1; return MX; }
+function rotAx(ax, a){ const c = Math.cos(a), s = Math.sin(a), t = 1 - c, [x, y, z] = ax;
+  return [t * x * x + c, t * x * y - s * z, t * x * z + s * y, t * x * y + s * z, t * y * y + c, t * y * z - s * x, t * x * z - s * y, t * y * z + s * x, t * z * z + c]; }
+function turnBall(R, ax, a){ const M = rotAx(ax, a), o = BALL.R;                                         /* o = M·R, written back in place */
+  for (let c = 0; c < 3; c++){ const r0 = R[c], r1 = R[3 + c], r2 = R[6 + c]; o[c] = M[0] * r0 + M[1] * r1 + M[2] * r2; o[3 + c] = M[3] * r0 + M[4] * r1 + M[5] * r2; o[6 + c] = M[6] * r0 + M[7] * r1 + M[8] * r2; } }
+/* what this page did with the ball, for the others: "seq:stamp:x:y:z:vx:vy:vz", or "seq:stamp:H" while held */
+function tellBall(held){ BALL.seq = (BALL.seq + 1) % 1000; BALL.stamp = Date.now(); BALL.by = me;
+  BALL.mine = held ? `${BALL.seq}:${BALL.stamp.toString(36)}:H` : `${BALL.seq}:${BALL.stamp.toString(36)}:${f2(BALL.x)}:${f2(BALL.y)}:${f2(BALL.z)}:${f2(BALL.vx)}:${f2(BALL.vy)}:${f2(BALL.vz)}`; }
+function ballFrom(a, str, first){
+  const p = str.split(":"), st = parseInt(p[1], 36); if (!isFinite(st)) return;
+  if (first && st <= BALL.stamp) return;                                                       /* coming in: only the newest one counts */
+  if (BALL.holder === me && !first && p[2] === "H"){ BALL.holder = null; BALL.mine = ""; cancelAimIfBall(); }   /* two hands at once: theirs wins */
+  BALL.stamp = Math.max(BALL.stamp, st); BALL.by = a; if (a !== me) BALL.mine = "";
+  if (p[2] === "H"){ BALL.holder = a; return; }
+  const n = p.slice(2).map(Number); if (n.length < 6 || n.some(v => !isFinite(v))) return;
+  BALL.holder = null; Object.assign(BALL, { x:clamp(n[0], -CXW, CXW), y:clamp(n[1], 0, 8), z:clamp(n[2], -CZW, CZW), vx:clamp(n[3], -16, 16), vy:clamp(n[4], -16, 16), vz:clamp(n[5], -16, 16) });
+  if (!ballOk(BALL.x, BALL.z)){ BALL.x = BALL_HOME[0]; BALL.z = BALL_HOME[1]; }
+  if (!first && Math.hypot(BALL.vx, BALL.vz) > 1) AUD.kick(hear(BALL.x, BALL.z) * .8);
+}
+const cancelAimIfBall = () => { if (AIM.on && AIM.kind === "ball") cancelAim(); };
+function grabBall(say){
+  if (!inWorld || making || BALL.holder || Math.abs(me.y) > .4 || me.sit) return false;
+  const d = Math.hypot(BALL.x - me.x, BALL.z - me.z);
+  if (d > 1.6 || BALL.y > 2.1){ if (say) hint(T({ en:"Get closer to the ball", ko:"공에 조금 더 가까이 가요" })); return false; }
+  if (AIM.on) cancelAim(); if (AIM.coin) setCoinArmed(false); if (AIM.armed) setArmed(false);
+  BALL.holder = me; BALL.vx = BALL.vy = BALL.vz = 0; tellBall(true); AUD.grab();
+  if (!grabBall.told){ grabBall.told = true; hint(T(TOUCH ? { en:"Got it! Press and drag on the screen to aim, let go to throw", ko:"잡았어요! 화면을 누른 채 끌어 조준하고, 놓으면 던져요" }
+                                                         : { en:"Got it! Click and drag to aim, let go to throw — G puts it down", ko:"잡았어요! 클릭한 채로 끌어 조준하고 놓으면 던져요 — G로 내려놓아요" })); }
+  return true;
+}
+function dropBall(a, tell){
+  if (BALL.holder !== a) return; BALL.holder = null; cancelAimIfBall();
+  const fx = Math.sin(a.r), fz = Math.cos(a.r); BALL.x = a.x + fx * .62; BALL.z = a.z + fz * .62; BALL.y = .9; BALL.vx = fx * .6; BALL.vz = fz * .6; BALL.vy = .6;
+  if (!ballOk(BALL.x, BALL.z)){ BALL.x = a.x; BALL.z = a.z; }
+  BALL.noKick = performance.now() + 700; if (tell){ tellBall(false); AUD.bounce(.8); }
+}
+/* the speed that carries the ball from the hands to (x, z): the same arc the dots draw */
+function throwV(x, z){ const fx = Math.sin(me.r), fz = Math.cos(me.r), x0 = me.x + fx * .45, z0 = me.z + fz * .45, y0 = me.y + 1.25, d = Math.hypot(x - x0, z - z0), T = .42 + d * .075;
+  return { x0, y0, z0, T, vx:(x - x0) / T, vz:(z - z0) / T, vy:(me.y + BR - y0 + 4.9 * T * T) / T }; }
+function throwBall(x, z){
+  if (BALL.holder !== me) return; const v = throwV(x, z);
+  BALL.holder = null; Object.assign(BALL, { x:v.x0, y:v.y0, z:v.z0, vx:v.vx, vy:v.vy, vz:v.vz }); BALL.noKick = performance.now() + 500;
+  me.thr = performance.now(); tellBall(false); AUD.toss(1);
+}
+function stepBall(dt, now){
+  if (!inWorld && !making) return; const b = BALL; if (!BM && !balMeshes()) return;
+  if (b.holder){ const a = b.holder;                                                          /* carried: out in front, turning with them */
+    if (a === me && me.y < -.35){ dropBall(me, false); b.x = BALL_HOME[0]; b.z = BALL_HOME[1]; b.y = 1; tellBall(false); hint(T({ en:"The ball stays up by the pool", ko:"비치볼은 위층에 두고 왔어요" })); return; }
+    const fx = Math.sin(a.r), fz = Math.cos(a.r); b.x = a.x + fx * .4; b.z = a.z + fz * .4; b.y = (a.y || 0) + 1.0 + (a.jy || 0);
+    return; }
+  for (let s = 0; s < 2; s++){ const h = dt / 2, wet = inPool(b.x, b.z);
+    b.vy -= 9.8 * h;
+    if (wet && b.y < BR * .7){ b.vy += (BR * .7 - b.y) * 80 * h; b.vy *= Math.pow(.04, h); b.vx *= Math.pow(.55, h); b.vz *= Math.pow(.55, h); }   /* floating, bobbing */
+    const nx = b.x + b.vx * h, nz = b.z + b.vz * h;
+    if (ballOk(nx, b.z)) b.x = nx; else { b.vx *= -.6; if (Math.abs(b.vx) > 1) AUD.bounce(hear(b.x, b.z) * .6); }
+    if (ballOk(b.x, nz)) b.z = nz; else { b.vz *= -.6; if (Math.abs(b.vz) > 1) AUD.bounce(hear(b.x, b.z) * .6); }
+    b.y += b.vy * h;
+    if (!wet && b.y < BR){ b.y = BR; if (b.vy < -1.2){ b.vy = -b.vy * .58; AUD.bounce(hear(b.x, b.z) * Math.min(1, -b.vy * .12)); } else b.vy = 0;
+      const fr = Math.pow(.45, h); b.vx *= fr; b.vz *= fr; } }
+  if (!ballOk(b.x, b.z)){ b.x = BALL_HOME[0]; b.z = BALL_HOME[1]; b.y = 1.2; b.vx = b.vz = 0; }   /* lost somehow: back where it lives */
+  const sp = Math.hypot(b.vx, b.vz); if (sp > .03) turnBall(b.R.slice(), [b.vz / sp, 0, -b.vx / sp], sp * dt / BR);
+  /* people: it bounces off them; walking into it kicks it */
+  for (const a of AVATARS()){ if (a.y < -1) continue;
+    const dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz), lim = .3 + BR; if (d > lim || b.y > a.y + 1.75 + BR || b.y < a.y - .1) continue;
+    const ux = d > .01 ? dx / d : Math.sin(a.r), uz = d > .01 ? dz / d : Math.cos(a.r);
+    if (a === me && now > b.noKick && now - b.lastKick > 320 && (me.mv > .15 || me.jy > .05)){   /* a kick */
+      b.lastKick = now; const pw = 2 + me.mv * 2.6;
+      b.vx = ux * pw + Math.sin(me.r) * me.mv * 1.2; b.vz = uz * pw + Math.cos(me.r) * me.mv * 1.2; b.vy = me.jy > .05 ? 5.2 : 2.4 + me.mv;
+      b.x = a.x + ux * (lim + .02); b.z = a.z + uz * (lim + .02); tellBall(false); AUD.kick(1); continue; }
+    const vn = b.vx * ux + b.vz * uz; b.x = a.x + ux * (lim + .01); b.z = a.z + uz * (lim + .01);   /* a bump */
+    if (vn < 0){ b.vx -= 1.5 * vn * ux; b.vz -= 1.5 * vn * uz; if (vn < -1.2) AUD.bounce(hear(b.x, b.z) * .7); } }
+}
+/* the button by the ball: pick it up; holding it: put it down */
+function updateBallUI(){
+  let el = $("ballb");
+  if (!el){ el = document.createElement("button"); el.id = "ballb"; el.type = "button"; el.innerHTML = '<span class="bd"></span><span></span><kbd>G</kbd>'; $("tags").appendChild(el);
+    el.onclick = () => { if (BALL.holder === me) dropBall(me, true); else grabBall(true); }; }
+  if (BALL.holder === me && me.sit) dropBall(me, true);
+  const on = inWorld && !making && Math.abs(me.y) < .4 && !me.sit, holding = BALL.holder === me;
+  const near = on && !holding && !BALL.holder && Math.hypot(BALL.x - me.x, BALL.z - me.z) < 1.6 && BALL.y < 2.1, q = holding ? [0, 0, 1] : near ? project([BALL.x, BALL.y + BR + .12, BALL.z]) : null;
+  el.classList.toggle("on", !!(on && q) && !AIM.on); el.classList.toggle("fix", holding); if (!q) return;
+  const lab = T(holding ? { en:"Put it down", ko:"내려놓기" } : { en:"Pick up", ko:"공 잡기" }); if (el.children[1].textContent !== lab) el.children[1].textContent = lab;
+  if (!holding) el.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`;
+}
+function ballAt(cx, cy, run){                                                                  /* a tap on the ball: go and pick it up */
+  if (BALL.holder || Math.abs(me.y) > .4) return false; const sp = project([BALL.x, BALL.y, BALL.z]); if (!sp || Math.hypot(sp[0] - cx, sp[1] - cy) > Math.max(26, 260 * BR / sp[2])) return false;
+  if (Math.hypot(BALL.x - me.x, BALL.z - me.z) < 1.1){ grabBall(true); return true; }
+  goal = { x:BALL.x, z:BALL.z, y:0, stuck:0, last:null, run:!!run, ball:true }; AUD.click(); return true;
+}
+
+/* ==========================================================================
    10. INPUT
    ========================================================================== */
 const ptrs = new Map(); let pinch0 = 0, d0 = 0;
@@ -2062,7 +2191,8 @@ window.addEventListener("keydown", e => {
   if (e.key === "Escape"){ if (AIM.on) cancelAim(); else if (AIM.coin) setCoinArmed(false); closePops(); document.body.classList.remove("about"); return; }
   keys[e.code] = true;
   if (e.code === "Space"){ e.preventDefault(); jump(); }
-  if (e.code === "KeyF" && !e.repeat && !AIM.on && canThrow(true)) startAim("key", MOUSE.x, MOUSE.y);
+  if (e.code === "KeyF" && !e.repeat && !AIM.on && canThrow(true)) startAim("key", MOUSE.x, MOUSE.y, BALL.holder === me ? "ball" : "bal");
+  if (e.code === "KeyG" && !e.repeat && inWorld && !making){ if (BALL.holder === me) dropBall(me, true); else grabBall(true); }
   if (e.code === "KeyE" && inWorld && !making && !e.repeat){ if (me.sit) standUp(); else { const st = Math.abs(me.y) < .3 && seatNear(me.x, me.z, 2.4); if (st) goSit(st); } }
   if (e.code === "Enter" && inWorld && !making){ e.preventDefault(); openSay(); }
   if (/^Arrow/.test(e.code)) e.preventDefault();
@@ -2070,8 +2200,8 @@ window.addEventListener("keydown", e => {
 window.addEventListener("keyup", e => { keys[e.code] = false; if (e.code === "KeyF" && AIM.on && AIM.id === "key") releaseAim(); });
 window.addEventListener("pointermove", e => { MOUSE.x = e.clientX; MOUSE.y = e.clientY; if (AIM.on && AIM.id === "key"){ AIM.cx = e.clientX; AIM.cy = e.clientY; } }, { passive:true });
 cv.addEventListener("contextmenu", e => { if (AIM.on || AIM.armed || AIM.coin) e.preventDefault(); });
-$("b-bal").onclick = () => { AUD.click(); closePops(); if (AIM.coin) setCoinArmed(false); if (!AIM.armed && !canThrow(true)) return; setArmed(!AIM.armed); };
-$("b-wish").onclick = () => { AUD.click(); if (AIM.coin){ setCoinArmed(false); return; } if (!canThrow(true)) return; if (openPop("pop-wish")){ wishInit(); setTimeout(() => $("wish-i").focus(), 40); } };
+$("b-bal").onclick = () => { AUD.click(); closePops(); if (AIM.coin) setCoinArmed(false); if (BALL.holder === me){ hint(T({ en:"Put the ball down first (G)", ko:"먼저 공을 내려놓아요 (G)" })); return; } if (!AIM.armed && !canThrow(true)) return; setArmed(!AIM.armed); };
+$("b-wish").onclick = () => { AUD.click(); if (AIM.coin){ setCoinArmed(false); return; } if (BALL.holder === me){ hint(T({ en:"Put the ball down first (G)", ko:"먼저 공을 내려놓아요 (G)" })); return; } if (!canThrow(true)) return; if (openPop("pop-wish")){ wishInit(); setTimeout(() => $("wish-i").focus(), 40); } };
 $("wish-i").addEventListener("input", () => { $("wish-c").textContent = `${$("wish-i").value.length}/60`; });
 $("wish-go").onclick = () => { const w = cleanText($("wish-i").value, 60);
   if (!w){ $("wish-i").focus(); $("wish-i").classList.add("shake"); setTimeout(() => $("wish-i").classList.remove("shake"), 400); return; }
@@ -2185,9 +2315,9 @@ let lastT = performance.now(), pruneAt = 0, zoneHint = { below:false, up:false }
 function frame(now){
   tuneQuality(now - lastT);
   const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; const t = now / 1000;
-  moveMe(dt); stepPeers(dt); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); placeCamera(dt);
+  moveMe(dt); stepPeers(dt); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); placeCamera(dt);
   if (me.emote && now - me.et0 > 4200) me.emote = "";
-  render(t, now); updateTags(now); updateSeats(); maybeSend();
+  render(t, now); updateTags(now); updateSeats(); updateBallUI(); maybeSend();
   { const el = $("goal"), p = goal && inWorld && !making ? project([goal.x, goal.y + .02, goal.z]) : null;           /* where you are walking to */
     if (p){ const k = clamp(9 / p[2], .45, 1.6); el.style.transform = `translate(${p[0]}px, ${p[1]}px) translate(-50%, -50%) scale(${k})`; el.classList.add("on"); } else el.classList.remove("on"); }
   const z = zoneOf(me.x, me.y, me.z);
@@ -2213,6 +2343,7 @@ function about(){
   [{ en:"Make a character and pick one of two servers — up to twenty people share each", ko:"캐릭터를 꾸미고 두 서버 중 하나를 골라요 — 서버마다 20명까지 함께해요" },
    { en:"Click the ground to walk there (shift-click to run) — or WASD, the arrows, the joystick on a phone; drag to look round, scroll to zoom", ko:"바닥을 클릭하면 그곳까지 걸어가요(Shift+클릭은 달리기) — WASD·방향키·휴대폰 조이스틱도 돼요. 드래그로 둘러보고, 휠로 거리를 바꿔요" },
    { en:"Take the stairs by the pool down: through the water the people above are blurred, and the sound turns to water", ko:"수영장 옆 계단으로 내려가면 물결 너머로 위의 사람들이 흐릿하게 보이고, 물속 소리가 들려요" },
+   { en:"Beach ball: walk into it to kick it, jump for a high one. Get close and press G (or tap the ball) to pick it up; holding it, press and drag to aim and let go to throw. G puts it down", ko:"비치볼: 몸으로 밀면 차고, 점프하며 부딪히면 높이 떠요. 가까이 가서 G(또는 공을 누르기)로 잡고, 잡은 채 화면을 누르고 끌어 조준한 뒤 놓으면 던져요. G로 내려놓아요" },
    { en:"Wish coins: write a wish, throw the coin into the pool. Walk close to a coin — by the edge, or underneath — to read the wish on it", ko:"소원 동전: 소원을 적어 수영장에 던져요. 물가나 아래층에서 동전 가까이 가면 적힌 소원을 읽을 수 있어요" },
    { en:"Water balloons: press and hold anywhere, drag to where it should land — the arc shows the way — and let go. On a computer you can also hold F and point", ko:"물풍선: 화면을 꾹 누른 채 떨어질 곳으로 끌면 포물선이 보여요. 손을 떼면 던져요. 컴퓨터에서는 F를 누른 채 마우스로 조준해도 돼요" },
    { en:"Talk (Enter), wave, bow, jump, dance or sit — near a bench every free seat shows a ring: click it, or press E, to sit", ko:"말하기(Enter), 손 흔들기·인사·점프·춤·앉기로 만나요 — 벤치 가까이 가면 빈자리에 동그라미가 떠요. 누르거나 E 키로 앉아요" }]
