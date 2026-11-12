@@ -62,12 +62,28 @@ body.embedded #count{top:calc(70px + env(safe-area-inset-top,0px));}
   pointer-events:none;transition:opacity .5s;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;}
 body.embedded #hint{--hint-y:116px;}
 /* the round button that throws (phones) */
-#throwb{position:fixed;right:16px;bottom:calc(168px + env(safe-area-inset-bottom,0px));width:64px;height:64px;border-radius:50%;z-index:9;display:none;flex-direction:column;align-items:center;justify-content:center;gap:2px;
-  color:#fff;background:linear-gradient(160deg,#ff8fb0,#f2557f);border:0;box-shadow:0 10px 24px -8px rgba(220,60,110,.7), inset 0 1px 0 rgba(255,255,255,.4);font:700 10.5px/1 inherit;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
-#throwb .ico{stroke:#fff;width:22px;height:22px;}
-#throwb.on{display:flex;}
-#throwb:active{transform:scale(.93);}
-body.popped #throwb{display:none !important;}
+#throwb{position:fixed;right:12px;bottom:calc(166px + env(safe-area-inset-bottom,0px));width:76px;height:76px;border-radius:50%;z-index:9;display:none;padding:0;border:0;
+  color:var(--ink);-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:transform .16s cubic-bezier(.3,1.5,.5,1);}
+#throwb.on{display:block;}
+#throwb .orb{position:absolute;left:50%;top:9px;width:38px;height:38px;margin-left:-19px;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%, rgba(255,255,255,.85) 0 9%, transparent 10%), radial-gradient(circle at 50% 45%, var(--bc,#f9708f), color-mix(in srgb, var(--bc,#f9708f) 70%, #000));
+  box-shadow:0 4px 10px -3px color-mix(in srgb, var(--bc,#f9708f) 70%, transparent), inset 0 -3px 6px rgba(0,0,0,.12);transition:background .25s, transform .3s cubic-bezier(.3,1.5,.5,1);}
+#throwb.ball .orb{background:radial-gradient(circle at 34% 30%, rgba(255,255,255,.7) 0 8%, transparent 9%), conic-gradient(#ee434d 0 60deg,#fbf8f0 0 120deg,#3f7fe8 0 180deg,#fbf8f0 0 240deg,#fcc534 0 300deg,#fbf8f0 0);box-shadow:0 4px 10px -3px rgba(0,0,0,.35);}
+#throwb .tl{position:absolute;left:0;right:0;bottom:11px;text-align:center;font:700 10.5px/1 inherit;font-family:inherit;letter-spacing:.02em;}
+#throwb::after{content:"";position:absolute;inset:-3px;border-radius:50%;pointer-events:none;opacity:0;
+  background:conic-gradient(var(--accent) var(--cd,0%), transparent 0);-webkit-mask:radial-gradient(circle, transparent 36px, #000 37px);mask:radial-gradient(circle, transparent 36px, #000 37px);}
+#throwb.cool::after{opacity:1;animation:thCool .45s linear forwards;}
+@keyframes thCool{from{--cd:0%;}to{--cd:100%;}}
+@property --cd{syntax:"<percentage>";inherits:false;initial-value:0%;}
+#throwb:active{transform:scale(.92);}
+#throwb:active .orb{transform:translateY(-3px) scale(1.06);}
+#throwb.go .orb{animation:thGo .38s cubic-bezier(.2,.9,.3,1);}
+@keyframes thGo{0%{transform:none;}35%{transform:translate(10px,-16px) scale(.6);opacity:0;}36%{transform:translateY(8px) scale(.6);opacity:0;}100%{transform:none;opacity:1;}}
+#throwx{position:fixed;right:76px;bottom:calc(222px + env(safe-area-inset-bottom,0px));width:30px;height:30px;border-radius:50%;z-index:9;display:none;place-items:center;padding:0;border:0;color:var(--ink-dim);
+  -webkit-tap-highlight-color:transparent;}
+#throwx svg{width:14px;height:14px;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round;}
+#throwx.on{display:grid;}
+body.popped #throwb, body.popped #throwx{display:none !important;}
 
 #b-bal[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink);}
 body.aimon canvas{cursor:crosshair;}
@@ -233,6 +249,12 @@ html[lang="ko"] .tag{letter-spacing:.04em;}
 body.about #about{display:block;}
 #about p{font-size:12.5px;line-height:1.65;color:var(--ink-dim);margin-top:9px;}
 #about ol{margin:8px 0 0 18px;font-size:12.5px;line-height:1.6;color:var(--ink-dim);}
+#about .mv{margin-top:14px;padding:12px;border-radius:14px;background:rgba(255,255,255,.5);border:1px solid var(--glass-line);}
+#about .mvt{margin:0 0 8px !important;font-size:12px !important;font-weight:600;color:var(--ink) !important;}
+#about .seg{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;border-radius:11px;background:rgba(22,21,15,.07);}
+#about .seg button{padding:8px 6px;border:0;border-radius:9px;background:none;font:600 12px/1.25 inherit;font-family:inherit;color:var(--ink-dim);cursor:pointer;transition:background .2s,color .2s,box-shadow .2s;}
+#about .seg button[aria-checked="true"]{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.14);}
+body.move-click #joy{display:none !important;}
 #about .x{position:absolute;right:12px;top:12px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--ink-dim);}
 #about .x svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;}
 
@@ -268,7 +290,8 @@ body.about #about{display:block;}
 <div id="count" class="glass"><i></i><span id="c-t"></span></div>
 <div id="goal" aria-hidden="true"></div>
 <div id="hint" class="glass off"></div>
-<button id="throwb" class="glass" type="button"><svg class="ico" viewBox="0 0 24 24"><path d="M5 18c3-9 9-12 14-12"/><path d="M14 5l5 1-1 5"/></svg><span></span></button>
+<button id="throwb" class="glass" type="button"><i class="orb"></i><span class="tl"></span></button>
+<button id="throwx" class="glass" type="button"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
 <div id="log"></div>
 
 <section id="make" class="glass" aria-labelledby="mk-h">
@@ -327,6 +350,7 @@ body.about #about{display:block;}
   <h2 id="ab-h"></h2>
   <p id="ab-p1"></p>
   <p id="ab-p2"></p>
+  <div class="mv"><p class="mvt" id="mv-t"></p><div class="seg" id="mv-seg" role="radiogroup"><button type="button" role="radio" data-mv="stick"><span></span></button><button type="button" role="radio" data-mv="click"><span></span></button></div></div>
   <h3 id="ab-h3"></h3>
   <ol id="ab-ol"></ol>
 </section>
@@ -1268,19 +1292,25 @@ function moveMe(dt){
     const nx = me.x + vx * s, nz = me.z + vz * s;
     const inB = Math.abs(me.y) < .3 && onBench(me.x, me.z, .14) >= 0, blk = (x, z) => !inB && Math.abs(me.y) < .3 && onBench(x, z, .14) >= 0;   /* benches are solid — but you can always step off one */
     let f = blk(nx, nz) ? null : floorAt(nx, nz, me.y);
+    if (goal){ goal.slide = f === null ? (goal.slide || 0) + dt : 0; if (goal.slide > .35){ const g = goal; goal = null; if (g.seat && Math.hypot(g.x - me.x, g.z - me.z) < 2.2) sitBench(g.seat); } }   /* walking along a wall instead of to the point: stop */
     if (f !== null){ me.x = nx; me.z = nz; }
     else if (!blk(nx, me.z) && (f = floorAt(nx, me.z, me.y)) !== null) me.x = nx;
     else if (!blk(me.x, nz) && (f = floorAt(me.x, nz, me.y)) !== null) me.z = nz;
     me.r += wrap(Math.atan2(vx, vz) - me.r) * Math.min(1, dt * 12);
     me.ph += s * 5.2; me.mv = lerp(me.mv, clamp(speed * Math.min(1, il) / 3, 0, 1.35), Math.min(1, dt * 8));
     stepAcc += s; if (stepAcc > .62){ stepAcc = 0; AUD.step(me.y < -1.4); }
-    if (goal && goal.last){ const moved = Math.hypot(me.x - goal.last[0], me.z - goal.last[1]); goal.stuck = moved < s * .25 ? goal.stuck + dt : 0; }   /* a wall in the way: stop */
+    if (goal && goal.last){ const gain = Math.hypot(goal.x - goal.last[0], goal.z - goal.last[1]) - Math.hypot(goal.x - me.x, goal.z - me.z); goal.stuck = gain < s * .5 ? goal.stuck + dt : 0; }   /* not getting closer (a wall, the pool's edge): stop */
   } else me.mv = Math.max(0, me.mv - dt * 5);
   const f = floorAt(me.x, me.z, me.y); if (f !== null) me.y += (f - me.y) * Math.min(1, dt * 14);
   if (me.jy > 0 || me.vy > 0){ me.vy -= 11 * dt; me.jy = Math.max(0, me.jy + me.vy * dt); if (me.jy === 0) me.vy = 0; }
 }
 /* a click on the ground: the point under the pointer, on the level you are standing on */
 let goal = null;
+/* how you walk: keys / the joystick (default), or clicking / tapping the ground */
+let MOVE = "stick"; try { if (localStorage.getItem("lam-pool-move") === "click") MOVE = "click"; } catch (_){}
+function setMove(m){ MOVE = m === "click" ? "click" : "stick"; try { localStorage.setItem("lam-pool-move", MOVE); } catch (_){}
+  document.body.classList.toggle("move-click", MOVE === "click"); if (MOVE !== "click") goal = null;
+  document.querySelectorAll("#mv-seg [data-mv]").forEach(b => b.setAttribute("aria-checked", String(b.dataset.mv === MOVE))); }
 function walkTo(cx, cy, run){
   if (making || !inWorld) return;
   if (ballAt(cx, cy, run)) return;                                                                 /* the ball under the finger: go and pick it up */
@@ -1298,7 +1328,15 @@ function walkTo(cx, cy, run){
   const bi = hb ? hb.i : Math.abs(y0) < .3 ? onBench(gx, gz, .25) : -1, st = bi >= 0 ? seatNear(gx, gz, 3, bi) : null;
   if (st){ goSit(st, run); return; }                                                               /* a bench: walk up to it and sit */
   else if (bi >= 0){ hint(T({ en:"That bench is full", ko:"그 벤치는 자리가 다 찼어요" })); return; }
-  else goal = { x:gx, z:gz, y:y0, stuck:0, last:null, run:!!run };
+  else {
+    if (MOVE !== "click"){ if (!walkTo.told){ walkTo.told = true; hint(T(TOUCH ? { en:"Walking is on the joystick — tap-to-walk can be turned on in ⓘ", ko:"이동은 조이스틱으로 해요 — 탭 이동은 ⓘ에서 켤 수 있어요" }
+                                                                          : { en:"Walking is on WASD / the arrow keys — click-to-walk can be turned on in ⓘ", ko:"이동은 WASD·방향키로 해요 — 클릭 이동은 ⓘ에서 켤 수 있어요" })); } return; }
+    let x = gx, z = gz;
+    if (floorAt(x, z, y0) === null || Math.abs(floorAt(x, z, y0) - y0) > .6){                         /* water, a wall: the nearest place short of it */
+      const L = Math.hypot(x - me.x, z - me.z), n = Math.ceil(L / .1); let ok = null;
+      for (let i = 1; i <= n; i++){ const px = lerp(me.x, x, i / n), pz = lerp(me.z, z, i / n), f = floorAt(px, pz, y0); if (f === null || Math.abs(f - y0) > .6) break; ok = [px, pz]; }
+      if (!ok) return; [x, z] = ok; }
+    goal = { x, z, y:y0, stuck:0, last:null, run:!!run }; }
   const el = $("goal"); el.classList.remove("go"); void el.offsetWidth; el.classList.add("go"); AUD.click();
 }
 const rayBox = (o, d, lo, hi) => { let t0 = 0, t1 = 1e9;
@@ -1558,8 +1596,8 @@ window.addEventListener("pagehide", () => { if (NET.be && NET.srv){ NET.be.leave
    8. ON SCREEN — the panel, the bar and its pop-ups, name tags, speech
    ========================================================================== */
 const HINTS = {
-  keys:{ en:"Click the ground (or WASD) to walk · drag to look round · the stairs by the pool go down under the water", ko:"바닥을 클릭하거나 WASD·방향키로 걷고, 드래그로 둘러봐요 · 수영장 옆 계단을 내려가면 물 아래예요" },
-  touch:{ en:"Joystick to walk · drag to look round · the stairs by the pool go under the water", ko:"조이스틱으로 걷고, 드래그로 둘러봐요 · 수영장 옆 계단은 물 아래로 이어져요" },
+  keys:{ en:"WASD or the arrow keys to walk (click-to-walk: ⓘ) · drag to look round · the stairs by the pool go down under the water", ko:"WASD·방향키로 걷고(클릭 이동은 ⓘ에서), 드래그로 둘러봐요 · 수영장 옆 계단을 내려가면 물 아래예요" },
+  touch:{ en:"Joystick to walk (tap-to-walk: ⓘ) · drag to look round · the stairs by the pool go under the water", ko:"조이스틱으로 걷고(탭 이동은 ⓘ에서), 드래그로 둘러봐요 · 수영장 옆 계단은 물 아래로 이어져요" },
   down:{ en:"Under the water — look up: the people above are blurred by the ripples", ko:"물 아래예요 — 올려다보세요. 위의 사람들이 물결에 흐릿하게 보여요" },
   up:{ en:"Look into the pool — the people down there can see you too", ko:"수영장 안을 들여다보세요 — 아래 사람들도 당신을 보고 있어요" },
 };
@@ -1978,7 +2016,8 @@ function stepBalloons(dt, now){
   if (AIM.armed && !canThrow(false)) setArmed(false);
   AIM.on = inWorld && !making && me.y > -.5 && (AIM.armed || BALL.holder === me); AIM.kind = BALL.holder === me ? "ball" : "bal";
   if (AIM.on){ balMeshes(); aimUpdate(now); }
-  $("throwb").classList.toggle("on", AIM.on && !HOVER); document.body.classList.toggle("aimon", AIM.on);
+  { const tb = $("throwb"), on = AIM.on && !HOVER; tb.classList.toggle("on", on); $("throwx").classList.toggle("on", on && AIM.kind === "bal"); document.body.classList.toggle("aimon", AIM.on);
+    if (on){ tb.classList.toggle("ball", AIM.kind === "ball"); const k = BAL_COL[AIM.k] || BAL_COL[0], c = `rgb(${k.map(v => Math.round(v * 255)).join(",")})`; if (tb._c !== c){ tb._c = c; tb.style.setProperty("--bc", c); } } }
   if (!BM) return;
   for (const b of BALS) if (b.on){ const u = (now - b.t0) / b.T;
     if (u >= 1){ pop(b, null); continue; }
@@ -2297,7 +2336,11 @@ window.addEventListener("keydown", e => {
 window.addEventListener("keyup", e => { keys[e.code] = false; });
 window.addEventListener("pointermove", e => { if (e.pointerType === "mouse"){ MOUSE.x = e.clientX; MOUSE.y = e.clientY; } }, { passive:true });
 cv.addEventListener("contextmenu", e => { if (AIM.on) e.preventDefault(); });
-$("throwb").addEventListener("click", () => throwNow());
+$("throwb").addEventListener("click", () => { const tb = $("throwb"), n = AIM.last; throwNow();
+  if (AIM.last !== n || AIM.kind === "ball"){ tb.classList.remove("go", "cool"); void tb.offsetWidth; tb.classList.add("go", "cool"); if (navigator.vibrate) try { navigator.vibrate(10); } catch (_){} } });
+$("throwx").addEventListener("click", () => { AUD.click(); setArmed(false); });
+document.querySelectorAll("#mv-seg [data-mv]").forEach(b => b.onclick = () => { AUD.click(); setMove(b.dataset.mv); });
+setMove(MOVE);
 $("b-bal").onclick = () => { AUD.click(); closePops(); setArmed(!AIM.armed); };
 $("b-wish").onclick = () => { AUD.click(); $("wish-n").classList.remove("warn"); $("wish-n").textContent = T(WISH_NOTE); if (BALL.holder === me){ hint(T({ en:"Put the ball down first (G)", ko:"먼저 공을 내려놓아요 (G)" })); return; } if (!canThrow(true)) return; if (openPop("pop-wish")){ wishInit(); setTimeout(() => $("wish-i").focus(), 40); } };
 $("wish-i").addEventListener("input", () => { $("wish-c").textContent = `${$("wish-i").value.length}/60`; });
@@ -2312,7 +2355,8 @@ const jEl = $("joy"), knob = jEl.querySelector("i");
 jEl.addEventListener("pointerdown", e => { joy.on = true; joy.id = e.pointerId; try { jEl.setPointerCapture(e.pointerId); } catch (_){} moveJoy(e); AUD.unlock(); closePops(); });
 jEl.addEventListener("pointermove", e => { if (joy.on && e.pointerId === joy.id) moveJoy(e); });
 const endJoy = () => { joy.on = false; joy.x = joy.y = 0; knob.style.transform = ""; };
-jEl.addEventListener("pointerup", endJoy); jEl.addEventListener("pointercancel", endJoy);
+jEl.addEventListener("pointerup", endJoy); jEl.addEventListener("pointercancel", endJoy); jEl.addEventListener("lostpointercapture", endJoy);
+window.addEventListener("blur", endJoy); document.addEventListener("visibilitychange", () => { if (document.hidden){ endJoy(); for (const k in keys) keys[k] = false; } });   /* never left walking on its own */
 function moveJoy(e){ const r = jEl.getBoundingClientRect(), R = r.width / 2; let x = (e.clientX - r.left - R) / (R * .72), y = (e.clientY - r.top - R) / (R * .72); const l = Math.hypot(x, y); if (l > 1){ x /= l; y /= l; } joy.x = x; joy.y = y; knob.style.transform = `translate(${x * R * .6}px, ${y * R * .6}px)`; }
 $("jump").onclick = () => jump();
 /* the bar */
@@ -2438,6 +2482,9 @@ function about(){
   $("ab-h").textContent = T({ en:"Swimming Pool", ko:"수영장" });
   $("ab-p1").textContent = T({ en:"From above it is a pool full of water. In fact a sheet of glass carries a few centimetres of water, and under it is an empty sky-blue room. Visitors go down a separate way and look up, through the ripples, at the people looking down.", ko:"위에서 보면 물이 가득 찬 수영장이지만, 사실은 유리판 위에 얇게 물을 깔고 그 아래를 하늘색 빈 방으로 만든 작품이에요. 관람객은 다른 길로 내려가 물결 너머로 내려다보는 사람들을 올려다봐요." });
   $("ab-p2").textContent = T({ en:"The people above and the people below become each other's picture — looking and being looked at keep changing places. It is permanently installed at the 21st Century Museum of Contemporary Art, Kanazawa.", ko:"위의 사람과 아래의 사람은 서로에게 작품이 돼요 — 보는 사람과 보이는 사람이 계속 자리를 바꾸죠. 일본 가나자와 21세기 미술관에 상설 설치되어 있어요." });
+  $("mv-t").textContent = T({ en:"How to walk", ko:"이동 방식" });
+  { const L = { stick:TOUCH ? { en:"Joystick", ko:"조이스틱" } : { en:"Keyboard (WASD)", ko:"키보드 (WASD)" }, click:TOUCH ? { en:"Tap to walk", ko:"탭해서 이동" } : { en:"Click to walk", ko:"클릭해서 이동" } };
+    document.querySelectorAll("#mv-seg [data-mv]").forEach(b => { b.firstChild.textContent = T(L[b.dataset.mv]); }); }
   $("ab-h3").textContent = T({ en:"Here", ko:"이 공간에서" });
   const ol = $("ab-ol"); ol.innerHTML = "";
   [{ en:"Make a character and pick one of two servers — up to twenty people share each", ko:"캐릭터를 꾸미고 두 서버 중 하나를 골라요 — 서버마다 20명까지 함께해요" },
@@ -2453,7 +2500,7 @@ function about(){
   $("b-say").querySelector(".lb").textContent = T({ en:"Say", ko:"말하기" }); $("b-emo").querySelector(".lb").textContent = T({ en:"Moves", ko:"표현" });
   $("b-me").querySelector(".lb").textContent = T({ en:"Character", ko:"캐릭터" });
   $("b-bal").querySelector(".lb").textContent = T({ en:"Balloon", ko:"물풍선" });
-  $("throwb").querySelector("span").textContent = T({ en:"Throw", ko:"던지기" });
+  $("throwb").querySelector(".tl").textContent = T({ en:"Throw", ko:"던지기" }); $("throwx").setAttribute("aria-label", T({ en:"Put the balloon away", ko:"물풍선 끄기" }));
   $("b-wish").querySelector(".lb").textContent = T({ en:"Wish coin", ko:"소원 동전" });
   $("wish-t").textContent = T({ en:"Write a wish, then throw the coin into the pool", ko:"소원을 적고, 동전을 수영장에 던져요" });
   $("wish-i").placeholder = T({ en:"My wish is…", ko:"나의 소원은…" });
