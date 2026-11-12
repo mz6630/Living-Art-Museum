@@ -87,11 +87,21 @@ service cloud.firestore {
     // ---- Swimming Pool: wish coins on the glass. A private wish is never sent: the server only stores an empty, locked coin ----
     match /poolWishes/{id} {
       allow read: if true;
-      allow create: if d().keys().hasOnly(['x', 'z', 'w', 'p', 'n', 't'])
+      allow create: if d().keys().hasOnly(['x', 'z', 'w', 'p', 'n', 't', 's', 'k'])
                     && d().x is number && d().z is number && d().x > -8 && d().x < 8 && d().z > -5.5 && d().z < 5.5
                     && d().p is bool && str(d().w, 60) && str(d().n, 16) && d().t is number
-                    && (d().p == false || d().w == '');
+                    && (d().p == false || d().w == '')
+                    && (!('s' in d()) || (d().s is number && d().s >= 0 && d().s <= 1500))
+                    && (!('k' in d()) || (d().k is int && d().k >= 0 && d().k <= 6));
       allow update, delete: if false;
+    }
+    // ---- Swimming Pool: the coin toss ranking, one best score per browser ----
+    match /poolCoinRank/{id} {
+      allow read: if true;
+      allow create, update: if d().keys().hasOnly(['n', 's', 'k', 'd', 't'])
+                            && str(d().n, 16) && d().s is number && d().s >= 0 && d().s <= 1500
+                            && d().k is int && d().k >= 0 && d().k <= 6 && d().d is number && d().t is number;
+      allow delete: if false;
     }
     // where the binder, magazine, mug and oilsticks were left
     match /basquiatMeta/{id} {
