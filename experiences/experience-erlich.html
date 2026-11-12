@@ -1986,7 +1986,7 @@ function setArmed(on){
   if (on && !canThrow(true)) return;
   AIM.armed = on; $("b-bal").setAttribute("aria-pressed", String(on));
   if (on){ AIM.off = [Math.sin(me.r) * 4, Math.cos(me.r) * 4]; AIM.tapAt = 0; AIM.k = Math.floor(Math.random() * BAL_COL.length); balMeshes(); AUD.stretch();
-    hint(T(HOVER ? { en:"Point where it should land and click to throw · drag to turn the view · F or Esc to put it away", ko:"떨어질 곳을 가리키고 클릭하면 던져요 · 드래그로 화면 돌리기 · F나 Esc로 끄기" }
+    hint(T(HOVER ? { en:"Point where it should land and click to throw · drag (either button) or point at the edge to turn · F or Esc to put it away", ko:"가리키고 클릭하면 던져요 · 드래그(오른쪽 버튼도 돼요)나 화면 가장자리로 시점 돌리기 · F·Esc로 끄기" }
                  : { en:"Tap where it should land, then the round button throws · drag to turn the view", ko:"떨어질 곳을 탭하고 동그란 던지기 버튼을 눌러요 · 화면은 드래그로 돌려요" })); }
 }
 /* a click (mouse) throws; a tap (touch) moves the target */
@@ -2039,7 +2039,9 @@ function pop(b, hitA){
 function stepBalloons(dt, now){
   if (AIM.armed && !canThrow(false)) setArmed(false);
   AIM.on = inWorld && !making && me.y > -.5 && (AIM.armed || BALL.holder === me); AIM.kind = BALL.holder === me ? "ball" : "bal";
-  if (AIM.on){ balMeshes(); aimUpdate(now); }
+  if (AIM.on){ balMeshes(); aimUpdate(now);
+    if (HOVER && MOUSE.over && !ptrs.size){ const E = 56, l = MOUSE.x < E ? 1 - MOUSE.x / E : 0, r = MOUSE.x > innerWidth - E ? 1 - (innerWidth - MOUSE.x) / E : 0;   /* the screen's edge turns the view */
+      if (l || r) view.ty += (l - r) * 1.3 * dt; } }
   { const tb = $("throwb"), on = AIM.on && !HOVER; tb.classList.toggle("on", on); $("throwx").classList.toggle("on", on && AIM.kind === "bal"); document.body.classList.toggle("aimon", AIM.on);
     if (on){ tb.classList.toggle("ball", AIM.kind === "ball"); const k = BAL_COL[AIM.k] || BAL_COL[0], c = `rgb(${k.map(v => Math.round(v * 255)).join(",")})`; if (tb._c !== c){ tb._c = c; tb.style.setProperty("--bc", c); } } }
   if (!BM) return;
@@ -2269,7 +2271,7 @@ function grabBall(say){
   if (d > 1.6 || BALL.y > 2.1){ if (say) hint(T({ en:"Get closer to the ball", ko:"공에 조금 더 가까이 가요" })); return false; }
   if (AIM.armed) setArmed(false);
   BALL.holder = me; BALL.vx = BALL.vy = BALL.vz = 0; tellBall(true); AUD.grab(); AIM.off = [Math.sin(me.r) * 5, Math.cos(me.r) * 5]; AIM.tapAt = 0;
-  if (!grabBall.told){ grabBall.told = true; hint(T(HOVER ? { en:"Got it! Point and click to throw · G puts it down", ko:"잡았어요! 던질 곳을 가리키고 클릭하면 던져요 · G로 내려놓기" }
+  if (!grabBall.told){ grabBall.told = true; hint(T(HOVER ? { en:"Got it! Point and click to throw · drag (either button) or point at the screen's edge to turn · G puts it down", ko:"잡았어요! 가리키고 클릭하면 던져요 · 드래그(오른쪽 버튼도 돼요)나 화면 가장자리로 시점 돌리기 · G 내려놓기" }
                                                          : { en:"Got it! Tap where to throw, then the round button", ko:"잡았어요! 던질 곳을 탭하고 동그란 던지기 버튼을 눌러요" })); }
   return true;
 }
@@ -2310,7 +2312,7 @@ function stepBall(dt, now){
   for (const a of AVATARS()){ if (a.y < -1) continue;
     const dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz), lim = .3 + BR; if (d > lim || b.y > a.y + 1.75 + BR || b.y < a.y - .1) continue;
     const ux = d > .01 ? dx / d : Math.sin(a.r), uz = d > .01 ? dz / d : Math.cos(a.r), sp3 = Math.hypot(b.vx, b.vy, b.vz);
-    if (b.air && b.by && b.by !== a && sp3 > 3 && b.y > a.y + 1.0 && (a === me || a.npc) && !(a.emote === "dizzy" && now - a.et0 < DIZZY_MS)){   /* square on the head */
+    if (b.air && b.by && b.by !== a && sp3 > 2.6 && b.y > a.y + .3 && (a === me || a.npc) && !(a.emote === "dizzy" && now - a.et0 < DIZZY_MS)){   /* a hit, head or body */
       b.air = false; b.vx = ux * 1.6 - b.vx * .15; b.vz = uz * 1.6 - b.vz * .15; b.vy = 3.8; b.x = a.x + ux * (lim + .02); b.z = a.z + uz * (lim + .02);
       a.emote = "dizzy"; a.et0 = now; AUD.bonk(); { const r = slot(RINGS); Object.assign(r, { on:true, t0:now, x:a.x, z:a.z, y:a.y + 1.62, s:.05, dur:300, grow:.6 }); }
       if (a === me){ me.et = Date.now(); popEmote(me, "dizzy"); tellBall(false); hint(T({ en:"Bonk! Seeing stars…", ko:"콩! 머리가 어질어질…" }), true); if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch (_){} }
@@ -2346,20 +2348,21 @@ function ballAt(cx, cy, run){                                                   
    10. INPUT
    ========================================================================== */
 const ptrs = new Map(); let pinch0 = 0, d0 = 0;
-cv.addEventListener("pointerdown", e => { if (e.pointerType === "mouse" && e.button !== 0) return;   /* the right (or middle) button: nothing, so nothing is left held */
+cv.addEventListener("pointerdown", e => { if (e.pointerType === "mouse" && e.button !== 0 && e.button !== 2) return;   /* left: click or drag; right: drag to turn only */
   AUD.unlock(); closePops(); document.body.classList.remove("about"); if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-  ptrs.set(e.pointerId, { x:e.clientX, y:e.clientY, ox:e.clientX, oy:e.clientY, t:performance.now(), n:ptrs.size }); try { cv.setPointerCapture(e.pointerId); } catch (_){}
+  ptrs.set(e.pointerId, { x:e.clientX, y:e.clientY, ox:e.clientX, oy:e.clientY, t:performance.now(), n:ptrs.size, rb:e.button === 2 }); try { cv.setPointerCapture(e.pointerId); } catch (_){}
 
   if (ptrs.size === 2){ const [a, b] = [...ptrs.values()]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); d0 = view.td; } document.body.classList.add("drag"); });
 cv.addEventListener("pointermove", e => { const p = ptrs.get(e.pointerId); if (!p) return;
-  if (e.pointerType === "mouse" && !(e.buttons & 1)){ dropPtr(e.pointerId); return; }          /* the button came up where we did not hear it: stop dragging */
+  if (e.pointerType === "mouse" && !(e.buttons & 3)){ dropPtr(e.pointerId); return; }          /* the button came up where we did not hear it: stop dragging */
 
   if (ptrs.size === 2){ const o = [...ptrs.entries()].find(([id]) => id !== e.pointerId)[1]; const d = Math.hypot(e.clientX - o.x, e.clientY - o.y); if (pinch0) view.td = clamp(d0 * pinch0 / d, 2, 14); p.x = e.clientX; p.y = e.clientY; return; }
   const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
   if (making){ me.r -= dx * .012; return; }
   view.ty -= dx * .0065; view.tp = clamp(view.tp + dy * .005, -.6, 1.2); });
 const endPtr = (e) => { const p = ptrs.get(e.pointerId);
-  if (p && e.type === "pointerup" && p.n === 0 && ptrs.size === 1 && Math.hypot(e.clientX - p.ox, e.clientY - p.oy) < 7 && performance.now() - p.t < 450 && e.button === 0){
+  const still = AIM.on ? 4 : 7, quick = AIM.on ? 350 : 450;                                   /* aiming: only a clean click throws; any drag just turns the view */
+  if (p && !p.rb && e.type === "pointerup" && p.n === 0 && ptrs.size === 1 && Math.hypot(e.clientX - p.ox, e.clientY - p.oy) < still && performance.now() - p.t < quick && e.button === 0){
     if (AIM.on) aimTap(e.clientX, e.clientY); else walkTo(e.clientX, e.clientY, e.shiftKey); }
   ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch0 = 0; if (!ptrs.size) document.body.classList.remove("drag"); };
 cv.addEventListener("pointerup", endPtr); cv.addEventListener("pointercancel", endPtr);
@@ -2381,7 +2384,8 @@ window.addEventListener("keydown", e => {
   if (/^Arrow/.test(e.code)) e.preventDefault();
 });
 window.addEventListener("keyup", e => { keys[e.code] = false; });
-window.addEventListener("pointermove", e => { if (e.pointerType === "mouse"){ MOUSE.x = e.clientX; MOUSE.y = e.clientY; } }, { passive:true });
+window.addEventListener("pointermove", e => { if (e.pointerType === "mouse"){ MOUSE.x = e.clientX; MOUSE.y = e.clientY; MOUSE.over = e.target === cv; } }, { passive:true });
+document.addEventListener("mouseleave", () => { MOUSE.over = false; });
 cv.addEventListener("contextmenu", e => e.preventDefault());
 $("throwb").addEventListener("click", () => { const tb = $("throwb"), n = AIM.last; throwNow();
   if (AIM.last !== n || AIM.kind === "ball"){ tb.classList.remove("go", "cool"); void tb.offsetWidth; tb.classList.add("go", "cool"); if (navigator.vibrate) try { navigator.vibrate(10); } catch (_){} } });
