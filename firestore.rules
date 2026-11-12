@@ -78,10 +78,10 @@ service cloud.firestore {
     // used only when the Realtime Database is not set up; Realtime Database is the live server
     match /poolLive/{id} {
       allow read: if true;
-      allow create, update: if d().keys().hasOnly(['s', 'x', 'y', 'z', 'r', 'w', 'e', 'et', 'm', 'mt', 'n', 'k', 't', 'f'])
+      allow create, update: if d().keys().hasOnly(['s', 'x', 'y', 'z', 'r', 'w', 'e', 'et', 'm', 'mt', 'n', 'k', 't'])
                             && d().s in [1, 2] && d().x is number && d().y is number && d().z is number && d().t is number
                             && str(d().n, 16) && (!('m' in d()) || str(d().m, 60)) && (!('e' in d()) || str(d().e, 8))
-                            && (!('k' in d()) || list(d().k, 10)) && (!('f' in d()) || str(d().f, 48));
+                            && (!('k' in d()) || list(d().k, 10));
       allow delete: if true;
     }
     // where the binder, magazine, mug and oilsticks were left
