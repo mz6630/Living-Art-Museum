@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261112113407";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261112114429";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -2918,9 +2918,11 @@ window.addEventListener("keydown", e => {
 });
 window.addEventListener("keyup", e => { keys[e.code] = false; });
 let dragPt = null;
-cv.addEventListener("pointerdown", e => { dragPt = { x:e.clientX, y:e.clientY }; cv.setPointerCapture(e.pointerId); $("s-space").classList.add("drag"); });
+cv.addEventListener("pointerdown", e => { if (e.pointerType === "mouse" && e.button !== 0) return;   /* only the left button looks round */
+  dragPt = { x:e.clientX, y:e.clientY }; cv.setPointerCapture(e.pointerId); $("s-space").classList.add("drag"); });
 cv.addEventListener("pointermove", e => {
   if (!dragPt) return;
+  if (e.pointerType === "mouse" && !(e.buttons & 1)){ endLook(); return; }                 /* the button came up unheard: stop */
   look.yaw -= (e.clientX - dragPt.x) * 0.0034;
   look.pitch = Math.max(-0.8, Math.min(0.8, look.pitch + (e.clientY - dragPt.y) * 0.0026));
   dragPt = { x:e.clientX, y:e.clientY };
@@ -2928,6 +2930,9 @@ cv.addEventListener("pointermove", e => {
 const endLook = () => { dragPt = null; $("s-space").classList.remove("drag"); };
 cv.addEventListener("pointerup", endLook);
 cv.addEventListener("pointercancel", endLook);
+cv.addEventListener("lostpointercapture", endLook);
+cv.addEventListener("contextmenu", e => e.preventDefault());
+window.addEventListener("blur", endLook);
 window.addEventListener("resize", () => { if (scene === "space"){ sizeGrid(); } });
 
 /* the joystick: one thumb walks while the other drags the view round */
@@ -22945,8 +22950,8 @@ function pose(a, now){
   else if (a.emote === "jump" && u < .9){ const v = u / .9; if (!a.self) q.lift += 4 * .55 * v * (1 - v); q.a1z = -2.4; q.a2z = 2.4; }
   else if (a.emote === "dance" && u < 4){ q.sway = Math.sin(u * 9) * .16; q.a1z = -1.9 - Math.sin(u * 9) * .5; q.a2z = 1.9 - Math.sin(u * 9) * .5; q.l1 = Math.max(0, Math.sin(u * 9)) * .4; q.l2 = Math.max(0, -Math.sin(u * 9)) * .4; q.spin = (1 - Math.cos(Math.PI * Math.min(u / 2, 1))) * Math.PI; q.lift += Math.abs(Math.sin(u * 9)) * .05; }
   else if (a.emote === "heart" && u < 1.4){ q.lift += Math.max(0, Math.sin(u * 7)) * .08; q.a1z = -.6; q.a2z = .6; q.a1x = q.a2x = -1.2; }
-  if (BALL.holder === a && !(a === me && AIM.on)){ q.a1x = q.a2x = -1.25; q.a1z = -.32; q.a2z = .32; }       /* holding the ball out in front */
-  else if (a === me && AIM.on){ q.a2x = -1.0; q.a2z = .55; }                            /* a balloon held up, ready */
+  if (BALL.holder === a){ q.a1x = q.a2x = -1.05; q.a1z = -.12; q.a2z = .12; }                      /* the ball held in both hands, at the chest */
+  else if (a === me && AIM.on){ q.a2x = -.75; q.a2z = 1.05; }                           /* a balloon held up in the right hand, out to the side */
   else if (a.thr && now - a.thr < 380){ const v = (now - a.thr) / 380; q.a2z = 2.3 - 1.5 * v; q.a2x = .9 - 2.2 * Math.sin(Math.PI * Math.min(1, v * 1.3)); }   /* the throw */
   if (a.sit && a.bench){ q.l1 = q.l2 = -1.3; q.lift = .06; q.a1x = q.a2x = -.25; q.a1z = -.14; q.a2z = .14; }   /* on a bench */
   else if (a.sit){ q.l1 = q.l2 = -1.45; q.lift = -.3; q.a1x = q.a2x = -.35; }
@@ -22964,6 +22969,12 @@ function faceOf(a, now){
     mouth = happy ? 2 : Math.sin(u * 17 + Math.sin(u * 6.3) * 2.2) > -.15 ? 1 : 0;
     if (u < .14) eye = 1; }                                                                   /* a blink as they start */
   return [eye, mouth];
+}
+/* where a hand is right now (s: -1 left, 1 right), worked out the same way the arm is drawn */
+function handAt(a, s, now, dz){
+  const q = pose(a, now), base = mm4(Tm(a.x, a.y + q.lift, a.z), RY(a.r + q.spin)), up = mm4(base, mm4(Tm(0, .42, 0), mm4(RX(q.bow), mm4(RZ(q.sway), Tm(0, -.42, 0)))));
+  const M = mm4(up, mm4(Tm(.165 * s, .79, 0), mm4(RZ(s < 0 ? q.a1z : q.a2z), mm4(RX(s < 0 ? q.a1x : q.a2x), Tm(-.165 * s, -.79, 0))))), p = [.219 * s, .5, .004 + (dz || 0)];
+  return [M[0] * p[0] + M[4] * p[1] + M[8] * p[2] + M[12], M[1] * p[0] + M[5] * p[1] + M[9] * p[2] + M[13], M[2] * p[0] + M[6] * p[1] + M[10] * p[2] + M[14]];
 }
 function partMats(a, now){
   const q = pose(a, now), m = a.mesh;
@@ -23666,8 +23677,8 @@ function aimUpdate(now){
   if (tgt && Math.hypot(tgt.x - me.x, tgt.z - me.z) <= rg + .5){ x = tgt.x; z = tgt.z; } else tgt = null;
   AIM.x = x; AIM.z = z; AIM.tgt = tgt; AIM.d = Math.hypot(x - me.x, z - me.z);
   if (!me.sit) me.r = Math.atan2(x - me.x, z - me.z);
-  const fx = Math.sin(me.r), fz = Math.cos(me.r), x0 = me.x + fx * .22, z0 = me.z + fz * .22, y0 = me.y + 1.2, { h } = flight(AIM.d);
-  AIM.hx = me.x + fx * .3 + fz * .14; AIM.hy = me.y + 1.12 + (me.jy || 0); AIM.hz = me.z + fz * .3 - fx * .14;
+  { const hd = handAt(me, 1, now); AIM.hx = hd[0]; AIM.hy = hd[1] + .15; AIM.hz = hd[2]; }      /* sitting on the palm */
+  const x0 = AIM.hx, y0 = AIM.hy, z0 = AIM.hz, { h } = flight(Math.hypot(x - x0, z - z0));       /* the arc leaves from the balloon itself */
   const ph = (now / 700) % 1, n = ARC_N; let k = 0;                                            /* dots that march along the arc */
   if (AIM.kind === "ball"){ const v = throwV(x, z); for (let i = 0; i < n; i++){ const u = (i + ph) / n; if (u > .97) continue; const t = u * v.T;   /* the ball's own flight */
       AIM.P[k * 3] = v.x0 + v.vx * t; AIM.P[k * 3 + 1] = v.y0 + v.vy * t - 4.9 * t * t; AIM.P[k * 3 + 2] = v.z0 + v.vz * t; k++; } AIM.n = k; return; }
@@ -23965,7 +23976,7 @@ function dropBall(a, tell){
   BALL.noKick = performance.now() + 700; if (tell){ tellBall(false); AUD.bounce(.8); }
 }
 /* the speed that carries the ball from the hands to (x, z): the same arc the dots draw */
-function throwV(x, z){ const fx = Math.sin(me.r), fz = Math.cos(me.r), x0 = me.x + fx * .45, z0 = me.z + fz * .45, y0 = me.y + 1.25, d = Math.hypot(x - x0, z - z0), T = .42 + d * .075;
+function throwV(x, z){ const held = BALL.holder === me, fx = Math.sin(me.r), fz = Math.cos(me.r), x0 = held ? BALL.x : me.x + fx * .45, z0 = held ? BALL.z : me.z + fz * .45, y0 = held ? BALL.y + .1 : me.y + 1.25, d = Math.hypot(x - x0, z - z0), T = .42 + d * .075;
   return { x0, y0, z0, T, vx:(x - x0) / T, vz:(z - z0) / T, vy:(me.y + BR - y0 + 4.9 * T * T) / T }; }
 function throwBall(x, z){
   if (BALL.holder !== me) return; const v = throwV(x, z);
@@ -23976,7 +23987,8 @@ function stepBall(dt, now){
   if (!inWorld && !making) return; const b = BALL; if (!BM && !balMeshes()) return;
   if (b.holder){ const a = b.holder;                                                          /* carried: out in front, turning with them */
     if (a === me && me.y < -.35){ dropBall(me, false); b.x = BALL_HOME[0]; b.z = BALL_HOME[1]; b.y = 1; tellBall(false); hint(T({ en:"The ball stays up by the pool", ko:"비치볼은 위층에 두고 왔어요" })); return; }
-    const fx = Math.sin(a.r), fz = Math.cos(a.r); b.x = a.x + fx * .4; b.z = a.z + fz * .4; b.y = (a.y || 0) + 1.0 + (a.jy || 0);
+    const L = handAt(a, -1, now), Rh = handAt(a, 1, now), fx = Math.sin(a.r), fz = Math.cos(a.r);
+    b.x = (L[0] + Rh[0]) / 2 + fx * .17; b.z = (L[2] + Rh[2]) / 2 + fz * .17; b.y = (L[1] + Rh[1]) / 2 + .08;
     return; }
   for (let s = 0; s < 2; s++){ const h = dt / 2, wet = inPool(b.x, b.z);
     b.vy -= 9.8 * h;
@@ -24022,11 +24034,13 @@ function ballAt(cx, cy, run){                                                   
    10. INPUT
    ========================================================================== */
 const ptrs = new Map(); let pinch0 = 0, d0 = 0;
-cv.addEventListener("pointerdown", e => { AUD.unlock(); closePops(); document.body.classList.remove("about"); if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+cv.addEventListener("pointerdown", e => { if (e.pointerType === "mouse" && e.button !== 0) return;   /* the right (or middle) button: nothing, so nothing is left held */
+  AUD.unlock(); closePops(); document.body.classList.remove("about"); if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   ptrs.set(e.pointerId, { x:e.clientX, y:e.clientY, ox:e.clientX, oy:e.clientY, t:performance.now(), n:ptrs.size }); try { cv.setPointerCapture(e.pointerId); } catch (_){}
 
   if (ptrs.size === 2){ const [a, b] = [...ptrs.values()]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); d0 = view.td; } document.body.classList.add("drag"); });
 cv.addEventListener("pointermove", e => { const p = ptrs.get(e.pointerId); if (!p) return;
+  if (e.pointerType === "mouse" && !(e.buttons & 1)){ dropPtr(e.pointerId); return; }          /* the button came up where we did not hear it: stop dragging */
 
   if (ptrs.size === 2){ const o = [...ptrs.entries()].find(([id]) => id !== e.pointerId)[1]; const d = Math.hypot(e.clientX - o.x, e.clientY - o.y); if (pinch0) view.td = clamp(d0 * pinch0 / d, 2, 14); p.x = e.clientX; p.y = e.clientY; return; }
   const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
@@ -24037,6 +24051,9 @@ const endPtr = (e) => { const p = ptrs.get(e.pointerId);
     if (AIM.on) aimTap(e.clientX, e.clientY); else walkTo(e.clientX, e.clientY, e.shiftKey); }
   ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch0 = 0; if (!ptrs.size) document.body.classList.remove("drag"); };
 cv.addEventListener("pointerup", endPtr); cv.addEventListener("pointercancel", endPtr);
+function dropPtr(id){ ptrs.delete(id); if (ptrs.size < 2) pinch0 = 0; if (!ptrs.size) document.body.classList.remove("drag"); }
+cv.addEventListener("lostpointercapture", e => { if (ptrs.has(e.pointerId)) dropPtr(e.pointerId); });
+window.addEventListener("blur", () => { ptrs.clear(); pinch0 = 0; document.body.classList.remove("drag"); });
 cv.addEventListener("wheel", e => { e.preventDefault(); if (!making) view.td = clamp(view.td * Math.exp(e.deltaY * .0012), 2, 14); }, { passive:false });
 window.addEventListener("keydown", e => {
   if (e.target === $("say-i")){ if (e.key === "Escape"){ e.target.blur(); closePops(); } return; }
@@ -24053,7 +24070,7 @@ window.addEventListener("keydown", e => {
 });
 window.addEventListener("keyup", e => { keys[e.code] = false; });
 window.addEventListener("pointermove", e => { if (e.pointerType === "mouse"){ MOUSE.x = e.clientX; MOUSE.y = e.clientY; } }, { passive:true });
-cv.addEventListener("contextmenu", e => { if (AIM.on) e.preventDefault(); });
+cv.addEventListener("contextmenu", e => e.preventDefault());
 $("throwb").addEventListener("click", () => { const tb = $("throwb"), n = AIM.last; throwNow();
   if (AIM.last !== n || AIM.kind === "ball"){ tb.classList.remove("go", "cool"); void tb.offsetWidth; tb.classList.add("go", "cool"); if (navigator.vibrate) try { navigator.vibrate(10); } catch (_){} } });
 $("throwx").addEventListener("click", () => { AUD.click(); setArmed(false); });

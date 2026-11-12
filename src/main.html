@@ -2917,9 +2917,11 @@ window.addEventListener("keydown", e => {
 });
 window.addEventListener("keyup", e => { keys[e.code] = false; });
 let dragPt = null;
-cv.addEventListener("pointerdown", e => { dragPt = { x:e.clientX, y:e.clientY }; cv.setPointerCapture(e.pointerId); $("s-space").classList.add("drag"); });
+cv.addEventListener("pointerdown", e => { if (e.pointerType === "mouse" && e.button !== 0) return;   /* only the left button looks round */
+  dragPt = { x:e.clientX, y:e.clientY }; cv.setPointerCapture(e.pointerId); $("s-space").classList.add("drag"); });
 cv.addEventListener("pointermove", e => {
   if (!dragPt) return;
+  if (e.pointerType === "mouse" && !(e.buttons & 1)){ endLook(); return; }                 /* the button came up unheard: stop */
   look.yaw -= (e.clientX - dragPt.x) * 0.0034;
   look.pitch = Math.max(-0.8, Math.min(0.8, look.pitch + (e.clientY - dragPt.y) * 0.0026));
   dragPt = { x:e.clientX, y:e.clientY };
@@ -2927,6 +2929,9 @@ cv.addEventListener("pointermove", e => {
 const endLook = () => { dragPt = null; $("s-space").classList.remove("drag"); };
 cv.addEventListener("pointerup", endLook);
 cv.addEventListener("pointercancel", endLook);
+cv.addEventListener("lostpointercapture", endLook);
+cv.addEventListener("contextmenu", e => e.preventDefault());
+window.addEventListener("blur", endLook);
 window.addEventListener("resize", () => { if (scene === "space"){ sizeGrid(); } });
 
 /* the joystick: one thumb walks while the other drags the view round */
