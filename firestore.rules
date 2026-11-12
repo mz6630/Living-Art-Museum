@@ -84,6 +84,15 @@ service cloud.firestore {
                             && (!('k' in d()) || list(d().k, 10)) && (!('f' in d()) || str(d().f, 48));
       allow delete: if true;
     }
+    // ---- Swimming Pool: wish coins on the glass. A private wish is never sent: the server only stores an empty, locked coin ----
+    match /poolWishes/{id} {
+      allow read: if true;
+      allow create: if d().keys().hasOnly(['x', 'z', 'w', 'p', 'n', 't'])
+                    && d().x is number && d().z is number && d().x > -8 && d().x < 8 && d().z > -5.5 && d().z < 5.5
+                    && d().p is bool && str(d().w, 60) && str(d().n, 16) && d().t is number
+                    && (d().p == false || d().w == '');
+      allow update, delete: if false;
+    }
     // where the binder, magazine, mug and oilsticks were left
     match /basquiatMeta/{id} {
       allow read: if true;

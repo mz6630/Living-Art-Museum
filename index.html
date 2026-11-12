@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261112100534";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261112103034";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -21853,6 +21853,34 @@ body.in:not(.making) #bar{display:flex;}
 .field input::placeholder{color:var(--ink-faint);}
 .field:focus-within{border-color:rgba(31,157,179,.55);}
 #pop-say{width:min(420px,calc(100% - 20px));}
+/* the wish: written first, then thrown */
+#pop-wish{width:min(340px,calc(100% - 20px));padding:14px 14px 12px;}
+#pop-wish .wt{margin:0 2px 8px;font:600 13px/1.35 inherit;font-family:inherit;color:var(--ink);}
+#wish-i{width:100%;box-sizing:border-box;resize:none;border-radius:12px;border:1px solid var(--glass-line);background:rgba(255,255,255,.75);padding:10px 12px;font:14px/1.45 inherit;font-family:inherit;color:var(--ink);outline:none;}
+#wish-i:focus{border-color:var(--accent);background:#fff;}
+#wish-i.shake{animation:wsh .36s;} @keyframes wsh{25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
+#pop-wish .wr{display:flex;align-items:center;justify-content:space-between;margin:8px 2px 10px;}
+.wsw{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.wsw input{position:absolute;opacity:0;pointer-events:none;}
+.wsw i{position:relative;width:34px;height:20px;border-radius:999px;background:rgba(22,21,15,.16);transition:background .2s;}
+.wsw i::after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s cubic-bezier(.3,1.4,.5,1);}
+.wsw input:checked + i{background:var(--chip-on);}
+.wsw input:checked + i::after{transform:translateX(14px);}
+.wsw input:focus-visible + i{outline:2px solid var(--accent);outline-offset:2px;}
+#pop-wish .wc{font:500 11px/1 "JetBrains Mono",monospace;color:var(--ink-faint);}
+#wish-go{width:100%;justify-content:center;}
+#pop-wish .note{font-size:11px;color:var(--ink-faint);margin:8px 2px 0;line-height:1.5;}
+#b-wish[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink);}
+/* a wish, read off a coin in the water */
+#wishCard{position:fixed;left:0;top:0;z-index:5;max-width:min(260px,70vw);padding:10px 13px 9px;border-radius:16px;pointer-events:none;opacity:0;transition:opacity .25s;will-change:transform;
+  background:rgba(255,253,247,.94);box-shadow:0 10px 26px -12px rgba(0,0,0,.45);}
+#wishCard.far::after{display:none;}
+#wishCard.on{opacity:1;}
+#wishCard::after{content:"";position:absolute;left:50%;bottom:-6px;width:12px;height:12px;margin-left:-6px;transform:rotate(45deg);background:inherit;border-right:1px solid var(--glass-line);border-bottom:1px solid var(--glass-line);}
+#wishCard .wq{margin:0;font:15px/1.45 var(--serif);color:var(--ink);word-break:keep-all;overflow-wrap:anywhere;}
+#wishCard .wq.lock{font:13px/1.45 inherit;font-family:inherit;color:var(--ink-dim);}
+#wishCard .wm{margin:5px 0 0;font-size:11px;color:var(--ink-faint);display:flex;gap:6px;align-items:center;}
+#wishCard .wm b{font-weight:600;color:var(--ink);background:rgba(240,190,60,.28);border-radius:6px;padding:1px 6px;}
 #pop-say .field{background:rgba(255,255,255,.7);}
 
 /* ---- the joystick (touch) ---- */
@@ -21947,6 +21975,14 @@ body.about #about{display:block;}
 </section>
 
 <div id="pop-say" class="pop glass"><form id="say" class="field" autocomplete="off"><input id="say-i" maxlength="40" enterkeyhint="send"><button type="submit" class="chip hot ic" id="say-b"><svg class="ico" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg></button></form></div>
+<div id="pop-wish" class="pop glass">
+  <p class="wt" id="wish-t"></p>
+  <textarea id="wish-i" maxlength="60" rows="2" enterkeyhint="done"></textarea>
+  <div class="wr"><label class="wsw"><input type="checkbox" id="wish-p"><i></i><span id="wish-pl"></span></label><span class="wc" id="wish-c">0/60</span></div>
+  <button type="button" class="chip hot" id="wish-go"></button>
+  <p class="note" id="wish-n"></p>
+</div>
+<div id="wishCard" class="glass" aria-live="polite"><p class="wq"></p><p class="wm"></p></div>
 <div id="pop-emo" class="pop glass"><div class="grid">
   <button class="chip" data-e="wave"><svg class="ico" viewBox="0 0 24 24"><path d="M8 13V6.5a1.5 1.5 0 013 0V11M11 10.5V5a1.5 1.5 0 013 0v6M14 10.5V6.5a1.5 1.5 0 013 0V14a6 6 0 01-6 6h-.5a6 6 0 01-5-2.7l-2-3.1a1.5 1.5 0 012.4-1.7L8 14"/></svg><span class="lb"></span></button>
   <button class="chip" data-e="bow"><svg class="ico" viewBox="0 0 24 24"><circle cx="15.5" cy="6.5" r="2.5"/><path d="M13.5 9.5L8 12.5l2 2.5M8 12.5V20M11 15.5l1.5 4.5"/></svg><span class="lb"></span></button>
@@ -21961,6 +21997,7 @@ body.about #about{display:block;}
   <button class="chip hot" id="b-say"><svg class="ico" viewBox="0 0 24 24"><path d="M5 5h14a2 2 0 012 2v8a2 2 0 01-2 2h-7l-5 4v-4H5a2 2 0 01-2-2V7a2 2 0 012-2z"/></svg><span class="lb"></span></button>
   <button class="chip" id="b-emo"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 007 0M9 9.5v.5M15 9.5v.5"/></svg><span class="lb"></span></button>
   <button class="chip" id="b-bal" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3a6 6 0 016 6.2c0 3.9-3.2 7.3-6 7.3s-6-3.4-6-7.3A6 6 0 0112 3z"/><path d="M11 16.5h2l-1 1.6zM12 18.1c-.6 1.2.8 1.8.2 2.9"/><path d="M9.3 7.6a3 3 0 012-1.9"/></svg><span class="lb"></span></button>
+  <button class="chip" id="b-wish" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.6"/><path d="M12 9.6l.8 1.6 1.7.2-1.2 1.2.3 1.7-1.6-.8-1.6.8.3-1.7-1.2-1.2 1.7-.2z"/></svg><span class="lb"></span></button>
   <span class="sep"></span>
   <button class="chip" id="b-me"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-7 8-7s7 2.5 8 7"/></svg><span class="lb"></span></button>
   <button class="chip" id="b-srv"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="6" rx="2"/><rect x="4" y="14" width="16" height="6" rx="2"/><path d="M8 7h.01M8 17h.01"/></svg><span class="lb"></span></button>
@@ -22931,6 +22968,7 @@ function moveMe(dt){
 let goal = null;
 function walkTo(cx, cy, run){
   if (making || !inWorld) return;
+  if (wishAt(cx, cy)) return;                                                                      /* a coin under the finger: read it */
   const f = norm(sub(camTgt, camPos)), r = norm(cross(f, [0, 1, 0])), u = cross(r, f), th = Math.tan(fov / 2);
   const nx = (cx / innerWidth) * 2 - 1, ny = 1 - (cy / innerHeight) * 2;
   const d = norm(add(f, add(mul(r, nx * th * W / H), mul(u, ny * th))));
@@ -23193,7 +23231,7 @@ async function enter(srv){
   $("go").disabled = false;
   if (!inWorld){ me.x = SPAWN.x; me.z = SPAWN.z; me.y = 0; me.r = SPAWN.r; view.yaw = view.ty = Math.PI; view.tp = .5; inWorld = true; setTimeout(() => hint(T(NET.err ? NET_ERR : TOUCH ? HINTS.touch : HINTS.keys)), 900); }
   making = false; closePops(); document.body.classList.remove("making"); document.body.classList.add("in");
-  saveMe(); AUD.unlock(); AUD.start(); renderPill(); maybeSend();
+  saveMe(); AUD.unlock(); AUD.start(); renderPill(); maybeSend(); wishInit();
 }
 function saveMe(){ try { localStorage.setItem(LKEY, JSON.stringify({ k:lookArr(me.look), n:me.name })); } catch (_){} }
 window.addEventListener("pagehide", () => { if (NET.be && NET.srv){ NET.be.leave(); if (NET.be.bye) NET.be.bye(); }
@@ -23446,6 +23484,8 @@ const AUD = (() => {
       else if (e === "dance") [1047, 1319, 1568, 2093, 1568, 1319].forEach((f, i) => tone(tt + i * .11, f, .1, .022, null, "triangle"));
       else if (e === "heart"){ tone(tt, 1760, .1, .025); tone(tt + .1, 2349, .18, .02); }
       else if (e === "sit") burst(tt, .06, 2000, 3, .02); },
+    coin(k){ if (!ok() || k <= 0) return; const tt = ctx.currentTime; tone(tt, 2637, .1, .026 * k); tone(tt + .07, 3520, .32, .018 * k); tone(tt + .16, 4186, .3, .01 * k); },
+    plop(k){ if (!ok() || k <= 0) return; const tt = ctx.currentTime; tone(tt, 1150, .11, .024 * k, 2100); burst(tt, .14, 2200, 2, .014 * k); },
     stretch(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 760, .12, .012, 1150, "triangle"); },
     toss(k){ if (!ok() || k <= 0) return; const tt = ctx.currentTime; burst(tt, .15, 1800, 2, .02 * k); tone(tt, 600, .16, .014 * k, 1150, "triangle"); },
     splash(k, pool){ if (!ok() || k <= 0) return; const tt = ctx.currentTime;                                  /* a pop, then the water */
@@ -23461,7 +23501,7 @@ const AUD = (() => {
        inside the place each page already sends.
    ========================================================================== */
 const FX = { seq:0, f:"", at:0, sent:false, blocked:false };
-const AIM = { on:false, id:null, cx:0, cy:0, x:0, z:0, d:0, tgt:null, armed:false, wait:false, wid:null, holdT:0, last:0, P:new Float32Array(3 * 22) };
+const AIM = { on:false, kind:"bal", id:null, cx:0, cy:0, x:0, z:0, d:0, tgt:null, armed:false, coin:false, wait:false, wid:null, holdT:0, last:0, P:new Float32Array(3 * 22) };
 const MOUSE = { x:innerWidth / 2, y:innerHeight * .62 };
 const BALS = Array.from({ length:10 }, () => ({ on:false, t0:0 })), DROPS = Array.from({ length:64 }, () => ({ on:false, t0:0 })),
       RINGS = Array.from({ length:5 }, () => ({ on:false, t0:0 })), WETS = Array.from({ length:8 }, () => ({ on:false, t0:0 }));
@@ -23482,11 +23522,16 @@ function balMeshes(){
          dot:one(A => A.ell([0, 0, 0], .042, .042, .042, [1, 1, 1], 5, 10)),
          ring:one(A => A.torus([0, 0, 0], 1, .045, [.94, .98, 1], 8, 28, 5)),
          mark:one(A => { A.torus([0, 0, 0], 1, .07, [1, 1, 1], 5, 32, 6); A.torus([0, 0, 0], .42, .05, [1, 1, 1], 5, 24, 6); }),
+         markGold:one(A => { A.torus([0, 0, 0], 1, .07, [.99, .78, .28], 5, 32, 6); A.torus([0, 0, 0], .42, .05, [.99, .78, .28], 5, 24, 6); }),
+         coin:one(A => { A.ell([0, 0, 0], .075, .014, .075, [.98, .77, .28], 8, 18); A.ell([0, .012, 0], .044, .004, .044, [1, .9, .56], 8, 12); }),
          markHot:one(A => { A.torus([0, 0, 0], 1, .07, [1, .46, .62], 5, 32, 6); A.torus([0, 0, 0], .42, .05, [1, .46, .62], 5, 24, 6); }),
          wet:one(A => A.ell([0, 0, 0], 1, .004, 1, [.64, .62, .58], 0, 24)) };
   return BM;
 }
 const MX = new Float32Array(16);
+function coinM(c){ const a = c.tilt || 0, ca = Math.cos(a), sa = Math.sin(a), b = c.yaw || 0, cb = Math.cos(b), sb = Math.sin(b);   /* tumbling: about x, then turned */
+  MX[0] = cb; MX[1] = 0; MX[2] = -sb; MX[3] = 0; MX[4] = sb * sa; MX[5] = ca; MX[6] = cb * sa; MX[7] = 0;
+  MX[8] = sb * ca; MX[9] = -sa; MX[10] = cb * ca; MX[11] = 0; MX[12] = c.x; MX[13] = c.y; MX[14] = c.z; MX[15] = 1; return MX; }
 function setM(x, y, z, sx, sy, sz, ry){ const c = Math.cos(ry || 0), s = Math.sin(ry || 0);                       /* written in place: no garbage each frame */
   MX[0] = c * sx; MX[1] = 0; MX[2] = -s * sx; MX[3] = 0; MX[4] = 0; MX[5] = sy; MX[6] = 0; MX[7] = 0;
   MX[8] = s * sz; MX[9] = 0; MX[10] = c * sz; MX[11] = 0; MX[12] = x; MX[13] = y; MX[14] = z; MX[15] = 1; return MX; }
@@ -23499,11 +23544,14 @@ function drawBalloons(p){
   for (const d of DROPS) if (d.on){ const k = Math.min(1, d.life * 3); put(BM.drop, setM(d.x, d.y, d.z, k, k * (1 + Math.min(.9, Math.abs(d.vy) * .1)), k, 0)); }
   for (const r of RINGS) if (r.on && r.s > .02) put(BM.ring, setM(r.x, r.y, r.z, r.s, 1, r.s, 0));
   for (const w of WETS) if (w.on) put(BM.wet, setM(w.x, .007, w.z, w.s, 1, w.s, 0));
+  if (WISH.mesh) put(WISH.mesh, setM(0, 0, 0, 1, 1, 1, 0));                                               /* the coins on the glass */
+  for (const c of FCOINS) if (c.on) put(BM.coin, coinM(c));
+  if (WISH.shown && PASS === "main"){ const q = WISH.shown, k = .2 + Math.sin(performance.now() / 160) * .015; put(BM.markGold, setM(q.x, .012, q.z, k, 1, k, 0)); }
 }
 function drawArc(put){                                                                                     /* the arc you are about to throw */
   const n = AIM.n | 0; for (let i = 0; i < n; i++){ const k = .6 + .4 * (i / n); put(BM.dot, setM(AIM.P[i * 3], AIM.P[i * 3 + 1], AIM.P[i * 3 + 2], k, k, k, 0)); }
   const pu = 1 + Math.sin(performance.now() / 120) * .06, rr = (AIM.tgt ? .55 : .42) * pu;
-  put(AIM.tgt ? BM.markHot : BM.mark, setM(AIM.x, me.y + .03, AIM.z, rr, 1, rr, performance.now() / 900));
+  put(AIM.kind === "coin" ? BM.markGold : AIM.tgt ? BM.markHot : BM.mark, setM(AIM.x, me.y + .03, AIM.z, rr, 1, rr, performance.now() / 900));
 }
 /* where to aim, and what it takes to get there */
 const canThrow = (say) => { if (!inWorld || making) return false;
@@ -23519,7 +23567,8 @@ function aimUpdate(){
   if (d < .7){ dx = Math.sin(me.r); dz = Math.cos(me.r); d = 1; x = me.x + dx * .7; z = me.z + dz * .7; }
   if (d > RANGE){ x = me.x + dx / d * RANGE; z = me.z + dz / d * RANGE; }
   x = clamp(x, -CXW + .3, CXW - .3); z = clamp(z, -CZW + .3, CZW - .3);
-  let tgt = null, bd = .85;                                                                    /* close to someone: it goes to them */
+  if (AIM.kind === "coin"){ x = clamp(x, -PX + .5, PX - .5); z = clamp(z, -PZ + .5, PZ - .5); }           /* a coin only ever goes into the water */
+  let tgt = null, bd = AIM.kind === "coin" ? -1 : .85;                                                                    /* close to someone: it goes to them */
   for (const a of AVATARS()){ if (a === me || Math.abs(a.y - me.y) > .6) continue; const e = Math.hypot(a.x - x, a.z - z); if (e < bd){ bd = e; tgt = a; } }
   if (tgt && Math.hypot(tgt.x - me.x, tgt.z - me.z) <= RANGE + .5){ x = tgt.x; z = tgt.z; } else tgt = null;
   AIM.x = x; AIM.z = z; AIM.tgt = tgt; AIM.d = Math.hypot(x - me.x, z - me.z);
@@ -23535,20 +23584,22 @@ function setArmed(on){ AIM.armed = on; $("b-bal").setAttribute("aria-pressed", S
                        : { en:"Click and hold, drag to aim — let go to throw (or hold F). Click the balloon again to stop", ko:"클릭한 채로 끌어서 조준하고, 놓으면 던져요(F를 눌러도 돼요). 물풍선 버튼을 다시 누르면 꺼져요" })); }
 function pressForAim(e){
   if (!canThrow(false) || ptrs.size !== 1) return;
+  if (AIM.coin){ startAim(e.pointerId, e.clientX, e.clientY, "coin"); return; }               /* a wish waiting to be thrown */
   if (AIM.armed){ startAim(e.pointerId, e.clientX, e.clientY); return; }                      /* armed: straight away */
   AIM.wait = true; AIM.wid = e.pointerId; const h = $("aimHold");                              /* otherwise: hold still a moment */
   h.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`; h.classList.remove("on"); void h.offsetWidth; h.classList.add("on");
   clearTimeout(AIM.holdT); AIM.holdT = setTimeout(() => { const p = ptrs.get(AIM.wid); if (AIM.wait && p && ptrs.size === 1){ stopHold(); startAim(AIM.wid, p.x, p.y); } }, 340);
 }
 function stopHold(){ AIM.wait = false; clearTimeout(AIM.holdT); $("aimHold").classList.remove("on"); }
-function startAim(id, cx, cy){
+function startAim(id, cx, cy, kind){
   if (!canThrow(true)) return; stopHold();
-  AIM.on = true; AIM.id = id; AIM.cx = cx; AIM.cy = cy; balMeshes(); aimUpdate(); document.body.classList.add("aiming"); AUD.stretch();
+  AIM.kind = kind || "bal"; AIM.on = true; AIM.id = id; AIM.cx = cx; AIM.cy = cy; balMeshes(); aimUpdate(); document.body.classList.add("aiming"); AUD.stretch();
   if (navigator.vibrate) try { navigator.vibrate(12); } catch (_){}
 }
-function cancelAim(){ AIM.on = false; AIM.id = null; AIM.tgt = null; stopHold(); document.body.classList.toggle("aiming", AIM.armed); }
+function cancelAim(){ AIM.on = false; AIM.id = null; AIM.tgt = null; stopHold(); document.body.classList.toggle("aiming", AIM.armed || AIM.coin); }
 function releaseAim(){
-  if (!AIM.on) return; aimUpdate(); const now = performance.now(), { x, z } = AIM; cancelAim();
+  if (!AIM.on) return; aimUpdate(); const now = performance.now(), { x, z } = AIM, kind = AIM.kind; cancelAim();
+  if (kind === "coin"){ throwWish(x, z); return; }
   if (now - AIM.last < 450) return; AIM.last = now;
   const fx = Math.sin(me.r), fz = Math.cos(me.r), x0 = me.x + fx * .22, z0 = me.z + fz * .22, k = Math.floor(Math.random() * BAL_COL.length);
   me.thr = now; launch(me, x0, me.y + 1.2, z0, x, z, k);
@@ -23558,7 +23609,9 @@ function releaseAim(){
 function sendFx(str){ FX.seq = (FX.seq + 1) % 100; FX.f = str.replace("#", FX.seq); FX.at = performance.now(); }
 const f2 = (v) => (Math.round(v * 100) / 100).toString();
 function onFx(a, f){
-  const n = f.split(":").slice(1).map(Number); if (f[0] !== "b" || n.length < 5 || n.some(v => !isFinite(v))) return;
+  const n = f.split(":").slice(1).map(Number); if (n.some(v => !isFinite(v))) return;
+  if (f[0] === "c" && n.length >= 4){ a.thr = performance.now(); flipCoin(clamp(n[0], -CXW, CXW), a.y + 1.2, clamp(n[1], -CZW, CZW), clamp(n[2], -PX, PX), clamp(n[3], -PZ, PZ)); return; }
+  if (f[0] !== "b" || n.length < 5) return;
   a.thr = performance.now(); launch(a, clamp(n[0], -CXW, CXW), a.y + 1.2, clamp(n[1], -CZW, CZW), clamp(n[2], -CXW, CXW), clamp(n[3], -CZW, CZW), Math.abs(n[4] | 0) % BAL_COL.length);
 }
 function launch(by, x0, y0, z0, x1, z1, k){
@@ -23601,6 +23654,102 @@ function stepBalloons(dt, now){
 }
 
 /* ==========================================================================
+   9c. WISH COINS — write a wish, throw the coin; it stays on the glass. Walk
+       close (by the edge, or underneath) to read it. A private wish never
+       leaves this browser: the server only knows there is a locked coin.
+   ========================================================================== */
+const WISH = { col:null, started:false, list:[], ids:new Set(), loaded:false, pending:null, mesh:null, dirty:false, near:null, pin:null, pinUntil:0, shown:null, settled:[] };
+const WKEY = "lam-pool-wishes", WISH_MAX = 40, FCOINS = Array.from({ length:5 }, () => ({ on:false, t0:0 }));
+let MINE = {}; try { MINE = JSON.parse(localStorage.getItem(WKEY) || "{}") || {}; } catch (_){ MINE = {}; }
+const saveMine = () => { try { const k = Object.keys(MINE); if (k.length > 80) k.slice(0, k.length - 80).forEach(id => delete MINE[id]); localStorage.setItem(WKEY, JSON.stringify(MINE)); } catch (_){} };
+function setCoinArmed(on){ AIM.coin = on; if (!on) WISH.pending = null; $("b-wish").setAttribute("aria-pressed", String(on)); document.body.classList.toggle("aiming", on || AIM.armed);
+  if (on) hint(T(TOUCH ? { en:"Press where in the pool it should land, drag to adjust, let go to throw", ko:"수영장 안 떨어질 곳을 꾹 눌러 조준하고, 손을 떼면 던져요" }
+                       : { en:"Click and hold where in the pool it should land, drag to adjust, let go to throw", ko:"수영장 안 떨어질 곳을 클릭한 채로 조준하고, 놓으면 던져요" })); }
+async function wishInit(){
+  if (WISH.started) return; WISH.started = true;
+  const d = await findCap("db"); if (!d) return;
+  try { WISH.col = wrapDb(d.c, d.R).collection("poolWishes");
+    WISH.col.orderBy("t", "desc").limit(WISH_MAX).onSnapshot(sn => onWishes(sn.docs.map(x => { let v = {}; try { v = x.data() || {}; } catch (_){} return Object.assign({ id:x.id }, v); })), () => {});
+  } catch (_){ WISH.col = null; }
+}
+const cleanWish = (o) => { const x = Number(o.x), z = Number(o.z); if (!isFinite(x) || !isFinite(z) || !inPool(x, z)) return null;
+  return { id:String(o.id || "").slice(0, 40), x, z, p:!!o.p, w:o.p ? "" : cleanText(o.w, 60), n:cleanText(o.n, 12) || "…", t:Number(o.t) || 0, hide:false }; };
+function onWishes(arr){
+  const now = performance.now(), next = [];
+  for (const o of arr){ const c = cleanWish(o); if (!c || !c.id) continue;
+    const old = WISH.list.find(q => q.id === c.id); if (old){ next.push(old); continue; }
+    if (WISH.loaded){                                                                       /* new since we came: from the sky, unless already seen landing */
+      const fly = FCOINS.find(f => f.on && Math.hypot(f.x1 - c.x, f.z1 - c.z) < .4), seen = WISH.settled.some(s => now - s.at < 12000 && Math.hypot(s.x - c.x, s.z - c.z) < .4);
+      if (fly) c.hide = true; else if (!seen){ c.hide = true; flipCoin(c.x, 1.8, c.z, c.x, c.z); } }
+    next.push(c); }
+  for (const c of WISH.list) if (c.local && !next.some(q => Math.hypot(q.x - c.x, q.z - c.z) < .05)) next.push(c);   /* not on the server: still here for this visit */
+  WISH.list = next.slice(0, WISH_MAX + 6); WISH.loaded = true; WISH.dirty = true; if (WISH.list.length) balMeshes();
+}
+function throwWish(x, z){
+  const pend = WISH.pending; if (!pend){ setCoinArmed(false); return; } balMeshes();
+  if (Math.hypot(x - me.x, z - me.z) > 10.5){ hint(T({ en:"Go a little closer to the pool and throw again", ko:"수영장에 조금 더 가까이 가서 다시 던져요" })); return; }   /* still armed, the wish kept */
+  setCoinArmed(false);
+  const fx = Math.sin(me.r), fz = Math.cos(me.r), x0 = me.x + fx * .22, z0 = me.z + fz * .22;
+  me.thr = performance.now(); flipCoin(x0, me.y + 1.2, z0, x, z).mine = true; sendFx(`c#:${f2(x0)}:${f2(z0)}:${f2(x)}:${f2(z)}`);
+  const id = "w" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), data = { x:+f2(x), z:+f2(z), w:pend.p ? "" : pend.w, p:pend.p, n:me.name || "…", t:Date.now() };
+  MINE[id] = pend.w; saveMine(); $("wish-i").value = ""; $("wish-c").textContent = "0/60";
+  const local = () => { if (!WISH.list.some(q => q.id === id)) { WISH.list.unshift(Object.assign({ id, local:true, hide:true }, data, { w:pend.p ? "" : pend.w })); WISH.dirty = true; } };
+  if (WISH.col){ WISH.col.doc(id).set(data).catch(() => { local(); hint(T({ en:"The wish stays on this screen only — publish firestore.rules (poolWishes) to keep it", ko:"이 소원은 내 화면에만 남아요 — firestore.rules(poolWishes 규칙)를 게시하면 저장돼요" }), true); }); }
+  else local();
+}
+/* a coin in the air, then in the water, then down onto the glass */
+function flipCoin(x0, y0, z0, x1, z1){
+  if (!balMeshes()) return {}; const c = slot(FCOINS), d = Math.hypot(x1 - x0, z1 - z0);
+  Object.assign(c, { on:true, x0, y0, z0, x1, z1, x:x0, y:y0, z:z0, t0:performance.now(), T:d < .1 ? 520 : 480 + d * 55, h:d < .1 ? 0 : .5 + d * .1, sunk:false, tilt:0 });
+  if (d > .1) AUD.toss(hear(x0, z0) * .7); c.mine = false; return c;
+}
+function stepCoins(now){
+  for (const c of FCOINS) if (c.on){ const u = (now - c.t0) / c.T;
+    if (u < 1){ c.x = lerp(c.x0, c.x1, u); c.z = lerp(c.z0, c.z1, u); c.y = lerp(c.y0, .02, u * u * (c.h ? 1 : 1)) + 4 * c.h * u * (1 - u); c.tilt = u * 16; c.yaw = u * 3; }
+    else if (!c.sunk){ c.sunk = true; c.t1 = now; splash(c.x1, 0, c.z1, 5, true); const k = hear(c.x1, c.z1); AUD.plop(k); AUD.coin(k * .8); }
+    else { const v = (now - c.t1) / 1500;
+      if (v >= 1){ c.on = false; WISH.settled.push({ x:c.x1, z:c.z1, at:now }); if (WISH.settled.length > 8) WISH.settled.shift();
+        for (const q of WISH.list) if (q.hide && Math.hypot(q.x - c.x1, q.z - c.z1) < .4){ q.hide = false; WISH.dirty = true; }
+        if (c.mine){ const q = WISH.list.find(q => MINE[q.id] !== undefined && Math.hypot(q.x - c.x1, q.z - c.z1) < .4); if (q){ WISH.pin = q; WISH.pinUntil = now + 5000; WISH.shown = null; } }   /* yours, landed: there it is */
+        continue; }
+      c.x = c.x1 + Math.sin(v * 9) * .04 * (1 - v); c.z = c.z1; c.y = lerp(-.005, -.07, v); c.tilt = Math.sin(v * 7) * .8 * (1 - v); } }
+  for (const q of WISH.list) if (q.hide && !FCOINS.some(f => f.on && Math.hypot(f.x1 - q.x, f.z1 - q.z) < .4)){ q.hide = false; WISH.dirty = true; }   /* nothing on its way: show it */
+  if (WISH.dirty && BM){ WISH.dirty = false; if (WISH.mesh) gl.deleteBuffer(WISH.mesh.buf); WISH.mesh = null;   /* all the coins on the glass: one mesh, made again only when they change */
+    const L = WISH.list.filter(q => !q.hide); if (L.length){ const A = maker();
+      L.forEach((q, i) => { const y = -.07 + (i % 4) * .0012, g = MINE[q.id] !== undefined ? [1, .82, .34] : q.p ? [.86, .8, .62] : [.98, .77, .28];
+        A.ell([q.x, y, q.z], .075, .014, .075, g, 8, 16); A.ell([q.x, y + .012, q.z], .044, .004, .044, [1, .9, .56], 8, 10); });
+      WISH.mesh = upload(A.v); } }
+  readWish(now);
+}
+/* close enough to read: by the edge (2.6 m), or right underneath (1.5 m) */
+function readWish(now){
+  let best = null, bd = 1e9; const above = me.y > -.5, below = me.y < -1.4, reach = above ? 2.6 : below ? 1.5 : 0;
+  if (inWorld && !making && reach) for (const q of WISH.list){ if (q.hide) continue; const d = Math.hypot(q.x - me.x, q.z - me.z); if (d < reach && d < bd){ bd = d; best = q; } }
+  if (WISH.pin && (now > WISH.pinUntil || Math.hypot(WISH.pin.x - me.x, WISH.pin.z - me.z) > 14 || !WISH.list.includes(WISH.pin))) WISH.pin = null;
+  const q = WISH.pin || best, el = $("wishCard");
+  if (!q){ if (WISH.shown){ el.classList.remove("on"); WISH.shown = null; } return; }
+  const sp = project([q.x, -.06, q.z]); if (!sp){ el.classList.remove("on"); WISH.shown = null; return; }
+  if (WISH.shown !== q){ WISH.shown = q; const mine = MINE[q.id], wq = el.querySelector(".wq"), wm = el.querySelector(".wm");
+    if (q.p && mine === undefined){ wq.textContent = T({ en:"🔒 A private wish", ko:"🔒 비공개 소원이에요" }); wq.classList.add("lock"); }
+    else { wq.textContent = q.p ? mine : q.w; wq.classList.remove("lock"); }
+    wm.textContent = ""; if (mine !== undefined){ const b = document.createElement("b"); b.textContent = T(q.p ? { en:"Mine · only me", ko:"내 소원 · 나만 보기" } : { en:"Mine", ko:"내 소원" }); wm.appendChild(b); }
+    const s2 = document.createElement("span"); s2.textContent = `${mine !== undefined ? "" : q.n + " · "}${ago(q.t)}`; wm.appendChild(s2);
+    el.classList.add("on"); AUD.coin(.35); }
+  const w = el.offsetWidth || 220, h = el.offsetHeight || 64, x = clamp(sp[0], w / 2 + 10, innerWidth - w / 2 - 10), y = clamp(sp[1] - 18, h + 64, innerHeight - 90);
+  el.classList.toggle("far", Math.abs(x - sp[0]) > 4 || Math.abs(y - (sp[1] - 18)) > 4);                  /* off the screen (overhead, from below): kept in view, no pointer */
+  el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, -100%)`;
+}
+const ago = (t) => { const s = Math.max(0, (Date.now() - t) / 1000);
+  return s < 60 ? T({ en:"just now", ko:"방금" }) : s < 3600 ? T({ en:`${Math.floor(s / 60)} min ago`, ko:`${Math.floor(s / 60)}분 전` })
+       : s < 86400 ? T({ en:`${Math.floor(s / 3600)} h ago`, ko:`${Math.floor(s / 3600)}시간 전` }) : T({ en:`${Math.floor(s / 86400)} d ago`, ko:`${Math.floor(s / 86400)}일 전` }); };
+function wishAt(cx, cy){                                                                     /* a tap right on a coin within 12 m */
+  let best = null, bd = 30;
+  for (const q of WISH.list){ if (q.hide || Math.hypot(q.x - me.x, q.z - me.z) > 12) continue; const sp = project([q.x, -.06, q.z]); if (!sp) continue;
+    const d = Math.hypot(sp[0] - cx, sp[1] - cy); if (d < bd){ bd = d; best = q; } }
+  if (!best) return false; WISH.pin = best; WISH.pinUntil = performance.now() + 7000; WISH.shown = null; return true;
+}
+
+/* ==========================================================================
    10. INPUT
    ========================================================================== */
 const ptrs = new Map(); let pinch0 = 0, d0 = 0;
@@ -23612,7 +23761,7 @@ cv.addEventListener("pointerdown", e => { AUD.unlock(); closePops(); document.bo
 cv.addEventListener("pointermove", e => { const p = ptrs.get(e.pointerId); if (!p) return;
   if (AIM.on && e.pointerId === AIM.id){ AIM.cx = e.clientX; AIM.cy = e.clientY; p.x = e.clientX; p.y = e.clientY; return; }
   if (AIM.wait && Math.hypot(e.clientX - p.ox, e.clientY - p.oy) > 9) stopHold();
-  if (AIM.armed && ptrs.size === 1) return;
+  if ((AIM.armed || AIM.coin) && ptrs.size === 1) return;
   if (ptrs.size === 2){ const o = [...ptrs.entries()].find(([id]) => id !== e.pointerId)[1]; const d = Math.hypot(e.clientX - o.x, e.clientY - o.y); if (pinch0) view.td = clamp(d0 * pinch0 / d, 2, 14); p.x = e.clientX; p.y = e.clientY; return; }
   const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
   if (making){ me.r -= dx * .012; return; }
@@ -23627,7 +23776,8 @@ cv.addEventListener("wheel", e => { e.preventDefault(); if (!making) view.td = c
 window.addEventListener("keydown", e => {
   if (e.target === $("say-i")){ if (e.key === "Escape"){ e.target.blur(); closePops(); } return; }
   if (e.target === $("nm")) return;
-  if (e.key === "Escape"){ if (AIM.on) cancelAim(); closePops(); document.body.classList.remove("about"); return; }
+  if (e.target === $("wish-i")){ if (e.key === "Escape"){ e.target.blur(); closePops(); } else if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); $("wish-go").click(); } return; }
+  if (e.key === "Escape"){ if (AIM.on) cancelAim(); else if (AIM.coin) setCoinArmed(false); closePops(); document.body.classList.remove("about"); return; }
   keys[e.code] = true;
   if (e.code === "Space"){ e.preventDefault(); jump(); }
   if (e.code === "KeyF" && !e.repeat && !AIM.on && canThrow(true)) startAim("key", MOUSE.x, MOUSE.y);
@@ -23637,8 +23787,13 @@ window.addEventListener("keydown", e => {
 });
 window.addEventListener("keyup", e => { keys[e.code] = false; if (e.code === "KeyF" && AIM.on && AIM.id === "key") releaseAim(); });
 window.addEventListener("pointermove", e => { MOUSE.x = e.clientX; MOUSE.y = e.clientY; if (AIM.on && AIM.id === "key"){ AIM.cx = e.clientX; AIM.cy = e.clientY; } }, { passive:true });
-cv.addEventListener("contextmenu", e => { if (AIM.on || AIM.armed) e.preventDefault(); });
-$("b-bal").onclick = () => { AUD.click(); closePops(); if (!AIM.armed && !canThrow(true)) return; setArmed(!AIM.armed); };
+cv.addEventListener("contextmenu", e => { if (AIM.on || AIM.armed || AIM.coin) e.preventDefault(); });
+$("b-bal").onclick = () => { AUD.click(); closePops(); if (AIM.coin) setCoinArmed(false); if (!AIM.armed && !canThrow(true)) return; setArmed(!AIM.armed); };
+$("b-wish").onclick = () => { AUD.click(); if (AIM.coin){ setCoinArmed(false); return; } if (!canThrow(true)) return; if (openPop("pop-wish")){ wishInit(); setTimeout(() => $("wish-i").focus(), 40); } };
+$("wish-i").addEventListener("input", () => { $("wish-c").textContent = `${$("wish-i").value.length}/60`; });
+$("wish-go").onclick = () => { const w = cleanText($("wish-i").value, 60);
+  if (!w){ $("wish-i").focus(); $("wish-i").classList.add("shake"); setTimeout(() => $("wish-i").classList.remove("shake"), 400); return; }
+  WISH.pending = { w, p:$("wish-p").checked }; closePops(); if (AIM.armed) setArmed(false); setCoinArmed(true); };
 window.addEventListener("blur", () => { for (const k in keys) keys[k] = false; if (AIM.on) cancelAim(); });
 /* the joystick */
 const jEl = $("joy"), knob = jEl.querySelector("i");
@@ -23748,7 +23903,7 @@ let lastT = performance.now(), pruneAt = 0, zoneHint = { below:false, up:false }
 function frame(now){
   tuneQuality(now - lastT);
   const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; const t = now / 1000;
-  moveMe(dt); stepPeers(dt); stepNpcs(dt); stepBalloons(dt, now); placeCamera(dt);
+  moveMe(dt); stepPeers(dt); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); placeCamera(dt);
   if (me.emote && now - me.et0 > 4200) me.emote = "";
   render(t, now); updateTags(now); updateSeats(); maybeSend();
   { const el = $("goal"), p = goal && inWorld && !making ? project([goal.x, goal.y + .02, goal.z]) : null;           /* where you are walking to */
@@ -23776,6 +23931,7 @@ function about(){
   [{ en:"Make a character and pick one of two servers — up to twenty people share each", ko:"캐릭터를 꾸미고 두 서버 중 하나를 골라요 — 서버마다 20명까지 함께해요" },
    { en:"Click the ground to walk there (shift-click to run) — or WASD, the arrows, the joystick on a phone; drag to look round, scroll to zoom", ko:"바닥을 클릭하면 그곳까지 걸어가요(Shift+클릭은 달리기) — WASD·방향키·휴대폰 조이스틱도 돼요. 드래그로 둘러보고, 휠로 거리를 바꿔요" },
    { en:"Take the stairs by the pool down: through the water the people above are blurred, and the sound turns to water", ko:"수영장 옆 계단으로 내려가면 물결 너머로 위의 사람들이 흐릿하게 보이고, 물속 소리가 들려요" },
+   { en:"Wish coins: write a wish, throw the coin into the pool. Walk close to a coin — by the edge, or underneath — to read the wish on it", ko:"소원 동전: 소원을 적어 수영장에 던져요. 물가나 아래층에서 동전 가까이 가면 적힌 소원을 읽을 수 있어요" },
    { en:"Water balloons: press and hold anywhere, drag to where it should land — the arc shows the way — and let go. On a computer you can also hold F and point", ko:"물풍선: 화면을 꾹 누른 채 떨어질 곳으로 끌면 포물선이 보여요. 손을 떼면 던져요. 컴퓨터에서는 F를 누른 채 마우스로 조준해도 돼요" },
    { en:"Talk (Enter), wave, bow, jump, dance or sit — near a bench every free seat shows a ring: click it, or press E, to sit", ko:"말하기(Enter), 손 흔들기·인사·점프·춤·앉기로 만나요 — 벤치 가까이 가면 빈자리에 동그라미가 떠요. 누르거나 E 키로 앉아요" }]
     .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); ol.appendChild(li); });
@@ -23784,6 +23940,13 @@ function about(){
   $("b-say").querySelector(".lb").textContent = T({ en:"Say", ko:"말하기" }); $("b-emo").querySelector(".lb").textContent = T({ en:"Moves", ko:"표현" });
   $("b-me").querySelector(".lb").textContent = T({ en:"Character", ko:"캐릭터" });
   $("b-bal").querySelector(".lb").textContent = T({ en:"Balloon", ko:"물풍선" });
+  $("b-wish").querySelector(".lb").textContent = T({ en:"Wish coin", ko:"소원 동전" });
+  $("wish-t").textContent = T({ en:"Write a wish, then throw the coin into the pool", ko:"소원을 적고, 동전을 수영장에 던져요" });
+  $("wish-i").placeholder = T({ en:"My wish is…", ko:"나의 소원은…" });
+  $("wish-pl").textContent = T({ en:"Only me (private)", ko:"나만 보기 (비공개)" });
+  $("wish-go").textContent = T({ en:"Throw the coin", ko:"동전 던지기" });
+  $("wish-n").textContent = T({ en:"Coins stay on the glass. Walk close — by the edge, or underneath — to read what others wished. A private wish shows only to you; others see a locked coin.",
+                                ko:"동전은 유리 바닥에 남아요. 물가나 아래층에서 가까이 가면 다른 사람의 소원을 읽을 수 있어요. 비공개 소원은 나에게만 보이고, 다른 사람에게는 잠긴 동전으로 보여요." });
   $("say-i").placeholder = T({ en:"Say something…", ko:"말하기…" }); $("say-b").setAttribute("aria-label", T({ en:"Send", ko:"보내기" }));
   $("snd").title = T({ en:"Sound", ko:"소리" }); $("info").title = T({ en:"About the work", ko:"작품 설명" }); $("jump").setAttribute("aria-label", T({ en:"Jump", ko:"점프" }));
 }
