@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261113122421";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261113135335";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -23770,14 +23770,16 @@ const AUD = (() => {
   /* waves made the way the sea makes them: soft brown noise that swells, brightens as it breaks,
      fizzes with foam and draws back; small laps against the pool's edge; drops; bubbles under the water.
      Everything passes a gentle high-pass, so nothing rumbles. */
-  let ctx = null, master = null, white = null, brown = null, on = true, borrowed = false, amb = null, below = 0;
+  let ctx = null, master = null, fx = null, white = null, brown = null, on = true, borrowed = false, amb = null, below = 0;
   let nextWave = 0, nextLap = 0, nextDrop = 0, nextBub = 0, nextCri = 0, nextCic = 0, nextBird = 0;
   function ensure(){ if (ctx) return ctx; const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
     try { const host = window.parent !== window && window.parent.__lamAudio && window.parent.__lamAudio(); if (host && host.state === "running"){ ctx = host; borrowed = true; } } catch (_){}
     if (!ctx){ try { ctx = new AC(); } catch (_){ return null; } }
     master = ctx.createGain(); master.gain.value = on ? .9 : 0;
     const hp = ctx.createBiquadFilter(), hp2 = ctx.createBiquadFilter(); hp.type = hp2.type = "highpass"; hp.frequency.value = hp2.frequency.value = 240; hp.Q.value = hp2.Q.value = .6;
-    master.connect(hp); hp.connect(hp2); hp2.connect(ctx.destination);                                   /* steep: nothing low gets through */
+    const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -10; lim.knee.value = 6; lim.ratio.value = 8; lim.attack.value = .003; lim.release.value = .2;
+    master.connect(hp); hp.connect(hp2); hp2.connect(lim); lim.connect(ctx.destination);                  /* steep: nothing low gets through; a soft limiter keeps it clean */
+    fx = ctx.createGain(); fx.gain.value = 3.6; fx.connect(master);                                       /* what happens (a throw, a drink, a bounce) stands out over the water */
     const n = ctx.sampleRate * 4;
     white = ctx.createBuffer(1, n, ctx.sampleRate); brown = ctx.createBuffer(1, n, ctx.sampleRate);
     const w = white.getChannelData(0), b = brown.getChannelData(0); let last = 0;
@@ -23788,16 +23790,16 @@ const AUD = (() => {
   const src = (buf, loop) => { const s = ctx.createBufferSource(); s.buffer = buf; s.loop = !!loop; return s; };
   const filt = (type, f, q) => { const o = ctx.createBiquadFilter(); o.type = type; o.frequency.value = f; o.Q.value = q || .7; return o; };
   function tone(tt, f, dur, g, f2, type, out){ const o = ctx.createOscillator(); o.type = type || "sine"; o.frequency.setValueAtTime(f, tt); if (f2) o.frequency.exponentialRampToValueAtTime(f2, tt + dur);
-    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(g, tt + .006); a.gain.exponentialRampToValueAtTime(.0001, tt + dur); o.connect(a); a.connect(out || master); o.start(tt); o.stop(tt + dur + .02); }
+    const a = ctx.createGain(); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(g, tt + .006); a.gain.exponentialRampToValueAtTime(.0001, tt + dur); o.connect(a); a.connect(out || fx); o.start(tt); o.stop(tt + dur + .02); }
   function burst(tt, dur, f, q, g, out){ const s = src(white); const fl = filt("bandpass", f, q); const a = ctx.createGain();
     a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(g, tt + Math.min(.012, dur * .25)); a.gain.exponentialRampToValueAtTime(.0001, tt + dur);
-    s.connect(fl); fl.connect(a); a.connect(out || master); s.start(tt, Math.random() * 3); s.stop(tt + dur + .03); }
+    s.connect(fl); fl.connect(a); a.connect(out || fx); s.start(tt, Math.random() * 3); s.stop(tt + dur + .03); }
   /* one wave: it gathers, breaks bright, and draws back over the sand */
   function wave(tt, k){
     const len = 6 + Math.random() * 3, peak = 2 + Math.random() * .9;
     const s = src(brown, true), lp = filt("lowpass", 620, .5), a = ctx.createGain();
     lp.frequency.setValueAtTime(620, tt); lp.frequency.exponentialRampToValueAtTime(2300 + Math.random() * 700, tt + peak); lp.frequency.exponentialRampToValueAtTime(650, tt + len);
-    a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(.17 * k, tt + peak); a.gain.exponentialRampToValueAtTime(.0001, tt + len);
+    a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(.1 * k, tt + peak); a.gain.exponentialRampToValueAtTime(.0001, tt + len);
     s.connect(lp); lp.connect(a); a.connect(amb.sea); s.start(tt, Math.random() * 3); s.stop(tt + len + .1);
     const f = src(white, true), bp = filt("bandpass", 4200, .6), fa = ctx.createGain();                  /* the foam */
     bp.frequency.setValueAtTime(5200, tt + peak); bp.frequency.exponentialRampToValueAtTime(2600, tt + len);
@@ -23823,7 +23825,7 @@ const AUD = (() => {
     get on(){ return on; }, set on(v){ on = v; if (master) master.gain.setTargetAtTime(v ? .9 : 0, ctx.currentTime, .05); },
     stop(){ if (!ctx) return; try { master.disconnect(); } catch (_){} if (!borrowed) try { ctx.close(); } catch (_){} },
     update(t, depth){ if (!amb || !ok()) return; below = lerp(below, depth, .04); const tt = ctx.currentTime, up = 1 - below;
-      amb.up.gain.setTargetAtTime(up * .35, tt, .3);                                       /* up by the pool the water stays in the background, so everything else is heard */ amb.dn.gain.setTargetAtTime(below, tt, .3);
+      amb.up.gain.setTargetAtTime(up * .13, tt, .3);                                       /* up by the pool the water stays in the background, so everything else is heard */ amb.dn.gain.setTargetAtTime(below, tt, .3);
       amb.dg.gain.setTargetAtTime(.085 * (.75 + .25 * Math.sin(t * .31)), tt, .4);
       if (t > nextWave){ nextWave = t + 5.5 + Math.random() * 3.5; wave(tt + .05, .7 + Math.random() * .5); if (Math.random() < .35) wave(tt + 1.4 + Math.random(), .45); }
       if (t > nextLap && up > .3){ nextLap = t + 1.1 + Math.random() * 2.2; lap(tt); if (Math.random() < .25) lap(tt + .12 + Math.random() * .15); }
@@ -23841,7 +23843,7 @@ const AUD = (() => {
       else if (kind === "energy"){ burst(tt, .035, 3400, 3, .012); tone(tt, 1300, .05, .008, 2300, "triangle"); }  /* quick: zip */
       else if (kind === "slush" || kind === "snow"){ burst(tt, .04, 1800, 3, .014); burst(tt + .025, .035, 3200, 3, .01); }   /* crunch */
       else burst(tt, .045, low ? 1700 : 2600, 4, .012); },
-    click(){ if (!ok()) return; tone(ctx.currentTime, 1760, .05, .028, null, "triangle"); },
+    click(){ if (!ok()) return; tone(ctx.currentTime, 1760, .05, .012, null, "triangle"); },                  /* buttons stay a quiet tick */
     chat(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 1568, .08, .03); tone(tt + .07, 2093, .1, .025); },
     joined(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 1175, .12, .022); tone(tt + .1, 1568, .16, .02); },
     emote(e){ if (!ok()) return; const tt = ctx.currentTime;
