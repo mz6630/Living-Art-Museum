@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261112132138";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261113085026";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -21809,6 +21809,7 @@ body.embedded #hint{--hint-y:116px;}
 body.popped #throwb, body.popped #throwx{display:none !important;}
 
 #b-bal[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink);}
+#b-view[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink);}
 body.aimon canvas{cursor:crosshair;}
 #hint.off{opacity:0;}
 body.making #hint{display:none;}
@@ -21900,9 +21901,26 @@ body.in:not(.making) #bar{display:flex;}
 #wish-go{width:100%;justify-content:center;}
 #pop-wish .note{font-size:11px;color:var(--ink-faint);margin:8px 2px 0;line-height:1.5;}
 #pop-wish .note.warn{color:#c2410c;font-weight:600;}
-#pop-wish .rk{margin-top:12px;padding-top:10px;border-top:1px solid var(--glass-line);}
-#pop-wish .rkt{margin:0 2px 6px;font:600 12px/1.3 inherit;font-family:inherit;color:var(--ink);}
-#rank-l{list-style:none;margin:0;padding:0;max-height:172px;overflow:auto;}
+/* the coin toss ranking: top left, under the logo */
+#rank{position:fixed;left:20px;top:calc(62px + env(safe-area-inset-top,0px));z-index:8;width:228px;border-radius:16px;padding:4px 6px 6px;display:none;}
+body.embedded #rank{top:calc(66px + env(safe-area-inset-top,0px));}
+body.in:not(.making) #rank{display:block;}
+#rank-h{display:flex;align-items:center;gap:6px;width:100%;padding:7px 6px 6px;border:0;background:none;font:600 12px/1.2 inherit;font-family:inherit;color:var(--ink);cursor:pointer;text-align:left;}
+#rank-h .tr{font-size:13px;}
+#rank-h #rank-t{flex:none;}
+#rank-h #rank-s{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;color:var(--ink-dim);display:none;}
+#rank-h svg{width:14px;height:14px;fill:none;stroke:var(--ink-dim);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .25s;margin-left:auto;flex:none;}
+#rank.min #rank-h svg{transform:rotate(-90deg);}
+#rank.min #rank-s{display:block;}
+#rank.min #rank-l, #rank.min #rank-me{display:none;}
+#rank:not(.more) #rank-l li:nth-child(n+6){display:none;}
+#rank.flash{animation:rkFlash 1.4s ease;}
+@keyframes rkFlash{20%{box-shadow:0 0 0 3px rgba(240,190,60,.75), 0 10px 30px -10px rgba(0,0,0,.35);}}
+#rank-me{margin:5px 6px 2px;font-size:11px;color:var(--ink-dim);display:flex;justify-content:space-between;gap:8px;}
+#rank-me button{border:0;background:none;padding:0;font:600 11px/1 inherit;font-family:inherit;color:var(--accent);cursor:pointer;}
+@media (max-width:760px){ #rank{left:10px;top:calc(100px + env(safe-area-inset-top,0px));width:214px;} body.embedded #rank{top:calc(108px + env(safe-area-inset-top,0px));} }
+@media (max-width:440px){ #bar{gap:1px;padding:5px;} #bar .chip{padding:8px 8px;} #bar .sep{margin:0 1px;} }
+#rank-l{list-style:none;margin:0;padding:0;max-height:300px;overflow:auto;}
 #rank-l li{display:grid;grid-template-columns:22px 1fr auto auto;gap:8px;align-items:center;padding:5px 6px;border-radius:9px;font-size:12px;color:var(--ink);}
 #rank-l li:nth-child(odd){background:rgba(255,255,255,.4);}
 #rank-l li.me{background:rgba(240,190,60,.3);}
@@ -21912,7 +21930,6 @@ body.in:not(.making) #bar{display:flex;}
 #rank-l .sk{font-size:10.5px;color:#2f8fb0;}
 #rank-l .sc{font:600 12px/1 "JetBrains Mono",monospace;}
 #rank-l .empty{grid-template-columns:1fr;color:var(--ink-faint);font-size:11.5px;background:none;}
-#pop-wish .rkme{margin:6px 4px 0;font-size:11px;color:var(--ink-dim);}
 /* the throw, scored */
 #coinScore{position:fixed;left:50%;top:calc(var(--hint-y,64px) + 46px);transform:translate(-50%,-8px) scale(.96);z-index:11;padding:12px 18px 11px;border-radius:18px;text-align:center;
   opacity:0;pointer-events:none;transition:opacity .3s, transform .35s cubic-bezier(.3,1.4,.5,1);background:rgba(255,253,247,.95);min-width:200px;}
@@ -22010,6 +22027,8 @@ body.move-click #joy{display:none !important;}
   <div class="title"><h1 id="t-h"></h1><p id="t-p"></p></div>
 </header>
 
+<aside id="rank" class="glass" aria-live="polite"><button type="button" id="rank-h"><span class="tr">🏆</span><span id="rank-t"></span><span id="rank-s"></span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+  <ol id="rank-l"></ol><p id="rank-me"></p></aside>
 <div id="count" class="glass"><i></i><span id="c-t"></span></div>
 <div id="goal" aria-hidden="true"></div>
 <div id="hint" class="glass off"></div>
@@ -22038,7 +22057,6 @@ body.move-click #joy{display:none !important;}
   <div class="wr"><label class="wsw"><input type="checkbox" id="wish-p"><i></i><span id="wish-pl"></span></label><span class="wc" id="wish-c">0/60</span></div>
   <button type="button" class="chip hot" id="wish-go"></button>
   <p class="note" id="wish-n"></p>
-  <div class="rk"><p class="rkt" id="rank-t"></p><ol id="rank-l"></ol><p class="rkme" id="rank-me"></p></div>
 </div>
 <div id="coinScore" class="glass" aria-live="polite"><p class="cs1"></p><p class="cs2"></p><p class="cs3"></p></div>
 <div id="wishCard" class="glass" aria-live="polite"><p class="wq"></p><p class="wm"></p></div>
@@ -22057,6 +22075,7 @@ body.move-click #joy{display:none !important;}
   <button class="chip" id="b-emo"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 007 0M9 9.5v.5M15 9.5v.5"/></svg><span class="lb"></span></button>
   <button class="chip" id="b-bal" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3a6 6 0 016 6.2c0 3.9-3.2 7.3-6 7.3s-6-3.4-6-7.3A6 6 0 0112 3z"/><path d="M11 16.5h2l-1 1.6zM12 18.1c-.6 1.2.8 1.8.2 2.9"/><path d="M9.3 7.6a3 3 0 012-1.9"/></svg><span class="lb"></span></button>
   <button class="chip" id="b-wish" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.6"/><path d="M12 9.6l.8 1.6 1.7.2-1.2 1.2.3 1.7-1.6-.8-1.6.8.3-1.7-1.2-1.2 1.7-.2z"/></svg><span class="lb"></span></button>
+  <button class="chip" id="b-view" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="lb"></span></button>
   <span class="sep"></span>
   <button class="chip" id="b-me"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-7 8-7s7 2.5 8 7"/></svg><span class="lb"></span></button>
   <button class="chip" id="b-srv"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="6" rx="2"/><rect x="4" y="14" width="16" height="6" rx="2"/><path d="M8 7h.01M8 17h.01"/></svg><span class="lb"></span></button>
@@ -22998,6 +23017,15 @@ function partMats(a, now){
    ========================================================================== */
 const SPAWN = { x:0, z:PZ + 2.6, r:Math.PI };
 const view = { yaw:Math.PI, pitch:.5, d:7.2, ty:Math.PI, tp:.5, td:7.2 };
+/* the view: third person (behind you) or first person (through your own eyes) */
+let VIEW1 = false; try { VIEW1 = localStorage.getItem("lam-pool-view") === "1"; } catch (_){}
+function setView(first, say){
+  VIEW1 = !!first; try { localStorage.setItem("lam-pool-view", VIEW1 ? "1" : "3"); } catch (_){}
+  view.tp = VIEW1 ? .08 : .5; if (!VIEW1 && view.td < 3) view.td = 5.5;
+  const b = document.getElementById("b-view"); if (b){ b.setAttribute("aria-pressed", String(VIEW1)); b.querySelector(".lb").textContent = T(VIEW1 ? { en:"1st person", ko:"1인칭" } : { en:"3rd person", ko:"3인칭" }); }
+  if (say) hint(T(VIEW1 ? { en:"First person — through your own eyes. Drag to look round · V or scroll out to step back", ko:"1인칭 — 내 눈으로 봐요. 드래그로 둘러보기 · V나 휠을 내리면 3인칭" }
+                         : { en:"Third person — the camera follows behind you", ko:"3인칭 — 카메라가 뒤에서 따라와요" }));
+}
 let camPos = [0, 2, 9], camTgt = [0, 1, 5], making = true, inWorld = false, VPm = null;
 const keys = {};
 const joy = { on:false, x:0, y:0, id:null };
@@ -23134,6 +23162,10 @@ function placeCamera(dt){
     return;
   }
   view.yaw += wrap(view.ty - view.yaw) * Math.min(1, dt * 14); view.pitch = lerp(view.pitch, view.tp, Math.min(1, dt * 14)); view.d = lerp(view.d, view.td, Math.min(1, dt * 8));
+  if (VIEW1){                                                                                /* first person: the eyes, looking where you look */
+    if (!me.sit && !(BALL.holder === me && AIM.on && HOVER)) me.r = view.yaw;
+    const eye = [me.x + Math.sin(me.r) * .1, me.y + (me.sit ? (me.bench ? 1.1 : .8) : 1.24) + (me.jy || 0), me.z + Math.cos(me.r) * .1], p = clamp(view.pitch, -1.25, 1.3);
+    camPos = eye; camTgt = add(eye, [Math.sin(view.yaw) * Math.cos(p), -Math.sin(p), Math.cos(view.yaw) * Math.cos(p)]); camD = 0; return; }
   const head = [me.x, me.y + (me.sit ? (me.bench ? 1.2 : .85) : 1.15) + me.jy * .5, me.z];
   /* the camera sits behind you (never below your head); tilting further up only turns its gaze */
   const pp = Math.max(view.pitch, .06);
@@ -23322,7 +23354,7 @@ async function enter(srv){
     lastSig = ""; lastSend = 0;
   }
   $("go").disabled = false;
-  if (!inWorld){ me.x = SPAWN.x; me.z = SPAWN.z; me.y = 0; me.r = SPAWN.r; view.yaw = view.ty = Math.PI; view.tp = .5; inWorld = true; setTimeout(() => hint(T(NET.err ? NET_ERR : TOUCH ? HINTS.touch : HINTS.keys)), 900); }
+  if (!inWorld){ me.x = SPAWN.x; me.z = SPAWN.z; me.y = 0; me.r = SPAWN.r; view.yaw = view.ty = Math.PI; view.tp = VIEW1 ? .08 : .5; inWorld = true; setTimeout(() => hint(T(NET.err ? NET_ERR : TOUCH ? HINTS.touch : HINTS.keys)), 900); }
   making = false; closePops(); document.body.classList.remove("making"); document.body.classList.add("in");
   saveMe(); AUD.unlock(); AUD.start(); renderPill(); maybeSend(); wishInit();
 }
@@ -23652,7 +23684,7 @@ function drawBalloons(p){
   if (BM.ball && !(PASS === "rf" && camPos[1] > 0 && BALL.y > 0)) put(BM.ball, ballM());                  /* the beach ball */
   for (const b of BALS) if (b.on) put(BM.bal[b.k], setM(b.x, b.y, b.z, 1.4 * (1 - b.sq * .5), 1.4 * (1 + b.sq), 1.4 * (1 - b.sq * .5), b.spin));
   if (AIM.on && (PASS === "main" || nr)) drawArc(put);                                                     /* the arc: drawn, and inked */
-  if (AIM.on && AIM.kind === "bal" && !tooClose()) put(BM.bal[AIM.k], setM(AIM.hx, AIM.hy, AIM.hz, 1.3, 1.3, 1.3, 0));   /* the next balloon, in hand */
+  if (AIM.on && AIM.kind === "bal" && (!tooClose() || VIEW1)) put(BM.bal[AIM.k], setM(AIM.hx, AIM.hy, AIM.hz, 1.3, 1.3, 1.3, 0));   /* the next balloon, in hand */
   if (sh || nr || PASS === "mirror") return;                                                              /* the small things: no shadow, no ink */
   for (const d of DROPS) if (d.on){ const k = Math.min(1, d.life * 3); put(BM.drop, setM(d.x, d.y, d.z, k, k * (1 + Math.min(.9, Math.abs(d.vy) * .1)), k, 0)); }
   for (const r of RINGS) if (r.on && r.s > .02) put(BM.ring, setM(r.x, r.y, r.z, r.s, 1, r.s, 0));
@@ -23665,6 +23697,7 @@ function drawBalloons(p){
     const k = .3 + Math.sin(performance.now() / 160) * .02; put(BM.mark, setM(BALL.x, .02, BALL.z, k, 1, k, performance.now() / 900)); }
   for (const c of FCOINS) if (c.on) put(BM.coin, coinM(c));
   if (WISH.shown && PASS === "main"){ const q = WISH.shown, k = .2 + Math.sin(performance.now() / 160) * .015; put(BM.markGold, setM(q.x, .012, q.z, k, 1, k, 0)); }
+  else if (!HOVER && PASS === "main" && WISH.cue){ const q = WISH.cue, k = .15 + Math.sin(performance.now() / 200) * .02; put(BM.markGold, setM(q.x, .012, q.z, k, 1, k, 0)); }
 }
 function drawArc(put){                                                                                     /* the arc you are about to throw */
   const n = AIM.n | 0; for (let i = 0; i < n; i++){ const k = .6 + .4 * (i / n); put(BM.dot, setM(AIM.P[i * 3], AIM.P[i * 3 + 1], AIM.P[i * 3 + 2], k, k, k, 0)); }
@@ -23695,7 +23728,8 @@ function aimUpdate(now){
   if (tgt && Math.hypot(tgt.x - me.x, tgt.z - me.z) <= rg + .5){ x = tgt.x; z = tgt.z; } else tgt = null;
   AIM.x = x; AIM.z = z; AIM.tgt = tgt; AIM.d = Math.hypot(x - me.x, z - me.z);
   if (!me.sit) me.r = Math.atan2(x - me.x, z - me.z);
-  { const hd = handAt(me, 1, now); AIM.hx = hd[0]; AIM.hy = hd[1] + .15; AIM.hz = hd[2]; }      /* sitting on the palm */
+  if (VIEW1){ const f0 = Math.sin(me.r), f1 = Math.cos(me.r); AIM.hx = me.x + f0 * .72 - f1 * .26; AIM.hy = me.y + .98 + (me.jy || 0); AIM.hz = me.z + f1 * .72 + f0 * .26; }   /* first person: in sight, low right */
+  else { const hd = handAt(me, 1, now); AIM.hx = hd[0]; AIM.hy = hd[1] + .15; AIM.hz = hd[2]; }      /* sitting on the palm */
   const x0 = AIM.hx, y0 = AIM.hy, z0 = AIM.hz, { h } = flight(Math.hypot(x - x0, z - z0));       /* the arc leaves from the balloon itself */
   const ph = (now / 700) % 1, n = ARC_N; let k = 0;                                            /* dots that march along the arc */
   if (AIM.kind === "ball"){ const v = throwV(x, z); for (let i = 0; i < n; i++){ const u = (i + ph) / n; if (u > .97) continue; const t = u * v.T;   /* the ball's own flight */
@@ -23897,8 +23931,9 @@ function stepCoins(now){
 }
 /* close enough to read: by the edge (2.6 m), or right underneath (1.5 m) */
 function readWish(now){
-  let best = null, bd = 1e9; const above = me.y > -.5, below = me.y < -1.4, reach = above ? 2.6 : below ? 1.5 : 0;
+  let best = null, bd = 1e9; const above = me.y > -.5, below = me.y < -1.4, reach = !HOVER ? 0 : above ? 2.6 : below ? 1.5 : 0;   /* phones: only a tap shows one */
   if (inWorld && !making && reach) for (const q of WISH.list){ if (q.hide) continue; const d = Math.hypot(q.x - me.x, q.z - me.z); if (d < reach && d < bd){ bd = d; best = q; } }
+  if (!HOVER){ let c = null, cd = me.y > -.5 ? 3 : 1.8; for (const q of WISH.list){ if (q.hide) continue; const d = Math.hypot(q.x - me.x, q.z - me.z); if (d < cd){ cd = d; c = q; } } WISH.cue = c; }
   if (WISH.pin && (now > WISH.pinUntil || Math.hypot(WISH.pin.x - me.x, WISH.pin.z - me.z) > 14 || !WISH.list.includes(WISH.pin))) WISH.pin = null;
   const q = WISH.pin || best, el = $("wishCard");
   if (!q){ if (WISH.shown){ el.classList.remove("on"); WISH.shown = null; } return; }
@@ -23923,7 +23958,7 @@ function showScore(P, sc){
     const place = 1 + RANK.top.filter(r => r.id !== RANK.uid && r.s > sc.total).length;
     line = T({ en:"New personal best!", ko:"개인 최고 기록!" }) + (place <= 10 ? T({ en:` · #${place} overall`, ko:` · 전체 ${place}위` }) : "");
     if (RANK.col) RANK.col.doc(RANK.uid).set({ n:me.name || "…", s:sc.total, k:P.skips, d:+f1(P.dist), t:Date.now() }).catch(() => {});
-    AUD.fanfare(); }
+    AUD.fanfare(); const rk = $("rank"); rk.classList.remove("flash", "min"); void rk.offsetWidth; rk.classList.add("flash"); }
   el.querySelector(".cs3").textContent = line; renderRank();
   el.classList.add("on"); clearTimeout(showScore.t); showScore.t = setTimeout(() => el.classList.remove("on"), best ? 5200 : 3800);
 }
@@ -23936,7 +23971,10 @@ function renderRank(){
     const c = document.createElement("span"); c.className = "sk"; c.textContent = r.k ? "〰".repeat(Math.min(3, r.k)) + (r.k > 3 ? "+" : "") : "";
     const d = document.createElement("span"); d.className = "sc"; d.textContent = r.s;
     li.append(a, b, c, d); L.appendChild(li); });
-  $("rank-me").textContent = RANK.best ? T({ en:`My best: ${RANK.best} pts`, ko:`내 최고 기록: ${RANK.best}점` }) : "";
+  const me2 = $("rank-me"); me2.textContent = ""; const sp = document.createElement("span"); sp.textContent = RANK.best ? T({ en:`My best: ${RANK.best} pts`, ko:`내 최고 ${RANK.best}점` }) : T({ en:"Throw a wish coin to join", ko:"소원 동전을 던져 참여해요" }); me2.appendChild(sp);
+  if (RANK.top.length > 5){ const mb = document.createElement("button"); mb.type = "button"; mb.textContent = T($("rank").classList.contains("more") ? { en:"Top 5", ko:"5위까지" } : { en:"Top 10", ko:"10위까지" });
+    mb.onclick = (e) => { e.stopPropagation(); $("rank").classList.toggle("more"); renderRank(); }; me2.appendChild(mb); }
+  const top = RANK.top[0]; $("rank-s").textContent = top ? T({ en:`1st ${top.n} ${top.s}`, ko:`1위 ${top.n} ${top.s}점` }) : "";
 }
 const ago = (t) => { const s = Math.max(0, (Date.now() - t) / 1000);
   return s < 60 ? T({ en:"just now", ko:"방금" }) : s < 3600 ? T({ en:`${Math.floor(s / 60)} min ago`, ko:`${Math.floor(s / 60)}분 전` })
@@ -24016,6 +24054,7 @@ function stepBall(dt, now){
   if (!inWorld && !making) return; const b = BALL; if (!BM && !balMeshes()) return;
   if (b.holder){ const a = b.holder;                                                          /* carried: out in front, turning with them */
     if (a === me && me.y < -.35){ dropBall(me, false); b.x = BALL_HOME[0]; b.z = BALL_HOME[1]; b.y = 1; tellBall(false); hint(T({ en:"The ball stays up by the pool", ko:"비치볼은 위층에 두고 왔어요" })); return; }
+    if (a === me && VIEW1){ const fx = Math.sin(me.r), fz = Math.cos(me.r); b.x = me.x + fx * .82; b.z = me.z + fz * .82; b.y = me.y + .88 + (me.jy || 0); return; }   /* first person: held in sight */
     const L = handAt(a, -1, now), Rh = handAt(a, 1, now), fx = Math.sin(a.r), fz = Math.cos(a.r);
     b.x = (L[0] + Rh[0]) / 2 + fx * .17; b.z = (L[2] + Rh[2]) / 2 + fz * .17; b.y = (L[1] + Rh[1]) / 2 + .08;
     return; }
@@ -24082,7 +24121,7 @@ cv.addEventListener("pointermove", e => { const p = ptrs.get(e.pointerId); if (!
   if (ptrs.size === 2){ const o = [...ptrs.entries()].find(([id]) => id !== e.pointerId)[1]; const d = Math.hypot(e.clientX - o.x, e.clientY - o.y); if (pinch0) view.td = clamp(d0 * pinch0 / d, 2, 14); p.x = e.clientX; p.y = e.clientY; return; }
   const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
   if (making){ me.r -= dx * .012; return; }
-  view.ty -= dx * .0065; view.tp = clamp(view.tp + dy * .005, -.6, 1.2); });
+  view.ty -= dx * .0065; view.tp = VIEW1 ? clamp(view.tp + dy * .005, -1.2, 1.25) : clamp(view.tp + dy * .005, -.6, 1.2); });
 const endPtr = (e) => { const p = ptrs.get(e.pointerId);
   const still = AIM.on ? 4 : 7, quick = AIM.on ? 350 : 450;                                   /* aiming: only a clean click throws; any drag just turns the view */
   if (p && !p.rb && e.type === "pointerup" && p.n === 0 && ptrs.size === 1 && Math.hypot(e.clientX - p.ox, e.clientY - p.oy) < still && performance.now() - p.t < quick && e.button === 0){
@@ -24092,7 +24131,10 @@ cv.addEventListener("pointerup", endPtr); cv.addEventListener("pointercancel", e
 function dropPtr(id){ ptrs.delete(id); if (ptrs.size < 2) pinch0 = 0; if (!ptrs.size) document.body.classList.remove("drag"); }
 cv.addEventListener("lostpointercapture", e => { if (ptrs.has(e.pointerId)) dropPtr(e.pointerId); });
 window.addEventListener("blur", () => { ptrs.clear(); pinch0 = 0; document.body.classList.remove("drag"); });
-cv.addEventListener("wheel", e => { e.preventDefault(); if (!making) view.td = clamp(view.td * Math.exp(e.deltaY * .0012), 2, 14); }, { passive:false });
+cv.addEventListener("wheel", e => { e.preventDefault(); if (making) return;
+  if (VIEW1){ if (e.deltaY > 8){ setView(false); view.td = 2.6; } return; }                    /* scroll out of your own eyes */
+  if (e.deltaY < -8 && view.td <= 2.05){ setView(true, true); return; }                         /* ...and back in */
+  view.td = clamp(view.td * Math.exp(e.deltaY * .0012), 2, 14); }, { passive:false });
 window.addEventListener("keydown", e => {
   if (e.target === $("say-i")){ if (e.key === "Escape"){ e.target.blur(); closePops(); } return; }
   if (e.target === $("nm")) return;
@@ -24100,6 +24142,7 @@ window.addEventListener("keydown", e => {
   if (e.key === "Escape"){ cancelAim(); closePops(); document.body.classList.remove("about"); return; }
   keys[e.code] = true;
   if (e.code === "Space"){ e.preventDefault(); jump(); }
+  if (e.code === "KeyV" && !e.repeat && inWorld && !making) setView(!VIEW1, true);
   if (e.code === "KeyF" && !e.repeat && inWorld && !making){ if (BALL.holder === me) throwNow(); else setArmed(!AIM.armed); }
   if (e.code === "KeyG" && !e.repeat && inWorld && !making){ if (BALL.holder === me) dropBall(me, true); else grabBall(true); }
   if (e.code === "KeyE" && inWorld && !making && !e.repeat){ if (me.sit) standUp(); else { const st = Math.abs(me.y) < .3 && seatNear(me.x, me.z, 2.4); if (st) goSit(st); } }
@@ -24116,6 +24159,10 @@ $("throwx").addEventListener("click", () => { AUD.click(); setArmed(false); });
 document.querySelectorAll("#mv-seg [data-mv]").forEach(b => b.onclick = () => { AUD.click(); setMove(b.dataset.mv); });
 setMove(MOVE);
 $("b-bal").onclick = () => { AUD.click(); closePops(); setArmed(!AIM.armed); };
+$("b-view").onclick = () => { AUD.click(); closePops(); setView(!VIEW1, true); };
+$("rank-h").onclick = () => { AUD.click(); $("rank").classList.toggle("min"); };
+if (!HOVER || innerWidth < 760) $("rank").classList.add("min");
+setView(VIEW1);
 $("b-wish").onclick = () => { AUD.click(); $("wish-n").classList.remove("warn"); $("wish-n").textContent = T(WISH_NOTE); if (BALL.holder === me){ hint(T({ en:"Put the ball down first (G)", ko:"먼저 공을 내려놓아요 (G)" })); return; } if (!canThrow(true)) return; if (openPop("pop-wish")){ wishInit(); setTimeout(() => $("wish-i").focus(), 40); } };
 $("wish-i").addEventListener("input", () => { $("wish-c").textContent = `${$("wish-i").value.length}/60`; });
 $("wish-go").onclick = () => { const w = cleanText($("wish-i").value, 60);
@@ -24181,7 +24228,7 @@ function useProg(p, VP, clip, below, t){
 }
 const tooClose = () => !making && Math.hypot(camPos[0] - me.x, camPos[1] - me.y - 1, camPos[2] - me.z) < 1.15;   /* the camera is in your own head: look through it */
 function drawPeople(p, now){
-  const hideMe = tooClose();
+  const hideMe = tooClose() && !(VIEW1 && (PASS === "sh" || PASS === "mirror"));
   for (const a of AVATARS()){
     if (!a.mesh || (a === me && hideMe) || (making && a.npc && Math.hypot(a.x - me.x, a.z - me.z) < 2.4 && Math.abs(a.y - me.y) < 1)) continue;
     if (p.u.uAvY) gl.uniform1f(p.u.uAvY, a.y);
@@ -24274,13 +24321,14 @@ function about(){
   $("b-say").querySelector(".lb").textContent = T({ en:"Say", ko:"말하기" }); $("b-emo").querySelector(".lb").textContent = T({ en:"Moves", ko:"표현" });
   $("b-me").querySelector(".lb").textContent = T({ en:"Character", ko:"캐릭터" });
   $("b-bal").querySelector(".lb").textContent = T({ en:"Balloon", ko:"물풍선" });
+  $("b-view").querySelector(".lb").textContent = T(VIEW1 ? { en:"1st person", ko:"1인칭" } : { en:"3rd person", ko:"3인칭" }); $("b-view").title = T({ en:"Switch view (V)", ko:"시점 바꾸기 (V)" });
   $("throwb").querySelector(".tl").textContent = T({ en:"Throw", ko:"던지기" }); $("throwx").setAttribute("aria-label", T({ en:"Put the balloon away", ko:"물풍선 끄기" }));
   $("b-wish").querySelector(".lb").textContent = T({ en:"Wish coin", ko:"소원 동전" });
   $("wish-t").textContent = T({ en:"Write a wish, then throw the coin into the pool", ko:"소원을 적고, 동전을 수영장에 던져요" });
   $("wish-i").placeholder = T({ en:"My wish is…", ko:"나의 소원은…" });
   $("wish-pl").textContent = T({ en:"Only me (private)", ko:"나만 보기 (비공개)" });
   $("wish-go").textContent = T({ en:"Throw the coin", ko:"동전 던지기" });
-  $("rank-t").textContent = T({ en:"🏆 Coin toss ranking — distance, angle and skips", ko:"🏆 동전 던지기 랭킹 — 거리·각도·물수제비" }); renderRank();
+  $("rank-t").textContent = T(innerWidth < 760 ? { en:"Ranking", ko:"랭킹" } : { en:"Coin toss ranking", ko:"동전 던지기 랭킹" }); renderRank();
   $("wish-n").textContent = T(WISH_NOTE);
   $("say-i").placeholder = T({ en:"Say something…", ko:"말하기…" }); $("say-b").setAttribute("aria-label", T({ en:"Send", ko:"보내기" }));
   $("snd").title = T({ en:"Sound", ko:"소리" }); $("info").title = T({ en:"About the work", ko:"작품 설명" }); $("jump").setAttribute("aria-label", T({ en:"Jump", ko:"점프" }));
