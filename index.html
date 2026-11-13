@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261113085703";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261113093434";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -21836,6 +21836,55 @@ body.making #hint{display:none;}
 #sitb{position:absolute;left:0;top:0;display:none;align-items:center;gap:7px;padding:8px 14px 8px 12px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:#25231c;
   font:600 12.5px/1 inherit;font-family:inherit;white-space:nowrap;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);pointer-events:auto;cursor:pointer;will-change:transform;}
 #sitb.on{display:flex;}
+#vendb{position:absolute;left:0;top:0;display:none;align-items:center;gap:7px;padding:8px 14px 8px 11px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:#25231c;
+  font:600 12.5px/1 inherit;font-family:inherit;white-space:nowrap;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);pointer-events:auto;cursor:pointer;will-change:transform;}
+#vendb.on{display:flex;} #vendb:hover{background:#fff;} #vendb .vi{font-size:14px;line-height:1;}
+#vendb kbd{font:600 10px/1 "JetBrains Mono",monospace;padding:3px 5px;border-radius:5px;background:rgba(37,35,28,.09);color:#5a5648;}
+@media (hover:none){ #vendb kbd{display:none;} }
+.av.ghost .tg{opacity:.42;}
+/* the beer: a warm blush round the picture's edge (opacity set from the script, only while it lasts) */
+#tipsy{position:fixed;inset:0;z-index:3;pointer-events:none;display:none;opacity:0;background:radial-gradient(ellipse 75% 70% at 50% 48%, transparent 55%, rgba(255,168,122,.38) 100%);}
+/* the drink you are on: top right, a ring that runs down, × to stop */
+#drinkfx{position:fixed;right:20px;top:calc(62px + env(safe-area-inset-top,0px));z-index:9;display:none;align-items:center;gap:10px;padding:6px 6px 6px 7px;border-radius:999px;max-width:min(300px,calc(100% - 20px));}
+body.in:not(.making) #drinkfx.on{display:flex;animation:dfxIn .35s cubic-bezier(.2,.9,.3,1.25);}
+@keyframes dfxIn{from{opacity:0;transform:translateY(-6px) scale(.94);}to{opacity:1;transform:none;}}
+#drinkfx .dc{position:relative;width:36px;height:36px;flex:none;display:grid;place-items:center;border-radius:50%;background:var(--dc,#ffd34d);font-style:normal;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);}
+#drinkfx .dc b{font-size:17px;line-height:1;}
+#drinkfx .dc svg{position:absolute;left:-3px;top:-3px;width:42px;height:42px;transform:rotate(-90deg);fill:none;stroke:#16150f;stroke-width:2.2;stroke-linecap:round;stroke-dasharray:103.7;stroke-dashoffset:0;opacity:0;}
+#drinkfx.run .dc svg{opacity:.7;animation:dfxT var(--dur,15s) linear forwards;}
+@keyframes dfxT{to{stroke-dashoffset:103.7;}}
+#drinkfx .dt{display:flex;flex-direction:column;gap:2px;min-width:0;}
+#drinkfx .dt b{font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap;}
+#drinkfx .dt small{font-size:11px;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;}
+#dfx-x{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex:none;background:rgba(22,21,15,.07);transition:background .2s;}
+#dfx-x:hover{background:rgba(22,21,15,.14);}
+#dfx-x svg, #vend-x svg{width:14px;height:14px;fill:none;stroke:var(--ink-dim);stroke-width:2;stroke-linecap:round;}
+@media (max-width:760px){ #drinkfx{right:10px;top:calc(100px + env(safe-area-inset-top,0px));gap:6px;} #drinkfx .dt{display:none;} }
+body.embedded #drinkfx{top:calc(66px + env(safe-area-inset-top,0px));}
+@media (max-width:760px){ body.embedded #drinkfx{top:calc(108px + env(safe-area-inset-top,0px));} }
+/* the machine's menu */
+#pop-vend{width:min(360px,calc(100% - 20px));padding:12px 10px 10px;}
+#pop-vend .vh{display:flex;align-items:center;gap:8px;margin:0 4px 3px;}
+#pop-vend .vh i{width:10px;height:10px;border-radius:3px;background:var(--vc);box-shadow:inset 0 0 0 1px rgba(0,0,0,.1);}
+#pop-vend .vh b{font:600 14.5px/1.3 var(--serif);color:var(--ink);}
+#vend-x{margin-left:auto;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:rgba(22,21,15,.06);}
+#pop-vend .vs{margin:0 4px 8px;font-size:11.5px;line-height:1.45;color:var(--ink-dim);}
+#vend-l{display:flex;flex-direction:column;gap:3px;}
+.dk{display:flex;align-items:center;gap:12px;width:100%;padding:8px 10px 8px 9px;border-radius:14px;text-align:left;transition:background .15s,transform .15s;-webkit-tap-highlight-color:transparent;}
+.dk:hover{background:rgba(255,255,255,.75);} .dk:active{transform:scale(.98);}
+.dk .can{position:relative;width:28px;height:40px;flex:none;margin-top:3px;border-radius:8px 8px 7px 7px;font-style:normal;display:grid;place-items:center;
+  background:linear-gradient(90deg,rgba(0,0,0,.1),rgba(255,255,255,.4) 36%,rgba(0,0,0,.05) 70%,rgba(0,0,0,.12)),var(--c1);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08),0 6px 12px -8px rgba(0,0,0,.45);}
+.dk .can::before{content:"";position:absolute;left:0;right:0;top:12px;height:15px;background:var(--c2);opacity:.92;}
+.dk .can::after{content:"";position:absolute;left:4px;right:4px;top:-3px;height:5px;border-radius:3px;background:linear-gradient(#eef0f2,#b7bcc2);}
+.dk.bottle .can{width:22px;border-radius:9px 9px 6px 6px;margin-left:3px;margin-right:3px;}
+.dk.bottle .can::after{left:6px;right:6px;top:-5px;height:6px;background:#3f80ea;}
+.dk .can span{position:relative;font-size:13px;line-height:1;}
+.dk .dt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.dk .dt b{font-size:13px;font-weight:600;color:var(--ink);}
+.dk .dt small{font-size:11.5px;line-height:1.35;color:var(--ink-dim);}
+.dk em{flex:none;font:500 10.5px/1 "JetBrains Mono","Noto Sans KR",monospace;font-style:normal;color:var(--ink-dim);padding:5px 7px;border-radius:999px;background:rgba(22,21,15,.06);}
+.dk.cur em{background:var(--chip-on);color:var(--chip-on-ink);}
+#pop-vend .note{font-size:11px;color:var(--ink-faint);margin:8px 6px 0;line-height:1.5;}
 #ballb{position:absolute;left:0;top:0;display:none;align-items:center;gap:7px;padding:8px 14px 8px 12px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:#25231c;
   font:600 12.5px/1 inherit;font-family:inherit;white-space:nowrap;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);pointer-events:auto;cursor:pointer;will-change:transform;}
 #ballb.on{display:flex;}
@@ -21992,6 +22041,8 @@ body.about #about{display:block;}
 #about .mvt{margin:0 0 8px !important;font-size:12px !important;font-weight:600;color:var(--ink) !important;}
 #about .seg{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;border-radius:11px;background:rgba(22,21,15,.07);}
 #about .seg button{padding:8px 6px;border:0;border-radius:9px;background:none;font:600 12px/1.25 inherit;font-family:inherit;color:var(--ink-dim);cursor:pointer;transition:background .2s,color .2s,box-shadow .2s;}
+#about .calm{justify-content:space-between;flex-direction:row-reverse;margin-top:12px;padding-top:11px;border-top:1px solid var(--glass-line);font-weight:600;font-size:12px;}
+#about .mvn{margin:5px 0 0 !important;font-size:11px !important;line-height:1.5 !important;color:var(--ink-faint) !important;}
 #about .seg button[aria-checked="true"]{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.14);}
 body.move-click #joy{display:none !important;}
 #about .x{position:absolute;right:12px;top:12px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--ink-dim);}
@@ -22030,6 +22081,7 @@ body.move-click #joy{display:none !important;}
   <ol id="rank-l"></ol><p id="rank-me"></p></aside>
 <div id="count" class="glass"><i></i><span id="c-t"></span></div>
 <div id="goal" aria-hidden="true"></div>
+<div id="tipsy" aria-hidden="true"></div>
 <div id="hint" class="glass off"></div>
 <button id="throwb" class="glass" type="button"><i class="orb"></i><span class="tl"></span></button>
 <button id="throwx" class="glass" type="button"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -22058,6 +22110,9 @@ body.move-click #joy{display:none !important;}
   <p class="note" id="wish-n"></p>
 </div>
 <div id="coinScore" class="glass" aria-live="polite"><p class="cs1"></p><p class="cs2"></p><p class="cs3"></p></div>
+<div id="drinkfx" class="glass" aria-live="polite"><i class="dc"><b id="dfx-i"></b><svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="16.5"/></svg></i><span class="dt"><b id="dfx-n"></b><small id="dfx-s"></small></span><button type="button" id="dfx-x"><svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
+<div id="pop-vend" class="pop glass" role="dialog" aria-labelledby="vend-t"><div class="vh"><i></i><b id="vend-t"></b><button type="button" id="vend-x"><svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
+  <p class="vs" id="vend-s"></p><div id="vend-l"></div><p class="note" id="vend-n"></p></div>
 <div id="wishCard" class="glass" aria-live="polite"><p class="wq"></p><p class="wm"></p></div>
 <div id="pop-emo" class="pop glass"><div class="grid">
   <button class="chip" data-e="wave"><svg class="ico" viewBox="0 0 24 24"><path d="M8 13V6.5a1.5 1.5 0 013 0V11M11 10.5V5a1.5 1.5 0 013 0v6M14 10.5V6.5a1.5 1.5 0 013 0V14a6 6 0 01-6 6h-.5a6 6 0 01-5-2.7l-2-3.1a1.5 1.5 0 012.4-1.7L8 14"/></svg><span class="lb"></span></button>
@@ -22090,7 +22145,8 @@ body.move-click #joy{display:none !important;}
   <h2 id="ab-h"></h2>
   <p id="ab-p1"></p>
   <p id="ab-p2"></p>
-  <div class="mv"><p class="mvt" id="mv-t"></p><div class="seg" id="mv-seg" role="radiogroup"><button type="button" role="radio" data-mv="stick"><span></span></button><button type="button" role="radio" data-mv="click"><span></span></button></div></div>
+  <div class="mv"><p class="mvt" id="mv-t"></p><div class="seg" id="mv-seg" role="radiogroup"><button type="button" role="radio" data-mv="stick"><span></span></button><button type="button" role="radio" data-mv="click"><span></span></button></div>
+    <label class="wsw calm"><input type="checkbox" id="calm"><i></i><span id="calm-t"></span></label><p class="mvn" id="calm-n"></p></div>
   <h3 id="ab-h3"></h3>
   <ol id="ab-ol"></ol>
 </section>
@@ -22148,10 +22204,17 @@ const zoneOf = (x, y, z) => onStairs(x, z) && y > FLOOR + .15 && y < -.05 ? "sta
 const TREES = [[-CXW + 1.8, -CZW + 1.8], [CXW - 1.8, -CZW + 1.8], [-CXW + 1.8, CZW - 1.8], [CXW - 1.6, CZW - 1.6], [-CXW + 1.8, 0], [CXW - 1.8, -6], [-7.5, -CZW + 1.8], [7.5, CZW - 1.8]];
 const BENCHES = [[-4.5, PZ + 4.6, true], [4.5, PZ + 4.6, true], [-3, -PZ - 4.4, true], [4, -PZ - 4.4, true], [-PX - 4.6, 2.5, false], [HOLE.x1 + 3.4, -6, false]];
 const SEATS = BENCHES.flatMap(([x, z, ax], b) => [-.6, 0, .6].map(o => ({ b, x:ax ? x + o : x, z:ax ? z : z + o, r:ax ? (z > 0 ? Math.PI : 0) : (x < 0 ? Math.PI / 2 : -Math.PI / 2) })));
+/* two vending machines against the far glass wall, across the pool from where you come in; a little bin between them */
+const VZ0 = -CZW + .1, VZ1 = VZ0 + .72, VBIN = [0, VZ0 + .3];
+const VENDS = [{ x:-1.7, kinds:["energy", "cider", "water"], body:[.5, .7, .94], name:{ en:"Pop & Go", ko:"톡톡 자판기" } },
+               { x:1.7, kinds:["beer", "milk", "ghost"], body:[.97, .63, .53], name:{ en:"Strange Sips", ko:"요상한 자판기" } }];
+const onVend = (x, z, pad) => VENDS.findIndex(v => Math.abs(x - v.x) < .5 + pad && z > VZ0 - pad && z < VZ1 + pad);
+const vendBlock = (x, z, pad) => onVend(x, z, pad) >= 0 || Math.hypot(x - VBIN[0], z - VBIN[1]) < .22 + pad;
 const onBench = (x, z, pad) => BENCHES.findIndex(([bx, bz, ax]) => Math.abs(x - bx) < (ax ? .95 : .24) + pad && Math.abs(z - bz) < (ax ? .24 : .95) + pad);
 /* may the camera stand here? it keeps to the same side of the water as you, and out of the trees */
 function camOK(x, y, z, below){
   if (y > .3) for (const [tx, tz] of TREES) if (Math.hypot(x - tx, z - tz) < (y > 1.6 ? 1.5 : .8)) return false;
+  if (y < 2.15 && onVend(x, z, .15) >= 0) return false;                                                      /* not inside a vending machine */
   if (inR(x, z, HOLE.x0 + .06, HOLE.x1 - .06, HOLE.z0 + .06, HOLE.z1 - .02) && y > FLOOR + .15) return true;   /* the open stairwell */
   if (!below) return y > .2 && y < 14 && inR(x, z, -CXW + .2, CXW - .2, -CZW + .2, CZW - .2) && (y < 3.5 || inR(x, z, -CXW + .75, CXW - .75, -CZW + .75, CZW - .75));   /* not in the roof edge */
   if (y > FLOOR + .12 && y < -.1 && inR(x, z, -PX + .1, PX - .1, -PZ + .1, PZ - .1)) return true;
@@ -22290,6 +22353,30 @@ function buildWorld(){
     A.box(x - w / 2, .4, z - d / 2, x + w / 2, .47, z + d / 2, [.66, .5, .35], 0);
     for (const sx of [-1, 1]) A.box(alongX ? x + sx * .75 - .05 : x - .2, 0, alongX ? z - .2 : z + sx * .75 - .05, alongX ? x + sx * .75 + .05 : x + .2, .4, alongX ? z + .2 : z + sx * .75 + .05, [.3, .3, .32], 3); };
   BENCHES.forEach(([x, z, ax]) => bench(x, z, ax));
+  /* the vending machines: a lit window of cans (a shelf per drink), a lit button for each, a slot below */
+  const WHITE = [.97, .97, .95], z1 = VZ1;
+  for (const v of VENDS){ const x = v.x, B = v.body, glow = B.map(c => c + (1 - c) * .55), win = B.map(c => c + (1 - c) * .86);
+    A.box(x - .5, 0, VZ0 + .02, x + .5, .08, z1 - .03, [.3, .31, .34], 3);                                    /* the foot */
+    A.box(x - .5, .08, VZ0, x + .5, 1.92, z1, B, 0);                                                           /* the body */
+    A.box(x - .505, 1.0, VZ0 + .04, x + .505, 1.05, z1 - .02, WHITE, 0);                                       /* a stripe round the sides */
+    A.box(x - .515, 1.92, VZ0 - .005, x + .515, 1.98, z1 + .012, WHITE, 0);                                    /* the white cap */
+    A.box(x - .46, 1.75, z1, x + .46, 1.88, z1 + .02, glow, 7);                                                /* the lit sign */
+    A.box(x - .45, .66, z1, x + .17, 1.7, z1 + .012, win, 7);                                                  /* the lit window */
+    A.box(x - .47, 1.7, z1, x + .19, 1.725, z1 + .045, WHITE, 3); A.box(x - .47, .635, z1, x + .19, .66, z1 + .045, WHITE, 3);
+    A.box(x - .47, .66, z1, x - .45, 1.7, z1 + .045, WHITE, 3); A.box(x + .17, .66, z1, x + .19, 1.7, z1 + .045, WHITE, 3);
+    v.kinds.forEach((k, i) => { const y = 1.36 - i * .33, D = DRINKS[k];
+      A.box(x - .45, y - .014, z1, x + .17, y, z1 + .065, [.86, .88, .9], 3);                                  /* the shelf */
+      for (let j = 0; j < 4; j++){ const cx = x - .37 + j * .155, h = D.bottle ? .2 : .16;
+        A.tube([cx, y, z1 + .036], [cx, y + h, z1 + .036], .042, D.bottle ? .03 : .042, D.can, 0, 8);
+        A.tube([cx, y + .05, z1 + .036], [cx, y + .1, z1 + .036], .0445, .0445, D.band, 0, 8); }
+      A.box(x + .26, y + .05, z1, x + .41, y + .12, z1 + .026, D.can, 7); });                                  /* its button, lit in its colour */
+    A.box(x + .25, 1.5, z1, x + .42, 1.62, z1 + .02, [.62, .9, .76], 7);                                        /* the little screen */
+    A.box(x + .3, .78, z1, x + .37, .9, z1 + .022, [.25, .26, .3], 3);                                         /* the coin slot */
+    A.box(x - .43, .2, z1, x + .13, .47, z1 + .02, [.2, .21, .24], 0);                                         /* where the drink drops out */
+    A.box(x - .41, .3, z1 + .02, x + .11, .45, z1 + .045, [.4, .42, .46], 3); }
+  A.tube([VBIN[0], 0, VBIN[1]], [VBIN[0], .6, VBIN[1]], .19, .21, [.74, .77, .8], 3, 14);                       /* the bin */
+  A.tube([VBIN[0], .6, VBIN[1]], [VBIN[0], .66, VBIN[1]], .225, .225, [.42, .45, .5], 3, 14);
+  A.ell([VBIN[0], .662, VBIN[1]], .1, .008, .1, [.18, .19, .21], 0, 12);
   A.box(HOLE.x0 - .78, 0, HOLE.z1 + .2, HOLE.x0 - .72, 1.0, HOLE.z1 + .26, [.3, .32, .35], 3);                 /* a sign post beside the stairs */
   A.box(HOLE.x0 - .98, .8, HOLE.z1 + .21, HOLE.x0 - .52, 1.06, HOLE.z1 + .25, [.2, .25, .3], 0);
   return upload(A.v);
@@ -22848,6 +22935,7 @@ function lookAt(e, c){ const z = norm(sub(e, c)), x = norm(cross([0, 1, 0], z)),
 function mm4(a, b){ const o = new Float32Array(16); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++){ let s = 0; for (let k = 0; k < 4; k++) s += a[k * 4 + r] * b[c * 4 + k]; o[c * 4 + r] = s; } return o; }
 const Tm = (x, y, z) => new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1]);
 const RY = (a) => { const c = Math.cos(a), s = Math.sin(a); return new Float32Array([c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, 0, 0, 0, 1]); };
+const RYS = (a, k) => { const c = Math.cos(a) * k, s = Math.sin(a) * k; return new Float32Array([c, 0, -s, 0, 0, k, 0, 0, s, 0, c, 0, 0, 0, 0, 1]); };
 const RX = (a) => { const c = Math.cos(a), s = Math.sin(a); return new Float32Array([1, 0, 0, 0, 0, c, s, 0, 0, -s, c, 0, 0, 0, 0, 1]); };
 const RZ = (a) => { const c = Math.cos(a), s = Math.sin(a); return new Float32Array([c, s, 0, 0, -s, c, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]); };
 function target(w, h, linear){
@@ -22966,7 +23054,7 @@ function pose(a, now){
   const u = (now - a.et0) / 1000;
   if (a.emote === "wave" && u < 2.2){ q.a2z = 2.5 + Math.sin(u * 13) * .32; q.a2x = 0; }
   else if (a.emote === "bow" && u < 1.6){ q.bow = Math.sin(Math.PI * u / 1.6) * .55; q.a1x = q.a2x = Math.sin(Math.PI * u / 1.6) * .4; }
-  else if (a.emote === "jump" && u < .9){ const v = u / .9; if (!a.self) q.lift += 4 * .55 * v * (1 - v); q.a1z = -2.4; q.a2z = 2.4; }
+  else if (a.emote === "jump" && u < .9){ const v = u / .9; if (!a.self) q.lift += 4 * .55 * v * (1 - v) * (a.dk && dkOn(a, "cider", now) ? 2 : 1); q.a1z = -2.4; q.a2z = 2.4; }
   else if (a.emote === "dance" && u < 4){ q.sway = Math.sin(u * 9) * .16; q.a1z = -1.9 - Math.sin(u * 9) * .5; q.a2z = 1.9 - Math.sin(u * 9) * .5; q.l1 = Math.max(0, Math.sin(u * 9)) * .4; q.l2 = Math.max(0, -Math.sin(u * 9)) * .4; q.spin = (1 - Math.cos(Math.PI * Math.min(u / 2, 1))) * Math.PI; q.lift += Math.abs(Math.sin(u * 9)) * .05; }
   else if (a.emote === "dizzy" && u * 1000 < DIZZY_MS){ const k = Math.min(1, u * 4) * (1 - Math.max(0, u * 1000 - DIZZY_MS + 500) / 500), w = u * 7.5;   /* the head goes round and round */
     q.sway = Math.sin(w) * .16 * k; q.bow = (.06 + Math.cos(w) * .1) * k; q.a1z = -.3 - .7 * k; q.a2z = .3 + .7 * k; q.a1x = q.a2x = Math.sin(w * .5) * .2 * k;
@@ -22975,6 +23063,7 @@ function pose(a, now){
   if (BALL.holder === a){ q.a1x = q.a2x = -1.05; q.a1z = -.12; q.a2z = .12; }                      /* the ball held in both hands, at the chest */
   else if (a === me && AIM.on){ q.a2x = -.75; q.a2z = 1.05; }                           /* a balloon held up in the right hand, out to the side */
   else if (a.thr && now - a.thr < 380){ const v = (now - a.thr) / 380; q.a2z = 2.3 - 1.5 * v; q.a2x = .9 - 2.2 * Math.sin(Math.PI * Math.min(1, v * 1.3)); }   /* the throw */
+  if (a.dk) dkPose(a, q, now);                                                              /* a drink: to the lips, then what it does */
   if (a.sit && a.bench){ q.l1 = q.l2 = -1.3; q.lift = .06; q.a1x = q.a2x = -.25; q.a1z = -.14; q.a2z = .14; }   /* on a bench */
   else if (a.sit){ q.l1 = q.l2 = -1.45; q.lift = -.3; q.a1x = q.a2x = -.35; }
   return q;
@@ -22985,6 +23074,7 @@ function faceOf(a, now){
   if (!a.blinkAt) a.blinkAt = now + 800 + Math.random() * 3000;
   if (now > a.blinkAt + 140) a.blinkAt = now + (Math.random() < .2 ? 260 : 2400 + Math.random() * 3600);
   if (a.emote === "dizzy" && now - a.et0 < DIZZY_MS) return [3, 1];                          /* seeing stars */
+  if (a.dk && now - a.dk.t0 > SIP * .24 && now - a.dk.t0 < SIP * .86) return [1, 1];          /* gulping, eyes shut */
   const happy = a.emote && a.emote !== "sit" && now - a.et0 < 2800;
   let eye = happy ? 2 : now >= a.blinkAt ? 1 : 0, mouth = happy ? 2 : 0;
   const t0 = a.msgUntil - 6500, len = Math.min(3800, 600 + (a.msg || "").length * 110);
@@ -22995,13 +23085,13 @@ function faceOf(a, now){
 }
 /* where a hand is right now (s: -1 left, 1 right), worked out the same way the arm is drawn */
 function handAt(a, s, now, dz){
-  const q = pose(a, now), base = mm4(Tm(a.x, a.y + q.lift, a.z), RY(a.r + q.spin)), up = mm4(base, mm4(Tm(0, .42, 0), mm4(RX(q.bow), mm4(RZ(q.sway), Tm(0, -.42, 0)))));
+  const q = pose(a, now), base = mm4(Tm(a.x, a.y + q.lift, a.z), RYS(a.r + q.spin, a.sc || 1)), up = mm4(base, mm4(Tm(0, .42, 0), mm4(RX(q.bow), mm4(RZ(q.sway), Tm(0, -.42, 0)))));
   const M = mm4(up, mm4(Tm(.165 * s, .79, 0), mm4(RZ(s < 0 ? q.a1z : q.a2z), mm4(RX(s < 0 ? q.a1x : q.a2x), Tm(-.165 * s, -.79, 0))))), p = [.219 * s, .5, .004 + (dz || 0)];
   return [M[0] * p[0] + M[4] * p[1] + M[8] * p[2] + M[12], M[1] * p[0] + M[5] * p[1] + M[9] * p[2] + M[13], M[2] * p[0] + M[6] * p[1] + M[10] * p[2] + M[14]];
 }
 function partMats(a, now){
   const q = pose(a, now), m = a.mesh;
-  const base = mm4(Tm(a.x, a.y + q.lift, a.z), RY(a.r + q.spin));
+  const base = mm4(Tm(a.x, a.y + q.lift, a.z), RYS(a.r + q.spin, a.sc || 1));             /* the milk: bigger, from the feet up */
   const up = mm4(base, mm4(Tm(0, .42, 0), mm4(RX(q.bow), mm4(RZ(q.sway), Tm(0, -.42, 0)))));
   const leg = (s, ang) => mm4(base, mm4(Tm(.08 * s, .42, 0), mm4(RX(ang), Tm(-.08 * s, -.42, 0))));
   const arm = (s, ax, az) => mm4(up, mm4(Tm(.165 * s, .79, 0), mm4(RZ(az), mm4(RX(ax), Tm(-.165 * s, -.79, 0)))));
@@ -23036,17 +23126,19 @@ function moveMe(dt){
     const dx = goal.x - me.x, dz = goal.z - me.z, d = Math.hypot(dx, dz);
     if (goal.ball && Math.hypot(BALL.x - me.x, BALL.z - me.z) < 1.1){ goal = null; grabBall(false); }
     else if (goal.seat && (d < .3 || goal.stuck > .3 && d < 2.2)){ const st = goal.seat; goal = null; sitBench(st); }
+    else if (goal.vend != null && (d < .3 || goal.stuck > .3 && d < 2)){ const i = goal.vend; goal = null; openVend(i); }
     else if (d < .18 || goal.stuck > .45){ goal = null; }
     else { vx = dx / d; vz = dz / d; il = Math.min(1, d / .35); goal.last = [me.x, me.z]; } }
-  const speed = (keys.ShiftLeft || keys.ShiftRight || il > .95 && joy.on && Math.hypot(joy.x, joy.y) > .97 || goal && goal.run) ? 5 : 3;
+  const run = keys.ShiftLeft || keys.ShiftRight || il > .95 && joy.on && Math.hypot(joy.x, joy.y) > .97 || goal && goal.run;
+  const speed = (run ? 5 : 3) * (dkOn(me, "energy", performance.now()) ? (run ? (CALM ? 1.12 : 1.3) : (CALM ? 1.3 : 1.55)) : 1);   /* the energy drink: quicker, never wild */
   me.moving = il > .08 && !making;
   if (me.moving){
     if (me.sit){ me.sit = false; me.bench = false; }
     const s = speed * dt * Math.min(1, il);
     const nx = me.x + vx * s, nz = me.z + vz * s;
-    const inB = Math.abs(me.y) < .3 && onBench(me.x, me.z, .14) >= 0, blk = (x, z) => !inB && Math.abs(me.y) < .3 && onBench(x, z, .14) >= 0;   /* benches are solid — but you can always step off one */
+    const inB = Math.abs(me.y) < .3 && onBench(me.x, me.z, .14) >= 0, blk = (x, z) => Math.abs(me.y) < .3 && (!inB && onBench(x, z, .14) >= 0 || vendBlock(x, z, .2));   /* benches are solid — but you can always step off one */
     let f = blk(nx, nz) ? null : floorAt(nx, nz, me.y);
-    if (goal){ goal.slide = f === null ? (goal.slide || 0) + dt : 0; if (goal.slide > .35){ const g = goal; goal = null; if (g.seat && Math.hypot(g.x - me.x, g.z - me.z) < 2.2) sitBench(g.seat); } }   /* walking along a wall instead of to the point: stop */
+    if (goal){ goal.slide = f === null ? (goal.slide || 0) + dt : 0; if (goal.slide > .35){ const g = goal; goal = null; if (g.seat && Math.hypot(g.x - me.x, g.z - me.z) < 2.2) sitBench(g.seat); else if (g.vend != null && Math.hypot(g.x - me.x, g.z - me.z) < 2) openVend(g.vend); } }   /* walking along a wall instead of to the point: stop */
     if (f !== null){ me.x = nx; me.z = nz; }
     else if (!blk(nx, me.z) && (f = floorAt(nx, me.z, me.y)) !== null) me.x = nx;
     else if (!blk(me.x, nz) && (f = floorAt(me.x, nz, me.y)) !== null) me.z = nz;
@@ -23077,6 +23169,9 @@ function walkTo(cx, cy, run){
   if (Math.abs(y0) < .3) BENCHES.forEach(([bx, bz, ax], i) => { const hw = (ax ? .95 : .24) + .1, hd = (ax ? .24 : .95) + .1, tb = rayBox(camPos, d, [bx - hw, 0, bz - hd], [bx + hw, .52, bz + hd]);
     if (tb !== null && (!hb || tb < hb.t)) hb = { t:tb, i, x:camPos[0] + d[0] * tb, z:camPos[2] + d[2] * tb }; });
   const t = Math.abs(d[1]) < 1e-4 ? -1 : (y0 - camPos[1]) / d[1];
+  if (Math.abs(y0) < .3){ let hv = -1, tv = hb ? hb.t : 1e9;                                     /* the pointer on a vending machine: go and choose */
+    VENDS.forEach((v, i) => { const tt = rayBox(camPos, d, [v.x - .5, 0, VZ0], [v.x + .5, 1.98, VZ1 + .05]); if (tt !== null && tt < tv){ tv = tt; hv = i; } });
+    if (hv >= 0){ goVend(hv, run); return; } }
   if (!hb && (t <= 0 || t > 80)) return;
   const gx = hb ? hb.x : camPos[0] + d[0] * t, gz = hb ? hb.z : camPos[2] + d[2] * t;
   const bi = hb ? hb.i : Math.abs(y0) < .3 ? onBench(gx, gz, .25) : -1, st = bi >= 0 ? seatNear(gx, gz, 3, bi) : null;
@@ -23139,7 +23234,7 @@ function seatNear(x, z, rad, onlyBench){
   return best;
 }
 function sitBench(st){ goal = null; me.x = st.x; me.z = st.z; me.r = st.r; me.sit = true; me.bench = true; me.emote = ""; me.et = Date.now(); syncBar(); AUD.emote("sit"); }
-function jump(){ if (making || !inWorld || me.jy > 0) return; me.vy = 4; me.jy = .001; emote("jump"); }
+function jump(){ if (making || !inWorld || me.jy > 0) return; me.vy = dkOn(me, "cider", performance.now()) ? 5.7 : 4; me.jy = .001; emote("jump"); }   /* cider: twice as high */
 let camD = 0;
 function placeCamera(dt){
   const k = 1 - Math.exp(-dt * 10);
@@ -23151,7 +23246,7 @@ function placeCamera(dt){
     return;
   }
   view.yaw += wrap(view.ty - view.yaw) * Math.min(1, dt * 14); view.pitch = lerp(view.pitch, view.tp, Math.min(1, dt * 14)); view.d = lerp(view.d, view.td, Math.min(1, dt * 8));
-  const head = [me.x, me.y + (me.sit ? (me.bench ? 1.2 : .85) : 1.15) + me.jy * .5, me.z];
+  const head = [me.x, me.y + (me.sit ? (me.bench ? 1.2 : .85) : 1.15) * (me.sc || 1) + me.jy * .5, me.z];
   /* the camera sits behind you (never below your head); tilting further up only turns its gaze */
   const pp = Math.max(view.pitch, .06);
   const dir = [Math.sin(view.yaw) * Math.cos(pp), -Math.sin(pp), Math.cos(view.yaw) * Math.cos(pp)];
@@ -23297,7 +23392,8 @@ function cleanState(st){
   const num = (v, a, b, d) => (typeof v === "number" && isFinite(v)) ? clamp(v, a, b) : d;
   const e = typeof st.e === "string" && EMOTES[st.e] ? st.e : "";
   return { x:num(st.x, -CXW, CXW, 0), y:num(st.y, FLOOR - .1, 1.5, 0), z:num(st.z, -CZW, CZW, 0), r:num(st.r, -7, 7, 0), w:st.w ? 1 : 0, e, et:num(st.et, 0, 1e15, 0),
-    m:cleanText(st.m, 40), mt:num(st.mt, 0, 1e15, 0), n:cleanText(st.n, 12) || "…", look:lookFrom(st.k), f:typeof st.f === "string" ? st.f.slice(0, 48) : "", b:typeof st.b === "string" ? st.b.slice(0, 60) : "" };
+    m:cleanText(st.m, 40), mt:num(st.mt, 0, 1e15, 0), n:cleanText(st.n, 12) || "…", look:lookFrom(st.k), f:typeof st.f === "string" ? st.f.slice(0, 48) : "", b:typeof st.b === "string" ? st.b.slice(0, 60) : "",
+    d:typeof st.d === "string" && /^[ecwbmg][0-9]$/.test(st.d) ? st.d : "" };
 }
 function onPeerList(list){
   const seen = new Set(), now = performance.now();
@@ -23306,11 +23402,13 @@ function onPeerList(list){
     const id = p.id.slice(0, 64); seen.add(id);
     let a = PEERS.get(id);
     if (!a){ a = newAvatar(st.look); a.id = id; a.x = st.x; a.y = st.y; a.z = st.z; a.r = st.r; a.lastE = st.et; a.lastM = st.mt; a.lastF = st.f; a.lastB = st.b; a.name = st.n; PEERS.set(id, a); if (st.b) ballFrom(a, st.b, true);
+      a.lastD = st.d; if (st.d) drinkFrom(a, st.d, true);
       if (inWorld){ AUD.joined(); logLine(st.n, T({ en:"came in", ko:"님이 들어왔어요" }), true); } }
     else {
       if (st.et !== a.lastE){ a.lastE = st.et; if (st.e && st.e !== "sit" && st.e !== "bench"){ a.emote = st.e; a.et0 = now; popEmote(a, st.e); } }
       if (st.f !== a.lastF){ a.lastF = st.f; if (st.f && inWorld) onFx(a, st.f); }
       if (st.b !== a.lastB){ a.lastB = st.b; if (st.b) ballFrom(a, st.b, false); }
+      if (st.d !== a.lastD){ a.lastD = st.d; drinkFrom(a, st.d, false); }
       if (st.mt !== a.lastM){ a.lastM = st.mt; if (st.m){ a.msg = st.m; a.msgUntil = now + 6500; logLine(st.n, st.m); AUD.chat(); } }
     }
     pushSample(a, st, now); a.name = st.n; a.sit = st.e === "sit" || st.e === "bench"; a.bench = st.e === "bench";
@@ -23321,13 +23419,13 @@ function onPeerList(list){
 }
 function myState(){
   return { s:NET.srv, x:+me.x.toFixed(2), y:+me.y.toFixed(2), z:+me.z.toFixed(2), r:+wrap(me.r).toFixed(2), w:me.moving ? 1 : 0, e:me.sit ? (me.bench ? "bench" : "sit") : (me.emote || ""),
-    et:me.et, m:me.msg || "", mt:me.mt, n:me.name, k:lookArr(me.look), t:Date.now(), ...(FX.f && !FX.blocked && performance.now() - FX.at < 4000 ? { f:FX.f } : {}), ...(BALL.mine && !FX.blocked ? { b:BALL.mine } : {}) };
+    et:me.et, m:me.msg || "", mt:me.mt, n:me.name, k:lookArr(me.look), t:Date.now(), ...(FX.f && !FX.blocked && performance.now() - FX.at < 4000 ? { f:FX.f } : {}), ...(BALL.mine && !FX.blocked ? { b:BALL.mine } : {}), ...(me.dk && !FX.blocked ? { d:DRINKS[me.dk.k].c + me.dk.seq } : {}) };
 }
 let lastSend = 0, lastSig = "";
 function maybeSend(){
   if (!inWorld || !NET.be || !NET.srv) return;
-  const now = performance.now(), s = myState(), sig = [s.x, s.y, s.z, s.r, s.w, s.e, s.et, s.mt, s.n, s.k.join(""), s.f || "", s.b || ""].join("|");
-  if ((sig !== lastSig && now - lastSend > NET.be.sendMs) || now - lastSend > NET.be.beatMs){ FX.sent = !!(s.f || s.b); NET.be.send(s); lastSend = now; lastSig = sig; }
+  const now = performance.now(), s = myState(), sig = [s.x, s.y, s.z, s.r, s.w, s.e, s.et, s.mt, s.n, s.k.join(""), s.f || "", s.b || "", s.d || ""].join("|");
+  if ((sig !== lastSig && now - lastSend > NET.be.sendMs) || now - lastSend > NET.be.beatMs){ FX.sent = !!(s.f || s.b || s.d); NET.be.send(s); lastSend = now; lastSig = sig; }
 }
 async function enter(srv){
   if (srv !== NET.srv && NET.be && NET.counts[srv - 1] >= MAX){ hint(T({ en:"That server is full — try the other one", ko:"그 서버는 가득 찼어요 — 다른 서버로 들어가 보세요" }), true); return; }
@@ -23452,7 +23550,7 @@ function tagFor(a){
   t = { el, bb, nm, emo, msg:"" }; TAGS.set(a.id, t); return t;
 }
 function dropTag(id){ const t = TAGS.get(id); if (t){ t.el.remove(); TAGS.delete(id); } }
-const EMO_CH = { wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️", splash:"💦", dizzy:"💫", steal:"😎", oops:"😮" };
+const EMO_CH = { wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️", splash:"💦", dizzy:"💫", steal:"😎", oops:"😮", energy:"⚡", cider:"🫧", water:"✨", beer:"🥴", milk:"🥛", ghost:"👻", burp:"😮‍💨" };
 function popEmote(a, e){ if (!EMO_CH[e]) return; const t = tagFor(a); t.emo.textContent = EMO_CH[e]; t.emo.classList.remove("go"); void t.emo.offsetWidth; t.emo.classList.add("go"); }
 function project(p){
   const M = VPm; if (!M) return null;
@@ -23466,17 +23564,18 @@ function seen(a){
   if (z === "above") return (Math.abs(a.x) < PX + 2.2 && Math.abs(a.z) < PZ + 2.2) ? "dim" : null;
   return "on";
 }
-const WLABELS = [{ p:[HOLE.x0 - .75, 1.32, HOLE.z1 + .23], t:{ en:"↓ Under the pool", ko:"↓ 수영장 아래로" } }];
+const WLABELS = [{ p:[HOLE.x0 - .75, 1.32, HOLE.z1 + .23], t:{ en:"↓ Under the pool", ko:"↓ 수영장 아래로" } },
+                 { p:[0, 2.32, VZ1], t:{ en:"🥤 Vending machines", ko:"🥤 자판기" }, far:44, near:[0, VZ1 + .5, 4.2] }];
 const WL_EL = [];
 function updateTags(now){
   const keep = new Set();
   for (const a of AVATARS()){
     if (a.npc) continue;
     if (a === me && (making || !inWorld || tooClose())) continue;
-    const vis = seen(a), q = vis && project([a.x, a.y + (a.sit ? (a.bench ? 1.82 : 1.4) : 1.76) + (a.jy || 0), a.z]);
+    const vis = seen(a), q = vis && project([a.x, a.y + (a.sit ? (a.bench ? 1.82 : 1.4) : 1.76) * (a.sc || 1) + (a.jy || 0), a.z]);
     const t = tagFor(a); keep.add(a.id);
     if (!q || q[2] > 34){ t.el.style.display = "none"; continue; }
-    t.el.style.display = ""; t.el.classList.toggle("dim", vis === "dim");
+    t.el.style.display = ""; t.el.classList.toggle("dim", vis === "dim"); t.el.classList.toggle("ghost", !!(a.dk && dkOn(a, "ghost", now)));
     const s = clamp((fov < .8 ? 9 : 6) / q[2], .62, 1.08);
     t.el.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%) scale(${s.toFixed(3)})`;
     t.el.style.zIndex = String(1000 - Math.round(q[2] * 10));
@@ -23487,7 +23586,7 @@ function updateTags(now){
   }
   for (const [id, t] of TAGS) if (!keep.has(id)) t.el.style.display = "none";
   WLABELS.forEach((w, i) => { let el = WL_EL[i]; if (!el){ el = WL_EL[i] = document.createElement("div"); el.className = "wl"; el.textContent = T(w.t); $("tags").appendChild(el); }
-    const q = !making && camPos[1] > -.05 && project(w.p); if (!q || q[2] > 22){ el.style.display = "none"; return; }
+    const q = !making && camPos[1] > -.05 && !(w.near && Math.hypot(me.x - w.near[0], me.z - w.near[1]) < w.near[2]) && project(w.p); if (!q || q[2] > (w.far || 22)){ el.style.display = "none"; return; }
     el.style.display = ""; el.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%) scale(${clamp(7 / q[2], .7, 1.05).toFixed(3)})`; });
 }
 /* speech and moments */
@@ -23604,6 +23703,21 @@ const AUD = (() => {
       for (let i = 0; i < 4; i++){ tone(tt + .28 + i * .3, 2900, .05, .009, 3500); tone(tt + .36 + i * .3, 2500, .05, .008, 3100); } },   /* bonk — and the little birds */
     steal(){ if (!ok()) return; const tt = ctx.currentTime; burst(tt, .12, 2400, 1.5, .022); tone(tt + .04, 700, .08, .03, 1400, "triangle"); },
     grab(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 880, .06, .03, 1320, "triangle"); burst(tt, .04, 2600, 3, .012); },
+    vend(){ if (!ok()) return; const tt = ctx.currentTime;                                                  /* clunk, the tab, three gulps */
+      tone(tt, 540, .09, .045, 310, "triangle"); burst(tt, .07, 1300, 1.6, .03); tone(tt + .1, 440, .07, .024, 290, "triangle");
+      burst(tt + .42, .13, 5200, 1.2, .03); tone(tt + .42, 2600, .05, .012, 3400);
+      for (let i = 0; i < 3; i++) tone(tt + .74 + i * .19, 640, .08, .026, 450); },
+    drink(k, h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime;
+      if (k === "energy") [988, 1319, 1760, 2349].forEach((f, i) => tone(tt + i * .06, f, .09, .022 * h, null, "triangle"));
+      else if (k === "cider") for (let i = 0; i < 6; i++){ const f = 1200 + Math.random() * 1100; tone(tt + i * .05 + Math.random() * .03, f, .06, .015 * h, f * 1.4); }
+      else if (k === "beer"){ tone(tt, 784, .22, .022 * h, 659); tone(tt + .2, 659, .26, .02 * h, 740); }
+      else if (k === "milk") tone(tt, 330, .3, .034 * h, 880, "triangle");
+      else if (k === "ghost") [2093, 1760, 1397, 1175].forEach((f, i) => tone(tt + i * .08, f, .2, .012 * h));
+      else { tone(tt, 1568, .1, .02 * h); tone(tt + .09, 2093, .18, .018 * h); } },
+    drinkEnd(burp){ if (!ok()) return; const tt = ctx.currentTime;
+      if (burp){ tone(tt, 380, .15, .04, 260, "triangle"); tone(tt + .04, 320, .11, .018, 240, "triangle"); }
+      else { tone(tt, 1319, .09, .018); tone(tt + .08, 988, .14, .016); } },
+    hic(h){ if (!ok() || h <= 0) return; tone(ctx.currentTime, 820, .06, .03 * h, 1350, "triangle"); },
     stretch(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 760, .12, .012, 1150, "triangle"); },
     toss(k){ if (!ok() || k <= 0) return; const tt = ctx.currentTime; burst(tt, .15, 1800, 2, .02 * k); tone(tt, 600, .16, .014 * k, 1150, "triangle"); },
     splash(k, pool){ if (!ok() || k <= 0) return; const tt = ctx.currentTime;                                  /* a pop, then the water */
@@ -23979,7 +24093,7 @@ function wishAt(cx, cy){                                                        
    ========================================================================== */
 const BR = .24, BALL_HOME = [3.2, PZ + 2.3];
 const BALL = { x:BALL_HOME[0], y:BR, z:BALL_HOME[1], vx:0, vy:0, vz:0, R:[1, 0, 0, 0, 1, 0, 0, 0, 1], holder:null, stamp:0, seq:0, mine:"", lastKick:0, noKick:0, by:null, rest:0, air:false, guard:0 };
-const ballOk = (x, z) => inPool(x, z) || (() => { const f = floorAt(x, z, 0); return f !== null && Math.abs(f) < .05 && onBench(x, z, .05) < 0; })();
+const ballOk = (x, z) => inPool(x, z) || (() => { const f = floorAt(x, z, 0); return f !== null && Math.abs(f) < .05 && onBench(x, z, .05) < 0 && !vendBlock(x, z, BR * .8); })();
 function ballM(){ const r = BALL.R; MX[0] = r[0]; MX[1] = r[3]; MX[2] = r[6]; MX[3] = 0; MX[4] = r[1]; MX[5] = r[4]; MX[6] = r[7]; MX[7] = 0;
   MX[8] = r[2]; MX[9] = r[5]; MX[10] = r[8]; MX[11] = 0; MX[12] = BALL.x; MX[13] = BALL.y; MX[14] = BALL.z; MX[15] = 1; return MX; }
 function rotAx(ax, a){ const c = Math.cos(a), s = Math.sin(a), t = 1 - c, [x, y, z] = ax;
@@ -24090,6 +24204,187 @@ function ballAt(cx, cy, run){                                                   
 }
 
 /* ==========================================================================
+   9e. VENDING MACHINES — two of them, against the far glass wall. Walk up,
+       choose a drink: a sip, then a few seconds of something odd. One effect
+       at a time, the × at the top ends it early, and nothing pushes you
+       about: the beer's sway is small and slow, and stays off when the
+       screen is calmed (ⓘ) or motion is reduced. The cans, sparks and
+       bubbles come from small fixed pools; others see it all through one
+       short letter in what each page already sends.
+   ========================================================================== */
+const DRINKS = {
+  energy:{ c:"e", ico:"⚡", can:[.99, .8, .22], band:[.18, .18, .22], dur:15, name:{ en:"Energy drink", ko:"에너지 드링크" }, fx:{ en:"You walk and run faster", ko:"걷기·달리기가 빨라져요" }, s:{ en:"Faster", ko:"빨라져요" } },
+  cider:{ c:"c", ico:"🫧", can:[.52, .86, .6], band:[.97, .98, .96], dur:15, name:{ en:"Cider", ko:"사이다" }, fx:{ en:"Jumps go twice as high", ko:"점프가 두 배로 높아져요" }, s:{ en:"High jumps", ko:"점프 2배" } },
+  water:{ c:"w", ico:"💧", can:[.68, .86, 1], band:[.27, .53, .92], dur:0, bottle:true, name:{ en:"Water", ko:"생수" }, fx:{ en:"Clears whatever you drank", ko:"마신 효과를 모두 없애요" }, s:{ en:"Fresh", ko:"상쾌" } },
+  beer:{ c:"b", ico:"🍺", can:[.96, .7, .22], band:[.98, .95, .86], dur:12, name:{ en:"Beer", ko:"맥주" }, fx:{ en:"The world sways, just a little", ko:"세상이 살짝 어질어질해요" }, s:{ en:"Tipsy", ko:"어질어질" } },
+  milk:{ c:"m", ico:"🥛", can:[.97, .97, .95], band:[.4, .62, .93], dur:15, name:{ en:"Milk", ko:"우유" }, fx:{ en:"You grow big", ko:"몸이 커져요" }, s:{ en:"Big", ko:"커졌어요" } },
+  ghost:{ c:"g", ico:"👻", can:[.86, .92, .98], band:[.64, .57, .92], dur:12, name:{ en:"Clear soda", ko:"투명 음료" }, fx:{ en:"Invisible — only your reflection and shadow stay", ko:"투명해져요 — 물에 비친 모습과 그림자만 남아요" }, s:{ en:"Invisible", ko:"투명 인간" } },
+};
+const DK_OF = {}; for (const k in DRINKS) DK_OF[DRINKS[k].c] = k;
+const SIP = 1500;                                                                                 /* the sip, before it works */
+const rgb = (c) => `rgb(${c.map(v => Math.round(v * 255)).join(",")})`;
+let CALM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+try { const c = localStorage.getItem("lam-pool-calm"); if (c !== null) CALM = c === "1"; } catch (_){}
+function setCalm(on){ CALM = !!on; try { localStorage.setItem("lam-pool-calm", CALM ? "1" : "0"); } catch (_){} const c = $("calm"); if (c) c.checked = CALM; }
+const DKS = { seq:0, open:-1, secs:-1, tipsy:false, told:false, inAt:0, mesh:null, P:Array.from({ length:28 }, () => ({ on:false, t0:0 })) };
+const dkOn = (a, k, now) => !!a.dk && a.dk.k === k && now >= a.dk.on && now < a.dk.end;
+const dkEnv = (a, now) => a.dk ? sstep(0, 1600, now - a.dk.on) * sstep(0, 1600, a.dk.end - now) : 0;
+function nearVend(rad){
+  if (!inWorld || making || Math.abs(me.y) > .3) return -1; let best = -1, bd = rad;
+  VENDS.forEach((v, i) => { const d = Math.hypot(v.x - me.x, VZ1 + .45 - me.z); if (d < bd){ bd = d; best = i; } }); return best;
+}
+/* walk up to it (from anywhere — the same in both ways of walking, like a bench), then choose */
+function goVend(i, run){
+  if (making || !inWorld || Math.abs(me.y) > .3) return;
+  const fx = VENDS[i].x, fz = VZ1 + .55;
+  if (Math.hypot(fx - me.x, fz - me.z) < 1.6){ openVend(i); return; }
+  goal = { x:fx, z:fz, y:0, stuck:0, last:null, run:!!run, vend:i };
+  const el = $("goal"); el.classList.remove("go"); void el.offsetWidth; el.classList.add("go"); AUD.click();
+}
+function openVend(i){
+  if (!inWorld || making) return;
+  if (nearVend(2.7) !== i){ goVend(i); return; }
+  DKS.open = i; goal = null; if (!me.dk || performance.now() > me.dk.on) me.r = Math.atan2(VENDS[i].x - me.x, VZ1 - me.z);
+  renderVend(); if (!$("pop-vend").classList.contains("on")) openPop("pop-vend"); AUD.click();
+}
+function renderVend(){
+  const i = DKS.open; if (i < 0) return; const v = VENDS[i], now = performance.now();
+  $("pop-vend").style.setProperty("--vc", rgb(v.body)); $("vend-t").textContent = T(v.name);
+  $("vend-s").textContent = T({ en:"A sip, then it works for a few seconds — one at a time.", ko:"한 모금 마시면 몇 초 동안 효과가 나요 — 한 번에 하나씩." });
+  const L = $("vend-l"); L.textContent = "";
+  for (const k of v.kinds){ const D = DRINKS[k], b = document.createElement("button"), cur = !!me.dk && me.dk.k === k && now < me.dk.end && D.dur > 0;
+    b.type = "button"; b.className = "dk" + (D.bottle ? " bottle" : "") + (cur ? " cur" : ""); b.style.setProperty("--c1", rgb(D.can)); b.style.setProperty("--c2", rgb(D.band));
+    b.innerHTML = '<i class="can"><span></span></i><span class="dt"><b></b><small></small></span><em></em>';
+    b.querySelector(".can span").textContent = D.ico; b.querySelector(".dt b").textContent = T(D.name); b.querySelector(".dt small").textContent = T(D.fx);
+    b.querySelector("em").textContent = cur ? T({ en:"On now", ko:"효과 중" }) : D.dur ? T({ en:`${D.dur}s`, ko:`${D.dur}초` }) : T({ en:"At once", ko:"바로" });
+    b.onclick = () => buyDrink(k); L.appendChild(b); }
+  $("vend-n").textContent = T(v.kinds.includes("beer") ? { en:"Sensitive to motion? Turn on “Calm the screen” in ⓘ — the beer then leaves the picture still.", ko:"멀미가 걱정되면 ⓘ에서 ‘화면 흔들림 줄이기’를 켜요 — 맥주를 마셔도 화면은 그대로예요." }
+                                                 : { en:"Any effect can be ended early with the × at the top right.", ko:"효과는 오른쪽 위 알림의 ×로 언제든 끌 수 있어요." });
+}
+function buyDrink(k){
+  const D = DRINKS[k], now = performance.now(); if (!D || !inWorld || making) return;
+  if (DKS.open < 0 || nearVend(2.9) !== DKS.open){ closePops(); hint(T({ en:"Walk up to the machine first", ko:"자판기 앞으로 가서 골라요" })); return; }
+  if (me.dk && now < me.dk.on) return;                                                            /* still drinking the last one */
+  if (BALL.holder === me) dropBall(me, true);                                                     /* both hands free */
+  if (AIM.armed) setArmed(false);
+  me.sit = false; me.bench = false; me.emote = ""; goal = null; closePops();
+  DKS.seq = (DKS.seq + 1) % 10;
+  me.dk = { k, t0:now, on:now + SIP, end:now + SIP + D.dur * 1000, seq:DKS.seq, started:false };
+  me.r = Math.atan2(camPos[0] - me.x, camPos[2] - me.z);                                          /* turn round to face you, and drink */
+  AUD.vend(); if (navigator.vibrate) try { navigator.vibrate(12); } catch (_){}
+  pill(true);
+}
+/* another page's drink: a sip, then the effect, until their letter goes */
+function drinkFrom(a, d, first){
+  const now = performance.now();
+  if (!d){ if (a.dk && a.dk.k === "cider" && a.dk.started && inWorld) popEmote(a, "burp"); a.dk = null; return; }
+  const k = DK_OF[d[0]]; if (!k) return;
+  a.dk = first ? { k, t0:now - SIP, on:now, end:Infinity, started:true } : { k, t0:now, on:now + SIP, end:Infinity, started:false };
+}
+function endDrink(early, quiet){
+  if (!me.dk) return; const k = me.dk.k, was = me.dk.started && !quiet; me.dk = null;
+  if (was && k !== "water"){ if (k === "cider" && !early) popEmote(me, "burp"); AUD.drinkEnd(k === "cider" && !early); if (early) hint(T({ en:"Back to normal", ko:"원래대로 돌아왔어요" }), true); }
+  pill(false); if (DKS.open >= 0 && $("pop-vend").classList.contains("on")) renderVend();
+}
+/* the little notice at the top right: what you drank, a ring that runs down, and × */
+function pill(on){
+  const el = $("drinkfx"); DKS.secs = -1;
+  if (!on || !me.dk){ el.classList.remove("on", "run"); return; }
+  const D = DRINKS[me.dk.k], run = me.dk.started;
+  el.style.setProperty("--dc", rgb(D.can)); el.style.setProperty("--dur", `${D.dur}s`);
+  $("dfx-i").textContent = D.ico; $("dfx-n").textContent = T(D.name);
+  $("dfx-s").textContent = run ? T(D.s) : T({ en:"Gulp, gulp…", ko:"꿀꺽꿀꺽…" });
+  el.classList.remove("run"); if (run){ void el.offsetWidth; el.classList.add("run"); } el.classList.add("on");
+}
+function dkStart(){
+  const D = DRINKS[me.dk.k];
+  if (me.dk.k === "water"){ hint(T({ en:"✨ Fresh — back to normal", ko:"✨ 상쾌해요 — 원래대로 돌아왔어요" })); return; }
+  hint(`${D.ico} ${T(D.fx)} · ${T({ en:`${D.dur}s`, ko:`${D.dur}초` })}`, true); pill(true);
+}
+/* the pose: the can up to the lips and the head back; then the beer's sway and hiccups, the energy drink's lean */
+function dkPose(a, q, now){
+  const u = now - a.dk.t0;
+  if (u < SIP){ if (BALL.holder === a) return; const v = u / SIP, up = sstep(0, .2, v) * (1 - sstep(.84, 1, v)), tip = sstep(.22, .42, v) * (1 - sstep(.76, .88, v));
+    q.a2x = lerp(q.a2x, -2, up); q.a2z = lerp(q.a2z, .45, up); q.bow -= .07 * tip; return; }
+  if (now >= a.dk.end) return;
+  if (a.dk.k === "beer"){ const e = dkEnv(a, now), w = (now - a.dk.on) / 1000, hic = (w % 3.3) / .24;
+    q.sway += Math.sin(w * 1.7) * .085 * e; q.bow += (.03 + Math.sin(w * 3.4) * .02) * e; q.a1z -= .12 * e; q.a2z += .12 * e;
+    if (hic < 1 && w > 1) q.lift += Math.sin(hic * Math.PI) * .06 * e; }
+  else if (a.dk.k === "energy") q.bow += .06 * a.mv;
+}
+/* the beer, on screen: a slow roll of under two degrees, faded in and out; none at all when calm */
+function tipsyRoll(now){
+  if (CALM || making || !dkOn(me, "beer", now)) return 0;
+  const w = (now - me.dk.on) / 1000; return dkEnv(me, now) * (.023 * Math.sin(w * 1.12) + .007 * Math.sin(w * 2.7 + 1.3));
+}
+function stepDrinks(dt, now){
+  const kk = Math.min(1, dt * 5);
+  for (const a of AVATARS()){
+    const tgt = a.dk && dkOn(a, "milk", now) ? 1.35 : 1; a.sc = a.sc ? (Math.abs(a.sc - tgt) < .003 ? tgt : lerp(a.sc, tgt, kk)) : tgt;
+    if (!a.dk) continue;
+    const on = now >= a.dk.on && now < a.dk.end, h = a === me ? 1 : hear(a.x, a.z);
+    if (!a.dk.started && now >= a.dk.on){ a.dk.started = true; popEmote(a, a.dk.k); if (inWorld) AUD.drink(a.dk.k, h); if (a === me) dkStart(); }
+    if (on && a.dk.k === "energy" && a.mv > .25 && now > (a.spk || 0)){ a.spk = now + 110;                    /* sparks at the heels */
+      const p = slot(DKS.P); Object.assign(p, { on:true, t0:now, kind:0, x:a.x + (Math.random() - .5) * .34 - Math.sin(a.r) * .2, y:a.y + .1, z:a.z + (Math.random() - .5) * .34 - Math.cos(a.r) * .2, vy:.5 + Math.random() * .5, life:.6, s:.65 + Math.random() * .35, r:Math.random() * 6 }); }
+    if (on && a.dk.k === "cider" && now > (a.bub || 0)){ a.bub = now + 240 + Math.random() * 220;           /* bubbles rising round them */
+      const p = slot(DKS.P), g = Math.random() * 6.283; Object.assign(p, { on:true, t0:now, kind:1, x:a.x + Math.cos(g) * .3, y:a.y + .45 + Math.random() * .7 * (a.sc || 1), z:a.z + Math.sin(g) * .3, vy:.5 + Math.random() * .35, life:1.3, s:.9 + Math.random() * .6, r:g }); }
+    if (on && a.dk.k === "beer"){ const n = Math.floor((now - a.dk.on) / 3300); if (n !== a.hic){ a.hic = n; if (n > 0 && inWorld) AUD.hic(h); } }
+    if (a !== me && a.dk.k === "water" && a.dk.started) a.dk = null;                                 /* water: just the sip */
+    else if (a === me && now >= a.dk.end) endDrink(false);
+  }
+  for (const p of DKS.P) if (p.on){ const u = (now - p.t0) / 1000; if (u > p.life){ p.on = false; continue; } p.y += p.vy * dt; if (p.kind) p.x += Math.sin(u * 7 + p.r) * .12 * dt; }
+  if (me.dk && me.dk.started && me.dk.end > now){ const s = Math.ceil((me.dk.end - now) / 1000);   /* the seconds left */
+    if (s !== DKS.secs){ DKS.secs = s; $("dfx-s").textContent = `${T(DRINKS[me.dk.k].s)} · ${T({ en:`${s}s`, ko:`${s}초` })}`; } }
+  const tip = dkOn(me, "beer", now) && !making, el = $("tipsy");                                       /* a warm blush round the edge of the picture */
+  if (tip){ const w = (now - me.dk.on) / 1000; if (!DKS.tipsy){ DKS.tipsy = true; el.style.display = "block"; }
+    el.style.opacity = (dkEnv(me, now) * (CALM ? .55 : .7 + .3 * Math.sin(w * 1.12))).toFixed(3); }
+  else if (DKS.tipsy){ DKS.tipsy = false; el.style.display = "none"; el.style.opacity = "0"; }
+}
+function canMeshes(){
+  const one = (fn) => { const A = maker(); fn(A); return upload(A.v); }, M = {};
+  for (const k in DRINKS){ const D = DRINKS[k];
+    M[k] = one(A => { if (D.bottle){ A.lathe([[0, -.085], [.034, -.085], [.036, -.075], [.036, .025], [.022, .055], [.013, .068], [.013, .082], [0, .083]], D.can, 8, 14);
+                        A.lathe([[.0365, -.03], [.0365, .012]], D.band, 5, 14); A.ell([0, .082, 0], .016, .01, .016, [.25, .5, .92], 5, 8); }
+                      else { A.lathe([[0, -.07], [.036, -.07], [.04, -.062], [.04, .052], [.032, .066], [0, .068]], D.can, 8, 14);
+                        A.lathe([[.0405, -.026], [.0405, .026]], D.band, 5, 14); A.ell([0, .067, 0], .026, .004, .026, [.86, .88, .9], 3, 10); } }); }
+  M.bub = one(A => A.ell([0, 0, 0], .05, .05, .05, [.9, .97, 1], 8, 10));
+  return M;
+}
+function canAx(c, d, r, k){ let x = cross(d, [Math.sin(r), 0, Math.cos(r)]); const l = Math.hypot(x[0], x[1], x[2]) || 1; x = [x[0] / l, x[1] / l, x[2] / l]; const z = cross(x, d);   /* its axis along d */
+  MX[0] = x[0] * k; MX[1] = x[1] * k; MX[2] = x[2] * k; MX[3] = 0; MX[4] = d[0] * k; MX[5] = d[1] * k; MX[6] = d[2] * k; MX[7] = 0;
+  MX[8] = z[0] * k; MX[9] = z[1] * k; MX[10] = z[2] * k; MX[11] = 0; MX[12] = c[0]; MX[13] = c[1]; MX[14] = c[2]; MX[15] = 1; return MX; }
+function bodyPt(a, now, p){ const q = pose(a, now), base = mm4(Tm(a.x, a.y + q.lift, a.z), RYS(a.r + q.spin, a.sc || 1)), M = mm4(base, mm4(Tm(0, .42, 0), mm4(RX(q.bow), mm4(RZ(q.sway), Tm(0, -.42, 0)))));   /* a point on the head or body, as drawn */
+  return [M[0] * p[0] + M[4] * p[1] + M[8] * p[2] + M[12], M[1] * p[0] + M[5] * p[1] + M[9] * p[2] + M[13], M[2] * p[0] + M[6] * p[1] + M[10] * p[2] + M[14]]; }
+function drawDrinks(p, now){
+  if (!BM || p === P.sh) return;
+  if (!DKS.mesh) DKS.mesh = canMeshes();
+  const u = p.u, put = (m, M) => { gl.uniformMatrix4fv(u.uM, false, M); bindMesh(m); gl.drawArrays(gl.TRIANGLES, 0, m.n); };
+  for (const a of AVATARS()){ if (!a.dk || now - a.dk.t0 > SIP || !a.mesh || (a === me && tooClose())) continue;   /* the can in the hand */
+    const v = (now - a.dk.t0) / SIP, sc = a.sc || 1, k = 1.35 * sc * sstep(0, .08, v) * (1 - sstep(.92, 1, v)); if (k < .01) continue;
+    const H = handAt(a, 1, now), tip = sstep(.22, .42, v) * (1 - sstep(.76, .88, v)), Mo = bodyPt(a, now, [0, HEAD - .15, .34]);   /* from the hand up to the lips */
+    const dm = norm(sub(Mo, H)), d = norm([dm[0] * tip, 1 - tip + dm[1] * tip, dm[2] * tip]);
+    put(DKS.mesh[a.dk.k], canAx([lerp(H[0], (H[0] + Mo[0]) / 2, tip), lerp(H[1] + .03 * sc, (H[1] + Mo[1]) / 2, tip), lerp(H[2], (H[2] + Mo[2]) / 2, tip)], d, a.r, k)); }
+  if (PASS !== "main") return;
+  for (const q of DKS.P) if (q.on){ const t = (now - q.t0) / 1000, k = q.s * Math.min(1, t * 6) * (1 - sstep(q.life * .6, q.life, t));
+    put(q.kind ? DKS.mesh.bub : BM.star, setM(q.x, q.y, q.z, k, k, k, q.r + t * 3)); }
+  if (dkOn(me, "ghost", now) && !making){ const k = .34 + Math.sin(now / 240) * .02; put(BM.mark, setM(me.x, me.y + .02, me.z, k, 1, k, now / 900)); }   /* where you are, though nobody can see you */
+}
+/* by a machine: a button over it; walk away and the menu closes */
+function updateVend(now){
+  let b = $("vendb");
+  if (!b){ b = document.createElement("button"); b.id = "vendb"; b.type = "button"; b.innerHTML = '<span class="vi">🥤</span><span></span><kbd>E</kbd>'; $("tags").appendChild(b);
+    b.onclick = () => { const i = nearVend(2.4); if (i < 0) return; if ($("pop-vend").classList.contains("on")) closePops(); else openVend(i); }; }
+  const i = camPos[1] > -.05 && !me.sit && !(me.dk && now < me.dk.on + 600) ? nearVend(2.2) : -1, q = i >= 0 ? project([VENDS[i].x, 2.08, VZ1]) : null;   /* not while drinking */
+  b.classList.toggle("on", !!q);
+  if (q){ const lab = T({ en:"Get a drink", ko:"음료 고르기" }); if (b.children[1].textContent !== lab) b.children[1].textContent = lab;
+    b.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`; }
+  if (DKS.open >= 0 && $("pop-vend").classList.contains("on") && nearVend(3.2) !== DKS.open) closePops();     /* walked away */
+  if (!DKS.told && inWorld && !making){ if (!DKS.inAt) DKS.inAt = now;                                    /* once: where they are */
+    else if (now - DKS.inAt > 16000){ DKS.told = true; let seen = false; try { seen = !!localStorage.getItem("lam-pool-vend"); localStorage.setItem("lam-pool-vend", "1"); } catch (_){}
+      if (!seen && Math.hypot(me.x, me.z - VZ1) > 6) hint(T({ en:"🥤 Two vending machines stand by the glass across the pool — try a drink", ko:"🥤 수영장 건너편 유리벽 앞에 자판기 2대가 있어요 — 음료를 마셔 봐요" })); } }
+}
+
+/* ==========================================================================
    10. INPUT
    ========================================================================== */
 const ptrs = new Map(); let pinch0 = 0, d0 = 0;
@@ -24125,7 +24420,9 @@ window.addEventListener("keydown", e => {
   if (e.code === "Space"){ e.preventDefault(); jump(); }
   if (e.code === "KeyF" && !e.repeat && inWorld && !making){ if (BALL.holder === me) throwNow(); else setArmed(!AIM.armed); }
   if (e.code === "KeyG" && !e.repeat && inWorld && !making){ if (BALL.holder === me) dropBall(me, true); else grabBall(true); }
-  if (e.code === "KeyE" && inWorld && !making && !e.repeat){ if (me.sit) standUp(); else { const st = Math.abs(me.y) < .3 && seatNear(me.x, me.z, 2.4); if (st) goSit(st); } }
+  if (e.code === "KeyE" && inWorld && !making && !e.repeat){ const vi = me.sit ? -1 : nearVend(2.2);
+    if (vi >= 0){ if ($("pop-vend").classList.contains("on")) closePops(); else openVend(vi); }
+    else if (me.sit) standUp(); else { const st = Math.abs(me.y) < .3 && seatNear(me.x, me.z, 2.4); if (st) goSit(st); } }
   if (e.code === "Enter" && inWorld && !making){ e.preventDefault(); openSay(); }
   if (/^Arrow/.test(e.code)) e.preventDefault();
 });
@@ -24138,6 +24435,9 @@ $("throwb").addEventListener("click", () => { const tb = $("throwb"), n = AIM.la
 $("throwx").addEventListener("click", () => { AUD.click(); setArmed(false); });
 document.querySelectorAll("#mv-seg [data-mv]").forEach(b => b.onclick = () => { AUD.click(); setMove(b.dataset.mv); });
 setMove(MOVE);
+$("calm").onchange = () => { AUD.click(); setCalm($("calm").checked); }; setCalm(CALM);
+$("dfx-x").onclick = () => { AUD.click(); endDrink(true); };
+$("vend-x").onclick = () => { AUD.click(); closePops(); };
 $("b-bal").onclick = () => { AUD.click(); closePops(); setArmed(!AIM.armed); };
 $("rank-h").onclick = () => { AUD.click(); $("rank").classList.toggle("min"); };
 if (!HOVER || innerWidth < 760) $("rank").classList.add("min");
@@ -24163,7 +24463,7 @@ function openSay(){ if (openPop("pop-say")) setTimeout(() => $("say-i").focus(),
 $("b-say").onclick = () => { AUD.click(); openSay(); };
 $("b-emo").onclick = () => { AUD.click(); openPop("pop-emo"); };
 $("b-srv").onclick = () => { AUD.click(); renderServers(); openPop("pop-srv"); };
-$("b-me").onclick = () => { closePops(); making = true; chosen = NET.srv || 1; document.body.classList.add("making"); document.body.classList.remove("about"); renderServers(); AUD.click(); };
+$("b-me").onclick = () => { closePops(); endDrink(false, true); making = true; chosen = NET.srv || 1; document.body.classList.add("making"); document.body.classList.remove("about"); renderServers(); AUD.click(); };
 document.querySelectorAll("#pop-emo [data-e]").forEach(b => b.onclick = () => { emote(b.dataset.e); if (b.dataset.e !== "sit") closePops(); });
 $("say").addEventListener("submit", e => { e.preventDefault(); say($("say-i").value); $("say-i").value = ""; $("say-i").blur(); closePops(); });
 $("snd").onclick = () => { AUD.unlock(); AUD.on = !AUD.on; $("snd").setAttribute("aria-pressed", String(AUD.on)); };
@@ -24209,11 +24509,12 @@ function drawPeople(p, now){
   const hideMe = tooClose();
   for (const a of AVATARS()){
     if (!a.mesh || (a === me && hideMe) || (making && a.npc && Math.hypot(a.x - me.x, a.z - me.z) < 2.4 && Math.abs(a.y - me.y) < 1)) continue;
+    if (a.dk && (PASS === "main" || PASS === "nrm" || PASS === "rf") && dkOn(a, "ghost", now)) continue;   /* the clear soda: only the reflection and the shadow are left */
     if (p.u.uAvY) gl.uniform1f(p.u.uAvY, a.y);
-    const mats = partMats(a, now); if (p.u.uAvP) gl.uniform3f(p.u.uAvP, a.x, a.y + mats.lift, a.z);
+    const mats = partMats(a, now); if (p.u.uAvP) gl.uniform3f(p.u.uAvP, a.x, a.y + mats.lift + ((a.sc || 1) - 1) * .82, a.z);
     for (const [M, part] of mats){ gl.uniformMatrix4fv(p.u.uM, false, M); bindMesh(part); gl.drawArrays(gl.TRIANGLES, 0, part.n); } }
   if (p.u.uAvY) gl.uniform1f(p.u.uAvY, -99);
-  drawBalloons(p);
+  drawBalloons(p); drawDrinks(p, now);
 }
 function drawSky(VP, clip, t){ gl.depthMask(false); useProg(P.sky, VP, clip, 0, t); gl.uniformMatrix4fv(P.sky.u.uM, false, Tm(camPos[0], camPos[1], camPos[2])); bindMesh(SKY); gl.drawArrays(gl.TRIANGLES, 0, SKY.n); gl.depthMask(true); }
 function drawScene(VP, clip, below, t, now){ useProg(P.main, VP, clip, below, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.main, now); }
@@ -24221,7 +24522,8 @@ let fov = .9;
 function render(t, now){
   const below = camPos[1] < 0 ? 1 : 0;
   fov = lerp(fov, making || below ? (PHONE() ? 1.02 : .9) : (PHONE() ? .78 : .6), .12);          /* a long lens above: nearly isometric */
-  const VP = mm4(persp(fov, W / H, .06, 600), lookAt(camPos, camTgt)); VPm = VP;
+  const roll = tipsyRoll(now), LA = lookAt(camPos, camTgt);                                        /* the beer: a slow, small sway of the picture */
+  const VP = mm4(persp(fov, W / H, .06, 600), roll ? mm4(RZ(roll), LA) : LA); VPm = VP;
   /* the sun's view, for shadows */
   updateSV();
   gl.bindFramebuffer(gl.FRAMEBUFFER, shFB); gl.viewport(0, 0, SS, SS); gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -24258,9 +24560,9 @@ let lastT = performance.now(), pruneAt = 0, zoneHint = { below:false, up:false }
 function frame(now){
   tuneQuality(now - lastT);
   const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; const t = now / 1000;
-  moveMe(dt); stepPeers(dt); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); placeCamera(dt);
+  moveMe(dt); stepPeers(dt); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); placeCamera(dt);
   if (me.emote && now - me.et0 > 4200) me.emote = "";
-  render(t, now); updateTags(now); updateSeats(); updateBallUI(); maybeSend();
+  render(t, now); updateTags(now); updateSeats(); updateBallUI(); updateVend(now); maybeSend();
   { const el = $("goal"), p = goal && inWorld && !making ? project([goal.x, goal.y + .02, goal.z]) : null;           /* where you are walking to */
     if (p){ const k = clamp(9 / p[2], .45, 1.6); el.style.transform = `translate(${p[0]}px, ${p[1]}px) translate(-50%, -50%) scale(${k})`; el.classList.add("on"); } else el.classList.remove("on"); }
   const z = zoneOf(me.x, me.y, me.z);
@@ -24284,6 +24586,10 @@ function about(){
   $("mv-t").textContent = T({ en:"How to walk", ko:"이동 방식" });
   { const L = { stick:TOUCH ? { en:"Joystick", ko:"조이스틱" } : { en:"Keyboard (WASD)", ko:"키보드 (WASD)" }, click:TOUCH ? { en:"Tap to walk", ko:"탭해서 이동" } : { en:"Click to walk", ko:"클릭해서 이동" } };
     document.querySelectorAll("#mv-seg [data-mv]").forEach(b => { b.firstChild.textContent = T(L[b.dataset.mv]); }); }
+  $("calm-t").textContent = T({ en:"Calm the screen", ko:"화면 흔들림 줄이기" });
+  $("calm-n").textContent = T({ en:"For motion sickness: the beer no longer sways the picture, and the energy drink stays gentler.", ko:"멀미가 날 때 켜요 — 맥주를 마셔도 화면이 흔들리지 않고, 에너지 드링크의 속도도 부드러워져요." });
+  $("dfx-x").setAttribute("aria-label", T({ en:"Stop the effect", ko:"효과 끄기" })); $("dfx-x").title = T({ en:"Stop the effect", ko:"효과 끄기" });
+  $("vend-x").setAttribute("aria-label", T({ en:"Close", ko:"닫기" }));
   $("ab-h3").textContent = T({ en:"Here", ko:"이 공간에서" });
   const ol = $("ab-ol"); ol.innerHTML = "";
   [{ en:"Make a character and pick one of two servers — up to twenty people share each", ko:"캐릭터를 꾸미고 두 서버 중 하나를 골라요 — 서버마다 20명까지 함께해요" },
@@ -24292,6 +24598,7 @@ function about(){
    { en:"Beach ball: walk into it to kick it, jump for a high one. Get close and press G (or tap the ball) to pick it up; holding it, press and drag to aim and let go to throw. G puts it down", ko:"비치볼: 몸으로 밀면 차고, 점프하며 부딪히면 높이 떠요. 가까이 가서 G(또는 공을 누르기)로 잡고, 잡은 채 화면을 누르고 끌어 조준한 뒤 놓으면 던져요. G로 내려놓아요" },
    { en:"Wish coins: write a wish, throw the coin into the pool. Walk close to a coin — by the edge, or underneath — to read the wish on it", ko:"소원 동전: 소원을 적어 수영장에 던져요. 물가나 아래층에서 동전 가까이 가면 적힌 소원을 읽을 수 있어요" },
    { en:"Water balloons: press and hold anywhere, drag to where it should land — the arc shows the way — and let go. On a computer you can also hold F and point", ko:"물풍선: 화면을 꾹 누른 채 떨어질 곳으로 끌면 포물선이 보여요. 손을 떼면 던져요. 컴퓨터에서는 F를 누른 채 마우스로 조준해도 돼요" },
+   { en:"Vending machines: two stand against the glass across the pool. Walk up (or press E) and pick a drink — the energy drink speeds you up, cider doubles your jump, milk makes you big, beer sways the world a little, the clear soda leaves only your reflection and shadow; water clears it all. One effect at a time; the × at the top ends it", ko:"자판기: 수영장 건너편 유리벽 앞에 2대가 있어요. 가까이 가서(또는 E) 음료를 골라요 — 에너지 드링크는 빨라지고, 사이다는 점프가 두 배, 우유는 몸이 커지고, 맥주는 세상이 살짝 어질어질, 투명 음료는 물에 비친 모습과 그림자만 남겨요. 생수는 효과를 모두 없애요. 효과는 한 번에 하나, 위쪽 알림의 ×로 언제든 끌 수 있어요" },
    { en:"Talk (Enter), wave, bow, jump, dance or sit — near a bench every free seat shows a ring: click it, or press E, to sit", ko:"말하기(Enter), 손 흔들기·인사·점프·춤·앉기로 만나요 — 벤치 가까이 가면 빈자리에 동그라미가 떠요. 누르거나 E 키로 앉아요" }]
     .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); ol.appendChild(li); });
   const lab = { wave:{ en:"Wave", ko:"손 흔들기" }, bow:{ en:"Bow", ko:"인사" }, jump:{ en:"Jump", ko:"점프" }, dance:{ en:"Dance", ko:"춤" }, sit:{ en:"Sit", ko:"앉기" }, heart:{ en:"Heart", ko:"하트" } };
@@ -24323,7 +24630,7 @@ if (!initGL()){
   netInit();
 }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
-window.__pool = { faceOf, AUD, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
+window.__pool = { faceOf, AUD, buyDrink, openVend, endDrink, setCalm, DRINKS, VENDS, handAt, pose, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
 <!--SCRIPT_END-->
 </body>
 </html>
