@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261113135335";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261113141030";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -22244,12 +22244,13 @@ const LAMPS = [[-10.5, -CZW, 0, 1], [10.5, -CZW, 0, 1], [-10.5, CZW, 0, -1], [10
 const GARLANDS = [[0, 1], [2, 3], [4, 5], [6, 7]];
 const lampAt = (l, out, y) => [l[0] + l[2] * out, y, l[1] + l[3] * out];
 const onVend = (x, z, pad) => VENDS.findIndex(v => x > v.x0 - pad && x < v.x1 + pad && z > v.z0 - pad && z < v.z1 + pad);
-const vendBlock = (x, z, pad) => onVend(x, z, pad) >= 0 || Math.hypot(x - VBIN[0], z - VBIN[1]) < .22 + pad;
+const vendBlock = (x, z, pad) => onVend(x, z, pad) >= 0 || Math.hypot(x - VBIN[0], z - VBIN[1]) < .22 + pad || snowBlock(x, z, pad);
 const onBench = (x, z, pad) => BENCHES.findIndex(([bx, bz, ax]) => Math.abs(x - bx) < (ax ? .95 : .24) + pad && Math.abs(z - bz) < (ax ? .24 : .95) + pad);
 /* may the camera stand here? it keeps to the same side of the water as you, and out of the trees */
 function camOK(x, y, z, below){
   if (y > .3) for (const [tx, tz] of TREES) if (Math.hypot(x - tx, z - tz) < (y > 1.6 ? 1.5 : .8)) return false;
   if (y < 2.15 && onVend(x, z, .15) >= 0) return false;                                                      /* not inside a vending machine */
+  if (y < 1.9 && snowBlock(x, z, .25)) return false;                                                           /* nor inside a snowman */
   if (inR(x, z, HOLE.x0 + .06, HOLE.x1 - .06, HOLE.z0 + .06, HOLE.z1 - .02) && y > FLOOR + .15) return true;   /* the open stairwell */
   if (!below) return y > .2 && y < 14 && inR(x, z, -CXW + .2, CXW - .2, -CZW + .2, CZW - .2) && (y < 3.5 || inR(x, z, -CXW + .75, CXW - .75, -CZW + .75, CZW - .75));   /* not in the roof edge */
   if (y > FLOOR + .12 && y < -.1 && inR(x, z, -PX + .1, PX - .1, -PZ + .1, PZ - .1)) return true;
@@ -23538,7 +23539,7 @@ function cleanState(st){
   const e = typeof st.e === "string" && EMOTES[st.e] ? st.e : "";
   return { x:num(st.x, -CXW, CXW, 0), y:num(st.y, FLOOR - .1, 1.5, 0), z:num(st.z, -CZW, CZW, 0), r:num(st.r, -7, 7, 0), w:st.w ? 1 : 0, e, et:num(st.et, 0, 1e15, 0),
     m:cleanText(st.m, 40), mt:num(st.mt, 0, 1e15, 0), n:cleanText(st.n, 12) || "…", look:lookFrom(st.k), f:typeof st.f === "string" ? st.f.slice(0, 48) : "", b:typeof st.b === "string" ? st.b.slice(0, 60) : "",
-    d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "", q:typeof st.q === "string" && /^[psaw][0-9a-z]{1,11}$/.test(st.q) ? st.q : "" };
+    d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "", q:typeof st.q === "string" && /^[psawn][0-9a-z]{1,11}$/.test(st.q) ? st.q : "" };
 }
 function onPeerList(list){
   const seen = new Set(), now = performance.now();
@@ -23909,12 +23910,14 @@ const AUD = (() => {
     score(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 1568, .1, .018); tone(tt + .09, 2093, .2, .016); },
     fire(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; burst(tt, .3, 1400, .8, .03 * h); burst(tt + .02, .2, 3200, 1.2, .012 * h); },
     wstep(){ if (!ok()) return; const tt = ctx.currentTime, f = 1000 + Math.random() * 300; tone(tt, f, .06, .012, f * 1.5); burst(tt, .05, 2600, 2, .008); },
-    season(s){ if (!ok()) return; const tt = ctx.currentTime; ({ spring:[1319, 1568, 2093], summer:[1047, 1568, 2093], autumn:[1175, 988, 1319], winter:[2637, 2093, 3136] })[s].forEach((f, i) => tone(tt + i * .1, f, .26, .016)); },
+    season(s){ if (!ok()) return; const tt = ctx.currentTime; ({ spring:[1319, 1568, 2093], summer:[1047, 1568, 2093], autumn:[1175, 988, 1319], winter:[2637, 2093, 3136], none:[1568, 1319, 1175] })[s].forEach((f, i) => tone(tt + i * .1, f, .26, .016)); },
     rustle(){ if (!ok()) return; const tt = ctx.currentTime; for (let i = 0; i < 4; i++) burst(tt + i * .06 + Math.random() * .04, .08, 3600 + Math.random() * 1800, 1.4, .012); },
     skate(k){ if (!ok() || k <= 0) return; const tt = ctx.currentTime; burst(tt, .22, 4200, 1.1, .016 * k); burst(tt + .05, .16, 2600, 2, .008 * k); },
     cicada(k){ if (!ok() || k <= 0) return; const tt = ctx.currentTime, n = 4 + (Math.random() * 3 | 0), f = 3100 + Math.random() * 500;   /* maem — maem — maem */
       for (let i = 0; i < n; i++){ tone(tt + i * .3, f, .22, .0045 * k, f * .9, "sawtooth"); tone(tt + i * .3 + .02, f * 1.5, .18, .0025 * k, null, "triangle"); } },
     chime(night){ if (!ok()) return; const tt = ctx.currentTime; (night ? [1568, 1319, 1047, 784] : [1047, 1319, 1568, 2093]).forEach((f, i) => tone(tt + i * .12, f, .28, .016)); },
+    roll(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; burst(tt, .09, 1600, 2.5, .016 * h); burst(tt + .05, .07, 2600, 3, .01 * h); },   /* snow crunching under a rolling ball */
+    snowman(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; [1568, 2093, 2637, 3136, 4186].forEach((f, i) => tone(tt + i * .07, f, .22, .016 * h)); },
     hic(h){ if (!ok() || h <= 0) return; tone(ctx.currentTime, 820, .06, .03 * h, 1350, "triangle"); },
     stretch(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 760, .12, .012, 1150, "triangle"); },
     toss(k){ if (!ok() || k <= 0) return; const tt = ctx.currentTime; burst(tt, .15, 1800, 2, .02 * k); tone(tt, 600, .16, .014 * k, 1150, "triangle"); },
@@ -24063,6 +24066,7 @@ function onFx(a, f){
   const n = f.split(":").slice(1).map(Number); if (n.some(v => !isFinite(v))) return;
   if (f[0] === "c" && n.length >= 6){ a.thr = performance.now(); AUD.flick(hear(a.x, a.z) * .7); a.r = n[2];
     flipCoin(coinPath({ x0:clamp(n[0], -CXW, CXW), z0:clamp(n[1], -CZW, CZW), a:n[2], v:clamp(n[3], 1, 10), th:clamp(n[4], 2, 85), k:clamp(n[5] | 0, 0, 5) })); return; }
+  if (f[0] === "s"){ snowFrom(a, n); return; }
   if (f[0] !== "b" || n.length < 5) return;
   a.thr = performance.now(); launch(a, clamp(n[0], -CXW, CXW), a.y + 1.2, clamp(n[1], -CZW, CZW), clamp(n[2], -CXW, CXW), clamp(n[3], -CZW, CZW), Math.abs(n[4] | 0) % BAL_COL.length);
 }
@@ -24701,7 +24705,7 @@ function stepNight(){
   const dark = NIGHT.k > .5; if (dark !== NIGHT.dark){ NIGHT.dark = dark; document.body.classList.toggle("night", dark); siteLight(!dark); }   /* light words on the dark, here and on the site around it */
   if (ph !== NIGHT.ph){ if (NIGHT.ph >= 0 && inWorld && !making){ hint(T(ph ? { en:"🌙 Night falls — the wall lamps come on", ko:"🌙 밤이 되었어요 — 벽등과 줄 전구가 켜져요" } : { en:"☀️ Morning by the pool", ko:"☀️ 아침이 밝았어요" })); AUD.chime(ph); } NIGHT.ph = ph; }
   const sec = Math.ceil((DAYLEN - into) / 1000);                                                                   /* how long till it turns, in the count pill */
-  if (sec !== NIGHT.secs){ NIGHT.secs = sec; const el = $("c-dn"); el.textContent = `${SEA_INFO[SEASON.cur].ico} ${ph ? "🌙" : "☀️"} ${clock(sec)}`;
+  if (sec !== NIGHT.secs){ NIGHT.secs = sec; const el = $("c-dn"); el.textContent = `${SEA_INFO[SEASON.cur].ico ? SEA_INFO[SEASON.cur].ico + " " : ""}${ph ? "🌙" : "☀️"} ${clock(sec)}`;
     el.title = `${T(SEA_INFO[SEASON.cur].n)} · ${T(ph ? { en:"Night — morning in", ko:"밤 — 아침까지" } : { en:"Day — night in", ko:"낮 — 밤까지" })} ${clock(sec)} · ${T({ en:"click to change the season", ko:"눌러서 계절 바꾸기" })}`; }
 }
 
@@ -24713,28 +24717,29 @@ function stepNight(){
        and fireflies come from one fixed pool, drawn in a single call; in
        winter the pool freezes and you ski across it
    ========================================================================== */
-const SEASONS = ["spring", "summer", "autumn", "winter"], SEA_C = { spring:"p", summer:"s", autumn:"a", winter:"w" }, SEA_OF = { p:"spring", s:"summer", a:"autumn", w:"winter" };
-const SEA_INFO = { spring:{ ico:"🌸", to:"봄으로", n:{ en:"Spring", ko:"봄" }, d:{ en:"Cherry petals", ko:"벚꽃잎" } }, summer:{ ico:"🍉", to:"여름으로", n:{ en:"Summer", ko:"여름" }, d:{ en:"Cicadas, fireflies", ko:"매미·반딧불" } },
+const SEASONS = ["spring", "summer", "autumn", "winter"], SEA_C = { none:"n", spring:"p", summer:"s", autumn:"a", winter:"w" }, SEA_OF = { n:"none", p:"spring", s:"summer", a:"autumn", w:"winter" };
+const sIdx = (s) => s === "none" ? 1 : SEASONS.indexOf(s);                                         /* none: the trees as they are */
+const SEA_INFO = { none:{ ico:"", to:"기본으로", n:{ en:"Default", ko:"기본" }, d:{ en:"", ko:"" } }, spring:{ ico:"🌸", to:"봄으로", n:{ en:"Spring", ko:"봄" }, d:{ en:"Cherry petals", ko:"벚꽃잎" } }, summer:{ ico:"🍉", to:"여름으로", n:{ en:"Summer", ko:"여름" }, d:{ en:"Cicadas, fireflies", ko:"매미·반딧불" } },
                    autumn:{ ico:"🍁", to:"가을로", n:{ en:"Autumn", ko:"가을" }, d:{ en:"Falling leaves", ko:"낙엽" } }, winter:{ ico:"❄️", to:"겨울로", n:{ en:"Winter", ko:"겨울" }, d:{ en:"Snow, ski the ice", ko:"눈·얼음 스키" } } };
-const calSeason = () => { const m = new Date().getMonth() + 1; return m >= 3 && m <= 5 ? "spring" : m >= 6 && m <= 8 ? "summer" : m >= 9 && m <= 11 ? "autumn" : "winter"; };
-const SEASON = { cur:calSeason(), from:null, stamp:0, t0:-1e9, ia:0, ib:0, mix:1, snow:0, ice:0, pickAt:0 };
-SEASON.ia = SEASON.ib = SEASONS.indexOf(SEASON.cur); SEASON.snow = SEASON.ice = SEASON.cur === "winter" ? 1 : 0;
+const SEASON = { cur:"none", from:null, stamp:0, t0:-1e9, ia:1, ib:1, mix:1, snow:0, ice:0, pickAt:0 };     /* by default: no season at all */
 const iceOn = () => SEASON.ice > .6;
 function setSeason(s, stamp, by){
-  if (!SEASONS.includes(s) || stamp < SEASON.stamp) return; SEASON.stamp = stamp; if (s === SEASON.cur) return;
-  SEASON.from = SEASON.cur; SEASON.cur = s; SEASON.t0 = performance.now(); SEASON.ia = SEASONS.indexOf(SEASON.from); SEASON.ib = SEASONS.indexOf(s); SEASON.mix = 0;
+  if (!SEA_INFO[s] || stamp < SEASON.stamp) return; SEASON.stamp = stamp; if (s === SEASON.cur) return;
+  SEASON.from = SEASON.cur; SEASON.cur = s; SEASON.t0 = performance.now(); SEASON.ia = sIdx(SEASON.from); SEASON.ib = sIdx(s); SEASON.mix = 0;
   renderSeason(); NIGHT.secs = -1;
-  if (inWorld && !making){ const I = SEA_INFO[s]; hint(by ? `${I.ico} ${T({ en:`${by} turned it to ${I.n.en}`, ko:`${by}님이 계절을 ${I.to} 바꿨어요` })}` : `${I.ico} ${T({ en:`${I.n.en} — for everyone on this server`, ko:`${I.n.ko}이 되었어요 — 이 서버 모두에게 함께 바뀌어요` })}`); AUD.season(s); }
+  if (inWorld && !making){ const I = SEA_INFO[s]; hint(by ? `${I.ico} ${T({ en:`${by} turned it to ${I.n.en}`, ko:`${by}님이 계절을 ${I.to} 바꿨어요` })}` : `${I.ico} ${T({ en:`${I.n.en} — for everyone on this server`, ko:s === "none" ? "계절 효과를 껐어요 — 기본으로 돌아왔어요" : `${I.n.ko}이 되었어요 — 이 서버 모두에게 함께 바뀌어요` })}`); if (s !== "none") AUD.season(s); }
 }
-function pickSeason(s){ const now = performance.now(); if (s === SEASON.cur){ closePops(); return; }
+function pickSeason(s){ const now = performance.now(); if (s === SEASON.cur) s = "none";                     /* the chosen one again: back to none */
   if (now - SEASON.pickAt < 3000){ hint(T({ en:"Just a moment before changing it again", ko:"조금 있다가 다시 바꿀 수 있어요" })); return; }
   SEASON.pickAt = now; closePops(); setSeason(s, Date.now(), null); lastSig = ""; }
 function seasonFrom(a, q){ if (!q) return; const st = parseInt(q.slice(1), 36); if (st > SEASON.stamp && st < Date.now() + 6e4) setSeason(SEA_OF[q[0]], st, a.name); }
-function resetSeason(){ SEASON.stamp = 0; const s = calSeason(); if (s !== SEASON.cur){ SEASON.from = SEASON.cur; SEASON.cur = s; SEASON.t0 = performance.now(); SEASON.ia = SEASONS.indexOf(SEASON.from); SEASON.ib = SEASONS.indexOf(s); SEASON.mix = 0; } renderSeason(); }
+function resetSeason(){ SEASON.stamp = 0; const s = "none"; if (s !== SEASON.cur){ SEASON.from = SEASON.cur; SEASON.cur = s; SEASON.t0 = performance.now(); SEASON.ia = sIdx(SEASON.from); SEASON.ib = sIdx(s); SEASON.mix = 0; } renderSeason(); }
 function renderSeason(){
   const g = $("sea-g"); if (!g) return;
   g.querySelectorAll("[data-s]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.s === SEASON.cur)));
-  $("sea-n").textContent = T(NET.be ? { en:"Change it and it changes for everyone on this server.", ko:"바꾸면 이 서버에 있는 모두에게 함께 바뀌어요." } : { en:"Not connected: it changes on this device only.", ko:"서버에 연결되지 않아 이 기기에서만 바뀌어요." });
+  $("sea-t").textContent = `${T({ en:"Season", ko:"계절 바꾸기" })} · ${T({ en:"now", ko:"지금" })}: ${SEA_INFO[SEASON.cur].ico ? SEA_INFO[SEASON.cur].ico + " " : ""}${T(SEA_INFO[SEASON.cur].n)}${SEASON.cur === "none" ? T({ en:" (none)", ko:"(없음)" }) : ""}`;
+  $("sea-n").textContent = T(NET.be ? { en:"Tap the chosen one again to go back to none. It changes for everyone on this server.", ko:"고른 계절을 다시 누르면 기본(없음)으로 돌아가요. 바꾸면 이 서버의 모두에게 함께 바뀌어요." }
+                                     : { en:"Tap the chosen one again to go back to none. Not connected: this device only.", ko:"고른 계절을 다시 누르면 기본(없음)으로 돌아가요. 서버에 연결되지 않아 이 기기에서만 바뀌어요." });
 }
 /* ---- petals, leaves, snow, fireflies: one pool, one buffer, one draw ---- */
 const SPN = 240, SPV = new Float32Array(SPN * 6 * ST), SP = Array.from({ length:SPN }, () => ({ on:false }));
@@ -24753,7 +24758,7 @@ function stepSeason(dt, now){
   if (!inWorld || !gl) return;
   /* the ground for things that fall: the deck, the water (or ice), the room below if you are there */
   const below = camPos[1] < -.05, cx = me.x + Math.sin(view.yaw) * 4, cz = me.z + Math.cos(view.yaw) * 4;
-  const kind = S.cur === "summer" ? (NIGHT.k > .5 ? "fly" : null) : S.cur, want = below ? 0 : kind === "winter" ? 220 : kind === "spring" ? 110 : kind === "autumn" ? 90 : kind === "fly" ? 30 : 0;
+  const kind = S.cur === "summer" ? (NIGHT.k > .5 ? "fly" : null) : S.cur === "none" ? null : S.cur, want = below ? 0 : kind === "winter" ? 220 : kind === "spring" ? 110 : kind === "autumn" ? 90 : kind === "fly" ? 30 : 0;
   let live = 0; for (const p of SP) if (p.on) live++;
   spAcc += dt * want / (kind === "winter" ? 4.5 : kind === "fly" ? 3 : 6);                                          /* a steady fall, about as many as wanted */
   while (spAcc > 1 && live < want){ spAcc--; live++;
@@ -24763,7 +24768,7 @@ function stepSeason(dt, now){
       spawnP(kind, clamp(x, -CXW + .3, CXW - .3), y, clamp(z, -CZW + .3, CZW - .3)); } }
   if (spAcc > 1) spAcc = 1;
   /* a tree you walk up to lets go of a handful */
-  if (!below && Math.abs(me.y) < .4) TREES.forEach(([tx, tz], i) => { if (Math.hypot(tx - me.x, tz - me.z) < 1.4 && now > treeAt[i]){ treeAt[i] = now + 4000;   /* summer: the cicadas in it start up, or at night a few fireflies */
+  if (!below && S.cur !== "none" && Math.abs(me.y) < .4) TREES.forEach(([tx, tz], i) => { if (Math.hypot(tx - me.x, tz - me.z) < 1.4 && now > treeAt[i]){ treeAt[i] = now + 4000;   /* summer: the cicadas in it start up, or at night a few fireflies */
     if (S.cur === "summer"){ if (NIGHT.k > .5) for (let k = 0; k < 7; k++) spawnP("fly", tx + (Math.random() - .5) * 2, .6 + Math.random() * 1.8, tz + (Math.random() - .5) * 2); else AUD.cicada(1); }
     else { for (let k = 0; k < 14; k++) spawnP(S.cur, tx + (Math.random() - .5) * 1.8, 2.3 + Math.random() * 1.2, tz + (Math.random() - .5) * 1.8, true); AUD.rustle(); } } });
   const mvMe = me.mv > .3 && Math.abs(me.y) < .3;
@@ -24807,6 +24812,82 @@ function stepSeason(dt, now){
 function drawSeason(p){ if (!SPM || !spN || PASS !== "main") return; gl.uniformMatrix4fv(p.u.uM, false, I4); bindMesh(SPM); gl.drawArrays(gl.TRIANGLES, 0, spN); }
 /* skis, on the ice */
 const onIce = (a) => iceOn() && Math.abs(a.y) < .3 && inPool(a.x, a.z);
+
+/* ==========================================================================
+   9h. SNOWBALLS — in winter a few lie about on the deck. Walk into one and it
+       rolls, picking up snow and growing; push a small one into a bigger one
+       and it climbs on top: a snowman. Each page rolls its own snowballs; a
+       finished snowman is shown to everyone here. Three balls at most, six
+       snowmen; all of it melts when winter goes
+   ========================================================================== */
+const SNB = [], SNM = [], SN = { mesh:null, told:false, next:0, px:0, pz:0, say:0 };
+const snowBlock = (x, z, pad) => SNM.some(m => Math.hypot(x - m.x, z - m.z) < m.rb * .9 + pad);
+function snowMeshes(){ const one = (fn) => { const A = maker(); fn(A); return upload(A.v); };
+  return {
+    ball:one(A => { A.ell([0, 0, 0], 1, 1, 1, [.96, .97, 1], 0, 16);                                                 /* a few grey lumps, so you see it roll */
+      for (let i = 0; i < 9; i++){ const a = i * 2.4, b = Math.acos(1 - 2 * ((i + .5) / 9)); A.ell([Math.sin(b) * Math.cos(a) * .96, Math.cos(b) * .96, Math.sin(b) * Math.sin(a) * .96], .11, .11, .11, [.8, .84, .92], 0, 6); } }),
+    face:one(A => { for (const s of [-1, 1]) A.ell([s * .32, .2, .9], .1, .12, .07, [.13, .13, .15], 0, 8);          /* coal eyes, a carrot, a smile of coal */
+      A.tube([0, -.02, .93], [0, -.08, 1.6], .11, .012, [1, .52, .16], 0, 10);
+      for (let i = 0; i < 5; i++){ const a = (i - 2) * .32; A.ell([Math.sin(a) * .6, -.32 - Math.cos(a) * .06 + .06, Math.cos(a) * .78], .055, .055, .05, [.13, .13, .15], 0, 6); } }),
+    scarf:one(A => { A.torus([0, 0, 0], .78, .2, [.88, .24, .26], 0, 22, 8); A.box(.3, -.75, .62, .55, -.05, .74, [.88, .24, .26], 0); }),
+    twig:one(A => { A.tube([0, 0, 0], [1.05, .32, 0], .045, .025, [.45, .3, .18], 0, 6); A.tube([.65, .2, 0], [.92, .52, 0], .025, .015, [.45, .3, .18], 0, 5); }),
+  };
+}
+const snowOk = (x, z, r) => Math.abs(x) < CXW - r && Math.abs(z) < CZW - r && !vendBlock(x, z, r * .6) && !snowBlock(x, z, r) &&
+  (inPool(x, z) ? iceOn() : floorAt(x, z, 0) !== null && Math.abs(floorAt(x, z, 0)) < .05);
+function makeSnowman(big, small, by){ const now = performance.now();
+  const m = { x:big.x, z:big.z, rb:big.r, rh:Math.min(small.r, big.r * .8), r:Math.atan2(me.x - big.x, me.z - big.z), t0:now };
+  SNM.push(m); if (SNM.length > 6) SNM.shift(); SNB.splice(SNB.indexOf(big), 1); SNB.splice(SNB.indexOf(small), 1); SN.next = now + 4000;
+  AUD.snowman(1); popEmote(me, "heart"); hint(T({ en:"⛄ A snowman!", ko:"⛄ 눈사람 완성!" }), true);
+  sendFx(`s#:${f2(m.x)}:${f2(m.z)}:${f2(m.rb)}:${f2(m.rh)}:${f2(m.r)}`);
+}
+function snowFrom(a, n){ if (n.length < 5 || SEASON.snow < .5) return;                                          /* someone else's snowman */
+  SNM.push({ x:clamp(n[0], -CXW, CXW), z:clamp(n[1], -CZW, CZW), rb:clamp(n[2], .2, .7), rh:clamp(n[3], .12, .6), r:n[4], t0:performance.now() }); if (SNM.length > 6) SNM.shift();
+  AUD.snowman(hear(a.x, a.z) * .7); }
+function stepSnow(dt, now){
+  const mvx = (me.x - SN.px) / Math.max(dt, 1e-3), mvz = (me.z - SN.pz) / Math.max(dt, 1e-3); SN.px = me.x; SN.pz = me.z;
+  if (SEASON.snow < .5 || !inWorld){ if (SNB.length || SNM.length){ SNB.length = 0; SNM.length = 0; } return; }   /* winter's gone: it all melts */
+  if (SEASON.snow > .8 && SNB.length < 3 && now > SN.next){ SN.next = now + 2500;                                    /* a new one lies about somewhere */
+    for (let t = 0; t < 12; t++){ const x = (Math.random() - .5) * (CXW * 2 - 3), z = (Math.random() - .5) * (CZW * 2 - 3);
+      if (inPool(x, z) || Math.abs(x) < PX + 1 && Math.abs(z) < PZ + 1 || !snowOk(x, z, .3) || Math.hypot(x - me.x, z - me.z) < 2.5) continue;
+      SNB.push({ x, z, r:.2 + Math.random() * .06, vx:0, vz:0, R:[1, 0, 0, 0, 1, 0, 0, 0, 1], acc:0 }); break; } }
+  const near = Math.abs(me.y) < .4 && camPos[1] > -.05;
+  for (const b of SNB){
+    const dx = b.x - me.x, dz = b.z - me.z, d = Math.hypot(dx, dz) || 1e-3, reach = b.r + .26;
+    if (near && d < reach){ const nx = dx / d, nz = dz / d, into = mvx * nx + mvz * nz;                           /* you walk into it: it rolls ahead of you */
+      if (into > .2){ b.vx = nx * into * 1.08 + mvx * .15; b.vz = nz * into * 1.08 + mvz * .15; }
+      const tx = me.x + nx * reach, tz = me.z + nz * reach; if (snowOk(tx, tz, b.r)){ b.x = tx; b.z = tz; }
+      if (!SN.told){ SN.told = true; hint(T({ en:"❄️ Push a snowball and it grows as it rolls — push a small one into a big one for a snowman", ko:"❄️ 눈덩이를 밀면 굴러가며 커져요 — 작은 눈덩이를 큰 눈덩이에 밀어 올리면 눈사람!" })); } }
+    const sp = Math.hypot(b.vx, b.vz);
+    if (sp > .01){ const nx = b.x + b.vx * dt, nz = b.z + b.vz * dt;
+      if (snowOk(nx, nz, b.r)){ b.x = nx; b.z = nz; const dist = sp * dt, ang = dist / b.r, ax = b.vz / sp, az = -b.vx / sp;   /* rolling: turned about the axis across its path */
+        const c = Math.cos(ang), s = Math.sin(ang), t = 1 - c, Rr = [t * ax * ax + c, -s * az, t * ax * az, s * az, c, -s * ax, t * ax * az, s * ax, t * az * az + c], R = b.R, o = [];
+        for (let col = 0; col < 3; col++) for (let row = 0; row < 3; row++) o[col * 3 + row] = Rr[row * 3] * R[col * 3] + Rr[row * 3 + 1] * R[col * 3 + 1] + Rr[row * 3 + 2] * R[col * 3 + 2];
+        b.R = o; if (!inPool(b.x, b.z)) b.r = Math.min(.62, b.r + dist * .05);                                         /* picking up snow (not on the ice) */
+        b.acc += dist; if (b.acc > .45){ b.acc = 0; AUD.roll(Math.min(1, sp / 3) * hear(b.x, b.z)); } }
+      else { b.vx = b.vz = 0; }
+      const fr = Math.pow(inPool(b.x, b.z) ? .7 : .2, dt); b.vx *= fr; b.vz *= fr; } }
+  /* two balls meeting: the smaller climbs onto the bigger, if it is enough smaller and the bigger is big enough */
+  for (let i = 0; i < SNB.length; i++) for (let j = i + 1; j < SNB.length; j++){ const a = SNB[i], b = SNB[j], d = Math.hypot(a.x - b.x, a.z - b.z);
+    if (d > (a.r + b.r) * .96 || Math.hypot(a.vx, a.vz) + Math.hypot(b.vx, b.vz) < .35) continue;
+    const big = a.r >= b.r ? a : b, small = big === a ? b : a;
+    if (big.r >= .36 && small.r <= big.r * .9 && small.r >= .17){ makeSnowman(big, small); return; }
+    small.vx = small.vz = 0; big.vx = big.vz = 0; const nx = (small.x - big.x) / (d || 1), nz = (small.z - big.z) / (d || 1); small.x = big.x + nx * (a.r + b.r); small.z = big.z + nz * (a.r + b.r);   /* bump apart */
+    if (now > SN.say){ SN.say = now + 5000; hint(T(big.r < .36 ? { en:"Roll the bottom one bigger first", ko:"아래쪽 눈덩이를 먼저 더 크게 굴려요" } : { en:"Too alike in size — roll one of them bigger", ko:"크기가 비슷해요 — 하나를 더 굴려 키워요" })); } }
+}
+function drawSnow(p){
+  if (!SNB.length && !SNM.length) return; if (!SN.mesh) SN.mesh = snowMeshes();
+  const u = p.u, put = (m, M) => { gl.uniformMatrix4fv(u.uM, false, M); bindMesh(m); gl.drawArrays(gl.TRIANGLES, 0, m.n); };
+  for (const b of SNB){ const R = b.R, r = b.r;                                                                     /* each ball, rolled */
+    MX[0] = R[0] * r; MX[1] = R[1] * r; MX[2] = R[2] * r; MX[3] = 0; MX[4] = R[3] * r; MX[5] = R[4] * r; MX[6] = R[5] * r; MX[7] = 0;
+    MX[8] = R[6] * r; MX[9] = R[7] * r; MX[10] = R[8] * r; MX[11] = 0; MX[12] = b.x; MX[13] = r * .94; MX[14] = b.z; MX[15] = 1; put(SN.mesh.ball, MX); }
+  for (const m of SNM){ const k = Math.min(1, (performance.now() - m.t0) / 260), hy = m.rb * 1.72 + m.rh * .86 - (1 - k) * .3;   /* the head settles on */
+    put(SN.mesh.ball, setM(m.x, m.rb * .9, m.z, m.rb, m.rb, m.rb, m.r)); put(SN.mesh.ball, setM(m.x, hy, m.z, m.rh, m.rh, m.rh, m.r)); put(SN.mesh.face, setM(m.x, hy, m.z, m.rh, m.rh, m.rh, m.r));
+    put(SN.mesh.scarf, setM(m.x, m.rb * 1.72 + m.rh * .05, m.z, m.rh * 1.02, m.rh, m.rh * 1.02, m.r));
+    const c = Math.cos(m.r), s = Math.sin(m.r);
+    put(SN.mesh.twig, setM(m.x + c * m.rb * .82, m.rb * 1.15, m.z - s * m.rb * .82, m.rb, m.rb, m.rb, m.r));
+    put(SN.mesh.twig, setM(m.x - c * m.rb * .82, m.rb * 1.15, m.z + s * m.rb * .82, m.rb, m.rb, m.rb, m.r + Math.PI)); }
+}
 
 /* ==========================================================================
    10. INPUT
@@ -24942,7 +25023,7 @@ function drawPeople(p, now){
       gl.uniform3f(p.u.uTint, hot ? 1 + .22 * e : cold ? 1 - .16 * e : 1, hot ? 1 - .27 * e : cold ? 1 - .05 * e : 1, hot ? 1 - .31 * e : cold ? 1 + .24 * e : 1); }
     for (const [M, part] of mats){ gl.uniformMatrix4fv(p.u.uM, false, M); bindMesh(part); gl.drawArrays(gl.TRIANGLES, 0, part.n); } }
   if (p.u.uAvY) gl.uniform1f(p.u.uAvY, -99); if (p.u.uTint) gl.uniform3f(p.u.uTint, 1, 1, 1);
-  drawBalloons(p); drawDrinks(p, now); drawSeason(p);
+  drawBalloons(p); drawDrinks(p, now); drawSeason(p); drawSnow(p);
 }
 function drawSky(VP, clip, t){ gl.depthMask(false); useProg(P.sky, VP, clip, 0, t); gl.uniformMatrix4fv(P.sky.u.uM, false, Tm(camPos[0], camPos[1], camPos[2])); bindMesh(SKY); gl.drawArrays(gl.TRIANGLES, 0, SKY.n); gl.depthMask(true); }
 function drawScene(VP, clip, below, t, now){ useProg(P.main, VP, clip, below, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.main, now); }
@@ -24989,7 +25070,7 @@ let lastT = performance.now(), pruneAt = 0, zoneHint = { below:false, up:false }
 function frame(now){
   tuneQuality(now - lastT);
   const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; const t = now / 1000;
-  stepNight(); moveMe(dt); stepPeers(dt); stepSeason(dt, now); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); placeCamera(dt);
+  stepNight(); moveMe(dt); stepPeers(dt); stepSeason(dt, now); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); stepSnow(dt, now); placeCamera(dt);
   if (me.emote && now - me.et0 > 4200) me.emote = "";
   render(t, now); updateTags(now); updateSeats(); updateBallUI(); updateVend(now); maybeSend();
   { const el = $("goal"), p = goal && inWorld && !making ? project([goal.x, goal.y + .02, goal.z]) : null;           /* where you are walking to */
@@ -25019,7 +25100,6 @@ function about(){
   $("calm-n").textContent = T({ en:"For motion sickness: the beer no longer sways or doubles the picture, and the energy drink stays gentler.", ko:"멀미가 날 때 켜요 — 맥주를 마셔도 화면이 흔들리거나 겹쳐 보이지 않고, 에너지 드링크의 속도도 부드러워져요." });
   $("dfx-x").setAttribute("aria-label", T({ en:"Stop the effect", ko:"효과 끄기" })); $("dfx-x").title = T({ en:"Stop the effect", ko:"효과 끄기" });
   $("vend-x").setAttribute("aria-label", T({ en:"Close", ko:"닫기" }));
-  $("sea-t").textContent = T({ en:"Season", ko:"계절 바꾸기" });
   { const g = $("sea-g"); g.textContent = "";
     for (const k of SEASONS){ const I = SEA_INFO[k], b = document.createElement("button"); b.type = "button"; b.className = "sb"; b.dataset.s = k;
       b.innerHTML = "<i></i><b></b><small></small>"; b.children[0].textContent = I.ico; b.children[1].textContent = T(I.n); b.children[2].textContent = T(I.d);
@@ -25068,7 +25148,7 @@ if (!initGL()){
   netInit();
 }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
-window.__pool = { night(k){ NIGHT.force = k; }, season(s){ setSeason(s, Date.now(), null); }, SEASON, faceOf, AUD, buyDrink, openVend, endDrink, setCalm, DRINKS, VENDS, handAt, pose, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
+window.__pool = { SNB, SNM, makeSnowman, night(k){ NIGHT.force = k; }, season(s){ setSeason(s, Date.now(), null); }, SEASON, faceOf, AUD, buyDrink, openVend, endDrink, setCalm, DRINKS, VENDS, handAt, pose, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
 <!--SCRIPT_END-->
 </body>
 </html>
