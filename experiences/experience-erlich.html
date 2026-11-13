@@ -502,11 +502,13 @@ const VENDS = [
 VENDS.forEach(v => { const [fx, fz] = v.F; v.R = [fz, -fx]; v.fx = v.x + fx * VD; v.fz = v.z + fz * VD;          /* R: to your right as you face it */
   const xs = [v.x + v.R[0] * VW / 2, v.x - v.R[0] * VW / 2, v.fx + v.R[0] * VW / 2, v.fx - v.R[0] * VW / 2], zs = [v.z + v.R[1] * VW / 2, v.z - v.R[1] * VW / 2, v.fz + v.R[1] * VW / 2, v.fz - v.R[1] * VW / 2];
   v.x0 = Math.min(...xs); v.x1 = Math.max(...xs); v.z0 = Math.min(...zs); v.z1 = Math.max(...zs); });
-/* lamp posts round the pool, with strings of small bulbs hung between them — frosted by day, lit at night */
-const LAMPS = [[-9.8, -7.4], [-4.6, -7.4], [4.6, -7.4], [9.8, -7.4], [-9.8, 7.4], [-4.6, 7.4], [4.6, 7.4], [9.8, 7.4]];
-const GARLANDS = [[0, 1], [1, 2], [2, 3], [4, 5], [5, 6], [6, 7], [0, 4], [3, 7]];
+/* the night lights keep to the walls, well away from the pool, so the work stays as it is: a lamp on each
+   glass wall, two to a wall [x, z on the wall, the way into the courtyard], a string of bulbs between them */
+const LAMPS = [[-10.5, -CZW, 0, 1], [10.5, -CZW, 0, 1], [-10.5, CZW, 0, -1], [10.5, CZW, 0, -1], [-CXW, -7, 1, 0], [-CXW, 7, 1, 0], [CXW, -10.5, -1, 0], [CXW, -1.5, -1, 0]];
+const GARLANDS = [[0, 1], [2, 3], [4, 5], [6, 7]];
+const lampAt = (l, out, y) => [l[0] + l[2] * out, y, l[1] + l[3] * out];
 const onVend = (x, z, pad) => VENDS.findIndex(v => x > v.x0 - pad && x < v.x1 + pad && z > v.z0 - pad && z < v.z1 + pad);
-const vendBlock = (x, z, pad) => onVend(x, z, pad) >= 0 || Math.hypot(x - VBIN[0], z - VBIN[1]) < .22 + pad || LAMPS.some(([lx, lz]) => Math.hypot(x - lx, z - lz) < .14 + pad);
+const vendBlock = (x, z, pad) => onVend(x, z, pad) >= 0 || Math.hypot(x - VBIN[0], z - VBIN[1]) < .22 + pad;
 const onBench = (x, z, pad) => BENCHES.findIndex(([bx, bz, ax]) => Math.abs(x - bx) < (ax ? .95 : .24) + pad && Math.abs(z - bz) < (ax ? .24 : .95) + pad);
 /* may the camera stand here? it keeps to the same side of the water as you, and out of the trees */
 function camOK(x, y, z, below){
@@ -651,20 +653,19 @@ function buildWorld(){
     for (const sx of [-1, 1]) A.box(alongX ? x + sx * .75 - .05 : x - .2, 0, alongX ? z - .2 : z + sx * .75 - .05, alongX ? x + sx * .75 + .05 : x + .2, .4, alongX ? z + .2 : z + sx * .75 + .05, [.3, .3, .32], 3); };
   BENCHES.forEach(([x, z, ax]) => bench(x, z, ax));
   VENDS.forEach(v => buildVend(A, v));
-  /* the lamp posts: a slim dark pole, a round frosted globe (11 glows at night) */
+  /* the wall lamps: a dark plate on the glass, an arm, a round frosted globe hanging from it (11 glows at night) */
   const POLE = [.24, .26, .3];
-  for (const [x, z] of LAMPS){ A.tube([x, 0, z], [x, .14, z], .13, .1, POLE, 3, 12); A.tube([x, .14, z], [x, 2.3, z], .045, .04, POLE, 3, 10);
-    A.tube([x, 2.28, z], [x, 2.33, z], .08, .08, POLE, 3, 12); A.ell([x, 2.48, z], .17, .18, .17, [1, .8, .48], 11, 14); A.tube([x, 2.64, z], [x, 2.68, z], .1, .06, POLE, 3, 12); }
-  /* strings of bulbs between them, hanging in a soft curve (12: lit at night, never outlined) */
-  for (const [i, j] of GARLANDS){ const a = LAMPS[i], b = LAMPS[j], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(4, Math.round(L / .8)), sag = .16 + L * .03;
+  for (const l of LAMPS){ const [px, , pz] = lampAt(l, .03, 0), thinX = l[2] !== 0, [ax, , az] = lampAt(l, .04, 0), [bx, , bz] = lampAt(l, .36, 0);
+    A.box(px - (thinX ? .02 : .08), 2.44, pz - (thinX ? .08 : .02), px + (thinX ? .02 : .08), 2.72, pz + (thinX ? .08 : .02), POLE, 3);
+    A.tube([ax, 2.64, az], [bx, 2.64, bz], .022, .022, POLE, 3, 8); A.tube([bx, 2.64, bz], [bx, 2.56, bz], .012, .012, POLE, 3, 6);
+    A.tube([bx, 2.56, bz], [bx, 2.59, bz], .07, .05, POLE, 3, 12); A.ell([bx, 2.42, bz], .15, .16, .15, [1, .8, .48], 11, 14); }
+  /* a string of small bulbs along each wall between its lamps, high up under the roof (12: lit at night, never outlined) */
+  for (const [i, j] of GARLANDS){ const a = lampAt(LAMPS[i], .24, 3.25), b = lampAt(LAMPS[j], .24, 3.25), L = Math.hypot(b[0] - a[0], b[2] - a[2]), n = Math.max(4, Math.round(L / .8)), sag = .3 + L * .015;
     let prev = null;
-    for (let k = 0; k <= n; k++){ const t = k / n, p = [lerp(a[0], b[0], t), 2.24 - sag * 4 * t * (1 - t), lerp(a[1], b[1], t)];
+    for (let k = 0; k <= n; k++){ const t = k / n, p = [lerp(a[0], b[0], t), 3.25 - sag * 4 * t * (1 - t), lerp(a[2], b[2], t)];
       if (prev) A.tube(prev, p, .006, .006, [.2, .2, .23], 9, 3);                                                  /* the wire: flat, no outline */
       if (k > 0 && k < n) A.ell([p[0], p[1] - .05, p[2]], .04, .05, .04, k % 4 === 2 ? [1, .68, .38] : [1, .86, .56], 12, 6);
       prev = p; } }
-  /* lights set in the pool's walls, under the water */
-  for (const x of [-PX * .6, 0, PX * .6]) for (const zs of [-1, 1]) A.ell([x, -.5, zs * (PZ - .012)], .13, .08, .014, [.7, .95, 1], 12, 14);
-  for (const xs of [-1, 1]) A.ell([xs * (PX - .012), -.5, 0], .014, .08, .13, [.7, .95, 1], 12, 14);
   A.tube([VBIN[0], 0, VBIN[1]], [VBIN[0], .6, VBIN[1]], .19, .21, [.74, .77, .8], 3, 14);                       /* the bin */
   A.tube([VBIN[0], .6, VBIN[1]], [VBIN[0], .66, VBIN[1]], .225, .225, [.42, .45, .5], 3, 14);
   A.ell([VBIN[0], .662, VBIN[1]], .1, .008, .1, [.18, .19, .21], 0, 12);
@@ -2856,13 +2857,13 @@ function updateVend(now){
    9f. DAY AND NIGHT — three minutes of each, read off the clock, so everyone
        in the pool shares one sky; eight seconds of dusk or dawn between. At
        night the shaders take a dim blue moonlight and twelve fixed lights
-       (the lamp posts, the vending machines, the pool's own glow) — nothing
+       (the wall lamps, the vending machines, the pool's own glow) — nothing
        is added or allocated, the same frame just lit another way
    ========================================================================== */
 const DAYLEN = 180000, DUSK = 8000;
 const NIGHT = { k:0, ph:-1, force:null, secs:-1, LP:new Float32Array(48), LC:new Float32Array(36) };
 (() => { let i = 0; const put = (x, y, z, r, c) => { NIGHT.LP.set([x, y, z, r], i * 4); NIGHT.LC.set(c, i * 3); i++; };
-  for (const [x, z] of LAMPS) put(x, 2.45, z, 5.2, [1.35, .9, .48]);                                           /* a warm pool round each post */
+  for (const l of LAMPS) put(...lampAt(l, .36, 2.42), 5.8, [1.35, .9, .48]);                                     /* a warm pool of light below each wall lamp */
   VENDS.forEach((v, j) => put(v.fx + v.F[0] * .7, 1.3, v.fz + v.F[1] * .7, 4.2, [[.53, .63, .85], [.85, .56, .53], [.85, .75, .54]][j]));   /* each machine's glow on the floor */
   put(0, .3, 0, 10, [.12, .4, .52]); })();                                                                       /* the lit pool, on its edge and on whoever stands by it */
 const clock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
@@ -2870,7 +2871,7 @@ function stepNight(){
   const t = Date.now(), ph = Math.floor(t / DAYLEN) % 2, into = t % DAYLEN, b = sstep(0, DUSK, into);
   NIGHT.k = NIGHT.force != null ? NIGHT.force : ph ? b : 1 - b;
   const dark = NIGHT.k > .5; if (dark !== NIGHT.dark){ NIGHT.dark = dark; document.body.classList.toggle("night", dark); siteLight(!dark); }   /* light words on the dark, here and on the site around it */
-  if (ph !== NIGHT.ph){ if (NIGHT.ph >= 0 && inWorld && !making){ hint(T(ph ? { en:"🌙 Night falls — the lamps come on", ko:"🌙 밤이 되었어요 — 수영장에 불이 켜져요" } : { en:"☀️ Morning by the pool", ko:"☀️ 아침이 밝았어요" })); AUD.chime(ph); } NIGHT.ph = ph; }
+  if (ph !== NIGHT.ph){ if (NIGHT.ph >= 0 && inWorld && !making){ hint(T(ph ? { en:"🌙 Night falls — the wall lamps come on", ko:"🌙 밤이 되었어요 — 벽등과 줄 전구가 켜져요" } : { en:"☀️ Morning by the pool", ko:"☀️ 아침이 밝았어요" })); AUD.chime(ph); } NIGHT.ph = ph; }
   const sec = Math.ceil((DAYLEN - into) / 1000);                                                                   /* how long till it turns, in the count pill */
   if (sec !== NIGHT.secs){ NIGHT.secs = sec; const el = $("c-dn"); el.textContent = `${ph ? "🌙" : "☀️"} ${clock(sec)}`;
     el.title = `${T(ph ? { en:"Night — morning in", ko:"밤 — 아침까지" } : { en:"Day — night in", ko:"낮 — 밤까지" })} ${clock(sec)}`; }
@@ -3095,7 +3096,7 @@ function about(){
    { en:"Wish coins: write a wish, throw the coin into the pool. Walk close to a coin — by the edge, or underneath — to read the wish on it", ko:"소원 동전: 소원을 적어 수영장에 던져요. 물가나 아래층에서 동전 가까이 가면 적힌 소원을 읽을 수 있어요" },
    { en:"Water balloons: press and hold anywhere, drag to where it should land — the arc shows the way — and let go. On a computer you can also hold F and point", ko:"물풍선: 화면을 꾹 누른 채 떨어질 곳으로 끌면 포물선이 보여요. 손을 떼면 던져요. 컴퓨터에서는 F를 누른 채 마우스로 조준해도 돼요" },
    { en:"Vending machines: two against the glass across the pool, one on the wall by the stairs. Walk up (or press E) and pick a drink — energy (faster), cider (higher jumps), lemonade (sour!), milk (big), tiny juice (small), beer (seeing double), clear soda (only your reflection and shadow), glass soda (walk on the water), fire soda (red face, fire breath), slush (brain freeze, frosty steps); water clears it all. One effect at a time; the × at the top ends it", ko:"자판기: 수영장 건너편 유리벽에 2대, 계단 쪽 벽에 1대가 있어요. 가까이 가서(또는 E) 음료를 골라요 — 에너지 드링크(빨라짐), 사이다(점프 2배), 레몬에이드(새콤!), 우유(커짐), 꼬마 주스(작아짐), 맥주(겹쳐 보임), 투명 음료(물에 비친 모습과 그림자만), 유리 소다(물 위 걷기), 매운 음료(빨간 얼굴·불 뿜기), 슬러시(머리 띵·서리 발자국). 생수는 효과를 모두 없애요. 효과는 한 번에 하나, 위쪽 알림의 ×로 언제든 끌 수 있어요" },
-   { en:"Day and night take turns every three minutes, the same for everyone here. At night the lamp posts, the strings of bulbs, the vending machines and the pool itself light up — the count at the top shows how long till it turns", ko:"3분마다 낮과 밤이 바뀌어요(모든 방문자가 같은 시간). 밤에는 가로등과 줄 전구, 자판기, 수영장 물속 조명이 켜져요 — 위쪽 표시에서 바뀔 때까지 남은 시간을 볼 수 있어요" },
+   { en:"Day and night take turns every three minutes, the same for everyone here. At night the lamps and strings of bulbs along the walls and the vending machines light up, and the water glows softly — the count at the top shows how long till it turns", ko:"3분마다 낮과 밤이 바뀌어요(모든 방문자가 같은 시간). 밤에는 벽을 따라 벽등과 줄 전구, 자판기 불빛이 켜지고 수영장 물빛이 은은하게 빛나요 — 위쪽 표시에서 바뀔 때까지 남은 시간을 볼 수 있어요" },
    { en:"Talk (Enter), wave, bow, jump, dance or sit — near a bench every free seat shows a ring: click it, or press E, to sit", ko:"말하기(Enter), 손 흔들기·인사·점프·춤·앉기로 만나요 — 벤치 가까이 가면 빈자리에 동그라미가 떠요. 누르거나 E 키로 앉아요" }]
     .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); ol.appendChild(li); });
   const lab = { wave:{ en:"Wave", ko:"손 흔들기" }, bow:{ en:"Bow", ko:"인사" }, jump:{ en:"Jump", ko:"점프" }, dance:{ en:"Dance", ko:"춤" }, sit:{ en:"Sit", ko:"앉기" }, heart:{ en:"Heart", ko:"하트" } };
