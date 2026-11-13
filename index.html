@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261113141030";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261113142147";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -21849,11 +21849,11 @@ body.making #hint{display:none;}
 #sitb{position:absolute;left:0;top:0;display:none;align-items:center;gap:7px;padding:8px 14px 8px 12px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:#25231c;
   font:600 12.5px/1 inherit;font-family:inherit;white-space:nowrap;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);pointer-events:auto;cursor:pointer;will-change:transform;}
 #sitb.on{display:flex;}
-#vendb{position:absolute;left:0;top:0;display:none;align-items:center;gap:7px;padding:8px 14px 8px 11px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:#25231c;
+#vendb, #snowb{position:absolute;left:0;top:0;display:none;align-items:center;gap:7px;padding:8px 14px 8px 11px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:#25231c;
   font:600 12.5px/1 inherit;font-family:inherit;white-space:nowrap;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);pointer-events:auto;cursor:pointer;will-change:transform;}
-#vendb.on{display:flex;} #vendb:hover{background:#fff;} #vendb .vi{font-size:14px;line-height:1;}
-#vendb kbd{font:600 10px/1 "JetBrains Mono",monospace;padding:3px 5px;border-radius:5px;background:rgba(37,35,28,.09);color:#5a5648;}
-@media (hover:none){ #vendb kbd{display:none;} }
+#vendb.on, #snowb.on{display:flex;} #vendb:hover, #snowb:hover{background:#fff;} #vendb .vi, #snowb .vi{font-size:14px;line-height:1;}
+#vendb kbd, #snowb kbd{font:600 10px/1 "JetBrains Mono",monospace;padding:3px 5px;border-radius:5px;background:rgba(37,35,28,.09);color:#5a5648;}
+@media (hover:none){ #vendb kbd, #snowb kbd{display:none;} }
 .av.ghost .tg{opacity:.42;}
 /* the beer: a warm blush round the picture's edge (opacity set from the script, only while it lasts) */
 #tipsy{position:fixed;inset:0;z-index:3;pointer-events:none;display:none;opacity:0;background:radial-gradient(ellipse 72% 68% at 50% 48%, transparent 48%, rgba(255,160,118,.5) 100%);}
@@ -23194,6 +23194,7 @@ function pose(a, now){
   else if (a === me && AIM.on){ q.a2x = -.75; q.a2z = 1.05; }                           /* a balloon held up in the right hand, out to the side */
   else if (a.thr && now - a.thr < 380){ const v = (now - a.thr) / 380; q.a2z = 2.3 - 1.5 * v; q.a2x = .9 - 2.2 * Math.sin(Math.PI * Math.min(1, v * 1.3)); }   /* the throw */
   if (a.dk) dkPose(a, q, now);                                                              /* a drink: to the lips, then what it does */
+  if (a === me && SN.held){ q.a1x = q.a2x = -1.25; q.a1z = -.2; q.a2z = .2; q.bow += .22; }                  /* both hands on the snowball */
   if ((a === me ? a.skate : onIce(a)) && !a.emote){ const g = Math.sin(a.ph);                 /* skiing: leaning in, arms out, long slow strides */
     q.l1 = g * .22 * a.mv; q.l2 = -q.l1; q.bow += .16 * Math.min(1, a.mv + .3); q.a1z = -.8 - .1 * g; q.a2z = .8 - .1 * g; q.a1x = q.a2x = -.25; q.lift = q.lift * .3; }
   if (a.sit && a.bench){ q.l1 = q.l2 = -1.3; q.lift = .06; q.a1x = q.a2x = -.25; q.a1z = -.14; q.a2z = .14; }   /* on a bench */
@@ -24836,7 +24837,8 @@ function snowMeshes(){ const one = (fn) => { const A = maker(); fn(A); return up
 const snowOk = (x, z, r) => Math.abs(x) < CXW - r && Math.abs(z) < CZW - r && !vendBlock(x, z, r * .6) && !snowBlock(x, z, r) &&
   (inPool(x, z) ? iceOn() : floorAt(x, z, 0) !== null && Math.abs(floorAt(x, z, 0)) < .05);
 function makeSnowman(big, small, by){ const now = performance.now();
-  const m = { x:big.x, z:big.z, rb:big.r, rh:Math.min(small.r, big.r * .8), r:Math.atan2(me.x - big.x, me.z - big.z), t0:now };
+  if (SN.held === big || SN.held === small) SN.held = null;
+  const m = { x:big.x, z:big.z, rb:big.r, rh:Math.min(small.r, big.r * .72), r:Math.atan2(me.x - big.x, me.z - big.z), t0:now };
   SNM.push(m); if (SNM.length > 6) SNM.shift(); SNB.splice(SNB.indexOf(big), 1); SNB.splice(SNB.indexOf(small), 1); SN.next = now + 4000;
   AUD.snowman(1); popEmote(me, "heart"); hint(T({ en:"⛄ A snowman!", ko:"⛄ 눈사람 완성!" }), true);
   sendFx(`s#:${f2(m.x)}:${f2(m.z)}:${f2(m.rb)}:${f2(m.rh)}:${f2(m.r)}`);
@@ -24844,6 +24846,18 @@ function makeSnowman(big, small, by){ const now = performance.now();
 function snowFrom(a, n){ if (n.length < 5 || SEASON.snow < .5) return;                                          /* someone else's snowman */
   SNM.push({ x:clamp(n[0], -CXW, CXW), z:clamp(n[1], -CZW, CZW), rb:clamp(n[2], .2, .7), rh:clamp(n[3], .12, .6), r:n[4], t0:performance.now() }); if (SNM.length > 6) SNM.shift();
   AUD.snowman(hear(a.x, a.z) * .7); }
+const SN_GRAB = .3;                                                                                                   /* from this size you hold it to roll it */
+function rollBall(b, mx, mz){ const dist = Math.hypot(mx, mz); if (dist < 1e-5) return;                            /* turned about the axis across its path, picking up snow (not on the ice) */
+  const ang = dist / b.r, ax = mz / dist, az = -mx / dist, c = Math.cos(ang), s = Math.sin(ang), t = 1 - c;
+  const Rr = [t * ax * ax + c, -s * az, t * ax * az, s * az, c, -s * ax, t * ax * az, s * ax, t * az * az + c], R = b.R, o = [];
+  for (let col = 0; col < 3; col++) for (let row = 0; row < 3; row++) o[col * 3 + row] = Rr[row * 3] * R[col * 3] + Rr[row * 3 + 1] * R[col * 3 + 1] + Rr[row * 3 + 2] * R[col * 3 + 2];
+  b.R = o; if (!inPool(b.x, b.z)) b.r = Math.min(.55, b.r + dist * .016);
+  b.acc += dist; if (b.acc > .45){ b.acc = 0; AUD.roll(Math.min(1, dist * 30) * hear(b.x, b.z)); } }
+function updateSnowUI(){                                                                                             /* holding one: a button over it to let go */
+  let b = $("snowb"); if (!b){ b = document.createElement("button"); b.id = "snowb"; b.type = "button"; b.innerHTML = '<span class="vi">⛄</span><span></span><kbd>G</kbd>'; $("tags").appendChild(b); b.onclick = dropSnow; }
+  const h = SN.held, q = h && camPos[1] > -.05 ? project([h.x, h.r * 2 + .25, h.z]) : null; b.classList.toggle("on", !!q);
+  if (q){ const lab = T({ en:"Let go", ko:"눈덩이 놓기" }); if (b.children[1].textContent !== lab) b.children[1].textContent = lab; b.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`; } }
+function dropSnow(){ if (!SN.held) return; SN.held.vx = SN.held.vz = 0; SN.held = null; AUD.click(); }
 function stepSnow(dt, now){
   const mvx = (me.x - SN.px) / Math.max(dt, 1e-3), mvz = (me.z - SN.pz) / Math.max(dt, 1e-3); SN.px = me.x; SN.pz = me.z;
   if (SEASON.snow < .5 || !inWorld){ if (SNB.length || SNM.length){ SNB.length = 0; SNM.length = 0; } return; }   /* winter's gone: it all melts */
@@ -24852,28 +24866,30 @@ function stepSnow(dt, now){
       if (inPool(x, z) || Math.abs(x) < PX + 1 && Math.abs(z) < PZ + 1 || !snowOk(x, z, .3) || Math.hypot(x - me.x, z - me.z) < 2.5) continue;
       SNB.push({ x, z, r:.2 + Math.random() * .06, vx:0, vz:0, R:[1, 0, 0, 0, 1, 0, 0, 0, 1], acc:0 }); break; } }
   const near = Math.abs(me.y) < .4 && camPos[1] > -.05;
+  if (SN.held && (!SNB.includes(SN.held) || !near)) SN.held = null;
   for (const b of SNB){
     const dx = b.x - me.x, dz = b.z - me.z, d = Math.hypot(dx, dz) || 1e-3, reach = b.r + .26;
-    if (near && d < reach){ const nx = dx / d, nz = dz / d, into = mvx * nx + mvz * nz;                           /* you walk into it: it rolls ahead of you */
-      if (into > .2){ b.vx = nx * into * 1.08 + mvx * .15; b.vz = nz * into * 1.08 + mvz * .15; }
+    if (SN.held === b){                                                                                                /* held: it rolls along in front of your hands */
+      const fx = Math.sin(me.r), fz = Math.cos(me.r), hr = b.r + .32, tx = me.x + fx * hr, tz = me.z + fz * hr;
+      if (snowOk(tx, tz, b.r)){ const mx = tx - b.x, mz = tz - b.z; b.vx = mx / Math.max(dt, 1e-3); b.vz = mz / Math.max(dt, 1e-3); rollBall(b, mx, mz); b.x = tx; b.z = tz; }
+      else { b.vx = b.vz = 0; if (d > hr + .7) SN.held = null; }
+      continue; }
+    if (near && d < reach){ const nx = dx / d, nz = dz / d, into = mvx * nx + mvz * nz;
+      if (b.r >= SN_GRAB && into > .2 && !SN.held){ SN.held = b; AUD.grab(); hint(T({ en:"Got it — walk to roll it along · G (or the button) to let go", ko:"눈덩이를 잡았어요 — 걸으면 같이 굴러가요 · G(또는 버튼)로 놓기" }), true); continue; }   /* big enough: you take hold of it */
+      if (into > .2){ b.vx = nx * into * 1.08 + mvx * .15; b.vz = nz * into * 1.08 + mvz * .15; }                    /* small: you walk into it and it rolls ahead */
       const tx = me.x + nx * reach, tz = me.z + nz * reach; if (snowOk(tx, tz, b.r)){ b.x = tx; b.z = tz; }
-      if (!SN.told){ SN.told = true; hint(T({ en:"❄️ Push a snowball and it grows as it rolls — push a small one into a big one for a snowman", ko:"❄️ 눈덩이를 밀면 굴러가며 커져요 — 작은 눈덩이를 큰 눈덩이에 밀어 올리면 눈사람!" })); } }
+      if (!SN.told){ SN.told = true; hint(T({ en:"❄️ Push a snowball and it grows as it rolls — once it's big you take hold of it. Roll a small one into a big one for a snowman", ko:"❄️ 눈덩이를 밀면 굴러가며 커져요 — 커지면 손으로 잡고 굴려요. 작은 눈덩이를 큰 눈덩이에 붙이면 눈사람!" })); } }
     const sp = Math.hypot(b.vx, b.vz);
     if (sp > .01){ const nx = b.x + b.vx * dt, nz = b.z + b.vz * dt;
-      if (snowOk(nx, nz, b.r)){ b.x = nx; b.z = nz; const dist = sp * dt, ang = dist / b.r, ax = b.vz / sp, az = -b.vx / sp;   /* rolling: turned about the axis across its path */
-        const c = Math.cos(ang), s = Math.sin(ang), t = 1 - c, Rr = [t * ax * ax + c, -s * az, t * ax * az, s * az, c, -s * ax, t * ax * az, s * ax, t * az * az + c], R = b.R, o = [];
-        for (let col = 0; col < 3; col++) for (let row = 0; row < 3; row++) o[col * 3 + row] = Rr[row * 3] * R[col * 3] + Rr[row * 3 + 1] * R[col * 3 + 1] + Rr[row * 3 + 2] * R[col * 3 + 2];
-        b.R = o; if (!inPool(b.x, b.z)) b.r = Math.min(.62, b.r + dist * .05);                                         /* picking up snow (not on the ice) */
-        b.acc += dist; if (b.acc > .45){ b.acc = 0; AUD.roll(Math.min(1, sp / 3) * hear(b.x, b.z)); } }
-      else { b.vx = b.vz = 0; }
+      if (snowOk(nx, nz, b.r)){ rollBall(b, nx - b.x, nz - b.z); b.x = nx; b.z = nz; } else { b.vx = b.vz = 0; }
       const fr = Math.pow(inPool(b.x, b.z) ? .7 : .2, dt); b.vx *= fr; b.vz *= fr; } }
   /* two balls meeting: the smaller climbs onto the bigger, if it is enough smaller and the bigger is big enough */
   for (let i = 0; i < SNB.length; i++) for (let j = i + 1; j < SNB.length; j++){ const a = SNB[i], b = SNB[j], d = Math.hypot(a.x - b.x, a.z - b.z);
     if (d > (a.r + b.r) * .96 || Math.hypot(a.vx, a.vz) + Math.hypot(b.vx, b.vz) < .35) continue;
     const big = a.r >= b.r ? a : b, small = big === a ? b : a;
-    if (big.r >= .36 && small.r <= big.r * .9 && small.r >= .17){ makeSnowman(big, small); return; }
+    if (big.r >= .3 && small.r >= .17){ makeSnowman(big, small); return; }
     small.vx = small.vz = 0; big.vx = big.vz = 0; const nx = (small.x - big.x) / (d || 1), nz = (small.z - big.z) / (d || 1); small.x = big.x + nx * (a.r + b.r); small.z = big.z + nz * (a.r + b.r);   /* bump apart */
-    if (now > SN.say){ SN.say = now + 5000; hint(T(big.r < .36 ? { en:"Roll the bottom one bigger first", ko:"아래쪽 눈덩이를 먼저 더 크게 굴려요" } : { en:"Too alike in size — roll one of them bigger", ko:"크기가 비슷해요 — 하나를 더 굴려 키워요" })); } }
+    if (now > SN.say){ SN.say = now + 5000; hint(T(big.r < .3 ? { en:"Roll the bottom one bigger first", ko:"아래쪽 눈덩이를 먼저 더 크게 굴려요" } : { en:"Too alike in size — roll one of them bigger", ko:"크기가 비슷해요 — 하나를 더 굴려 키워요" })); } }
 }
 function drawSnow(p){
   if (!SNB.length && !SNM.length) return; if (!SN.mesh) SN.mesh = snowMeshes();
@@ -24924,7 +24940,7 @@ window.addEventListener("keydown", e => {
   keys[e.code] = true;
   if (e.code === "Space"){ e.preventDefault(); jump(); }
   if (e.code === "KeyF" && !e.repeat && inWorld && !making){ if (BALL.holder === me) throwNow(); else setArmed(!AIM.armed); }
-  if (e.code === "KeyG" && !e.repeat && inWorld && !making){ if (BALL.holder === me) dropBall(me, true); else grabBall(true); }
+  if (e.code === "KeyG" && !e.repeat && inWorld && !making){ if (SN.held) dropSnow(); else if (BALL.holder === me) dropBall(me, true); else grabBall(true); }
   if (e.code === "KeyE" && inWorld && !making && !e.repeat){ const vi = me.sit ? -1 : nearVend(2.2);
     if (vi >= 0){ if ($("pop-vend").classList.contains("on")) closePops(); else openVend(vi); }
     else if (me.sit) standUp(); else { const st = Math.abs(me.y) < .3 && seatNear(me.x, me.z, 2.4); if (st) goSit(st); } }
@@ -25072,7 +25088,7 @@ function frame(now){
   const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; const t = now / 1000;
   stepNight(); moveMe(dt); stepPeers(dt); stepSeason(dt, now); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); stepSnow(dt, now); placeCamera(dt);
   if (me.emote && now - me.et0 > 4200) me.emote = "";
-  render(t, now); updateTags(now); updateSeats(); updateBallUI(); updateVend(now); maybeSend();
+  render(t, now); updateTags(now); updateSeats(); updateBallUI(); updateVend(now); updateSnowUI(); maybeSend();
   { const el = $("goal"), p = goal && inWorld && !making ? project([goal.x, goal.y + .02, goal.z]) : null;           /* where you are walking to */
     if (p){ const k = clamp(9 / p[2], .45, 1.6); el.style.transform = `translate(${p[0]}px, ${p[1]}px) translate(-50%, -50%) scale(${k})`; el.classList.add("on"); } else el.classList.remove("on"); }
   const z = zoneOf(me.x, me.y, me.z);
