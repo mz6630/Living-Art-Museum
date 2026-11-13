@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261113121756";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261113122304";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -23823,16 +23823,16 @@ const AUD = (() => {
     get on(){ return on; }, set on(v){ on = v; if (master) master.gain.setTargetAtTime(v ? .9 : 0, ctx.currentTime, .05); },
     stop(){ if (!ctx) return; try { master.disconnect(); } catch (_){} if (!borrowed) try { ctx.close(); } catch (_){} },
     update(t, depth){ if (!amb || !ok()) return; below = lerp(below, depth, .04); const tt = ctx.currentTime, up = 1 - below;
-      amb.up.gain.setTargetAtTime(up, tt, .3); amb.dn.gain.setTargetAtTime(below, tt, .3);
+      amb.up.gain.setTargetAtTime(up * .35, tt, .3);                                       /* up by the pool the water stays in the background, so everything else is heard */ amb.dn.gain.setTargetAtTime(below, tt, .3);
       amb.dg.gain.setTargetAtTime(.085 * (.75 + .25 * Math.sin(t * .31)), tt, .4);
       if (t > nextWave){ nextWave = t + 5.5 + Math.random() * 3.5; wave(tt + .05, .7 + Math.random() * .5); if (Math.random() < .35) wave(tt + 1.4 + Math.random(), .45); }
-      if (t > nextLap && up > .3){ nextLap = t + .45 + Math.random() * 1.4; lap(tt); if (Math.random() < .4) lap(tt + .12 + Math.random() * .15); }
+      if (t > nextLap && up > .3){ nextLap = t + 1.1 + Math.random() * 2.2; lap(tt); if (Math.random() < .25) lap(tt + .12 + Math.random() * .15); }
       if (t > nextDrop && up > .3){ nextDrop = t + 2.2 + Math.random() * 4; const f = 1300 + Math.random() * 700; tone(tt, f, .08, .012 * up, f * 1.6, "sine", amb.up); }
       if (t > nextCic && up > .3 && NIGHT.k < .4 && SEASON.cur === "summer"){ nextCic = t + 8 + Math.random() * 9; this.cicada(.55); }   /* summer days: cicadas */
       if (t > nextBird && up > .3 && NIGHT.k < .4 && SEASON.cur === "spring"){ nextBird = t + 3.5 + Math.random() * 6; const f = 2500 + Math.random() * 900;   /* spring days: birds */
-        for (let i = 0; i < 2 + (Math.random() * 3 | 0); i++) tone(tt + i * .11, f + i * 120, .07, .009 * up, f * 1.35, "sine", amb.up); }
+        for (let i = 0; i < 2 + (Math.random() * 3 | 0); i++) tone(tt + i * .11, f + i * 120, .07, .009 * up, f * 1.35, "sine"); }
       if (t > nextCri && up > .3 && NIGHT.k > .6 && SEASON.cur !== "winter"){ nextCri = t + 1.3 + Math.random() * 3; const f = 4100 + Math.random() * 600, g = .005 * NIGHT.k * up;   /* crickets, at night */
-        for (let i = 0; i < 3; i++) tone(tt + i * .055, f, .028, g, null, "sine", amb.up); }
+        for (let i = 0; i < 3; i++) tone(tt + i * .055, f, .028, g, null, "sine"); }
       if (t > nextBub && below > .3){ nextBub = t + 1.3 + Math.random() * 3.2; const n = 2 + Math.floor(Math.random() * 5);
         for (let i = 0; i < n; i++){ const f = 380 + Math.random() * 320; tone(tt + i * (.05 + Math.random() * .12), f, .12, .022 * below, f * 2.3, "sine", amb.dn); } } },
     step(low, kind){ if (!ok()) return; const tt = ctx.currentTime;                                      /* a footstep, and how a drink changes it */
