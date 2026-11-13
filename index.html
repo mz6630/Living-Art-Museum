@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261113114808";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261113115229";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -22965,7 +22965,9 @@ void main(){
     c = mix(r, refl, clamp(fr, 0., .92));
     c = mix(c, q * vec3(.86, .95, 1.) + vec3(0., .02, .04), who * clamp(.64 + fr * .5, 0., .9));   /* a person by the water, mirrored in it */
     float nh = max(dot(n, normalize(uSun + V)), 0.);
-    c += vec3(1., .97, .9) * (pow(nh, 1400.) * 9. + pow(nh, 140.) * .3) * (1. - .85 * uNight);
+    c += vec3(1., .97, .9) * (pow(nh, 1400.) * 9. + pow(nh, 140.) * .3) * (1. - uNight);
+    if (uNight > .001){ vec3 md = normalize(vec3(.22, .36, -1.)); float mh = max(dot(n, normalize(md + V)), 0.);     /* the moon on the water: a path of small glints, a faint silver sheen */
+      c += vec3(.8, .87, 1.) * (pow(mh, 700.) * 2.2 + pow(mh, 48.) * .09 + pow(mh, 6.) * .035) * uNight * ed; }
   } else {
     vec2 off = n.xz * .08 * ed, px = 2.4 / uRes; vec3 r = vec3(0.);
     for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) r += tap(uRef, uv + off + vec2(float(i), float(j)) * px);

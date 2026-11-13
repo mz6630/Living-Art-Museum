@@ -1242,7 +1242,9 @@ void main(){
     c = mix(r, refl, clamp(fr, 0., .92));
     c = mix(c, q * vec3(.86, .95, 1.) + vec3(0., .02, .04), who * clamp(.64 + fr * .5, 0., .9));   /* a person by the water, mirrored in it */
     float nh = max(dot(n, normalize(uSun + V)), 0.);
-    c += vec3(1., .97, .9) * (pow(nh, 1400.) * 9. + pow(nh, 140.) * .3) * (1. - .85 * uNight);
+    c += vec3(1., .97, .9) * (pow(nh, 1400.) * 9. + pow(nh, 140.) * .3) * (1. - uNight);
+    if (uNight > .001){ vec3 md = normalize(vec3(.22, .36, -1.)); float mh = max(dot(n, normalize(md + V)), 0.);     /* the moon on the water: a path of small glints, a faint silver sheen */
+      c += vec3(.8, .87, 1.) * (pow(mh, 700.) * 2.2 + pow(mh, 48.) * .09 + pow(mh, 6.) * .035) * uNight * ed; }
   } else {
     vec2 off = n.xz * .08 * ed, px = 2.4 / uRes; vec3 r = vec3(0.);
     for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) r += tap(uRef, uv + off + vec2(float(i), float(j)) * px);
