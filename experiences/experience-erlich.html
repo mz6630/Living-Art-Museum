@@ -1565,7 +1565,8 @@ function moveMe(dt){
     else if (!blk(me.x, nz) && (f = myFloor(me.x, nz, me.y)) !== null) me.z = nz;
     me.r += wrap(Math.atan2(vx, vz) - me.r) * Math.min(1, dt * 12);
     me.ph += s * 5.2; me.mv = lerp(me.mv, clamp(speed * Math.min(1, il) / 3, 0, 1.35), Math.min(1, dt * 8));
-    stepAcc += s; if (stepAcc > .62){ stepAcc = 0; if (onWater()) AUD.wstep(); else AUD.step(me.y < -1.4); }
+    stepAcc += s; if (stepAcc > .62){ stepAcc = 0; if (onWater()) AUD.wstep();
+      else { const n = performance.now(), dk = me.dk && n >= me.dk.on && n < me.dk.end ? me.dk.k : ""; AUD.step(me.y < -1.4, dk === "milk" || dk === "kid" || dk === "energy" || dk === "slush" ? dk : SEASON.snow > .6 && me.y > -.3 ? "snow" : ""); } }
     if (goal && goal.last){ const gain = Math.hypot(goal.x - goal.last[0], goal.z - goal.last[1]) - Math.hypot(goal.x - me.x, goal.z - me.z); goal.stuck = gain < s * .5 ? goal.stuck + dt : 0; }   /* not getting closer (a wall, the pool's edge): stop */
   } else me.mv = Math.max(0, me.mv - dt * 5);
   const f = myFloor(me.x, me.z, me.y); if (f !== null) me.y += (f - me.y) * Math.min(1, dt * 14);
@@ -2111,7 +2112,12 @@ const AUD = (() => {
         for (let i = 0; i < 3; i++) tone(tt + i * .055, f, .028, g, null, "sine", amb.up); }
       if (t > nextBub && below > .3){ nextBub = t + 1.3 + Math.random() * 3.2; const n = 2 + Math.floor(Math.random() * 5);
         for (let i = 0; i < n; i++){ const f = 380 + Math.random() * 320; tone(tt + i * (.05 + Math.random() * .12), f, .12, .022 * below, f * 2.3, "sine", amb.dn); } } },
-    step(low){ if (!ok()) return; burst(ctx.currentTime, .045, low ? 1700 : 2600, 4, .012); },
+    step(low, kind){ if (!ok()) return; const tt = ctx.currentTime;                                      /* a footstep, and how a drink changes it */
+      if (kind === "milk"){ tone(tt, 420, .1, .03, 250, "triangle"); burst(tt, .07, 900, 2, .02); }               /* big: thud */
+      else if (kind === "kid"){ tone(tt, 1900, .04, .012, 2500); burst(tt, .025, 4200, 4, .006); }                /* tiny: pip */
+      else if (kind === "energy"){ burst(tt, .035, 3400, 3, .012); tone(tt, 1300, .05, .008, 2300, "triangle"); }  /* quick: zip */
+      else if (kind === "slush" || kind === "snow"){ burst(tt, .04, 1800, 3, .014); burst(tt + .025, .035, 3200, 3, .01); }   /* crunch */
+      else burst(tt, .045, low ? 1700 : 2600, 4, .012); },
     click(){ if (!ok()) return; tone(ctx.currentTime, 1760, .05, .028, null, "triangle"); },
     chat(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 1568, .08, .03); tone(tt + .07, 2093, .1, .025); },
     joined(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 1175, .12, .022); tone(tt + .1, 1568, .16, .02); },
@@ -2132,10 +2138,14 @@ const AUD = (() => {
       for (let i = 0; i < 4; i++){ tone(tt + .28 + i * .3, 2900, .05, .009, 3500); tone(tt + .36 + i * .3, 2500, .05, .008, 3100); } },   /* bonk — and the little birds */
     steal(){ if (!ok()) return; const tt = ctx.currentTime; burst(tt, .12, 2400, 1.5, .022); tone(tt + .04, 700, .08, .03, 1400, "triangle"); },
     grab(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 880, .06, .03, 1320, "triangle"); burst(tt, .04, 2600, 3, .012); },
-    vend(){ if (!ok()) return; const tt = ctx.currentTime;                                                  /* clunk, the tab, three gulps */
+    vend(shape){ if (!ok()) return; const tt = ctx.currentTime;                                             /* clunk; then opened its own way; then drunk its own way */
       tone(tt, 540, .09, .045, 310, "triangle"); burst(tt, .07, 1300, 1.6, .03); tone(tt + .1, 440, .07, .024, 290, "triangle");
-      burst(tt + .42, .13, 5200, 1.2, .03); tone(tt + .42, 2600, .05, .012, 3400);
-      for (let i = 0; i < 3; i++) tone(tt + .74 + i * .19, 640, .08, .026, 450); },
+      const o = tt + .4, straw = shape === "carton" || shape === "juice" || shape === "cup";
+      if (shape === "bottle"){ for (let i = 0; i < 3; i++) burst(o + i * .05, .025, 3800, 4, .02); tone(o + .17, 1700, .05, .012, 2300); }   /* the cap: tk-tk-tk */
+      else if (straw){ tone(o, 900, .08, .016, 1500, "triangle"); burst(o + .05, .06, 2800, 2, .01); }                                        /* the straw goes in */
+      else { burst(o, .05, 2200, 2, .03); burst(o + .03, .22, 5600, 1.1, .026); }                                                              /* the can: tssk */
+      if (straw) for (let i = 0; i < 4; i++) burst(o + .32 + i * .16, .1, 1100 + i * 260, 3, .015);                                             /* slurp */
+      else for (let i = 0; i < 3; i++) tone(o + .34 + i * .19, 640, .08, .026, 450); },                                                         /* gulp, gulp, gulp */
     drink(k, h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime;
       if (k === "energy") [988, 1319, 1760, 2349].forEach((f, i) => tone(tt + i * .06, f, .09, .022 * h, null, "triangle"));
       else if (k === "cider") for (let i = 0; i < 6; i++){ const f = 1200 + Math.random() * 1100; tone(tt + i * .05 + Math.random() * .03, f, .06, .015 * h, f * 1.4); }
@@ -2148,9 +2158,30 @@ const AUD = (() => {
       else if (k === "spicy"){ burst(tt, .3, 1500, .9, .035 * h); tone(tt, 620, .22, .02 * h, 1100, "triangle"); }
       else if (k === "slush") [2637, 3136, 2637, 3520].forEach((f, i) => tone(tt + i * .06, f, .08, .014 * h));
       else { tone(tt, 1568, .1, .02 * h); tone(tt + .09, 2093, .18, .018 * h); } },
-    drinkEnd(burp){ if (!ok()) return; const tt = ctx.currentTime;
-      if (burp){ tone(tt, 380, .15, .04, 260, "triangle"); tone(tt + .04, 320, .11, .018, 240, "triangle"); }
-      else { tone(tt, 1319, .09, .018); tone(tt + .08, 988, .14, .016); } },
+    drinkEnd(k, burp, h){ h = h == null ? 1 : h; if (!ok() || h <= 0) return; const tt = ctx.currentTime;   /* wearing off, each its own way */
+      if (burp){ tone(tt, 380, .15, .04 * h, 260, "triangle"); tone(tt + .04, 320, .11, .018 * h, 240, "triangle"); }
+      else if (k === "milk") tone(tt, 820, .3, .028 * h, 330, "triangle");
+      else if (k === "kid") tone(tt, 330, .3, .03 * h, 880, "triangle");
+      else if (k === "ghost") [1175, 1397, 1760, 2093].forEach((f, i) => tone(tt + i * .07, f, .18, .012 * h));
+      else if (k === "glass"){ burst(tt, .25, 1400, 1.2, .03 * h); tone(tt + .05, 1300, .1, .012 * h, 700); }
+      else if (k === "spicy"){ burst(tt, .5, 5200, .9, .016 * h); tone(tt, 900, .3, .01 * h, 500, "triangle"); }
+      else if (k === "slush") for (let i = 0; i < 3; i++) tone(tt + i * .14, 1800 - i * 200, .07, .014 * h, 1300 - i * 150);
+      else if (k === "energy") tone(tt, 1760, .3, .016 * h, 600, "triangle");
+      else { tone(tt, 1319, .09, .018 * h); tone(tt + .08, 988, .14, .016 * h); } },
+    fizz(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; for (let i = 0; i < 5; i++){ const f = 1800 + Math.random() * 2400; tone(tt + i * .045 + Math.random() * .03, f, .035, .008 * h, f * 1.3); } },
+    sour(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; tone(tt, 1500, .2, .018 * h, 2600, "triangle"); tone(tt + .02, 1520, .16, .01 * h, 2700, "triangle"); },
+    brr(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; for (let i = 0; i < 9; i++) burst(tt + i * .055, .02, 3000 + (i % 2) * 600, 5, .014 * h); },   /* teeth chattering */
+    shimmer(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; tone(tt, 1568, .5, .007 * h, 2349); tone(tt + .12, 2093, .45, .005 * h, 1568); },
+    sizzle(h){ if (!ok() || h <= 0) return; burst(ctx.currentTime, .35, 6000, .8, .009 * h); },
+    zip(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; burst(tt, .08, 3600, 1.5, .01 * h); tone(tt, 1600, .06, .006 * h, 2600, "triangle"); },
+    squeak(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 820, .09, .016, 1250, "triangle"); tone(tt + .08, 1100, .07, .012, 900, "triangle"); },   /* a balloon in the hand */
+    soak(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; tone(tt + .05, 1300, .18, .02 * h, 2300, "triangle");   /* yikes, cold! — and the drips */
+      for (let i = 0; i < 4; i++){ const f = 1400 + Math.random() * 900; tone(tt + .3 + i * .17 + Math.random() * .05, f, .05, .009 * h, f * 1.5); } },
+    ballSplash(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; tone(tt, 420, .07, .03 * h, 260, "triangle"); burst(tt + .01, .3, 1300, 1.1, .04 * h); burst(tt + .05, .22, 3300, 1.4, .016 * h); },
+    ballThrow(){ if (!ok()) return; const tt = ctx.currentTime; burst(tt, .16, 900, 1.2, .03); tone(tt, 300, .12, .025, 520, "triangle"); burst(tt + .04, .12, 2400, 1.6, .012); },
+    flick(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; tone(tt, 3520, .06, .02 * h); tone(tt + .03, 4186, .18, .012 * h);      /* a thumb flicks the coin: ting, and it spins */
+      for (let i = 0; i < 4; i++) tone(tt + .12 + i * .09, 2637 + (i % 2) * 400, .04, .006 * h * (1 - i * .2)); },
+    score(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 1568, .1, .018); tone(tt + .09, 2093, .2, .016); },
     fire(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; burst(tt, .3, 1400, .8, .03 * h); burst(tt + .02, .2, 3200, 1.2, .012 * h); },
     wstep(){ if (!ok()) return; const tt = ctx.currentTime, f = 1000 + Math.random() * 300; tone(tt, f, .06, .012, f * 1.5); burst(tt, .05, 2600, 2, .008); },
     season(s){ if (!ok()) return; const tt = ctx.currentTime; ({ spring:[1319, 1568, 2093], summer:[1047, 1568, 2093], autumn:[1175, 988, 1319], winter:[2637, 2093, 3136] })[s].forEach((f, i) => tone(tt + i * .1, f, .26, .016)); },
@@ -2282,7 +2313,7 @@ function setArmed(on){
   if (on && BALL.holder === me){ hint(T({ en:"Put the ball down first (G)", ko:"먼저 공을 내려놓아요 (G)" })); return; }
   if (on && !canThrow(true)) return;
   AIM.armed = on; $("b-bal").setAttribute("aria-pressed", String(on));
-  if (on){ AIM.off = [Math.sin(me.r) * 4, Math.cos(me.r) * 4]; AIM.tapAt = 0; AIM.k = Math.floor(Math.random() * BAL_COL.length); balMeshes(); AUD.stretch();
+  if (on){ AIM.off = [Math.sin(me.r) * 4, Math.cos(me.r) * 4]; AIM.tapAt = 0; AIM.k = Math.floor(Math.random() * BAL_COL.length); balMeshes(); AUD.squeak();
     hint(T(HOVER ? { en:"Point where it should land and click to throw · drag (either button) or point at the edge to turn · F or Esc to put it away", ko:"가리키고 클릭하면 던져요 · 드래그(오른쪽 버튼도 돼요)나 화면 가장자리로 시점 돌리기 · F·Esc로 끄기" }
                  : { en:"Tap where it should land, then the round button throws · drag to turn the view", ko:"떨어질 곳을 탭하고 동그란 던지기 버튼을 눌러요 · 화면은 드래그로 돌려요" })); }
 }
@@ -2305,7 +2336,7 @@ function sendFx(str){ FX.seq = (FX.seq + 1) % 100; FX.f = str.replace("#", FX.se
 const f2 = (v) => (Math.round(v * 100) / 100).toString();
 function onFx(a, f){
   const n = f.split(":").slice(1).map(Number); if (n.some(v => !isFinite(v))) return;
-  if (f[0] === "c" && n.length >= 6){ a.thr = performance.now(); a.r = n[2];
+  if (f[0] === "c" && n.length >= 6){ a.thr = performance.now(); AUD.flick(hear(a.x, a.z) * .7); a.r = n[2];
     flipCoin(coinPath({ x0:clamp(n[0], -CXW, CXW), z0:clamp(n[1], -CZW, CZW), a:n[2], v:clamp(n[3], 1, 10), th:clamp(n[4], 2, 85), k:clamp(n[5] | 0, 0, 5) })); return; }
   if (f[0] !== "b" || n.length < 5) return;
   a.thr = performance.now(); launch(a, clamp(n[0], -CXW, CXW), a.y + 1.2, clamp(n[1], -CZW, CZW), clamp(n[2], -CXW, CXW), clamp(n[3], -CZW, CZW), Math.abs(n[4] | 0) % BAL_COL.length);
@@ -2325,7 +2356,7 @@ function splash(x, y, z, n, pool){
   else if (y < .3){ const w = slot(WETS); Object.assign(w, { on:true, t0:now, x, z, s:.6 + Math.random() * .15 }); }
 }
 function soak(a, now){
-  a.wetUntil = now + 4500; a.emote = "splash"; a.et0 = now; if (!a.npc) popEmote(a, "splash");
+  a.wetUntil = now + 4500; a.emote = "splash"; a.et0 = now; if (!a.npc) popEmote(a, "splash"); AUD.soak(a === me ? 1 : hear(a.x, a.z));
   if (a === me) hint(T({ en:"Splash! You're soaked", ko:"앗, 차가워! 흠뻑 젖었어요" }), true);
 }
 function pop(b, hitA){
@@ -2431,7 +2462,7 @@ const dropPath = (x, z) => ({ segs:[{ x0:x, z0:z, y0:1.8, vx:0, vz:0, vy:0, T:Ma
 const nearPool = () => { const dx = Math.max(0, Math.abs(me.x) - PX), dz = Math.max(0, Math.abs(me.z) - PZ); return Math.hypot(dx, dz) < 3.2; };
 function throwWish(){
   const pend = WISH.pending; WISH.pending = null; if (!pend) return; balMeshes();
-  const pl = coinPlan(), P = coinPath(pl), sc = coinScore(P), now = performance.now();
+  const pl = coinPlan(), P = coinPath(pl), sc = coinScore(P), now = performance.now(); AUD.flick(1);
   me.r = pl.a; me.thr = now; const c = flipCoin(P); c.mine = true; c.score = sc; c.P = P;
   sendFx(`c#:${f2(pl.x0)}:${f2(pl.z0)}:${f2(pl.a)}:${f2(pl.v)}:${f1(pl.th)}:${pl.k}`);
   const id = "w" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), data = { x:+f2(P.x1), z:+f2(P.z1), w:pend.p ? "" : pend.w, p:pend.p, n:me.name || "…", t:Date.now(), s:sc.total, k:P.skips };
@@ -2495,6 +2526,7 @@ function showScore(P, sc){
   el.querySelector(".cs1").textContent = (P.skips ? T({ en:`Skipped ${P.skips}×! · `, ko:`물수제비 ${P.skips}번! · ` }) : "") + T({ en:`${P.dist.toFixed(1)} m · ${Math.round(P.th)}°`, ko:`거리 ${P.dist.toFixed(1)}m · 각도 ${Math.round(P.th)}°` });
   el.querySelector(".cs2").innerHTML = ""; el.querySelector(".cs2").append(String(sc.total)); const sm = document.createElement("small"); sm.textContent = T({ en:"pts", ko:"점" }); el.querySelector(".cs2").appendChild(sm);
   let line = T({ en:`distance ${sc.dist} + angle ${sc.ang}${sc.skip ? " + skips " + sc.skip : ""}`, ko:`거리 ${sc.dist} + 각도 ${sc.ang}${sc.skip ? " + 물수제비 " + sc.skip : ""}` });
+  if (!best) AUD.score();
   if (best){ RANK.best = sc.total; try { localStorage.setItem("lam-pool-best", String(sc.total)); } catch (_){}
     const place = 1 + RANK.top.filter(r => r.id !== RANK.uid && r.s > sc.total).length;
     line = T({ en:"New personal best!", ko:"개인 최고 기록!" }) + (place <= 10 ? T({ en:` · #${place} overall`, ko:` · 전체 ${place}위` }) : "");
@@ -2589,7 +2621,7 @@ function throwV(x, z){ const held = BALL.holder === me, fx = Math.sin(me.r), fz 
 function throwBall(x, z){
   if (BALL.holder !== me) return; const v = throwV(x, z);
   BALL.holder = null; Object.assign(BALL, { x:v.x0, y:v.y0, z:v.z0, vx:v.vx, vy:v.vy, vz:v.vz }); BALL.noKick = performance.now() + 500; BALL.air = true;
-  me.thr = performance.now(); tellBall(false); AUD.toss(1);
+  me.thr = performance.now(); tellBall(false); AUD.ballThrow();
 }
 function stepBall(dt, now){
   if (!inWorld && !making) return; const b = BALL; if (!BM && !balMeshes()) return;
@@ -2599,6 +2631,8 @@ function stepBall(dt, now){
     b.x = (L[0] + Rh[0]) / 2 + fx * .17; b.z = (L[2] + Rh[2]) / 2 + fz * .17; b.y = (L[1] + Rh[1]) / 2 + .08;
     return; }
   for (let s = 0; s < 2; s++){ const h = dt / 2, ice = iceOn() && inPool(b.x, b.z), wet = inPool(b.x, b.z) && !ice;
+    if (wet && !b.inW && b.y < BR * .9 && b.vy < -1.2){ const k = hear(b.x, b.z) * Math.min(1, -b.vy / 5); AUD.ballSplash(k); splash(b.x, 0, b.z, 6, true); }   /* into the water: a splash */
+    b.inW = wet && b.y < BR * .9;
     b.vy -= 9.8 * h;
     if (wet && b.y < BR * .7){ b.vy += (BR * .7 - b.y) * 80 * h; b.vy *= Math.pow(.04, h); b.vx *= Math.pow(.55, h); b.vz *= Math.pow(.55, h); }   /* floating, bobbing */
     const nx = b.x + b.vx * h, nz = b.z + b.vz * h;
@@ -2727,23 +2761,23 @@ function buyDrink(k){
   if (AIM.armed) setArmed(false);
   me.sit = false; me.bench = false; me.emote = ""; goal = null; closePops();
   DKS.seq = (DKS.seq + 1) % 10;
-  me.dk = { k, t0:now, on:now + SIP, end:now + SIP + D.dur * 1000, seq:DKS.seq, started:false };
+  me.dk = { k, t0:now, on:now + SIP, end:now + SIP + D.dur * 1000, seq:DKS.seq, started:false }; me.sfx = 0;
   me.r = Math.atan2(camPos[0] - me.x, camPos[2] - me.z);                                          /* turn round to face you, and drink */
-  AUD.vend(); if (navigator.vibrate) try { navigator.vibrate(12); } catch (_){}
+  AUD.vend(D.shape || "can"); if (navigator.vibrate) try { navigator.vibrate(12); } catch (_){}
   pill(true);
 }
 /* another page's drink: a sip, then the effect, until their letter goes */
 function drinkFrom(a, d, first){
   const now = performance.now();
-  if (!d){ if (a.dk && a.dk.k === "cider" && a.dk.started && inWorld) popEmote(a, "burp"); a.dk = null; return; }
+  if (!d){ if (a.dk && a.dk.started && inWorld){ if (a.dk.k === "cider") popEmote(a, "burp"); if (a.dk.k !== "water") AUD.drinkEnd(a.dk.k, a.dk.k === "cider", hear(a.x, a.z) * .7); } a.dk = null; return; }
   const k = DK_OF[d[0]]; if (!k) return;
-  a.dk = first ? { k, t0:now - SIP, on:now, end:Infinity, started:true } : { k, t0:now, on:now + SIP, end:Infinity, started:false };
+  a.dk = first ? { k, t0:now - SIP, on:now, end:Infinity, started:true } : { k, t0:now, on:now + SIP, end:Infinity, started:false }; a.sfx = 0;
 }
 function endDrink(early, quiet){
   if (!me.dk) return;
   if (me.dk.k === "glass" && onWater()){ if (quiet) toShore(); else { me.dk.end = Math.min(me.dk.end, performance.now()); return; } }   /* never dropped in */
   const k = me.dk.k, was = me.dk.started && !quiet; me.dk = null;
-  if (was && k !== "water"){ if (k === "cider" && !early) popEmote(me, "burp"); AUD.drinkEnd(k === "cider" && !early); if (early) hint(T({ en:"Back to normal", ko:"원래대로 돌아왔어요" }), true); }
+  if (was && k !== "water"){ if (k === "cider" && !early) popEmote(me, "burp"); AUD.drinkEnd(k, k === "cider" && !early); if (early) hint(T({ en:"Back to normal", ko:"원래대로 돌아왔어요" }), true); }
   pill(false); if (DKS.open >= 0 && $("pop-vend").classList.contains("on")) renderVend();
 }
 /* the little notice at the top right: what you drank, a ring that runs down, and × */
@@ -2821,6 +2855,14 @@ function stepDrinks(dt, now){
     if (on && a.dk.k === "cider" && now > (a.bub || 0)){ a.bub = now + 240 + Math.random() * 220;           /* bubbles rising round them */
       const p = slot(DKS.P), g = Math.random() * 6.283; Object.assign(p, { on:true, t0:now, kind:1, x:a.x + Math.cos(g) * .3, y:a.y + .45 + Math.random() * .7 * (a.sc || 1), z:a.z + Math.sin(g) * .3, vy:.5 + Math.random() * .35, life:1.3, s:.9 + Math.random() * .6, r:g }); }
     if (on && a.dk.k === "beer"){ const n = Math.floor((now - a.dk.on) / 3300); if (n !== a.hic){ a.hic = n; if (n > 0 && inWorld) AUD.hic(h); } }
+    if (on && inWorld && h > .05 && now > (a.sfx || 0)){ const k = a.dk.k, u = now - a.dk.on;                 /* each effect's own sound while it lasts */
+      if (k === "cider"){ a.sfx = now + 900 + Math.random() * 800; AUD.fizz(h * .8); }
+      else if (k === "energy" && a.mv > .9){ a.sfx = now + 330; AUD.zip(h); }
+      else if (k === "ghost"){ a.sfx = now + 3000 + Math.random() * 1500; AUD.shimmer(h); }
+      else if (k === "spicy"){ a.sfx = now + 1300; AUD.sizzle(h); }
+      else if (k === "lemon" && sour(a, now)){ a.sfx = now + (u < 1300 ? 1400 : 600); AUD.sour(h); }
+      else if (k === "slush" && u < 1500){ a.sfx = now + 1e9; AUD.brr(h); }
+      else if (k !== "lemon") a.sfx = now + 400; }
     if (on && a.dk.k === "spicy"){ const sc = a.sc || 1;
       if (now > (a.stm || 0)){ a.stm = now + 300; const g = Math.random() * 6.283;                                         /* steam off the top of the head */
         Object.assign(slot(DKS.P), { on:true, t0:now, kind:2, x:a.x + Math.cos(g) * .14, y:a.y + 1.55 * sc, z:a.z + Math.sin(g) * .14, vx:0, vz:0, vy:.55, life:1.1, s:.9 + Math.random() * .5, r:g }); }
