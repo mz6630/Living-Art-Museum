@@ -2821,7 +2821,7 @@ function step(dt){
     let tx = 0, tz = 0;
     if (f || s){
       const len = Math.hypot(f, s); f /= len; s /= len;
-      const speed = (keys.ShiftLeft || keys.ShiftRight ? 6.4 : 3.4) * (0.3 + 0.7 * push) + (joy3.on && push > 0.97 ? 1.4 : 0);   /* a gallery pace */
+      const speed = (keys.ShiftLeft || keys.ShiftRight ? 5 : 2.6) * (0.3 + 0.7 * push) + (joy3.on && push > 0.97 ? 0.6 : 0);   /* a slow gallery pace */
       tx = (-Math.sin(cam.yaw) * f + Math.cos(cam.yaw) * s) * speed;
       tz = (-Math.cos(cam.yaw) * f - Math.sin(cam.yaw) * s) * speed;
     }

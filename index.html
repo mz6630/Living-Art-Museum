@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261113122304";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261113122421";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -2822,7 +2822,7 @@ function step(dt){
     let tx = 0, tz = 0;
     if (f || s){
       const len = Math.hypot(f, s); f /= len; s /= len;
-      const speed = (keys.ShiftLeft || keys.ShiftRight ? 6.4 : 3.4) * (0.3 + 0.7 * push) + (joy3.on && push > 0.97 ? 1.4 : 0);   /* a gallery pace */
+      const speed = (keys.ShiftLeft || keys.ShiftRight ? 5 : 2.6) * (0.3 + 0.7 * push) + (joy3.on && push > 0.97 ? 0.6 : 0);   /* a slow gallery pace */
       tx = (-Math.sin(cam.yaw) * f + Math.cos(cam.yaw) * s) * speed;
       tz = (-Math.cos(cam.yaw) * f - Math.sin(cam.yaw) * s) * speed;
     }
