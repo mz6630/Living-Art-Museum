@@ -120,7 +120,7 @@ body.making #hint{display:none;}
 @media (hover:none){ #vendb kbd{display:none;} }
 .av.ghost .tg{opacity:.42;}
 /* the beer: a warm blush round the picture's edge (opacity set from the script, only while it lasts) */
-#tipsy{position:fixed;inset:0;z-index:3;pointer-events:none;display:none;opacity:0;background:radial-gradient(ellipse 75% 70% at 50% 48%, transparent 55%, rgba(255,168,122,.38) 100%);}
+#tipsy{position:fixed;inset:0;z-index:3;pointer-events:none;display:none;opacity:0;background:radial-gradient(ellipse 72% 68% at 50% 48%, transparent 48%, rgba(255,160,118,.5) 100%);}
 /* the drink you are on: top right, a ring that runs down, × to stop */
 #drinkfx{position:fixed;right:20px;top:calc(62px + env(safe-area-inset-top,0px));z-index:9;display:none;align-items:center;gap:10px;padding:6px 6px 6px 7px;border-radius:999px;max-width:min(300px,calc(100% - 20px));}
 body.in:not(.making) #drinkfx.on{display:flex;animation:dfxIn .35s cubic-bezier(.2,.9,.3,1.25);}
@@ -2493,7 +2493,7 @@ const DRINKS = {
   energy:{ c:"e", ico:"⚡", can:[.99, .8, .22], band:[.18, .18, .22], dur:15, name:{ en:"Energy drink", ko:"에너지 드링크" }, fx:{ en:"You walk and run faster", ko:"걷기·달리기가 빨라져요" }, s:{ en:"Faster", ko:"빨라져요" } },
   cider:{ c:"c", ico:"🫧", can:[.52, .86, .6], band:[.97, .98, .96], dur:15, name:{ en:"Cider", ko:"사이다" }, fx:{ en:"Jumps go twice as high", ko:"점프가 두 배로 높아져요" }, s:{ en:"High jumps", ko:"점프 2배" } },
   water:{ c:"w", ico:"💧", can:[.68, .86, 1], band:[.27, .53, .92], dur:0, bottle:true, name:{ en:"Water", ko:"생수" }, fx:{ en:"Clears whatever you drank", ko:"마신 효과를 모두 없애요" }, s:{ en:"Fresh", ko:"상쾌" } },
-  beer:{ c:"b", ico:"🍺", can:[.96, .7, .22], band:[.98, .95, .86], dur:12, name:{ en:"Beer", ko:"맥주" }, fx:{ en:"The world sways, just a little", ko:"세상이 살짝 어질어질해요" }, s:{ en:"Tipsy", ko:"어질어질" } },
+  beer:{ c:"b", ico:"🍺", can:[.96, .7, .22], band:[.98, .95, .86], dur:12, name:{ en:"Beer", ko:"맥주" }, fx:{ en:"Seeing double, the world sways", ko:"세상이 두 개로 보이고 어질어질해요" }, s:{ en:"Tipsy", ko:"어질어질" } },
   milk:{ c:"m", ico:"🥛", can:[.97, .97, .95], band:[.4, .62, .93], dur:15, name:{ en:"Milk", ko:"우유" }, fx:{ en:"You grow big", ko:"몸이 커져요" }, s:{ en:"Big", ko:"커졌어요" } },
   ghost:{ c:"g", ico:"👻", can:[.86, .92, .98], band:[.64, .57, .92], dur:12, name:{ en:"Clear soda", ko:"투명 음료" }, fx:{ en:"Invisible — only your reflection and shadow stay", ko:"투명해져요 — 물에 비친 모습과 그림자만 남아요" }, s:{ en:"Invisible", ko:"투명 인간" } },
 };
@@ -2535,7 +2535,7 @@ function renderVend(){
     b.querySelector(".can span").textContent = D.ico; b.querySelector(".dt b").textContent = T(D.name); b.querySelector(".dt small").textContent = T(D.fx);
     b.querySelector("em").textContent = cur ? T({ en:"On now", ko:"효과 중" }) : D.dur ? T({ en:`${D.dur}s`, ko:`${D.dur}초` }) : T({ en:"At once", ko:"바로" });
     b.onclick = () => buyDrink(k); L.appendChild(b); }
-  $("vend-n").textContent = T(v.kinds.includes("beer") ? { en:"Sensitive to motion? Turn on “Calm the screen” in ⓘ — the beer then leaves the picture still.", ko:"멀미가 걱정되면 ⓘ에서 ‘화면 흔들림 줄이기’를 켜요 — 맥주를 마셔도 화면은 그대로예요." }
+  $("vend-n").textContent = T(v.kinds.includes("beer") ? { en:"Sensitive to motion? Turn on “Calm the screen” in ⓘ — the beer then leaves the picture still.", ko:"멀미가 걱정되면 ⓘ에서 ‘화면 흔들림 줄이기’를 켜요 — 맥주를 마셔도 화면이 흔들리거나 겹쳐 보이지 않아요." }
                                                  : { en:"Any effect can be ended early with the × at the top right.", ko:"효과는 오른쪽 위 알림의 ×로 언제든 끌 수 있어요." });
 }
 function buyDrink(k){
@@ -2592,7 +2592,33 @@ function dkPose(a, q, now){
 /* the beer, on screen: a slow roll of under two degrees, faded in and out; none at all when calm */
 function tipsyRoll(now){
   if (CALM || making || !dkOn(me, "beer", now)) return 0;
-  const w = (now - me.dk.on) / 1000; return dkEnv(me, now) * (.023 * Math.sin(w * 1.12) + .007 * Math.sin(w * 2.7 + 1.3));
+  const w = (now - me.dk.on) / 1000; return dkEnv(me, now) * (.031 * Math.sin(w * 1.12) + .009 * Math.sin(w * 2.7 + 1.3) + .01 * hicK(w));
+}
+const hicK = (w) => { const h = w % 3.3; return w > 1 && h < .4 ? Math.sin(h / .4 * Math.PI) : 0; };   /* the hiccup: a short bump, every 3.3 s */
+/* the beer, seen double: the finished picture is copied once and laid back over itself, a little to the side,
+   drifting apart and together (a bigger jump on each hiccup). The picture underneath never moves, so the eye
+   keeps a steady hold. The copy exists only while the beer lasts; off when the screen is calmed */
+const DBL_FS = `precision mediump float; varying vec2 vU; uniform sampler2D uT; uniform vec2 uO; uniform float uK, uW, uTm;
+void main(){ vec2 w = vec2(sin(vU.y * 9. + uTm * 1.7), cos(vU.x * 7. + uTm * 1.3)) * uW;
+  vec3 a = texture2D(uT, vU + uO + w).rgb, b = texture2D(uT, vU - uO * .6 - w).rgb;
+  gl_FragColor = vec4(mix(a, b, .4) * vec3(1.04, .99, .94), uK); }`;
+const DBL = { tex:null, w:0, h:0 };
+function drawTipsy(now){
+  const beer = dkOn(me, "beer", now), k = beer && !CALM && !making ? dkEnv(me, now) : 0;
+  if (k < .01){ if (DBL.tex && !beer){ gl.deleteTexture(DBL.tex); DBL.tex = null; DBL.w = DBL.h = 0; } return; }   /* gone with the beer: no memory kept */
+  if (!P.dbl){ P.dbl = prog(INK_VS, DBL_FS); if (!P.dbl) return; }
+  gl.activeTexture(gl.TEXTURE4);
+  if (!DBL.tex || DBL.w !== W || DBL.h !== H){ if (DBL.tex) gl.deleteTexture(DBL.tex);
+    DBL.tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, DBL.tex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, W, H, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); DBL.w = W; DBL.h = H; }
+  else gl.bindTexture(gl.TEXTURE_2D, DBL.tex);
+  gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, W, H);
+  gl.disable(gl.DEPTH_TEST); gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  gl.useProgram(P.dbl.p); const u = P.dbl.u, w = (now - me.dk.on) / 1000, sep = (.009 + .006 * Math.sin(w * 1.25) + .012 * hicK(w)) * k;
+  gl.uniform1i(u.uT, 4); gl.uniform2f(u.uO, sep, sep * .3 * Math.sin(w * .8)); gl.uniform1f(u.uK, .44 * k); gl.uniform1f(u.uW, .0022 * k); gl.uniform1f(u.uTm, w);
+  bindMesh(TRI); gl.drawArrays(gl.TRIANGLES, 0, 3);
+  gl.disable(gl.BLEND); gl.enable(gl.DEPTH_TEST); gl.bindTexture(gl.TEXTURE_2D, null); gl.activeTexture(gl.TEXTURE0);
 }
 function stepDrinks(dt, now){
   const kk = Math.min(1, dt * 5);
@@ -2832,6 +2858,7 @@ function render(t, now){
   bindMesh(TRI); gl.drawArrays(gl.TRIANGLES, 0, 3);
   gl.disable(gl.BLEND); gl.enable(gl.DEPTH_TEST); gl.bindTexture(gl.TEXTURE_2D, null);
   gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, null); gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, null); gl.activeTexture(gl.TEXTURE0);
+  drawTipsy(now);
 }
 let lastT = performance.now(), pruneAt = 0, zoneHint = { below:false, up:false };
 function frame(now){
@@ -2864,7 +2891,7 @@ function about(){
   { const L = { stick:TOUCH ? { en:"Joystick", ko:"조이스틱" } : { en:"Keyboard (WASD)", ko:"키보드 (WASD)" }, click:TOUCH ? { en:"Tap to walk", ko:"탭해서 이동" } : { en:"Click to walk", ko:"클릭해서 이동" } };
     document.querySelectorAll("#mv-seg [data-mv]").forEach(b => { b.firstChild.textContent = T(L[b.dataset.mv]); }); }
   $("calm-t").textContent = T({ en:"Calm the screen", ko:"화면 흔들림 줄이기" });
-  $("calm-n").textContent = T({ en:"For motion sickness: the beer no longer sways the picture, and the energy drink stays gentler.", ko:"멀미가 날 때 켜요 — 맥주를 마셔도 화면이 흔들리지 않고, 에너지 드링크의 속도도 부드러워져요." });
+  $("calm-n").textContent = T({ en:"For motion sickness: the beer no longer sways or doubles the picture, and the energy drink stays gentler.", ko:"멀미가 날 때 켜요 — 맥주를 마셔도 화면이 흔들리거나 겹쳐 보이지 않고, 에너지 드링크의 속도도 부드러워져요." });
   $("dfx-x").setAttribute("aria-label", T({ en:"Stop the effect", ko:"효과 끄기" })); $("dfx-x").title = T({ en:"Stop the effect", ko:"효과 끄기" });
   $("vend-x").setAttribute("aria-label", T({ en:"Close", ko:"닫기" }));
   $("ab-h3").textContent = T({ en:"Here", ko:"이 공간에서" });
