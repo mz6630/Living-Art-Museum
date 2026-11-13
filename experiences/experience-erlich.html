@@ -155,6 +155,11 @@ body.embedded #drinkfx{top:calc(66px + env(safe-area-inset-top,0px));}
 .dk .can::after{content:"";position:absolute;left:4px;right:4px;top:-3px;height:5px;border-radius:3px;background:linear-gradient(#eef0f2,#b7bcc2);}
 .dk.bottle .can{width:22px;border-radius:9px 9px 6px 6px;margin-left:3px;margin-right:3px;}
 .dk.bottle .can::after{left:6px;right:6px;top:-5px;height:6px;background:#3f80ea;}
+.dk.carton .can{border-radius:3px 3px 4px 4px;margin-top:8px;height:36px;} .dk.carton .can::after{left:2px;right:2px;top:-8px;height:9px;border-radius:0;background:var(--c1);clip-path:polygon(50% 0,100% 100%,0 100%);}
+.dk.juice .can{width:24px;height:34px;border-radius:3px;margin:6px 2px 0;} .dk.juice .can::after{left:auto;right:5px;width:2px;top:-9px;height:10px;border-radius:1px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.1);}
+.dk.cup .can{border-radius:4px 4px 11px 11px;width:26px;height:34px;margin:8px 1px 0;} .dk.cup .can::after{left:0;right:0;top:-9px;height:11px;border-radius:13px 13px 0 0;background:rgba(240,246,255,.95);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);}
+.av.sour .bb{background:#fff4a6;} .av.sour .bb::after{border-top-color:#fff4a6;}
+#pop-vend{max-height:calc(100vh - 110px - env(safe-area-inset-bottom,0px));overflow:auto;}
 .dk .can span{position:relative;font-size:13px;line-height:1;}
 .dk .dt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
 .dk .dt b{font-size:13px;font-weight:600;color:var(--ink);}
@@ -481,11 +486,21 @@ const zoneOf = (x, y, z) => onStairs(x, z) && y > FLOOR + .15 && y < -.05 ? "sta
 const TREES = [[-CXW + 1.8, -CZW + 1.8], [CXW - 1.8, -CZW + 1.8], [-CXW + 1.8, CZW - 1.8], [CXW - 1.6, CZW - 1.6], [-CXW + 1.8, 0], [CXW - 1.8, -6], [-7.5, -CZW + 1.8], [7.5, CZW - 1.8]];
 const BENCHES = [[-4.5, PZ + 4.6, true], [4.5, PZ + 4.6, true], [-3, -PZ - 4.4, true], [4, -PZ - 4.4, true], [-PX - 4.6, 2.5, false], [HOLE.x1 + 3.4, -6, false]];
 const SEATS = BENCHES.flatMap(([x, z, ax], b) => [-.6, 0, .6].map(o => ({ b, x:ax ? x + o : x, z:ax ? z : z + o, r:ax ? (z > 0 ? Math.PI : 0) : (x < 0 ? Math.PI / 2 : -Math.PI / 2) })));
-/* two vending machines against the far glass wall, across the pool from where you come in; a little bin between them */
-const VZ0 = -CZW + .1, VZ1 = VZ0 + .72, VBIN = [0, VZ0 + .3];
-const VENDS = [{ x:-1.7, kinds:["energy", "cider", "water"], body:[.5, .7, .94], name:{ en:"Pop & Go", ko:"톡톡 자판기" } },
-               { x:1.7, kinds:["beer", "milk", "ghost"], body:[.97, .63, .53], name:{ en:"Strange Sips", ko:"요상한 자판기" } }];
-const onVend = (x, z, pad) => VENDS.findIndex(v => Math.abs(x - v.x) < .5 + pad && z > VZ0 - pad && z < VZ1 + pad);
+/* three vending machines: two against the far glass wall, across the pool from where you come in, with a
+   little bin between them; one more on the east wall, by the stairs — in the sun (the near wall lies in the
+   roof's shadow all day). Each stands with its back to a wall (x, z) and faces F */
+const VW = 1.2, VH = 2.15, VD = .8, VZN = -CZW + .1, VBIN = [0, VZN + .3];
+const VENDS = [
+  { x:-1.95, z:VZN, F:[0, 1], style:"sport", kinds:["energy", "cider", "lemon", "water"], body:[.95, .96, .97], acc:[.14, .42, .87], sign:[.8, .9, 1], win:[.86, .93, 1], poster:[1, .87, .4], posterB:[.2, .5, .92],
+    name:{ en:"Pop & Go", ko:"톡톡 자판기" } },
+  { x:1.95, z:VZN, F:[0, 1], style:"classic", kinds:["beer", "milk", "kid", "ghost"], body:[.85, .17, .2], acc:[.88, .15, .2], sign:[1, 1, 1], win:[1, .98, .94], poster:[.99, .98, .96], posterB:[.97, .74, .3],
+    name:{ en:"Strange Sips", ko:"요상한 자판기" } },
+  { x:CXW - .1, z:6.5, F:[-1, 0], style:"fresh", kinds:["glass", "spicy", "slush", "water"], body:[.99, .9, .68], acc:[.96, .58, .5], sign:[1, .98, .93], win:[1, .98, .93], poster:[.99, .98, .95], posterB:[.42, .64, .78],
+    name:{ en:"Wonder Drinks", ko:"신기한 자판기" } }];
+VENDS.forEach(v => { const [fx, fz] = v.F; v.R = [fz, -fx]; v.fx = v.x + fx * VD; v.fz = v.z + fz * VD;          /* R: to your right as you face it */
+  const xs = [v.x + v.R[0] * VW / 2, v.x - v.R[0] * VW / 2, v.fx + v.R[0] * VW / 2, v.fx - v.R[0] * VW / 2], zs = [v.z + v.R[1] * VW / 2, v.z - v.R[1] * VW / 2, v.fz + v.R[1] * VW / 2, v.fz - v.R[1] * VW / 2];
+  v.x0 = Math.min(...xs); v.x1 = Math.max(...xs); v.z0 = Math.min(...zs); v.z1 = Math.max(...zs); });
+const onVend = (x, z, pad) => VENDS.findIndex(v => x > v.x0 - pad && x < v.x1 + pad && z > v.z0 - pad && z < v.z1 + pad);
 const vendBlock = (x, z, pad) => onVend(x, z, pad) >= 0 || Math.hypot(x - VBIN[0], z - VBIN[1]) < .22 + pad;
 const onBench = (x, z, pad) => BENCHES.findIndex(([bx, bz, ax]) => Math.abs(x - bx) < (ax ? .95 : .24) + pad && Math.abs(z - bz) < (ax ? .24 : .95) + pad);
 /* may the camera stand here? it keeps to the same side of the water as you, and out of the trees */
@@ -630,33 +645,74 @@ function buildWorld(){
     A.box(x - w / 2, .4, z - d / 2, x + w / 2, .47, z + d / 2, [.66, .5, .35], 0);
     for (const sx of [-1, 1]) A.box(alongX ? x + sx * .75 - .05 : x - .2, 0, alongX ? z - .2 : z + sx * .75 - .05, alongX ? x + sx * .75 + .05 : x + .2, .4, alongX ? z + .2 : z + sx * .75 + .05, [.3, .3, .32], 3); };
   BENCHES.forEach(([x, z, ax]) => bench(x, z, ax));
-  /* the vending machines: a lit window of cans (a shelf per drink), a lit button for each, a slot below */
-  const WHITE = [.97, .97, .95], z1 = VZ1;
-  for (const v of VENDS){ const x = v.x, B = v.body, glow = B.map(c => c + (1 - c) * .55), win = B.map(c => c + (1 - c) * .86);
-    A.box(x - .5, 0, VZ0 + .02, x + .5, .08, z1 - .03, [.3, .31, .34], 3);                                    /* the foot */
-    A.box(x - .5, .08, VZ0, x + .5, 1.92, z1, B, 0);                                                           /* the body */
-    A.box(x - .505, 1.0, VZ0 + .04, x + .505, 1.05, z1 - .02, WHITE, 0);                                       /* a stripe round the sides */
-    A.box(x - .515, 1.92, VZ0 - .005, x + .515, 1.98, z1 + .012, WHITE, 0);                                    /* the white cap */
-    A.box(x - .46, 1.75, z1, x + .46, 1.88, z1 + .02, glow, 7);                                                /* the lit sign */
-    A.box(x - .45, .66, z1, x + .17, 1.7, z1 + .012, win, 7);                                                  /* the lit window */
-    A.box(x - .47, 1.7, z1, x + .19, 1.725, z1 + .045, WHITE, 3); A.box(x - .47, .635, z1, x + .19, .66, z1 + .045, WHITE, 3);
-    A.box(x - .47, .66, z1, x - .45, 1.7, z1 + .045, WHITE, 3); A.box(x + .17, .66, z1, x + .19, 1.7, z1 + .045, WHITE, 3);
-    v.kinds.forEach((k, i) => { const y = 1.36 - i * .33, D = DRINKS[k];
-      A.box(x - .45, y - .014, z1, x + .17, y, z1 + .065, [.86, .88, .9], 3);                                  /* the shelf */
-      for (let j = 0; j < 4; j++){ const cx = x - .37 + j * .155, h = D.bottle ? .2 : .16;
-        A.tube([cx, y, z1 + .036], [cx, y + h, z1 + .036], .042, D.bottle ? .03 : .042, D.can, 0, 8);
-        A.tube([cx, y + .05, z1 + .036], [cx, y + .1, z1 + .036], .0445, .0445, D.band, 0, 8); }
-      A.box(x + .26, y + .05, z1, x + .41, y + .12, z1 + .026, D.can, 7); });                                  /* its button, lit in its colour */
-    A.box(x + .25, 1.5, z1, x + .42, 1.62, z1 + .02, [.62, .9, .76], 7);                                        /* the little screen */
-    A.box(x + .3, .78, z1, x + .37, .9, z1 + .022, [.25, .26, .3], 3);                                         /* the coin slot */
-    A.box(x - .43, .2, z1, x + .13, .47, z1 + .02, [.2, .21, .24], 0);                                         /* where the drink drops out */
-    A.box(x - .41, .3, z1 + .02, x + .11, .45, z1 + .045, [.4, .42, .46], 3); }
+  VENDS.forEach(v => buildVend(A, v));
   A.tube([VBIN[0], 0, VBIN[1]], [VBIN[0], .6, VBIN[1]], .19, .21, [.74, .77, .8], 3, 14);                       /* the bin */
   A.tube([VBIN[0], .6, VBIN[1]], [VBIN[0], .66, VBIN[1]], .225, .225, [.42, .45, .5], 3, 14);
   A.ell([VBIN[0], .662, VBIN[1]], .1, .008, .1, [.18, .19, .21], 0, 12);
   A.box(HOLE.x0 - .78, 0, HOLE.z1 + .2, HOLE.x0 - .72, 1.0, HOLE.z1 + .26, [.3, .32, .35], 3);                 /* a sign post beside the stairs */
   A.box(HOLE.x0 - .98, .8, HOLE.z1 + .21, HOLE.x0 - .52, 1.06, HOLE.z1 + .25, [.2, .25, .3], 0);
   return upload(A.v);
+}
+/* a vending machine, drawn in its own frame — x across (to the right as you face it), y up, z from the wall
+   out to the front — and set down facing the room. Three looks: white with a blue wave down the side, red
+   with a white ribbon across the front, and butter cream with white bubbles up its sides */
+function buildVend(A, v){
+  const [Fx, Fz] = v.F, [Rx, Rz] = v.R, HW = VW / 2, P = (x, y, z) => [v.x + Rx * x + Fx * z, y, v.z + Rz * x + Fz * z], N = (n) => [Rx * n[0] + Fx * n[2], n[1], Rz * n[0] + Fz * n[2]];
+  const ER = (rx, rz) => [Math.abs(Rx) * rx + Math.abs(Fx) * rz, Math.abs(Rz) * rx + Math.abs(Fz) * rz];          /* an ellipsoid's radii, turned with it */
+  const box = (x0, y0, z0, x1, y1, z1, k, m) => { const a = P(x0, y0, z0), b = P(x1, y1, z1); A.box(Math.min(a[0], b[0]), y0, Math.min(a[2], b[2]), Math.max(a[0], b[0]), y1, Math.max(a[2], b[2]), k, m); };
+  const tube = (a, b, r0, r1, k, m, seg) => A.tube(P(...a), P(...b), r0, r1, k, m, seg);
+  const ell = (c, rx, ry, rz, k, m, seg) => { const [a, b] = ER(rx, rz); A.ell(P(...c), a, ry, b, k, m, seg); };
+  const quad = (a, b, c, d, n, k, m) => A.quad(P(...a), P(...b), P(...c), P(...d), N(n), k, m);
+  const front = (fn, x0, x1, n, k, z) => { for (let i = 0; i < n; i++){ const xa = lerp(x0, x1, i / n), xb = lerp(x0, x1, (i + 1) / n), [ta, ba] = fn(xa), [tb, bb] = fn(xb);   /* a band painted across the front */
+      quad([xa, ba, z], [xb, bb, z], [xb, tb, z], [xa, ta, z], [0, 0, 1], k, 0); } };
+  const side = (fn, y0, y1, n, k) => { for (const s of [-1, 1]){ const x = s * (HW + .003); for (let i = 0; i < n; i++){ const ya = lerp(y0, y1, i / n), yb = lerp(y0, y1, (i + 1) / n), [a0, a1] = fn(ya), [b0, b1] = fn(yb);   /* and down both sides */
+      quad([x, ya, a0], [x, ya, a1], [x, yb, b1], [x, yb, b0], [s, 0, 0], k, 0); } } };
+  const S = v.style, B = v.body, AC = v.acc, WHITE = [.97, .97, .96], DARK = [.16, .17, .2];
+  const y0 = .1, D0 = 1.0, D1 = 1.98, Z = VD;
+  /* the body, its foot or legs, its top */
+  box(-HW, y0, 0, HW, VH, VD, B, 0);
+  box(-HW + .02, 0, .03, HW - .02, y0, VD - .05, DARK, 3);
+  box(-HW - .005, VH, -.005, HW + .005, VH + .05, VD + .012, S === "sport" ? B : WHITE, 0);
+  box(-.54, D1 + .02, Z, .54, VH - .03, Z + .018, v.sign, 7);                                                    /* the lit header */
+  ell([0, (D1 + VH) / 2, Z + .02], .17, .045, .012, AC, S === "classic" ? 9 : 7, 18);                            /* its badge */
+  /* the wave on the sides; the ribbon across the front */
+  if (S === "sport") side(y => { const t = y / VH, c = lerp(.16, .64, t) + .06 * Math.sin(t * Math.PI), w = .015 + .13 * Math.pow(Math.sin(t * Math.PI), .75); return [c - w, c + w]; }, y0, VH, 16, AC);
+  if (S === "classic"){ side(y => { const t = y / VH, c = .42 + .24 * Math.sin((t - .5) * Math.PI), w = .03 + .05 * Math.sin(t * Math.PI); return [c - w, c + w]; }, y0, VH, 16, WHITE);
+    front(x => { const t = (x + HW) / VW, top = lerp(.99, .5, sstep(0, 1, t)); return [top, top - .36 + .18 * t]; }, -HW, HW, 18, WHITE, Z + .003);   /* the sweep */
+    front(x => { const t = (x + HW) / VW, top = lerp(.56, .1, sstep(0, 1, t)); return [top, top - .045]; }, -HW, HW, 18, WHITE, Z + .003); }
+  if (S === "fresh"){ for (const sd of [-1, 1]) [[.2, 1.9, .1], [.52, 1.62, .16], [.24, 1.28, .07], [.58, 1.05, .09], [.34, .74, .19], [.62, .38, .08], [.18, .28, .12]].forEach(([z, y, r]) =>   /* bubbles up both sides */
+      ell([sd * (HW + .002), y, z], .004, r, r, WHITE, 0, 16));
+    box(-HW - .004, .62, .04, HW + .004, .66, VD - .04, AC, 0); }                                                /* and a yellow line round it */
+  /* the window: four shelves, each one drink in a row of six, and a row of buttons under it */
+  const FR = WHITE, rowH = (D1 - D0) / 4;
+  box(-.53, D0, Z, .53, D1, Z + .012, v.win, 7);
+  box(-.56, D1, Z, .56, D1 + .03, Z + .05, FR, 3); box(-.56, D0 - .03, Z, .56, D0, Z + .05, FR, 3);
+  box(-.56, D0, Z, -.53, D1, Z + .05, FR, 3); box(.53, D0, Z, .56, D1, Z + .05, FR, 3);
+  v.kinds.forEach((k, i) => { const y = D1 - (i + 1) * rowH + .05, Dk = DRINKS[k], sh = Dk.shape;
+    box(-.53, y - .016, Z, .53, y, Z + .075, [.88, .9, .92], 3);                                                 /* the shelf */
+    box(-.53, y - .05, Z, .53, y - .016, Z + .065, WHITE, 0);                                                    /* the price strip */
+    for (let j = 0; j < 6; j++){ const x = -.42 + j * .168, z = Z + .045;
+      box(x - .026, y - .042, Z + .065, x + .026, y - .024, Z + .074, AC, 7);
+      if (sh === "bottle"){ tube([x, y, z], [x, y + .13, z], .042, .042, Dk.can, 0, 8); tube([x, y + .13, z], [x, y + .17, z], .042, .018, Dk.can, 0, 8);
+        tube([x, y + .17, z], [x, y + .19, z], .02, .02, Dk.band, 0, 6); tube([x, y + .045, z], [x, y + .09, z], .044, .044, Dk.band, 0, 8); }
+      else if (sh === "carton"){ box(x - .045, y, z - .035, x + .045, y + .14, z + .035, Dk.can, 0); box(x - .045, y + .05, z - .036, x + .045, y + .1, z + .036, Dk.band, 0);
+        tube([x - .045, y + .14, z], [x + .045, y + .14, z], .036, .036, Dk.can, 0, 4); }
+      else if (sh === "juice"){ box(x - .04, y, z - .025, x + .04, y + .12, z + .025, Dk.can, 0); box(x - .041, y + .04, z - .026, x + .041, y + .08, z + .026, Dk.band, 0);
+        tube([x + .02, y + .12, z], [x + .025, y + .17, z], .006, .006, [.97, .97, .97], 0, 5); }
+      else if (sh === "cup"){ tube([x, y, z], [x, y + .12, z], .036, .05, Dk.can, 0, 8); ell([x, y + .12, z], .05, .045, .05, [.95, .97, 1], 0, 8);
+        tube([x + .012, y + .14, z], [x + .02, y + .2, z], .006, .006, Dk.band, 0, 5); }
+      else { tube([x, y, z], [x, y + .16, z], .045, .045, Dk.can, 0, 8); tube([x, y + .055, z], [x, y + .105, z], .0465, .0465, Dk.band, 0, 8); } } });
+  /* below: a lit poster, the money panel, the slot the drink drops into */
+  if (S === "sport"){ box(-.5, .5, Z, .08, .92, Z + .012, v.poster, 7);                                         /* a yellow poster, a blue wave over it */
+    front(x => { const t = (x + .5) / .58, top = lerp(.86, .6, t) + .04 * Math.sin(t * Math.PI * 2); return [top, top - .1]; }, -.5, .08, 10, v.posterB, Z + .014); }
+  else if (S === "fresh"){ box(-.5, .5, Z, .08, .92, Z + .012, v.poster, 7); ell([-.13, .8, Z + .016], .085, .085, .006, AC, 7, 16);   /* a sun, and a wave under it */
+    front(x => { const t = (x + .5) / .58, top = .66 + .045 * Math.sin(t * Math.PI * 2.4); return [top, .52]; }, -.5, .08, 12, v.posterB, Z + .018); }
+  box(.15, .44, Z, .53, .96, Z + .02, S === "fresh" ? [.95, .82, .58] : S === "classic" ? [.78, .13, .16] : [.9, .91, .93], 0);
+  box(.21, .84, Z + .02, .47, .91, Z + .03, [.55, .9, .72], 7);                                                  /* the little screen */
+  box(.4, .64, Z + .02, .45, .78, Z + .034, DARK, 3); box(.21, .66, Z + .02, .35, .7, Z + .034, DARK, 3);         /* coin slot, note slot */
+  ell([.28, .54, Z + .028], .032, .032, .014, [.84, .86, .9], 3, 10);                                            /* the coin return */
+  box(-.46, .14, Z, .46, .42, Z + .014, [.1, .1, .12], 0);
+  box(-.42, .19, Z + .014, .42, .38, Z + .036, [.3, .31, .35], 3); box(-.16, .33, Z + .036, .16, .35, Z + .046, [.62, .63, .66], 3);
 }
 function buildWater(){ const A = maker(); A.quad([-PX, 0, -PZ], [PX, 0, -PZ], [PX, 0, PZ], [-PX, 0, PZ], [0, 1, 0], [1, 1, 1], 0); return upload(A.v); }
 function buildSky(){ const A = maker(); A.box(-1, -1, -1, 1, 1, 1, [0, 0, 0], 0); return upload(A.v.map((v, i) => (i % ST) < 3 ? v * 180 : v)); }
@@ -829,13 +885,14 @@ function buildAvatar(L){
   ];
   /* the eyes and the mouth are made three ways each and swapped as they move: open, a blink, a smile;
      the mouth at rest, talking, laughing */
-  const E0 = maker(), E1 = maker(), E2 = maker(), E3 = maker(), M0 = maker(), M1 = maker(), M2 = maker();
+  const E0 = maker(), E1 = maker(), E2 = maker(), E3 = maker(), E4 = maker(), M0 = maker(), M1 = maker(), M2 = maker();
   for (const s of [-1, 1]){ const x = ex * s;
     F = E0; (EYES[L.fa] || EYES[0])(x, s);
     F = E1; arc(F, x, ey - .008, .062, -.013, .012, lash, PAINT);                                             /* shut for a blink */
     F = E2; arc(F, x, ey - .022, .058, .04, .015, lash, PAINT);                                               /* closed in a smile */
     F = E3; { const n = 22; let px = x, py = ey; for (let i = 1; i <= n; i++){ const t = i / n, a = t * Math.PI * 4.2 * s, r = .006 + .052 * t;   /* dizzy: swirls */
         const qx = x + Math.cos(a) * r, qy = ey + Math.sin(a) * r * .92; stroke(px, py, qx, qy, .0085, .0085, lash); px = qx; py = qy; } }
+    F = E4; stroke(x + .034 * s, ey + .028, x - .026 * s, ey - .004, .011, .011, lash); stroke(x - .026 * s, ey - .004, x + .034 * s, ey - .036, .011, .011, lash);   /* > < squeezed shut */
     F = B;
     if (!L.hs) oval(x, ey + .13, .046, .017, .006, SHADE(hc, .7), (L.fa === 6 ? .16 : -.1) * s);           /* the forehead shows: brows */
     oval(.248 * s, HEAD - .128, .052, .03, .005, mix3(sk, [.98, .55, .55], .45)); }                         /* cheeks */
@@ -986,7 +1043,7 @@ function buildAvatar(L){
       A.tube(el, hd, .038, .036, sk, M, 14); }
     A.ell([hd[0] + .004 * s, hd[1] - .03, .004], .066, .068, .064, sk, M, 18); }
   return { b:upload(B.v), ll:upload(LL.v), lr:upload(LR.v), al:upload(AL.v), ar:upload(AR.v),
-           e:[upload(E0.v), upload(E1.v), upload(E2.v), upload(E3.v)], m:[upload(M0.v), upload(M1.v), upload(M2.v)] };
+           e:[upload(E0.v), upload(E1.v), upload(E2.v), upload(E3.v), upload(E4.v)], m:[upload(M0.v), upload(M1.v), upload(M2.v)] };
 }
 const MESHES = new Map();
 function meshFor(L){ const k = lookKey(L); let m = MESHES.get(k); if (!m){ m = buildAvatar(L); MESHES.set(k, m); } return m; }
@@ -1039,7 +1096,7 @@ void main(){
   gl_FragColor = vec4(c, 1.); }`;
 const MAIN_FS = `${DERIV ? "#extension GL_OES_standard_derivatives : enable\n" : ""}precision highp float;
 varying vec3 vP; varying vec3 vN; varying vec3 vC; varying float vM;
-uniform vec3 uCam, uSun, uAvP; uniform float uT, uClip, uBelow, uShTex, uAvY, uA; uniform mat4 uSV; uniform sampler2D uSh;
+uniform vec3 uCam, uSun, uAvP, uTint; uniform float uT, uClip, uBelow, uShTex, uAvY, uA; uniform mat4 uSV; uniform sampler2D uSh;
 ${SKYFN}
 ${NOISE}
 ${CAUST}
@@ -1097,6 +1154,7 @@ void main(){
     float neck = smoothstep(.72, .8, lp.y) * (1. - smoothstep(.875, .9, lp.y)) * (1. - smoothstep(.3, .36, length(lp.xz)));
     c = mix(c, self, neck * .6);
     c += col * .14 * pow(1. - max(dot(n, normalize(V)), 0.), 2.5);                        /* a soft rim of light */
+    c *= mix(vec3(1.), uTint, smoothstep(.8, .95, lp.y));                                  /* the head, red hot or blue with cold */
   }
   /* hatching in the shade, as if drawn */
   if (!soft && !under){ float shade = 1. - lit * sh;
@@ -1352,6 +1410,7 @@ function faceOf(a, now){
   if (now > a.blinkAt + 140) a.blinkAt = now + (Math.random() < .2 ? 260 : 2400 + Math.random() * 3600);
   if (a.emote === "dizzy" && now - a.et0 < DIZZY_MS) return [3, 1];                          /* seeing stars */
   if (a.dk && now - a.dk.t0 > SIP * .24 && now - a.dk.t0 < SIP * .86) return [1, 1];          /* gulping, eyes shut */
+  if (a.dk && (sour(a, now) || a.dk.k === "slush" && now - a.dk.on >= 0 && now - a.dk.on < 1600)) return [4, 1];   /* > < : too sour, too cold */
   const happy = a.emote && a.emote !== "sit" && now - a.et0 < 2800;
   let eye = happy ? 2 : now >= a.blinkAt ? 1 : 0, mouth = happy ? 2 : 0;
   const t0 = a.msgUntil - 6500, len = Math.min(3800, 600 + (a.msg || "").length * 110);
@@ -1414,17 +1473,17 @@ function moveMe(dt){
     const s = speed * dt * Math.min(1, il);
     const nx = me.x + vx * s, nz = me.z + vz * s;
     const inB = Math.abs(me.y) < .3 && onBench(me.x, me.z, .14) >= 0, blk = (x, z) => Math.abs(me.y) < .3 && (!inB && onBench(x, z, .14) >= 0 || vendBlock(x, z, .2));   /* benches are solid — but you can always step off one */
-    let f = blk(nx, nz) ? null : floorAt(nx, nz, me.y);
+    let f = blk(nx, nz) ? null : myFloor(nx, nz, me.y);
     if (goal){ goal.slide = f === null ? (goal.slide || 0) + dt : 0; if (goal.slide > .35){ const g = goal; goal = null; if (g.seat && Math.hypot(g.x - me.x, g.z - me.z) < 2.2) sitBench(g.seat); else if (g.vend != null && Math.hypot(g.x - me.x, g.z - me.z) < 2) openVend(g.vend); } }   /* walking along a wall instead of to the point: stop */
     if (f !== null){ me.x = nx; me.z = nz; }
-    else if (!blk(nx, me.z) && (f = floorAt(nx, me.z, me.y)) !== null) me.x = nx;
-    else if (!blk(me.x, nz) && (f = floorAt(me.x, nz, me.y)) !== null) me.z = nz;
+    else if (!blk(nx, me.z) && (f = myFloor(nx, me.z, me.y)) !== null) me.x = nx;
+    else if (!blk(me.x, nz) && (f = myFloor(me.x, nz, me.y)) !== null) me.z = nz;
     me.r += wrap(Math.atan2(vx, vz) - me.r) * Math.min(1, dt * 12);
     me.ph += s * 5.2; me.mv = lerp(me.mv, clamp(speed * Math.min(1, il) / 3, 0, 1.35), Math.min(1, dt * 8));
-    stepAcc += s; if (stepAcc > .62){ stepAcc = 0; AUD.step(me.y < -1.4); }
+    stepAcc += s; if (stepAcc > .62){ stepAcc = 0; if (onWater()) AUD.wstep(); else AUD.step(me.y < -1.4); }
     if (goal && goal.last){ const gain = Math.hypot(goal.x - goal.last[0], goal.z - goal.last[1]) - Math.hypot(goal.x - me.x, goal.z - me.z); goal.stuck = gain < s * .5 ? goal.stuck + dt : 0; }   /* not getting closer (a wall, the pool's edge): stop */
   } else me.mv = Math.max(0, me.mv - dt * 5);
-  const f = floorAt(me.x, me.z, me.y); if (f !== null) me.y += (f - me.y) * Math.min(1, dt * 14);
+  const f = myFloor(me.x, me.z, me.y); if (f !== null) me.y += (f - me.y) * Math.min(1, dt * 14);
   if (me.jy > 0 || me.vy > 0){ me.vy -= 11 * dt; me.jy = Math.max(0, me.jy + me.vy * dt); if (me.jy === 0) me.vy = 0; }
 }
 /* a click on the ground: the point under the pointer, on the level you are standing on */
@@ -1447,7 +1506,7 @@ function walkTo(cx, cy, run){
     if (tb !== null && (!hb || tb < hb.t)) hb = { t:tb, i, x:camPos[0] + d[0] * tb, z:camPos[2] + d[2] * tb }; });
   const t = Math.abs(d[1]) < 1e-4 ? -1 : (y0 - camPos[1]) / d[1];
   if (Math.abs(y0) < .3){ let hv = -1, tv = hb ? hb.t : 1e9;                                     /* the pointer on a vending machine: go and choose */
-    VENDS.forEach((v, i) => { const tt = rayBox(camPos, d, [v.x - .5, 0, VZ0], [v.x + .5, 1.98, VZ1 + .05]); if (tt !== null && tt < tv){ tv = tt; hv = i; } });
+    VENDS.forEach((v, i) => { const tt = rayBox(camPos, d, [v.x0 - .05, 0, v.z0 - .05], [v.x1 + .05, VH + .1, v.z1 + .05]); if (tt !== null && tt < tv){ tv = tt; hv = i; } });
     if (hv >= 0){ goVend(hv, run); return; } }
   if (!hb && (t <= 0 || t > 80)) return;
   const gx = hb ? hb.x : camPos[0] + d[0] * t, gz = hb ? hb.z : camPos[2] + d[2] * t;
@@ -1458,9 +1517,9 @@ function walkTo(cx, cy, run){
     if (MOVE !== "click"){ if (!walkTo.told){ walkTo.told = true; hint(T(TOUCH ? { en:"Walking is on the joystick — tap-to-walk can be turned on in ⓘ", ko:"이동은 조이스틱으로 해요 — 탭 이동은 ⓘ에서 켤 수 있어요" }
                                                                           : { en:"Walking is on WASD / the arrow keys — click-to-walk can be turned on in ⓘ", ko:"이동은 WASD·방향키로 해요 — 클릭 이동은 ⓘ에서 켤 수 있어요" })); } return; }
     let x = gx, z = gz;
-    if (floorAt(x, z, y0) === null || Math.abs(floorAt(x, z, y0) - y0) > .6){                         /* water, a wall: the nearest place short of it */
+    if (myFloor(x, z, y0) === null || Math.abs(myFloor(x, z, y0) - y0) > .6){                         /* water, a wall: the nearest place short of it */
       const L = Math.hypot(x - me.x, z - me.z), n = Math.ceil(L / .1); let ok = null;
-      for (let i = 1; i <= n; i++){ const px = lerp(me.x, x, i / n), pz = lerp(me.z, z, i / n), f = floorAt(px, pz, y0); if (f === null || Math.abs(f - y0) > .6) break; ok = [px, pz]; }
+      for (let i = 1; i <= n; i++){ const px = lerp(me.x, x, i / n), pz = lerp(me.z, z, i / n), f = myFloor(px, pz, y0); if (f === null || Math.abs(f - y0) > .6) break; ok = [px, pz]; }
       if (!ok) return; [x, z] = ok; }
     goal = { x, z, y:y0, stuck:0, last:null, run:!!run }; }
   const el = $("goal"); el.classList.remove("go"); void el.offsetWidth; el.classList.add("go"); AUD.click();
@@ -1670,7 +1729,7 @@ function cleanState(st){
   const e = typeof st.e === "string" && EMOTES[st.e] ? st.e : "";
   return { x:num(st.x, -CXW, CXW, 0), y:num(st.y, FLOOR - .1, 1.5, 0), z:num(st.z, -CZW, CZW, 0), r:num(st.r, -7, 7, 0), w:st.w ? 1 : 0, e, et:num(st.et, 0, 1e15, 0),
     m:cleanText(st.m, 40), mt:num(st.mt, 0, 1e15, 0), n:cleanText(st.n, 12) || "…", look:lookFrom(st.k), f:typeof st.f === "string" ? st.f.slice(0, 48) : "", b:typeof st.b === "string" ? st.b.slice(0, 60) : "",
-    d:typeof st.d === "string" && /^[ecwbmg][0-9]$/.test(st.d) ? st.d : "" };
+    d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "" };
 }
 function onPeerList(list){
   const seen = new Set(), now = performance.now();
@@ -1827,7 +1886,7 @@ function tagFor(a){
   t = { el, bb, nm, emo, msg:"" }; TAGS.set(a.id, t); return t;
 }
 function dropTag(id){ const t = TAGS.get(id); if (t){ t.el.remove(); TAGS.delete(id); } }
-const EMO_CH = { wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️", splash:"💦", dizzy:"💫", steal:"😎", oops:"😮", energy:"⚡", cider:"🫧", water:"✨", beer:"🥴", milk:"🥛", ghost:"👻", burp:"😮‍💨" };
+const EMO_CH = { wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️", splash:"💦", dizzy:"💫", steal:"😎", oops:"😮", energy:"⚡", cider:"🫧", water:"✨", beer:"🥴", milk:"🥛", ghost:"👻", burp:"😮‍💨", lemon:"🍋", kid:"🧃", glass:"🌊", spicy:"🔥", slush:"🥶" };
 function popEmote(a, e){ if (!EMO_CH[e]) return; const t = tagFor(a); t.emo.textContent = EMO_CH[e]; t.emo.classList.remove("go"); void t.emo.offsetWidth; t.emo.classList.add("go"); }
 function project(p){
   const M = VPm; if (!M) return null;
@@ -1842,7 +1901,8 @@ function seen(a){
   return "on";
 }
 const WLABELS = [{ p:[HOLE.x0 - .75, 1.32, HOLE.z1 + .23], t:{ en:"↓ Under the pool", ko:"↓ 수영장 아래로" } },
-                 { p:[0, 2.32, VZ1], t:{ en:"🥤 Vending machines", ko:"🥤 자판기" }, far:44, near:[0, VZ1 + .5, 4.2] }];
+                 { p:[0, VH + .42, VZN + VD], t:{ en:"🥤 Vending machines", ko:"🥤 자판기" }, far:44, near:[0, VZN + VD + .5, 4.6] },
+                 { p:[VENDS[2].fx, VH + .42, VENDS[2].fz], t:{ en:"🥤 Vending machine", ko:"🥤 자판기" }, far:44, near:[VENDS[2].fx + VENDS[2].F[0] * .5, VENDS[2].fz + VENDS[2].F[1] * .5, 3.2] }];
 const WL_EL = [];
 function updateTags(now){
   const keep = new Set();
@@ -1852,7 +1912,7 @@ function updateTags(now){
     const vis = seen(a), q = vis && project([a.x, a.y + (a.sit ? (a.bench ? 1.82 : 1.4) : 1.76) * (a.sc || 1) + (a.jy || 0), a.z]);
     const t = tagFor(a); keep.add(a.id);
     if (!q || q[2] > 34){ t.el.style.display = "none"; continue; }
-    t.el.style.display = ""; t.el.classList.toggle("dim", vis === "dim"); t.el.classList.toggle("ghost", !!(a.dk && dkOn(a, "ghost", now)));
+    t.el.style.display = ""; t.el.classList.toggle("dim", vis === "dim"); t.el.classList.toggle("ghost", !!(a.dk && dkOn(a, "ghost", now))); t.el.classList.toggle("sour", !!(a.dk && dkOn(a, "lemon", now)));
     const s = clamp((fov < .8 ? 9 : 6) / q[2], .62, 1.08);
     t.el.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%) scale(${s.toFixed(3)})`;
     t.el.style.zIndex = String(1000 - Math.round(q[2] * 10));
@@ -1990,10 +2050,17 @@ const AUD = (() => {
       else if (k === "beer"){ tone(tt, 784, .22, .022 * h, 659); tone(tt + .2, 659, .26, .02 * h, 740); }
       else if (k === "milk") tone(tt, 330, .3, .034 * h, 880, "triangle");
       else if (k === "ghost") [2093, 1760, 1397, 1175].forEach((f, i) => tone(tt + i * .08, f, .2, .012 * h));
+      else if (k === "lemon"){ burst(tt, .1, 6200, 1.5, .02 * h); tone(tt + .04, 1800, .12, .02 * h, 2700, "triangle"); }
+      else if (k === "kid") tone(tt, 880, .3, .03 * h, 330, "triangle");
+      else if (k === "glass") [2349, 3136, 3951].forEach((f, i) => tone(tt + i * .07, f, .3, .014 * h));
+      else if (k === "spicy"){ burst(tt, .3, 1500, .9, .035 * h); tone(tt, 620, .22, .02 * h, 1100, "triangle"); }
+      else if (k === "slush") [2637, 3136, 2637, 3520].forEach((f, i) => tone(tt + i * .06, f, .08, .014 * h));
       else { tone(tt, 1568, .1, .02 * h); tone(tt + .09, 2093, .18, .018 * h); } },
     drinkEnd(burp){ if (!ok()) return; const tt = ctx.currentTime;
       if (burp){ tone(tt, 380, .15, .04, 260, "triangle"); tone(tt + .04, 320, .11, .018, 240, "triangle"); }
       else { tone(tt, 1319, .09, .018); tone(tt + .08, 988, .14, .016); } },
+    fire(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; burst(tt, .3, 1400, .8, .03 * h); burst(tt + .02, .2, 3200, 1.2, .012 * h); },
+    wstep(){ if (!ok()) return; const tt = ctx.currentTime, f = 1000 + Math.random() * 300; tone(tt, f, .06, .012, f * 1.5); burst(tt, .05, 2600, 2, .008); },
     hic(h){ if (!ok() || h <= 0) return; tone(ctx.currentTime, 820, .06, .03 * h, 1350, "triangle"); },
     stretch(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 760, .12, .012, 1150, "triangle"); },
     toss(k){ if (!ok() || k <= 0) return; const tt = ctx.currentTime; burst(tt, .15, 1800, 2, .02 * k); tone(tt, 600, .16, .014 * k, 1150, "triangle"); },
@@ -2492,28 +2559,42 @@ function ballAt(cx, cy, run){                                                   
 const DRINKS = {
   energy:{ c:"e", ico:"⚡", can:[.99, .8, .22], band:[.18, .18, .22], dur:15, name:{ en:"Energy drink", ko:"에너지 드링크" }, fx:{ en:"You walk and run faster", ko:"걷기·달리기가 빨라져요" }, s:{ en:"Faster", ko:"빨라져요" } },
   cider:{ c:"c", ico:"🫧", can:[.52, .86, .6], band:[.97, .98, .96], dur:15, name:{ en:"Cider", ko:"사이다" }, fx:{ en:"Jumps go twice as high", ko:"점프가 두 배로 높아져요" }, s:{ en:"High jumps", ko:"점프 2배" } },
-  water:{ c:"w", ico:"💧", can:[.68, .86, 1], band:[.27, .53, .92], dur:0, bottle:true, name:{ en:"Water", ko:"생수" }, fx:{ en:"Clears whatever you drank", ko:"마신 효과를 모두 없애요" }, s:{ en:"Fresh", ko:"상쾌" } },
+  water:{ c:"w", ico:"💧", can:[.68, .86, 1], band:[.27, .53, .92], dur:0, shape:"bottle", name:{ en:"Water", ko:"생수" }, fx:{ en:"Clears whatever you drank", ko:"마신 효과를 모두 없애요" }, s:{ en:"Fresh", ko:"상쾌" } },
   beer:{ c:"b", ico:"🍺", can:[.96, .7, .22], band:[.98, .95, .86], dur:12, name:{ en:"Beer", ko:"맥주" }, fx:{ en:"Seeing double, the world sways", ko:"세상이 두 개로 보이고 어질어질해요" }, s:{ en:"Tipsy", ko:"어질어질" } },
-  milk:{ c:"m", ico:"🥛", can:[.97, .97, .95], band:[.4, .62, .93], dur:15, name:{ en:"Milk", ko:"우유" }, fx:{ en:"You grow big", ko:"몸이 커져요" }, s:{ en:"Big", ko:"커졌어요" } },
+  milk:{ c:"m", ico:"🥛", can:[.97, .97, .95], band:[.4, .62, .93], dur:15, shape:"carton", name:{ en:"Milk", ko:"우유" }, fx:{ en:"You grow big", ko:"몸이 커져요" }, s:{ en:"Big", ko:"커졌어요" } },
   ghost:{ c:"g", ico:"👻", can:[.86, .92, .98], band:[.64, .57, .92], dur:12, name:{ en:"Clear soda", ko:"투명 음료" }, fx:{ en:"Invisible — only your reflection and shadow stay", ko:"투명해져요 — 물에 비친 모습과 그림자만 남아요" }, s:{ en:"Invisible", ko:"투명 인간" } },
 };
+Object.assign(DRINKS, {
+  lemon:{ c:"l", ico:"🍋", can:[1, .9, .36], band:[.42, .74, .32], dur:12, shape:"bottle", name:{ en:"Lemonade", ko:"레몬에이드" }, fx:{ en:"So sour you scrunch up and shiver — and your words turn yellow", ko:"너무 새콤해서 얼굴이 찡그려지고 부르르 — 말풍선도 노래져요" }, s:{ en:"Sour!", ko:"새콤!" } },
+  kid:{ c:"k", ico:"🧃", can:[.6, .85, .48], band:[1, .62, .4], dur:15, shape:"juice", name:{ en:"Tiny juice", ko:"꼬마 주스" }, fx:{ en:"You shrink to a little one", ko:"몸이 작아져요" }, s:{ en:"Tiny", ko:"작아졌어요" } },
+  glass:{ c:"a", ico:"🪟", can:[.74, .94, .97], band:[.26, .66, .84], dur:20, name:{ en:"Glass soda", ko:"유리 소다" }, fx:{ en:"Walk on the water — under it, after all, is a sheet of glass", ko:"물 위를 걸을 수 있어요 — 사실 물 아래는 유리판이거든요" }, s:{ en:"On the water", ko:"물 위 걷기" } },
+  spicy:{ c:"h", ico:"🌶️", can:[.9, .2, .16], band:[1, .76, .22], dur:12, name:{ en:"Fire soda", ko:"매운 음료" }, fx:{ en:"Your face goes red, steam pours off, you breathe fire", ko:"얼굴이 새빨개지고 김이 나고, 입에서 불이 나와요" }, s:{ en:"Hot!", ko:"화끈화끈" } },
+  slush:{ c:"i", ico:"🧊", can:[.55, .8, 1], band:[.97, .5, .62], dur:15, shape:"cup", name:{ en:"Slush", ko:"슬러시" }, fx:{ en:"Brain freeze! You go blue and leave frosty footprints", ko:"머리가 띵! 얼굴이 파래지고 발자국에 서리가 남아요" }, s:{ en:"Brrr", ko:"꽁꽁" } },
+});
 const DK_OF = {}; for (const k in DRINKS) DK_OF[DRINKS[k].c] = k;
 const SIP = 1500;                                                                                 /* the sip, before it works */
 const rgb = (c) => `rgb(${c.map(v => Math.round(v * 255)).join(",")})`;
 let CALM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 try { const c = localStorage.getItem("lam-pool-calm"); if (c !== null) CALM = c === "1"; } catch (_){}
 function setCalm(on){ CALM = !!on; try { localStorage.setItem("lam-pool-calm", CALM ? "1" : "0"); } catch (_){} const c = $("calm"); if (c) c.checked = CALM; }
-const DKS = { seq:0, open:-1, secs:-1, tipsy:false, told:false, inAt:0, mesh:null, P:Array.from({ length:28 }, () => ({ on:false, t0:0 })) };
+const DKS = { seq:0, open:-1, secs:-1, tipsy:false, told:false, inAt:0, mesh:null, P:Array.from({ length:40 }, () => ({ on:false, t0:0 })),
+              F:Array.from({ length:14 }, () => ({ on:false, t0:0 })), R:Array.from({ length:6 }, () => ({ on:false, t0:0 })) };
+/* the glass soda: the water is a floor — while it lasts */
+const onWater = () => Math.abs(me.y) < .3 && inPool(me.x, me.z) && inWorld;
+function myFloor(x, z, y){ const f = floorAt(x, z, y); if (f !== null) return f;
+  return Math.abs(y) < .62 && Math.abs(x) < PX + .1 && Math.abs(z) < PZ + .1 && dkOn(me, "glass", performance.now()) ? 0 : null; }
+function toShore(){ const kx = Math.abs(me.x) / PX, kz = Math.abs(me.z) / PZ; goal = null;
+  if (kx > kz) me.x = Math.sign(me.x || 1) * (PX + .55); else me.z = Math.sign(me.z || 1) * (PZ + .55); }
 const dkOn = (a, k, now) => !!a.dk && a.dk.k === k && now >= a.dk.on && now < a.dk.end;
 const dkEnv = (a, now) => a.dk ? sstep(0, 1600, now - a.dk.on) * sstep(0, 1600, a.dk.end - now) : 0;
 function nearVend(rad){
   if (!inWorld || making || Math.abs(me.y) > .3) return -1; let best = -1, bd = rad;
-  VENDS.forEach((v, i) => { const d = Math.hypot(v.x - me.x, VZ1 + .45 - me.z); if (d < bd){ bd = d; best = i; } }); return best;
+  VENDS.forEach((v, i) => { const d = Math.hypot(v.fx + v.F[0] * .45 - me.x, v.fz + v.F[1] * .45 - me.z); if (d < bd){ bd = d; best = i; } }); return best;
 }
 /* walk up to it (from anywhere — the same in both ways of walking, like a bench), then choose */
 function goVend(i, run){
   if (making || !inWorld || Math.abs(me.y) > .3) return;
-  const fx = VENDS[i].x, fz = VZ1 + .55;
+  const v = VENDS[i], fx = v.fx + v.F[0] * .55, fz = v.fz + v.F[1] * .55;
   if (Math.hypot(fx - me.x, fz - me.z) < 1.6){ openVend(i); return; }
   goal = { x:fx, z:fz, y:0, stuck:0, last:null, run:!!run, vend:i };
   const el = $("goal"); el.classList.remove("go"); void el.offsetWidth; el.classList.add("go"); AUD.click();
@@ -2521,7 +2602,7 @@ function goVend(i, run){
 function openVend(i){
   if (!inWorld || making) return;
   if (nearVend(2.7) !== i){ goVend(i); return; }
-  DKS.open = i; goal = null; if (!me.dk || performance.now() > me.dk.on) me.r = Math.atan2(VENDS[i].x - me.x, VZ1 - me.z);
+  DKS.open = i; goal = null; if (!me.dk || performance.now() > me.dk.on) me.r = Math.atan2(VENDS[i].fx - me.x, VENDS[i].fz - me.z);
   renderVend(); if (!$("pop-vend").classList.contains("on")) openPop("pop-vend"); AUD.click();
 }
 function renderVend(){
@@ -2530,12 +2611,13 @@ function renderVend(){
   $("vend-s").textContent = T({ en:"A sip, then it works for a few seconds — one at a time.", ko:"한 모금 마시면 몇 초 동안 효과가 나요 — 한 번에 하나씩." });
   const L = $("vend-l"); L.textContent = "";
   for (const k of v.kinds){ const D = DRINKS[k], b = document.createElement("button"), cur = !!me.dk && me.dk.k === k && now < me.dk.end && D.dur > 0;
-    b.type = "button"; b.className = "dk" + (D.bottle ? " bottle" : "") + (cur ? " cur" : ""); b.style.setProperty("--c1", rgb(D.can)); b.style.setProperty("--c2", rgb(D.band));
+    b.type = "button"; b.className = "dk" + (D.shape ? " " + D.shape : "") + (cur ? " cur" : ""); b.style.setProperty("--c1", rgb(D.can)); b.style.setProperty("--c2", rgb(D.band));
     b.innerHTML = '<i class="can"><span></span></i><span class="dt"><b></b><small></small></span><em></em>';
     b.querySelector(".can span").textContent = D.ico; b.querySelector(".dt b").textContent = T(D.name); b.querySelector(".dt small").textContent = T(D.fx);
     b.querySelector("em").textContent = cur ? T({ en:"On now", ko:"효과 중" }) : D.dur ? T({ en:`${D.dur}s`, ko:`${D.dur}초` }) : T({ en:"At once", ko:"바로" });
     b.onclick = () => buyDrink(k); L.appendChild(b); }
-  $("vend-n").textContent = T(v.kinds.includes("beer") ? { en:"Sensitive to motion? Turn on “Calm the screen” in ⓘ — the beer then leaves the picture still.", ko:"멀미가 걱정되면 ⓘ에서 ‘화면 흔들림 줄이기’를 켜요 — 맥주를 마셔도 화면이 흔들리거나 겹쳐 보이지 않아요." }
+  $("vend-n").textContent = T(v.kinds.includes("glass") ? { en:"The glass soda wears off once you step off the water — no sudden dip.", ko:"유리 소다는 물 밖으로 나와야 효과가 끝나요 — 갑자기 빠지지 않아요." }
+                           : v.kinds.includes("beer") ? { en:"Sensitive to motion? Turn on “Calm the screen” in ⓘ — the beer then leaves the picture still.", ko:"멀미가 걱정되면 ⓘ에서 ‘화면 흔들림 줄이기’를 켜요 — 맥주를 마셔도 화면이 흔들리거나 겹쳐 보이지 않아요." }
                                                  : { en:"Any effect can be ended early with the × at the top right.", ko:"효과는 오른쪽 위 알림의 ×로 언제든 끌 수 있어요." });
 }
 function buyDrink(k){
@@ -2559,7 +2641,9 @@ function drinkFrom(a, d, first){
   a.dk = first ? { k, t0:now - SIP, on:now, end:Infinity, started:true } : { k, t0:now, on:now + SIP, end:Infinity, started:false };
 }
 function endDrink(early, quiet){
-  if (!me.dk) return; const k = me.dk.k, was = me.dk.started && !quiet; me.dk = null;
+  if (!me.dk) return;
+  if (me.dk.k === "glass" && onWater()){ if (quiet) toShore(); else { me.dk.end = Math.min(me.dk.end, performance.now()); return; } }   /* never dropped in */
+  const k = me.dk.k, was = me.dk.started && !quiet; me.dk = null;
   if (was && k !== "water"){ if (k === "cider" && !early) popEmote(me, "burp"); AUD.drinkEnd(k === "cider" && !early); if (early) hint(T({ en:"Back to normal", ko:"원래대로 돌아왔어요" }), true); }
   pill(false); if (DKS.open >= 0 && $("pop-vend").classList.contains("on")) renderVend();
 }
@@ -2588,7 +2672,13 @@ function dkPose(a, q, now){
     q.sway += Math.sin(w * 1.7) * .085 * e; q.bow += (.03 + Math.sin(w * 3.4) * .02) * e; q.a1z -= .12 * e; q.a2z += .12 * e;
     if (hic < 1 && w > 1) q.lift += Math.sin(hic * Math.PI) * .06 * e; }
   else if (a.dk.k === "energy") q.bow += .06 * a.mv;
+  else if (a.dk.k === "lemon"){ const u = now - a.dk.on; if (sour(a, now)){ const s = Math.sin(u * .06), e = Math.min(1, (u < 1300 ? u : u % 3400 - 2900) / 120);   /* scrunched, shivering */
+    q.sway += s * .035 * e; q.lift += Math.abs(s) * .012 * e; q.a1z += .32 * e; q.a2z -= .32 * e; q.a1x = lerp(q.a1x, -.35, e); q.a2x = lerp(q.a2x, -.35, e); } }
+  else if (a.dk.k === "slush"){ const u = now - a.dk.on; if (u < 1600){ const e = sstep(0, 250, u) * (1 - sstep(1350, 1600, u));   /* brain freeze: hands to the head */
+    q.a1z = lerp(q.a1z, -2.2, e); q.a2z = lerp(q.a2z, 2.2, e); q.a1x = lerp(q.a1x, -.25, e); q.a2x = lerp(q.a2x, -.25, e); q.sway += Math.sin(u * .05) * .02 * e; } }
+  else if (a.dk.k === "spicy"){ const u = (now - a.dk.on - 900) % 2600; if (now - a.dk.on > 900 && u < 500) q.bow += .14 * Math.sin(u / 500 * Math.PI); }   /* leaning into the flame */
 }
+const sour = (a, now) => { const u = now - a.dk.on; return a.dk.k === "lemon" && u >= 0 && now < a.dk.end && (u < 1300 || u % 3400 > 2900); };
 /* the beer, on screen: a slow roll of under two degrees, faded in and out; none at all when calm */
 function tipsyRoll(now){
   if (CALM || making || !dkOn(me, "beer", now)) return 0;
@@ -2623,7 +2713,7 @@ function drawTipsy(now){
 function stepDrinks(dt, now){
   const kk = Math.min(1, dt * 5);
   for (const a of AVATARS()){
-    const tgt = a.dk && dkOn(a, "milk", now) ? 1.35 : 1; a.sc = a.sc ? (Math.abs(a.sc - tgt) < .003 ? tgt : lerp(a.sc, tgt, kk)) : tgt;
+    const tgt = !a.dk ? 1 : dkOn(a, "milk", now) ? 1.35 : dkOn(a, "kid", now) ? .62 : 1; a.sc = a.sc ? (Math.abs(a.sc - tgt) < .003 ? tgt : lerp(a.sc, tgt, kk)) : tgt;
     if (!a.dk) continue;
     const on = now >= a.dk.on && now < a.dk.end, h = a === me ? 1 : hear(a.x, a.z);
     if (!a.dk.started && now >= a.dk.on){ a.dk.started = true; popEmote(a, a.dk.k); if (inWorld) AUD.drink(a.dk.k, h); if (a === me) dkStart(); }
@@ -2632,12 +2722,35 @@ function stepDrinks(dt, now){
     if (on && a.dk.k === "cider" && now > (a.bub || 0)){ a.bub = now + 240 + Math.random() * 220;           /* bubbles rising round them */
       const p = slot(DKS.P), g = Math.random() * 6.283; Object.assign(p, { on:true, t0:now, kind:1, x:a.x + Math.cos(g) * .3, y:a.y + .45 + Math.random() * .7 * (a.sc || 1), z:a.z + Math.sin(g) * .3, vy:.5 + Math.random() * .35, life:1.3, s:.9 + Math.random() * .6, r:g }); }
     if (on && a.dk.k === "beer"){ const n = Math.floor((now - a.dk.on) / 3300); if (n !== a.hic){ a.hic = n; if (n > 0 && inWorld) AUD.hic(h); } }
+    if (on && a.dk.k === "spicy"){ const sc = a.sc || 1;
+      if (now > (a.stm || 0)){ a.stm = now + 300; const g = Math.random() * 6.283;                                         /* steam off the top of the head */
+        Object.assign(slot(DKS.P), { on:true, t0:now, kind:2, x:a.x + Math.cos(g) * .14, y:a.y + 1.55 * sc, z:a.z + Math.sin(g) * .14, vx:0, vz:0, vy:.55, life:1.1, s:.9 + Math.random() * .5, r:g }); }
+      const n = Math.floor((now - a.dk.on - 900) / 2600); if (n >= 0 && n !== a.fire){ a.fire = n;                           /* and, now and then, fire */
+        const M = bodyPt(a, now, [0, HEAD - .15, .42]), fx = Math.sin(a.r), fz = Math.cos(a.r);
+        for (let i = 0; i < 5; i++){ const sp = 1.5 + i * .22 + Math.random() * .3;
+          Object.assign(slot(DKS.P), { on:true, t0:now + i * 45, kind:3, x:M[0], y:M[1], z:M[2], vx:fx * sp + (Math.random() - .5) * .3, vz:fz * sp + (Math.random() - .5) * .3, vy:.15 + Math.random() * .25, life:.5, s:.7 + Math.random() * .4, r:Math.random() * 6 }); }
+        if (inWorld) AUD.fire(h); } }
+    if (on && a.dk.k === "slush"){
+      if (a.mv > .25 && now > (a.frs || 0)){ a.frs = now + 270; a.foot = -(a.foot || 1); const rx = Math.cos(a.r), rz = -Math.sin(a.r);   /* frost where they step */
+        Object.assign(slot(DKS.F), { on:true, t0:now, x:a.x + rx * .09 * a.foot - Math.sin(a.r) * .05, y:a.y + .008, z:a.z + rz * .09 * a.foot - Math.cos(a.r) * .05, r:a.r }); }
+      if (now - a.dk.on > 1600 && now > (a.brt || 0)){ a.brt = now + 1700; const M = bodyPt(a, now, [0, HEAD - .15, .4]);   /* a puff of cold breath */
+        Object.assign(slot(DKS.P), { on:true, t0:now, kind:4, x:M[0], y:M[1], z:M[2], vx:Math.sin(a.r) * .35, vz:Math.cos(a.r) * .35, vy:.12, life:1, s:.55 + Math.random() * .25, r:0 }); } }
+    if (on && a.dk.k === "glass" && Math.abs(a.y) < .3 && inPool(a.x, a.z) && now > (a.rip || 0)){ a.rip = now + (a.mv > .25 ? 380 : 1300);   /* rings round the feet, on the water */
+      Object.assign(slot(DKS.R), { on:true, t0:now, x:a.x, z:a.z }); }
     if (a !== me && a.dk.k === "water" && a.dk.started) a.dk = null;                                 /* water: just the sip */
-    else if (a === me && now >= a.dk.end) endDrink(false);
+    else if (a === me && (now >= a.dk.end || a.dk.held)){
+      if (a.dk.k === "glass" && onWater()){ if (!a.dk.held){ a.dk.held = true; a.dk.end = now + 1e9; DKS.secs = -1;   /* never dropped in: it lasts till you step off */
+        hint(T({ en:"Step off the water and it wears off", ko:"물 밖으로 나가면 효과가 끝나요" }), true); } }
+      else endDrink(false); }
   }
-  for (const p of DKS.P) if (p.on){ const u = (now - p.t0) / 1000; if (u > p.life){ p.on = false; continue; } p.y += p.vy * dt; if (p.kind) p.x += Math.sin(u * 7 + p.r) * .12 * dt; }
+  if (!dkOn(me, "glass", now) && onWater()) toShore();                                                  /* on the water without the soda: back to the edge */
+  for (const p of DKS.P) if (p.on){ const u = (now - p.t0) / 1000; if (u > p.life){ p.on = false; continue; } if (u < 0) continue;
+    p.y += p.vy * dt; if (p.vx){ const dr = Math.pow(p.kind === 3 ? .25 : .5, dt); p.x += p.vx * dt; p.z += p.vz * dt; p.vx *= dr; p.vz *= dr; }
+    if (p.kind === 1 || p.kind === 2) p.x += Math.sin(u * 7 + p.r) * .12 * dt; }
+  for (const q of DKS.F) if (q.on && now - q.t0 > 3600) q.on = false;
+  for (const q of DKS.R) if (q.on && now - q.t0 > 1100) q.on = false;
   if (me.dk && me.dk.started && me.dk.end > now){ const s = Math.ceil((me.dk.end - now) / 1000);   /* the seconds left */
-    if (s !== DKS.secs){ DKS.secs = s; $("dfx-s").textContent = `${T(DRINKS[me.dk.k].s)} · ${T({ en:`${s}s`, ko:`${s}초` })}`; } }
+    if (s !== DKS.secs){ DKS.secs = s; $("dfx-s").textContent = me.dk.held ? T({ en:"Step off the water", ko:"물 밖으로!" }) : `${T(DRINKS[me.dk.k].s)} · ${T({ en:`${s}s`, ko:`${s}초` })}`; } }
   const tip = dkOn(me, "beer", now) && !making, el = $("tipsy");                                       /* a warm blush round the edge of the picture */
   if (tip){ const w = (now - me.dk.on) / 1000; if (!DKS.tipsy){ DKS.tipsy = true; el.style.display = "block"; }
     el.style.opacity = (dkEnv(me, now) * (CALM ? .55 : .7 + .3 * Math.sin(w * 1.12))).toFixed(3); }
@@ -2646,11 +2759,17 @@ function stepDrinks(dt, now){
 function canMeshes(){
   const one = (fn) => { const A = maker(); fn(A); return upload(A.v); }, M = {};
   for (const k in DRINKS){ const D = DRINKS[k];
-    M[k] = one(A => { if (D.bottle){ A.lathe([[0, -.085], [.034, -.085], [.036, -.075], [.036, .025], [.022, .055], [.013, .068], [.013, .082], [0, .083]], D.can, 8, 14);
-                        A.lathe([[.0365, -.03], [.0365, .012]], D.band, 5, 14); A.ell([0, .082, 0], .016, .01, .016, [.25, .5, .92], 5, 8); }
+    M[k] = one(A => { if (D.shape === "carton"){ A.box(-.04, -.07, -.04, .04, .05, .04, D.can, 5); A.box(-.041, -.03, -.041, .041, .02, .041, D.band, 5); A.tube([-.04, .05, 0], [.04, .05, 0], .04, .04, D.can, 5, 4); }
+                      else if (D.shape === "juice"){ A.box(-.035, -.055, -.022, .035, .055, .022, D.can, 5); A.box(-.036, -.015, -.023, .036, .02, .023, D.band, 5); A.tube([.015, .055, 0], [.02, .1, 0], .005, .005, [.97, .97, .97], 5, 5); }
+                      else if (D.shape === "cup"){ A.tube([0, -.06, 0], [0, .045, 0], .032, .044, D.can, 8, 10); A.ell([0, .045, 0], .044, .04, .044, [.95, .97, 1], 8, 10); A.tube([.01, .07, 0], [.018, .12, 0], .005, .005, D.band, 5, 5); }
+                      else if (D.shape === "bottle"){ A.lathe([[0, -.085], [.034, -.085], [.036, -.075], [.036, .025], [.022, .055], [.013, .068], [.013, .082], [0, .083]], D.can, 8, 14);
+                        A.lathe([[.0365, -.03], [.0365, .012]], D.band, 5, 14); A.ell([0, .082, 0], .016, .01, .016, D.band, 5, 8); }
                       else { A.lathe([[0, -.07], [.036, -.07], [.04, -.062], [.04, .052], [.032, .066], [0, .068]], D.can, 8, 14);
                         A.lathe([[.0405, -.026], [.0405, .026]], D.band, 5, 14); A.ell([0, .067, 0], .026, .004, .026, [.86, .88, .9], 3, 10); } }); }
   M.bub = one(A => A.ell([0, 0, 0], .05, .05, .05, [.9, .97, 1], 8, 10));
+  M.puff = one(A => A.ell([0, 0, 0], .05, .045, .05, [.98, .98, .98], 5, 10));                                  /* steam, breath */
+  M.fire = one(A => { A.ell([0, 0, 0], .06, .06, .06, [1, .55, .16], 9, 10); A.ell([0, .01, .02], .035, .035, .035, [1, .9, .4], 9, 8); });
+  M.frost = one(A => A.ell([0, 0, 0], .055, .004, .085, [.9, .96, 1], 0, 12));                                 /* a footprint of frost */
   return M;
 }
 function canAx(c, d, r, k){ let x = cross(d, [Math.sin(r), 0, Math.cos(r)]); const l = Math.hypot(x[0], x[1], x[2]) || 1; x = [x[0] / l, x[1] / l, x[2] / l]; const z = cross(x, d);   /* its axis along d */
@@ -2668,8 +2787,12 @@ function drawDrinks(p, now){
     const dm = norm(sub(Mo, H)), d = norm([dm[0] * tip, 1 - tip + dm[1] * tip, dm[2] * tip]);
     put(DKS.mesh[a.dk.k], canAx([lerp(H[0], (H[0] + Mo[0]) / 2, tip), lerp(H[1] + .03 * sc, (H[1] + Mo[1]) / 2, tip), lerp(H[2], (H[2] + Mo[2]) / 2, tip)], d, a.r, k)); }
   if (PASS !== "main") return;
-  for (const q of DKS.P) if (q.on){ const t = (now - q.t0) / 1000, k = q.s * Math.min(1, t * 6) * (1 - sstep(q.life * .6, q.life, t));
-    put(q.kind ? DKS.mesh.bub : BM.star, setM(q.x, q.y, q.z, k, k, k, q.r + t * 3)); }
+  const PM = [BM.star, DKS.mesh.bub, DKS.mesh.puff, DKS.mesh.fire, DKS.mesh.puff];
+  for (const q of DKS.P) if (q.on){ const t = (now - q.t0) / 1000; if (t < 0) continue;
+    const k = q.kind === 3 ? q.s * (.5 + 1.6 * t / q.life) * (1 - sstep(q.life * .55, q.life, t)) : q.s * Math.min(1, t * 6) * (1 - sstep(q.life * .6, q.life, t)) * (q.kind === 2 || q.kind === 4 ? 1 + t * .8 : 1);
+    put(PM[q.kind], setM(q.x, q.y, q.z, k, k, k, q.r + t * 3)); }
+  for (const q of DKS.F) if (q.on){ const k = 1 - sstep(2600, 3600, now - q.t0); if (k > .02) put(DKS.mesh.frost, setM(q.x, q.y, q.z, k, 1, k, q.r)); }
+  for (const q of DKS.R) if (q.on){ const t = (now - q.t0) / 1100, k = .12 + Math.sqrt(t) * .55; put(BM.ring, setM(q.x, .016, q.z, k, 1, k, 0)); }
   if (dkOn(me, "ghost", now) && !making){ const k = .34 + Math.sin(now / 240) * .02; put(BM.mark, setM(me.x, me.y + .02, me.z, k, 1, k, now / 900)); }   /* where you are, though nobody can see you */
 }
 /* by a machine: a button over it; walk away and the menu closes */
@@ -2677,14 +2800,14 @@ function updateVend(now){
   let b = $("vendb");
   if (!b){ b = document.createElement("button"); b.id = "vendb"; b.type = "button"; b.innerHTML = '<span class="vi">🥤</span><span></span><kbd>E</kbd>'; $("tags").appendChild(b);
     b.onclick = () => { const i = nearVend(2.4); if (i < 0) return; if ($("pop-vend").classList.contains("on")) closePops(); else openVend(i); }; }
-  const i = camPos[1] > -.05 && !me.sit && !(me.dk && now < me.dk.on + 600) ? nearVend(2.2) : -1, q = i >= 0 ? project([VENDS[i].x, 2.08, VZ1]) : null;   /* not while drinking */
+  const i = camPos[1] > -.05 && !me.sit && !(me.dk && now < me.dk.on + 600) ? nearVend(2.2) : -1, q = i >= 0 ? project([VENDS[i].fx, VH + .14, VENDS[i].fz]) : null;   /* not while drinking */
   b.classList.toggle("on", !!q);
   if (q){ const lab = T({ en:"Get a drink", ko:"음료 고르기" }); if (b.children[1].textContent !== lab) b.children[1].textContent = lab;
     b.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`; }
   if (DKS.open >= 0 && $("pop-vend").classList.contains("on") && nearVend(3.2) !== DKS.open) closePops();     /* walked away */
   if (!DKS.told && inWorld && !making){ if (!DKS.inAt) DKS.inAt = now;                                    /* once: where they are */
     else if (now - DKS.inAt > 16000){ DKS.told = true; let seen = false; try { seen = !!localStorage.getItem("lam-pool-vend"); localStorage.setItem("lam-pool-vend", "1"); } catch (_){}
-      if (!seen && Math.hypot(me.x, me.z - VZ1) > 6) hint(T({ en:"🥤 Two vending machines stand by the glass across the pool — try a drink", ko:"🥤 수영장 건너편 유리벽 앞에 자판기 2대가 있어요 — 음료를 마셔 봐요" })); } }
+      if (!seen && nearVend(6) < 0) hint(T({ en:"🥤 Three vending machines: two by the glass across the pool, one on the wall by the stairs", ko:"🥤 자판기가 3대 있어요 — 수영장 건너편 유리벽에 2대, 계단 쪽 벽에 1대" })); } }
 }
 
 /* ==========================================================================
@@ -2804,7 +2927,7 @@ function useProg(p, VP, clip, below, t){
   if (u.uM) gl.uniformMatrix4fv(u.uM, false, I4);
   if (u.uCam) gl.uniform3fv(u.uCam, camPos); if (u.uSun) gl.uniform3fv(u.uSun, SUN);
   if (u.uT) gl.uniform1f(u.uT, t); if (u.uClip) gl.uniform1f(u.uClip, clip); if (u.uBelow) gl.uniform1f(u.uBelow, below); if (u.uA) gl.uniform1f(u.uA, 1);
-  if (u.uSV) gl.uniformMatrix4fv(u.uSV, false, SV); if (u.uShTex) gl.uniform1f(u.uShTex, 1 / SS); if (u.uAvY) gl.uniform1f(u.uAvY, -99); if (u.uAvP) gl.uniform3f(u.uAvP, 0, -99, 0);
+  if (u.uSV) gl.uniformMatrix4fv(u.uSV, false, SV); if (u.uShTex) gl.uniform1f(u.uShTex, 1 / SS); if (u.uAvY) gl.uniform1f(u.uAvY, -99); if (u.uAvP) gl.uniform3f(u.uAvP, 0, -99, 0); if (u.uTint) gl.uniform3f(u.uTint, 1, 1, 1);
   if (u.uSh){ gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, shTex); gl.uniform1i(u.uSh, 0); }
 }
 const tooClose = () => !making && Math.hypot(camPos[0] - me.x, camPos[1] - me.y - 1, camPos[2] - me.z) < 1.15;   /* the camera is in your own head: look through it */
@@ -2815,8 +2938,10 @@ function drawPeople(p, now){
     if (a.dk && (PASS === "main" || PASS === "nrm" || PASS === "rf") && dkOn(a, "ghost", now)) continue;   /* the clear soda: only the reflection and the shadow are left */
     if (p.u.uAvY) gl.uniform1f(p.u.uAvY, a.y);
     const mats = partMats(a, now); if (p.u.uAvP) gl.uniform3f(p.u.uAvP, a.x, a.y + mats.lift + ((a.sc || 1) - 1) * .82, a.z);
+    if (p.u.uTint){ const e = a.dk ? dkEnv(a, now) : 0, hot = e && dkOn(a, "spicy", now), cold = e && dkOn(a, "slush", now);
+      gl.uniform3f(p.u.uTint, hot ? 1 + .22 * e : cold ? 1 - .16 * e : 1, hot ? 1 - .27 * e : cold ? 1 - .05 * e : 1, hot ? 1 - .31 * e : cold ? 1 + .24 * e : 1); }
     for (const [M, part] of mats){ gl.uniformMatrix4fv(p.u.uM, false, M); bindMesh(part); gl.drawArrays(gl.TRIANGLES, 0, part.n); } }
-  if (p.u.uAvY) gl.uniform1f(p.u.uAvY, -99);
+  if (p.u.uAvY) gl.uniform1f(p.u.uAvY, -99); if (p.u.uTint) gl.uniform3f(p.u.uTint, 1, 1, 1);
   drawBalloons(p); drawDrinks(p, now);
 }
 function drawSky(VP, clip, t){ gl.depthMask(false); useProg(P.sky, VP, clip, 0, t); gl.uniformMatrix4fv(P.sky.u.uM, false, Tm(camPos[0], camPos[1], camPos[2])); bindMesh(SKY); gl.drawArrays(gl.TRIANGLES, 0, SKY.n); gl.depthMask(true); }
@@ -2902,7 +3027,7 @@ function about(){
    { en:"Beach ball: walk into it to kick it, jump for a high one. Get close and press G (or tap the ball) to pick it up; holding it, press and drag to aim and let go to throw. G puts it down", ko:"비치볼: 몸으로 밀면 차고, 점프하며 부딪히면 높이 떠요. 가까이 가서 G(또는 공을 누르기)로 잡고, 잡은 채 화면을 누르고 끌어 조준한 뒤 놓으면 던져요. G로 내려놓아요" },
    { en:"Wish coins: write a wish, throw the coin into the pool. Walk close to a coin — by the edge, or underneath — to read the wish on it", ko:"소원 동전: 소원을 적어 수영장에 던져요. 물가나 아래층에서 동전 가까이 가면 적힌 소원을 읽을 수 있어요" },
    { en:"Water balloons: press and hold anywhere, drag to where it should land — the arc shows the way — and let go. On a computer you can also hold F and point", ko:"물풍선: 화면을 꾹 누른 채 떨어질 곳으로 끌면 포물선이 보여요. 손을 떼면 던져요. 컴퓨터에서는 F를 누른 채 마우스로 조준해도 돼요" },
-   { en:"Vending machines: two stand against the glass across the pool. Walk up (or press E) and pick a drink — the energy drink speeds you up, cider doubles your jump, milk makes you big, beer sways the world a little, the clear soda leaves only your reflection and shadow; water clears it all. One effect at a time; the × at the top ends it", ko:"자판기: 수영장 건너편 유리벽 앞에 2대가 있어요. 가까이 가서(또는 E) 음료를 골라요 — 에너지 드링크는 빨라지고, 사이다는 점프가 두 배, 우유는 몸이 커지고, 맥주는 세상이 살짝 어질어질, 투명 음료는 물에 비친 모습과 그림자만 남겨요. 생수는 효과를 모두 없애요. 효과는 한 번에 하나, 위쪽 알림의 ×로 언제든 끌 수 있어요" },
+   { en:"Vending machines: two against the glass across the pool, one on the wall by the stairs. Walk up (or press E) and pick a drink — energy (faster), cider (higher jumps), lemonade (sour!), milk (big), tiny juice (small), beer (seeing double), clear soda (only your reflection and shadow), glass soda (walk on the water), fire soda (red face, fire breath), slush (brain freeze, frosty steps); water clears it all. One effect at a time; the × at the top ends it", ko:"자판기: 수영장 건너편 유리벽에 2대, 계단 쪽 벽에 1대가 있어요. 가까이 가서(또는 E) 음료를 골라요 — 에너지 드링크(빨라짐), 사이다(점프 2배), 레몬에이드(새콤!), 우유(커짐), 꼬마 주스(작아짐), 맥주(겹쳐 보임), 투명 음료(물에 비친 모습과 그림자만), 유리 소다(물 위 걷기), 매운 음료(빨간 얼굴·불 뿜기), 슬러시(머리 띵·서리 발자국). 생수는 효과를 모두 없애요. 효과는 한 번에 하나, 위쪽 알림의 ×로 언제든 끌 수 있어요" },
    { en:"Talk (Enter), wave, bow, jump, dance or sit — near a bench every free seat shows a ring: click it, or press E, to sit", ko:"말하기(Enter), 손 흔들기·인사·점프·춤·앉기로 만나요 — 벤치 가까이 가면 빈자리에 동그라미가 떠요. 누르거나 E 키로 앉아요" }]
     .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); ol.appendChild(li); });
   const lab = { wave:{ en:"Wave", ko:"손 흔들기" }, bow:{ en:"Bow", ko:"인사" }, jump:{ en:"Jump", ko:"점프" }, dance:{ en:"Dance", ko:"춤" }, sit:{ en:"Sit", ko:"앉기" }, heart:{ en:"Heart", ko:"하트" } };
