@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261114072940";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261114075439";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -21834,6 +21834,7 @@ body.making #hint{display:none;}
   box-shadow:0 6px 16px -8px rgba(0,0,0,.4);}
 .tg .me{display:none;width:19px;height:19px;margin-left:-6px;border-radius:50%;background:var(--chip-on);color:#fff;font-size:10px;font-weight:600;place-items:center;}
 .av.mine .tg .me{display:grid;}
+.tg .pz{font-size:13px;line-height:1;margin:0 -4px 0 -2px;} .tg .pz:empty{display:none;}
 .bb{max-width:210px;padding:8px 12px;border-radius:14px;background:#fff;color:#1d1c17;font-size:12.5px;font-weight:500;line-height:1.4;text-align:center;white-space:normal;
   box-shadow:0 10px 24px -12px rgba(0,0,0,.45);position:relative;opacity:0;transform:translateY(6px) scale(.96);transition:opacity .25s, transform .25s;}
 .bb.on{opacity:1;transform:none;}
@@ -21859,15 +21860,6 @@ body.making #hint{display:none;}
 #tipsy{position:fixed;inset:0;z-index:3;pointer-events:none;display:none;opacity:0;background:radial-gradient(ellipse 72% 68% at 50% 48%, transparent 48%, rgba(255,160,118,.5) 100%);}
 #petalc{position:fixed;right:20px;top:calc(112px + env(safe-area-inset-top,0px));z-index:9;display:none;padding:7px 12px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
 #petalc.on{display:block;} @media (max-width:760px){ #petalc{right:10px;top:calc(146px + env(safe-area-inset-top,0px));} }
-#flash{position:fixed;inset:0;z-index:30;pointer-events:none;background:#fff;opacity:0;} #flash.go{animation:flashA .5s ease-out;}
-@keyframes flashA{0%{opacity:0;}12%{opacity:.85;}100%{opacity:0;}}
-#photo{position:fixed;right:20px;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:15;display:none;width:min(240px,calc(100% - 40px));padding:9px 9px 8px;border-radius:16px;transform:rotate(-2deg);}
-#photo.on{display:block;animation:photoIn .45s cubic-bezier(.2,.9,.3,1.2);} @keyframes photoIn{from{opacity:0;transform:translateY(16px) rotate(4deg) scale(.9);}to{opacity:1;transform:rotate(-2deg);}}
-#photo img{display:block;width:100%;border-radius:6px;background:#eee;} #photo p{margin:7px 2px 6px;font-size:12px;color:var(--ink);font-weight:500;}
-#photo .pa{display:flex;gap:6px;} #photo .pbtn{flex:1;padding:7px 0;border-radius:999px;font-size:12px;font-weight:600;text-align:center;background:rgba(22,21,15,.07);color:var(--ink);text-decoration:none;cursor:pointer;}
-#photo .pbtn:hover{background:rgba(22,21,15,.13);} #ph-save{background:var(--chip-on) !important;color:var(--chip-on-ink) !important;}
-@media (max-width:760px){ #photo{right:10px;bottom:calc(150px + env(safe-area-inset-bottom,0px));width:190px;} }
-body:not(.in) #photo, body.making #photo, body:not(.in) #petalc, body.making #petalc{display:none !important;}
 /* the drink you are on: top right, a ring that runs down, × to stop */
 #drinkfx{position:fixed;right:20px;top:calc(62px + env(safe-area-inset-top,0px));z-index:9;display:none;align-items:center;gap:10px;padding:6px 6px 6px 7px;border-radius:999px;max-width:min(300px,calc(100% - 20px));}
 body.in:not(.making) #drinkfx.on{display:flex;animation:dfxIn .35s cubic-bezier(.2,.9,.3,1.25);}
@@ -21950,6 +21942,9 @@ body.in:not(.making) #bar{display:flex;}
 .pop.on{display:block;animation:rise .2s ease-out;}
 @keyframes rise{from{opacity:0;transform:translate(-50%,6px)}to{opacity:1;transform:translate(-50%,0)}}
 #pop-emo .grid{display:grid;grid-template-columns:repeat(3,auto);gap:4px;}
+#pop-emo .pz-t{margin:10px 6px 6px;padding-top:9px;border-top:1px solid var(--glass-line);font-size:11px;color:var(--ink-dim);}
+#pop-emo .pe{font-size:15px;line-height:1;width:18px;text-align:center;}
+body:not(.in) #petalc, body.making #petalc{display:none !important;}
 #pop-srv .row2{display:flex;gap:6px;}
 #pop-srv .chip{border:1px solid var(--glass-line);flex-direction:column;align-items:flex-start;gap:3px;padding:10px 14px;min-width:132px;}
 #pop-srv .chip small{font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:10.5px;letter-spacing:.04em;opacity:.75;}
@@ -22113,9 +22108,7 @@ body.move-click #joy{display:none !important;}
 <div id="pop-season" class="pop glass" role="dialog" aria-labelledby="sea-t"><p class="st" id="sea-t"></p><div class="sg" id="sea-g"></div><p class="note" id="sea-n"></p></div>
 <div id="goal" aria-hidden="true"></div>
 <div id="tipsy" aria-hidden="true"></div>
-<div id="flash" aria-hidden="true"></div>
 <div id="petalc" class="glass" aria-live="polite"></div>
-<div id="photo" class="glass" role="dialog"><img id="ph-img" alt=""><p id="ph-cap"></p><div class="pa"><a id="ph-save" class="pbtn"></a><button type="button" id="ph-x" class="pbtn"></button></div></div>
 <div id="hint" class="glass off"></div>
 <button id="throwb" class="glass" type="button"><i class="orb"></i><span class="tl"></span></button>
 <button id="throwx" class="glass" type="button"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -22155,7 +22148,7 @@ body.move-click #joy{display:none !important;}
   <button class="chip" data-e="dance"><svg class="ico" viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="16" r="2"/></svg><span class="lb"></span></button>
   <button class="chip" data-e="sit"><svg class="ico" viewBox="0 0 24 24"><path d="M7 4v9h10M7 13v7M17 13v7M7 9h9"/></svg><span class="lb"></span></button>
   <button class="chip" data-e="heart"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg><span class="lb"></span></button>
-</div></div>
+</div><p class="pz-t" id="pz-t"></p><div class="grid pz" id="pz-g"><button class="chip" data-p="v"><span class="pe" aria-hidden="true"></span><span class="lb"></span></button><button class="chip" data-p="hearth"><span class="pe" aria-hidden="true"></span><span class="lb"></span></button><button class="chip" data-p="bloom"><span class="pe" aria-hidden="true"></span><span class="lb"></span></button><button class="chip" data-p="think"><span class="pe" aria-hidden="true"></span><span class="lb"></span></button><button class="chip" data-p="hooray"><span class="pe" aria-hidden="true"></span><span class="lb"></span></button><button class="chip" data-p="flex"><span class="pe" aria-hidden="true"></span><span class="lb"></span></button></div></div>
 <div id="pop-srv" class="pop glass"><div class="row2" id="psrvs"></div><p class="note" id="pnet"></p></div>
 
 <nav id="bar" class="glass">
@@ -22656,7 +22649,7 @@ function buildAvatar(L){
   ];
   /* the eyes and the mouth are made three ways each and swapped as they move: open, a blink, a smile;
      the mouth at rest, talking, laughing */
-  const E0 = maker(), E1 = maker(), E2 = maker(), E3 = maker(), E4 = maker(), M0 = maker(), M1 = maker(), M2 = maker();
+  const E0 = maker(), E1 = maker(), E2 = maker(), E3 = maker(), E4 = maker(), E5 = maker(), E6 = maker(), E7 = maker(), M0 = maker(), M1 = maker(), M2 = maker(), M3 = maker(), M4 = maker(), M5 = maker();
   for (const s of [-1, 1]){ const x = ex * s;
     F = E0; (EYES[L.fa] || EYES[0])(x, s);
     F = E1; arc(F, x, ey - .008, .062, -.013, .012, lash, PAINT);                                             /* shut for a blink */
@@ -22664,6 +22657,12 @@ function buildAvatar(L){
     F = E3; { const n = 22; let px = x, py = ey; for (let i = 1; i <= n; i++){ const t = i / n, a = t * Math.PI * 4.2 * s, r = .006 + .052 * t;   /* dizzy: swirls */
         const qx = x + Math.cos(a) * r, qy = ey + Math.sin(a) * r * .92; stroke(px, py, qx, qy, .0085, .0085, lash); px = qx; py = qy; } }
     F = E4; stroke(x + .034 * s, ey + .028, x - .026 * s, ey - .004, .011, .011, lash); stroke(x - .026 * s, ey - .004, x + .034 * s, ey - .036, .011, .011, lash);   /* > < squeezed shut */
+    F = E5; if (s < 0) (EYES[L.fa] || EYES[0])(x, s); else arc(F, x, ey - .022, .058, .04, .015, lash, PAINT);   /* a wink */
+    F = E6; for (const k of [-1, 1]) oval(x + .024 * k, ey + .014, .03, .03, .01, [.95, .33, .48]);             /* heart eyes */
+    F.tube(fP(x - .05, ey + .006, .01), fP(x, ey - .052, .01), .016, .004, [.95, .33, .48], PAINT, 8); F.tube(fP(x + .05, ey + .006, .01), fP(x, ey - .052, .01), .016, .004, [.95, .33, .48], PAINT, 8);
+    oval(x - .026, ey + .026, .009, .009, .016, white);
+    F = E7; oval(x, ey + .004, .075, .096, .004, lash, 0, .18, Math.PI - .18); oval(x, ey, .067, .085, .008, white);   /* a glance up, thinking */
+    oval(x + .018, ey + .024, .045, .052, .012, iris); oval(x + .02, ey + .026, .024, .028, .015, pupil); oval(x + .03, ey + .042, .011, .012, .018, white);
     F = B;
     if (!L.hs) oval(x, ey + .13, .046, .017, .006, SHADE(hc, .7), (L.fa === 6 ? .16 : -.1) * s);           /* the forehead shows: brows */
     oval(.248 * s, HEAD - .128, .052, .03, .005, mix3(sk, [.98, .55, .55], .45)); }                         /* cheeks */
@@ -22677,6 +22676,9 @@ function buildAvatar(L){
   else arc(F, 0, HEAD - .15, .058, -.026, .008, ink, PAINT);
   F = M1; oval(0, HEAD - .156, .03, .03, .006, mouthIn); oval(0, HEAD - .174, .018, .01, .01, [.96, .52, .55], 0, 0, Math.PI);      /* talking */
   F = M2; oval(0, HEAD - .148, .05, .044, .006, mouthIn, 0, Math.PI, Math.PI * 2); oval(0, HEAD - .184, .027, .017, .01, [.96, .52, .55], 0, 0, Math.PI);   /* laughing */
+  F = M3; stroke(-.008, HEAD - .158, .04, HEAD - .148, .008, .008, ink);                                       /* hmm */
+  F = M4; arc(F, -.019, HEAD - .148, .019, -.013, .0075, ink, PAINT); arc(F, .019, HEAD - .148, .019, -.013, .0075, ink, PAINT);   /* a cat's ω */
+  F = M5; oval(0, HEAD - .15, .054, .034, .006, mouthIn, 0, Math.PI, Math.PI * 2); oval(0, HEAD - .154, .048, .011, .01, white);   /* a gritted, proud grin */
   F = B;
   /* ---- hair: one smooth shell over the head with a real hairline — clear of the ears, a point in front
      of each, down to the nape — and then what each style is made of: thick rounded locks for the fringe,
@@ -22814,7 +22816,7 @@ function buildAvatar(L){
       A.tube(el, hd, .038, .036, sk, M, 14); }
     A.ell([hd[0] + .004 * s, hd[1] - .03, .004], .066, .068, .064, sk, M, 18); }
   return { b:upload(B.v), ll:upload(LL.v), lr:upload(LR.v), al:upload(AL.v), ar:upload(AR.v),
-           e:[upload(E0.v), upload(E1.v), upload(E2.v), upload(E3.v), upload(E4.v)], m:[upload(M0.v), upload(M1.v), upload(M2.v)] };
+           e:[E0, E1, E2, E3, E4, E5, E6, E7].map(x => upload(x.v)), m:[M0, M1, M2, M3, M4, M5].map(x => upload(x.v)) };
 }
 const MESHES = new Map();
 function meshFor(L){ const k = lookKey(L); let m = MESHES.get(k); if (!m){ m = buildAvatar(L); MESHES.set(k, m); } return m; }
@@ -23213,7 +23215,7 @@ function pose(a, now){
     q.l1 = g * .22 * a.mv; q.l2 = -q.l1; q.bow += .16 * Math.min(1, a.mv + .3); q.a1z = -.8 - .1 * g; q.a2z = .8 - .1 * g; q.a1x = q.a2x = -.25; q.lift = q.lift * .3; }
   if (a.sit && a.bench){ q.l1 = q.l2 = -1.3; q.lift = .06; q.a1x = q.a2x = -.25; q.a1z = -.14; q.a2z = .14; }   /* on a bench */
   else if (a.sit){ q.l1 = q.l2 = -1.45; q.lift = -.3; q.a1x = q.a2x = -.35; }
-  if (a.emote === "pose" && now - a.et0 < 2600){ const e = Math.min(1, (now - a.et0) / 200); q.a2z = lerp(q.a2z, 2.25, e); q.a2x = lerp(q.a2x, -.3, e); q.sway += .08 * e; }   /* the photo: one hand up in a V */
+  const P = a === me ? me.pose : a.pose; if (P && POSES[P]) POSES[P].f(q, Math.min(1, (now - (a === me ? me.pt0 : a.pt0 || 0)) / 220), now / 1000);   /* a pose, held — standing or sitting */
   return q;
 }
 /* the face, alive: a blink every few seconds (now and then two), a smile through an emote,
@@ -23224,11 +23226,12 @@ function faceOf(a, now){
   if (a.emote === "dizzy" && now - a.et0 < DIZZY_MS) return [3, 1];                          /* seeing stars */
   if (a.dk && now - a.dk.t0 > SIP * .24 && now - a.dk.t0 < SIP * .86) return [1, 1];          /* gulping, eyes shut */
   if (a.dk && (sour(a, now) || a.dk.k === "slush" && now - a.dk.on >= 0 && now - a.dk.on < 1600)) return [4, 1];   /* > < : too sour, too cold */
-  const happy = a.emote && a.emote !== "sit" && now - a.et0 < 2800;
+  const happy = a.emote && a.emote !== "sit" && now - a.et0 < 2800, pf = !happy && a.pose && POSES[a.pose] && POSES[a.pose].face;   /* each pose has its own face */
   let eye = happy ? 2 : now >= a.blinkAt ? 1 : 0, mouth = happy ? 2 : 0;
+  if (pf){ eye = pf[0]; mouth = pf[1]; if ((eye === 0 || eye === 7) && now >= a.blinkAt) eye = 1; }
   const t0 = a.msgUntil - 6500, len = Math.min(3800, 600 + (a.msg || "").length * 110);
   if (a.msg && now > t0 && now < t0 + len){ const u = (now - t0) / 1000;
-    mouth = happy ? 2 : Math.sin(u * 17 + Math.sin(u * 6.3) * 2.2) > -.15 ? 1 : 0;
+    mouth = happy ? 2 : pf && pf[1] === 2 ? 2 : Math.sin(u * 17 + Math.sin(u * 6.3) * 2.2) > -.15 ? 1 : 0;
     if (u < .14) eye = 1; }                                                                   /* a blink as they start */
   return [eye, mouth];
 }
@@ -23281,6 +23284,7 @@ function moveMe(dt){
   const run = keys.ShiftLeft || keys.ShiftRight || il > .95 && joy.on && Math.hypot(joy.x, joy.y) > .97 || goal && goal.run;
   const speed = (run ? 5 : 3) * (dkOn(me, "energy", performance.now()) ? (run ? (CALM ? 1.12 : 1.3) : (CALM ? 1.3 : 1.55)) : 1);   /* the energy drink: quicker, never wild */
   me.moving = il > .08 && !making;
+  if (me.moving && me.pose){ me.pose = ""; me.et = Date.now(); syncBar(); }                                  /* walking off ends a pose */
   me.skate = onIce(me) && !making;
   if (me.skate){                                                                              /* winter, on the ice: you glide — push to speed up, let go to coast */
     if (me.sit){ me.sit = false; me.bench = false; }
@@ -23549,10 +23553,22 @@ async function netInit(){
 /* what another page told us, made safe to show */
 const EMOTES = { wave:1, bow:1, jump:1, dance:1, heart:1, sit:1, bench:1, dizzy:1 };
 const DIZZY_MS = 2600;
+/* poses: picked from the expression menu, held until you move — sitting on a bench as well */
+const POSES = {
+  v:{ ico:"✌️", face:[5, 2], n:{ en:"V sign", ko:"브이" }, f:(q, e) => { q.a1z = lerp(q.a1z, -.7, e); q.a1x = lerp(q.a1x, .5, e); q.a2z = lerp(q.a2z, 1.85, e); q.a2x = lerp(q.a2x, -1.2, e); q.sway += .1 * e; } },
+  hearth:{ ico:"🥰", face:[6, 4], n:{ en:"Cheek heart", ko:"볼 하트" }, f:(q, e, t) => { q.a1z = lerp(q.a1z, -1.2, e); q.a2z = lerp(q.a2z, 1.2, e); q.a1x = lerp(q.a1x, -1.9, e); q.a2x = lerp(q.a2x, -1.9, e); q.sway += Math.sin(t * 2.2) * .06 * e; } },
+  bloom:{ ico:"🌼", face:[2, 2], n:{ en:"Chin in hands", ko:"꽃받침" }, f:(q, e, t) => { q.a1x = lerp(q.a1x, -2, e); q.a2x = lerp(q.a2x, -2, e); q.a1z = lerp(q.a1z, -.45, e); q.a2z = lerp(q.a2z, .45, e); q.sway += (.1 + Math.sin(t * 2) * .02) * e; } },
+  think:{ ico:"🤔", face:[7, 3], n:{ en:"Thinking", ko:"생각 중" }, f:(q, e) => { q.a2x = lerp(q.a2x, -2, e); q.a2z = lerp(q.a2z, .45, e); q.a1x = lerp(q.a1x, -1.1, e); q.a1z = lerp(q.a1z, .35, e); q.sway -= .1 * e; q.bow += .06 * e; } },
+  hooray:{ ico:"🙌", face:[4, 2], n:{ en:"Hooray", ko:"만세" }, f:(q, e, t) => { const b = Math.sin(t * 7) * .12; q.a1z = lerp(q.a1z, -2 - b, e); q.a2z = lerp(q.a2z, 2 + b, e); q.a1x = lerp(q.a1x, -.3, e); q.a2x = lerp(q.a2x, -.3, e); } },
+  flex:{ ico:"💪", face:[0, 5], n:{ en:"Strong", ko:"힘자랑" }, f:(q, e) => { q.a1z = lerp(q.a1z, -1.3, e); q.a2z = lerp(q.a2z, 1.3, e); q.a1x = lerp(q.a1x, -.6, e); q.a2x = lerp(q.a2x, -.6, e); q.bow -= .06 * e; } },
+};
+const POSE_RE = new RegExp(`^[bsp]:(${Object.keys(POSES).join("|")})$`);
+function setPose(p){ if (!inWorld || making) return; AUD.unlock(); me.pose = me.pose === p ? "" : p; me.pt0 = performance.now(); me.emote = ""; me.et = Date.now();
+  if (me.pose){ popEmote(me, "pose_" + p); AUD.emote("wave"); } syncBar(); }
 function cleanState(st){
   if (!st || typeof st !== "object") return null;
   const num = (v, a, b, d) => (typeof v === "number" && isFinite(v)) ? clamp(v, a, b) : d;
-  const e = typeof st.e === "string" && EMOTES[st.e] ? st.e : "";
+  const e = typeof st.e === "string" && (EMOTES[st.e] || POSE_RE.test(st.e)) ? st.e : "";
   return { x:num(st.x, -CXW, CXW, 0), y:num(st.y, FLOOR - .1, 1.5, 0), z:num(st.z, -CZW, CZW, 0), r:num(st.r, -7, 7, 0), w:st.w ? 1 : 0, e, et:num(st.et, 0, 1e15, 0),
     m:cleanText(st.m, 40), mt:num(st.mt, 0, 1e15, 0), n:cleanText(st.n, 12) || "…", look:lookFrom(st.k), f:typeof st.f === "string" ? st.f.slice(0, 48) : "", b:typeof st.b === "string" ? st.b.slice(0, 60) : "",
     d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "", q:typeof st.q === "string" && /^[psawn][0-9a-z]{1,11}$/.test(st.q) ? st.q : "", h:st.h === "c" ? "c" : "" };
@@ -23567,7 +23583,8 @@ function onPeerList(list){
       a.lastD = st.d; if (st.d) drinkFrom(a, st.d, true); a.lastQ = st.q; seasonFrom(a, st.q); a.crown = st.h === "c";
       if (inWorld){ AUD.joined(); logLine(st.n, T({ en:"came in", ko:"님이 들어왔어요" }), true); } }
     else {
-      if (st.et !== a.lastE){ a.lastE = st.et; if (st.e && st.e !== "sit" && st.e !== "bench"){ a.emote = st.e; a.et0 = now; popEmote(a, st.e); } }
+      if (st.et !== a.lastE){ a.lastE = st.et; if (st.e.includes(":")){ if (st.e.slice(2) !== a.pose) popEmote(a, "pose_" + st.e.slice(2)); }
+        else if (st.e && st.e !== "sit" && st.e !== "bench"){ a.emote = st.e; a.et0 = now; popEmote(a, st.e); } }
       if (st.f !== a.lastF){ a.lastF = st.f; if (st.f && inWorld) onFx(a, st.f); }
       if (st.b !== a.lastB){ a.lastB = st.b; if (st.b) ballFrom(a, st.b, false); }
       if (st.d !== a.lastD){ a.lastD = st.d; drinkFrom(a, st.d, false); }
@@ -23575,14 +23592,15 @@ function onPeerList(list){
       a.crown = st.h === "c";
       if (st.mt !== a.lastM){ a.lastM = st.mt; if (st.m){ a.msg = st.m; a.msgUntil = now + 6500; logLine(st.n, st.m); AUD.chat(); } }
     }
-    pushSample(a, st, now); a.name = st.n; a.sit = st.e === "sit" || st.e === "bench"; a.bench = st.e === "bench";
+    pushSample(a, st, now); a.name = st.n; a.sit = st.e === "sit" || st.e === "bench" || /^[bs]:/.test(st.e); a.bench = st.e === "bench" || st.e.startsWith("b:");
+    { const pz = st.e.includes(":") ? st.e.slice(2) : ""; if (pz !== (a.pose || "")){ a.pose = pz; a.pt0 = now; } }          /* the pose they hold, if any */
     if (lookKey(st.look) !== lookKey(a.look)){ a.look = st.look; a.mesh = meshFor(st.look); }
   }
   for (const [id, a] of PEERS) if (!seen.has(id)){ if (BALL.holder === a) dropBall(a, false); PEERS.delete(id); dropTag(id); if (inWorld) logLine(a.name, T({ en:"left", ko:"님이 나갔어요" }), true); }
   renderPill();
 }
 function myState(){
-  return { s:NET.srv, x:+me.x.toFixed(2), y:+me.y.toFixed(2), z:+me.z.toFixed(2), r:+wrap(me.r).toFixed(2), w:me.moving ? 1 : 0, e:me.sit ? (me.bench ? "bench" : "sit") : (me.emote || ""),
+  return { s:NET.srv, x:+me.x.toFixed(2), y:+me.y.toFixed(2), z:+me.z.toFixed(2), r:+wrap(me.r).toFixed(2), w:me.moving ? 1 : 0, e:me.pose ? (me.sit ? (me.bench ? "b:" : "s:") : "p:") + me.pose : me.sit ? (me.bench ? "bench" : "sit") : (me.emote || ""),
     et:me.et, m:me.msg || "", mt:me.mt, n:me.name, k:lookArr(me.look), t:Date.now(), ...(FX.f && !FX.blocked && performance.now() - FX.at < 4000 ? { f:FX.f } : {}), ...(BALL.mine && !FX.blocked ? { b:BALL.mine } : {}), ...(me.dk && !FX.blocked ? { d:DRINKS[me.dk.k].c + me.dk.seq } : {}), ...(SEASON.stamp && !FX.blocked ? { q:SEA_C[SEASON.cur] + SEASON.stamp.toString(36) } : {}), ...(CROWN.on && !FX.blocked ? { h:"c" } : {}) };
 }
 let lastSend = 0, lastSig = "";
@@ -23711,11 +23729,12 @@ function tagFor(a){
   const meB = document.createElement("span"); meB.className = "me"; meB.textContent = T({ en:"Me", ko:"나" });
   const nm = document.createElement("span"); nm.textContent = a.name;
   const emo = document.createElement("span"); emo.className = "emo";
-  tg.appendChild(meB); tg.appendChild(nm); el.appendChild(emo); el.appendChild(bb); el.appendChild(tg); $("tags").appendChild(el);
-  t = { el, bb, nm, emo, msg:"" }; TAGS.set(a.id, t); return t;
+  const pz = document.createElement("span"); pz.className = "pz";
+  tg.appendChild(meB); tg.appendChild(nm); tg.appendChild(pz); el.appendChild(emo); el.appendChild(bb); el.appendChild(tg); $("tags").appendChild(el);
+  t = { el, bb, nm, emo, pz, msg:"" }; TAGS.set(a.id, t); return t;
 }
 function dropTag(id){ const t = TAGS.get(id); if (t){ t.el.remove(); TAGS.delete(id); } }
-const EMO_CH = { wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️", splash:"💦", dizzy:"💫", steal:"😎", oops:"😮", energy:"⚡", cider:"🫧", water:"✨", beer:"🥴", milk:"🥛", ghost:"👻", burp:"😮‍💨", lemon:"🍋", kid:"🧃", glass:"🌊", spicy:"🔥", slush:"🥶" };
+const EMO_CH = { pose_v:"✌️", pose_hearth:"🥰", pose_bloom:"🌼", pose_think:"🤔", pose_hooray:"🙌", pose_flex:"💪", wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️", splash:"💦", dizzy:"💫", steal:"😎", oops:"😮", energy:"⚡", cider:"🫧", water:"✨", beer:"🥴", milk:"🥛", ghost:"👻", burp:"😮‍💨", lemon:"🍋", kid:"🧃", glass:"🌊", spicy:"🔥", slush:"🥶" };
 function popEmote(a, e){ if (!EMO_CH[e]) return; const t = tagFor(a); t.emo.textContent = EMO_CH[e]; t.emo.classList.remove("go"); void t.emo.offsetWidth; t.emo.classList.add("go"); }
 function project(p){
   const M = VPm; if (!M) return null;
@@ -23746,6 +23765,7 @@ function updateTags(now){
     t.el.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%) scale(${s.toFixed(3)})`;
     t.el.style.zIndex = String(1000 - Math.round(q[2] * 10));
     if (t.nm.textContent !== a.name) t.nm.textContent = a.name;
+    { const pc = a.pose && POSES[a.pose] ? POSES[a.pose].ico : ""; if (t.pz.textContent !== pc) t.pz.textContent = pc; }
     const showMsg = a.msg && now < a.msgUntil;
     if (showMsg && t.msg !== a.msg){ t.bb.textContent = a.msg; t.msg = a.msg; }
     t.bb.classList.toggle("on", !!showMsg); t.bb.style.display = showMsg ? "" : "none";
@@ -23761,9 +23781,10 @@ function emote(e){
   AUD.unlock();
   if (e === "sit"){ if (!me.sit){ const st = Math.abs(me.y) < .3 && seatNear(me.x, me.z, 1.8); if (st){ sitBench(st); return; } }   /* by a bench: sit on it */
     me.sit = !me.sit; me.bench = false; me.emote = ""; me.et = Date.now(); syncBar(); AUD.emote("sit"); return; }
-  me.sit = false; me.emote = e; me.et0 = performance.now(); me.et = Date.now(); popEmote(me, e); AUD.emote(e); syncBar();
+  me.sit = false; me.pose = ""; me.emote = e; me.et0 = performance.now(); me.et = Date.now(); popEmote(me, e); AUD.emote(e); syncBar();
 }
-function syncBar(){ document.querySelectorAll("#pop-emo [data-e]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.e === "sit" && me.sit))); }
+function syncBar(){ document.querySelectorAll("#pop-emo [data-e]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.e === "sit" && me.sit)));
+  document.querySelectorAll("#pop-emo [data-p]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.p === me.pose))); }
 function say(text){
   const m = cleanText(text, 40); if (!m) return;
   me.msg = m; me.mt = Date.now(); me.msgUntil = performance.now() + 6500; AUD.chat(); logLine(me.name, m);
@@ -23933,7 +23954,6 @@ const AUD = (() => {
     cicada(k){ if (!ok() || k <= 0) return; const tt = ctx.currentTime, n = 4 + (Math.random() * 3 | 0), f = 3100 + Math.random() * 500;   /* maem — maem — maem */
       for (let i = 0; i < n; i++){ tone(tt + i * .3, f, .22, .0045 * k, f * .9, "sawtooth"); tone(tt + i * .3 + .02, f * 1.5, .18, .0025 * k, null, "triangle"); } },
     petal(){ if (!ok()) return; const tt = ctx.currentTime, f = 2093 + Math.random() * 600; tone(tt, f, .07, .008, f * 1.25); },
-    shutter(){ if (!ok()) return; const tt = ctx.currentTime; burst(tt, .03, 3000, 3, .05); burst(tt + .07, .05, 1800, 2.4, .04); tone(tt + .12, 2637, .12, .012); },
     chime(night){ if (!ok()) return; const tt = ctx.currentTime; (night ? [1568, 1319, 1047, 784] : [1047, 1319, 1568, 2093]).forEach((f, i) => tone(tt + i * .12, f, .28, .016)); },
     roll(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; burst(tt, .09, 1600, 2.5, .016 * h); burst(tt + .05, .07, 2600, 3, .01 * h); },   /* snow crunching under a rolling ball */
     snowman(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; [1568, 2093, 2637, 3136, 4186].forEach((f, i) => tone(tt + i * .07, f, .22, .016 * h)); },
@@ -24930,14 +24950,13 @@ function drawSnow(p){
 }
 
 /* ==========================================================================
-   9h. SPRING — three small things. Walk through fallen petals and they come
-       to you; thirty make a crown of blossom on your head, which everyone
-       sees. Sit on a bench and petals pour down round you, you strike a
-       pose, and a little photo is taken. Butterflies drift about by day and
-       settle on the head of anyone who keeps still
+   9h. SPRING — walk through fallen petals and they come to you; thirty
+       make a crown of blossom on your head, which everyone sees. Sit on a
+       bench and petals pour down round you. Butterflies drift about by day
+       and settle on the head of anyone who keeps still
    ========================================================================== */
 const CROWN = { n:0, on:false, need:30, shown:-1 };
-const PHOTO = { t0:0, done:false, want:false, url:"" };
+const BENCHP = { rain:0 };
 const BFLY = Array.from({ length:4 }, (_, i) => ({ x:0, y:-9, z:0, tx:0, ty:1, tz:0, ph:i * 1.7, yaw:0, k:i % 3, perch:null, next:0, live:false }));
 let BFM = null;
 function springMeshes(){
@@ -24959,12 +24978,9 @@ function stepSpring(dt, now){
   /* the petal count, top right, while you gather */
   const el = $("petalc"), show = spring && !CROWN.on && CROWN.n > 0;
   el.classList.toggle("on", show); if (show && CROWN.shown !== CROWN.n){ CROWN.shown = CROWN.n; el.textContent = `🌸 ${CROWN.n} / ${CROWN.need}`; }
-  /* the photo on a bench */
-  if (spring && me.sit && me.bench){ if (!PHOTO.t0){ PHOTO.t0 = now; PHOTO.done = false; }
-    const u = now - PHOTO.t0;
-    if (u > 600 && now > (PHOTO.rain || 0)){ PHOTO.rain = now + 120; for (let k = 0; k < 2; k++) spawnP("spring", me.x + (Math.random() - .5) * 3, 2.6 + Math.random() * 1.6, me.z + (Math.random() - .5) * 3); }   /* petals pour down round you */
-    if (!PHOTO.done && u > 2600){ PHOTO.done = true; PHOTO.want = true; me.emote = "pose"; me.et0 = now; }
-  } else PHOTO.t0 = 0;
+  if (spring && me.sit && me.bench){                                                                                 /* on a bench in spring: petals pour down round you */
+    if (now > BENCHP.rain){ BENCHP.rain = now + 120; for (let k = 0; k < 2; k++) spawnP("spring", me.x + (Math.random() - .5) * 3, 2.6 + Math.random() * 1.6, me.z + (Math.random() - .5) * 3); }   /* petals pour down round you */
+  }
   /* butterflies, by day */
   const day = spring && NIGHT.k < .5 && camPos[1] > -.05;
   for (const b of BFLY){
@@ -24996,17 +25012,6 @@ function drawSpring(p, now){
   for (const b of BFLY){ if (!b.live) continue;
     const base = mm4(mm4(Tm(b.x, b.y, b.z), RY(b.yaw)), [1.8, 0, 0, 0, 0, 1.8, 0, 0, 0, 0, 1.8, 0, 0, 0, 0, 1]), fl = b.perch ? .25 + .25 * Math.sin(now / 420 + b.ph) : .9 * Math.sin(now / 55 + b.ph), w = BFM.wing[b.k];
     put(BFM.body, base); put(w, mm4(base, RZ(fl))); put(w, mm4(base, mm4(RZ(-fl), [-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]))); }
-}
-/* the photo: the picture just drawn, made small, as a little print you can keep */
-function takePhoto(){
-  if (!PHOTO.want) return; PHOTO.want = false;
-  try { const w = 480, h = Math.round(w * cv.height / cv.width), c = document.createElement("canvas"); c.width = w; c.height = h;
-    c.getContext("2d").drawImage(cv, 0, 0, w, h); PHOTO.url = c.toDataURL("image/jpeg", .84); } catch (_){ return; }
-  const fl = $("flash"); fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go"); AUD.shutter();
-  $("ph-img").src = PHOTO.url; const d = new Date();
-  $("ph-cap").textContent = `${T({ en:"Under the blossom", ko:"벚꽃 아래에서" })} · ${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
-  const a = $("ph-save"); a.href = PHOTO.url; a.download = `pool-blossom-${d.getTime()}.jpg`;
-  $("photo").classList.add("on");
 }
 
 /* ==========================================================================
@@ -25062,15 +25067,6 @@ document.querySelectorAll("#mv-seg [data-mv]").forEach(b => b.onclick = () => { 
 setMove(MOVE);
 $("calm").onchange = () => { AUD.click(); setCalm($("calm").checked); }; setCalm(CALM);
 $("dfx-x").onclick = () => { AUD.click(); endDrink(true); };
-$("ph-x").onclick = () => { AUD.click(); $("photo").classList.remove("on"); };
-/* saving the print: a plain download on the site; inside claude.ai the viewer is asked through its own save */
-$("ph-save").onclick = async (e) => {
-  if (!owners().some(R => { try { return R.claude && typeof R.claude.use === "function"; } catch (_){ return false; } })) return;
-  e.preventDefault(); AUD.click(); const a = $("ph-save");
-  try { const d = await findCap("downloads"); if (!d){ hint(T({ en:"Saving isn't available here", ko:"여기서는 저장할 수 없어요" })); return; }
-    const raw = atob(PHOTO.url.split(",")[1] || ""), bytes = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i); const blob = new Blob([bytes], { type:"image/jpeg" }); await d.c.save({ filename:a.download || "pool-blossom.jpg", data:blob });
-    hint(T({ en:"📸 Saved", ko:"📸 사진을 저장했어요" }), true); }
-  catch (err){ const c = err && err.code; if (c !== "declined") hint(T(c === "rate_limited" ? { en:"One moment, then try again", ko:"잠시 후 다시 눌러 주세요" } : { en:"Couldn't save the photo", ko:"사진을 저장하지 못했어요" })); } };
 $("c-dn").onclick = (e) => { e.stopPropagation(); AUD.click(); renderSeason(); const on = openPop("pop-season"); $("c-dn").classList.toggle("open", on); };
 $("vend-x").onclick = () => { AUD.click(); closePops(); };
 $("b-bal").onclick = () => { AUD.click(); closePops(); setArmed(!AIM.armed); };
@@ -25100,6 +25096,7 @@ $("b-emo").onclick = () => { AUD.click(); openPop("pop-emo"); };
 $("b-srv").onclick = () => { AUD.click(); renderServers(); openPop("pop-srv"); };
 $("b-me").onclick = () => { closePops(); endDrink(false, true); making = true; chosen = NET.srv || 1; document.body.classList.add("making"); document.body.classList.remove("about"); renderServers(); AUD.click(); };
 document.querySelectorAll("#pop-emo [data-e]").forEach(b => b.onclick = () => { emote(b.dataset.e); if (b.dataset.e !== "sit") closePops(); });
+document.querySelectorAll("#pop-emo [data-p]").forEach(b => { b.querySelector(".pe").textContent = POSES[b.dataset.p].ico; b.onclick = () => { setPose(b.dataset.p); closePops(); }; });
 $("say").addEventListener("submit", e => { e.preventDefault(); say($("say-i").value); $("say-i").value = ""; $("say-i").blur(); closePops(); });
 $("snd").onclick = () => { AUD.unlock(); AUD.on = !AUD.on; $("snd").setAttribute("aria-pressed", String(AUD.on)); };
 $("info").onclick = () => { closePops(); document.body.classList.toggle("about"); AUD.click(); };
@@ -25201,7 +25198,7 @@ function frame(now){
   const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; const t = now / 1000;
   stepNight(); moveMe(dt); stepPeers(dt); stepSeason(dt, now); stepStill(dt); stepSpring(dt, now); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); stepSnow(dt, now); placeCamera(dt);
   if (me.emote && now - me.et0 > 4200) me.emote = "";
-  render(t, now); takePhoto(); updateTags(now); updateSeats(); updateBallUI(); updateVend(now); updateSnowUI(); maybeSend();
+  render(t, now); updateTags(now); updateSeats(); updateBallUI(); updateVend(now); updateSnowUI(); maybeSend();
   { const el = $("goal"), p = goal && inWorld && !making ? project([goal.x, goal.y + .02, goal.z]) : null;           /* where you are walking to */
     if (p){ const k = clamp(9 / p[2], .45, 1.6); el.style.transform = `translate(${p[0]}px, ${p[1]}px) translate(-50%, -50%) scale(${k})`; el.classList.add("on"); } else el.classList.remove("on"); }
   const z = zoneOf(me.x, me.y, me.z);
@@ -25235,7 +25232,6 @@ function about(){
       b.onclick = () => { AUD.click(); pickSeason(k); }; g.appendChild(b); }
     renderSeason(); }
   $("c-dn").setAttribute("aria-label", T({ en:"Season and time of day — change the season", ko:"계절과 밤낮 — 계절 바꾸기" }));
-  $("ph-save").textContent = T({ en:"Save", ko:"저장" }); $("ph-x").textContent = T({ en:"Close", ko:"닫기" });
   $("ab-h3").textContent = T({ en:"Here", ko:"이 공간에서" });
   const ol = $("ab-ol"); ol.innerHTML = "";
   [{ en:"Make a character and pick one of two servers — up to twenty people share each", ko:"캐릭터를 꾸미고 두 서버 중 하나를 골라요 — 서버마다 20명까지 함께해요" },
@@ -25247,11 +25243,13 @@ function about(){
    { en:"Vending machines: two against the glass across the pool, one on the wall by the stairs. Walk up (or press E) and pick a drink — energy (faster), cider (higher jumps), lemonade (sour!), milk (big), tiny juice (small), beer (seeing double), clear soda (only your reflection and shadow), glass soda (walk on the water), fire soda (red face, fire breath), slush (brain freeze, frosty steps); water clears it all. One effect at a time; the × at the top ends it", ko:"자판기: 수영장 건너편 유리벽에 2대, 계단 쪽 벽에 1대가 있어요. 가까이 가서(또는 E) 음료를 골라요 — 에너지 드링크(빨라짐), 사이다(점프 2배), 레몬에이드(새콤!), 우유(커짐), 꼬마 주스(작아짐), 맥주(겹쳐 보임), 투명 음료(물에 비친 모습과 그림자만), 유리 소다(물 위 걷기), 매운 음료(빨간 얼굴·불 뿜기), 슬러시(머리 띵·서리 발자국). 생수는 효과를 모두 없애요. 효과는 한 번에 하나, 위쪽 알림의 ×로 언제든 끌 수 있어요" },
    { en:"Day and night take turns every three minutes, the same for everyone here. At night the lamps and strings of bulbs along the walls and the vending machines light up, and the water glows softly — the count at the top shows how long till it turns", ko:"3분마다 낮과 밤이 바뀌어요(모든 방문자가 같은 시간). 밤에는 벽을 따라 벽등과 줄 전구, 자판기 불빛이 켜지고 수영장 물빛이 은은하게 빛나요 — 위쪽 표시에서 바뀔 때까지 남은 시간을 볼 수 있어요" },
    { en:"Seasons: tap the sun or moon at the top to pick spring, summer, autumn or winter — it changes for everyone on the server. Spring brings cherry petals, summer cicadas (and fireflies at night), autumn falling leaves; walk up to a tree and it lets go of a handful. In winter it snows, footprints stay in it, and the pool freezes: walk onto the ice and ski", ko:"계절: 위쪽 해·달 표시를 누르면 봄·여름·가을·겨울을 고를 수 있어요 — 바꾸면 서버의 모두에게 함께 바뀌어요. 봄엔 벚꽃잎, 여름엔 매미 소리(밤엔 반딧불), 가을엔 낙엽이 날리고, 나무에 다가가면 우수수 떨어져요. 겨울엔 눈이 내려 발자국이 남고, 수영장이 얼어 얼음 위에서 스키를 탈 수 있어요" },
-   { en:"Spring: walk through fallen petals and they come to you — thirty make a crown of blossom that everyone sees; sit on a bench and petals pour down, you pose and a little photo is taken (save it if you like); by day butterflies drift about and settle on the head of anyone who keeps still", ko:"봄: 바닥에 떨어진 꽃잎 위를 걸으면 꽃잎이 모여요 — 30장을 모으면 벚꽃 화관이 생기고 다른 사람에게도 보여요. 벤치에 앉으면 꽃잎이 쏟아지고 포즈와 함께 사진이 찍혀요(저장 가능). 낮에는 나비가 날아다니다 가만히 있는 사람 머리에 앉아요" },
+   { en:"Spring: walk through fallen petals and they come to you — thirty make a crown of blossom that everyone sees; sit on a bench and petals pour down round you; by day butterflies drift about and settle on the head of anyone who keeps still", ko:"봄: 바닥에 떨어진 꽃잎 위를 걸으면 꽃잎이 모여요 — 30장을 모으면 벚꽃 화관이 생기고 다른 사람에게도 보여요. 벤치에 앉으면 꽃잎이 쏟아져요. 낮에는 나비가 날아다니다 가만히 있는 사람 머리에 앉아요" },
    { en:"Talk (Enter), wave, bow, jump, dance or sit — near a bench every free seat shows a ring: click it, or press E, to sit", ko:"말하기(Enter), 손 흔들기·인사·점프·춤·앉기로 만나요 — 벤치 가까이 가면 빈자리에 동그라미가 떠요. 누르거나 E 키로 앉아요" }]
     .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); ol.appendChild(li); });
   const lab = { wave:{ en:"Wave", ko:"손 흔들기" }, bow:{ en:"Bow", ko:"인사" }, jump:{ en:"Jump", ko:"점프" }, dance:{ en:"Dance", ko:"춤" }, sit:{ en:"Sit", ko:"앉기" }, heart:{ en:"Heart", ko:"하트" } };
   document.querySelectorAll("#pop-emo [data-e]").forEach(b => { b.querySelector(".lb").textContent = T(lab[b.dataset.e]); });
+  document.querySelectorAll("#pop-emo [data-p]").forEach(b => { b.querySelector(".lb").textContent = T(POSES[b.dataset.p].n); });
+  $("pz-t").textContent = T({ en:"Poses — held until you move, sitting too", ko:"포즈 — 움직이기 전까지 유지, 앉아서도 돼요" });
   $("b-say").querySelector(".lb").textContent = T({ en:"Say", ko:"말하기" }); $("b-emo").querySelector(".lb").textContent = T({ en:"Moves", ko:"표현" });
   $("b-me").querySelector(".lb").textContent = T({ en:"Character", ko:"캐릭터" });
   $("b-bal").querySelector(".lb").textContent = T({ en:"Balloon", ko:"물풍선" });
@@ -25279,7 +25277,7 @@ if (!initGL()){
   netInit();
 }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
-window.__pool = { CROWN, BFLY, PHOTO, SNB, SNM, makeSnowman, night(k){ NIGHT.force = k; }, season(s){ setSeason(s, Date.now(), null); }, SEASON, faceOf, AUD, buyDrink, openVend, endDrink, setCalm, DRINKS, VENDS, handAt, pose, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
+window.__pool = { CROWN, BFLY, POSES, SNB, SNM, makeSnowman, night(k){ NIGHT.force = k; }, season(s){ setSeason(s, Date.now(), null); }, SEASON, faceOf, AUD, buyDrink, openVend, endDrink, setCalm, DRINKS, VENDS, handAt, pose, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
 <!--SCRIPT_END-->
 </body>
 </html>
