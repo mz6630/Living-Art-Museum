@@ -809,7 +809,7 @@ html[lang="ko"] .minimap .cap, html[lang="ko"] .wsec h4, html[lang="ko"] .dpanel
                 <div class="hint" id="hint" data-i18n-html="mac.hint">Click the <b>ART MUSEUM</b> app to enter</div>
 
                 <!-- app window -->
-                <div class="win" id="win" role="dialog" aria-label="ART MUSEUM">
+                <div class="win" id="win" role="dialog" aria-label="ART MUSEUM" data-i18n-aria="win.aria">
                   <div class="titlebar">
                     <span class="tl r"></span><span class="tl y"></span><span class="tl g"></span>
                     <span class="name">ART MUSEUM</span>
@@ -861,9 +861,9 @@ html[lang="ko"] .minimap .cap, html[lang="ko"] .wsec h4, html[lang="ko"] .dpanel
   </section>
 
   <!-- ============ 2. THE COLLECTION DRIFTS PAST AND DIGITISES ============ -->
-  <section class="scene" id="s-panes" aria-label="The collection">
+  <section class="scene" id="s-panes" aria-label="The collection" data-i18n-aria="panes.aria">
     <div class="pstage"><div class="prow" id="prow"></div></div>
-    <div class="pcaption" id="pcaption" data-i18n="panes.cap">16 works · 7 rooms</div>
+    <div class="pcaption" id="pcaption" data-i18n="panes.cap">15 works · 6 rooms</div>
     <button class="skip" id="skip2" data-i18n="skip">Skip intro</button>
   </section>
 
@@ -881,7 +881,7 @@ html[lang="ko"] .minimap .cap, html[lang="ko"] .wsec h4, html[lang="ko"] .dpanel
   </section>
 
   <!-- ===================== MAIN — CARD ===================== -->
-  <section class="scene" id="s-card" aria-label="Card view">
+  <section class="scene" id="s-card" aria-label="Card view" data-i18n-aria="card.aria">
     <div class="cardwrap">
       <div class="dial" id="dial">
         <div class="disc" id="disc"></div>
@@ -934,7 +934,7 @@ html[lang="ko"] .minimap .cap, html[lang="ko"] .wsec h4, html[lang="ko"] .dpanel
   </section>
 
   <!-- ===================== MAIN — DISPLAY (SALON) ===================== -->
-  <section class="scene" id="s-display" aria-label="Display view">
+  <section class="scene" id="s-display" aria-label="Display view" data-i18n-aria="disp.aria">
     <div class="salon" id="salon"><div class="wall3" id="wall3"></div></div>
     <div class="zoombar">
       <button class="glass" id="z-fit" data-i18n="disp.fit">Fit</button>
@@ -962,7 +962,7 @@ html[lang="ko"] .minimap .cap, html[lang="ko"] .wsec h4, html[lang="ko"] .dpanel
   </section>
 
   <!-- ===================== 3. THE MUSEUM, IN CHARACTERS ===================== -->
-  <section class="scene" id="s-space" aria-label="The museum">
+  <section class="scene" id="s-space" aria-label="The museum" data-i18n-aria="space.aria">
     <canvas id="grid"></canvas>
     <div class="hud">
       <button class="logo3d" id="logo3d" data-i18n-aria="logo.home" aria-label="Back to the start">Living Art Museum</button>
@@ -1034,19 +1034,19 @@ const I18N = {
   en: {
     "doc.title":"Living Art Museum — Open the app",
     "logo.home":"Back to the start",
-    "mac.aria":"Desktop", "mac.power":"Press anywhere to power on",
+    "mac.aria":"Desktop", "win.aria":"Art Museum", "panes.aria":"The collection", "card.aria":"Card view", "disp.aria":"Display view", "space.aria":"The museum", "mac.power":"Press anywhere to power on",
     "mac.file":"File", "mac.edit":"Edit", "mac.view":"View", "mac.window":"Window",
     "mac.hint":"Click the <b>ART MUSEUM</b> app to enter",
     "app.museum":"Open the ART MUSEUM app",
     "app.Finder":"Finder", "app.Mail":"Mail", "app.Photos":"Photos", "app.Music":"Music", "app.Notes":"Notes",
     "app.Maps":"Maps", "app.Settings":"Settings", "app.Safari":"Safari", "app.ART MUSEUM":"ART MUSEUM",
     "skip":"Skip intro",
-    "panes.cap":"16 works · 7 rooms", "panes.read":"reading the collection", "panes.enter":"entering the space",
+    "panes.cap":"15 works · 6 rooms", "panes.read":"reading the collection", "panes.enter":"entering the space",
     "mount":(n) => [
       `&gt; mount <b>/volumes/ART_MUSEUM</b>`,
       `&gt; reading manifest … <b>ok</b>`,
-      `&gt; collection: <b>${n} works</b> · 5 rooms`,
-      `&gt; building rooms: pop art, street art, installation, conceptual, geometric`,
+      `&gt; collection: <b>${n} works</b> · 6 rooms`,
+      `&gt; building rooms: pop art, street art, installation, media art, neo-expressionism, geometric abstraction`,
       `&gt; calibrating light … <b>ok</b>`,
       `&gt; <em>opening livingmuseum.art</em>`],
     "set.title":"Settings", "set.close":"Close", "set.h":"Language & Region",
@@ -1059,7 +1059,7 @@ const I18N = {
     "card.foot":"Scroll or drag the wheel · click a work",
     "disp.fit":"Fit", "disp.in":"Zoom in", "disp.out":"Zoom out",
     "disp.foot":"Drag to pan · scroll to zoom · click a work",
-    "salon.q":"Sixteen works,<br>one wall",
+    "salon.q":"Fifteen works,<br>one wall",
     "salon.p":"Hung in order of date, 1930 to today — close together, as a salon would. Come closer and each one opens.",
     "hud.move":"<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move", "hud.look":"drag to look",
     "hud.run":"<kbd>shift</kbd> run", "hud.tools":"Tools",
@@ -1069,25 +1069,25 @@ const I18N = {
     "toast.lightsUp":"Lights up", "toast.lightsDown":"Gallery light",
     "toast.next":(title) => `“${title}” experience — next build step`,
     "boot.t":"ENTERING THE GALLERY", "boot.0":"building the room …",
-    "boot.lines":["reading 0 1 geometry …", "placing 16 works …", "ready"],
+    "boot.lines":["reading 0 1 geometry …", "placing 15 works …", "ready"],
     "exp.frame":"Experience",
   },
   ko: {
     "doc.title":"Living Art Museum — 앱을 열어 입장하세요",
     "logo.home":"처음으로",
-    "mac.aria":"데스크톱", "mac.power":"아무 곳이나 눌러 전원 켜기",
+    "mac.aria":"데스크톱", "win.aria":"아트 뮤지엄", "panes.aria":"컬렉션", "card.aria":"카드 보기", "disp.aria":"전시 보기", "space.aria":"미술관", "mac.power":"아무 곳이나 눌러 전원 켜기",
     "mac.file":"파일", "mac.edit":"편집", "mac.view":"보기", "mac.window":"윈도우",
     "mac.hint":"<b>ART MUSEUM</b> 앱을 클릭해 입장하세요",
     "app.museum":"ART MUSEUM 앱 열기",
     "app.Finder":"Finder", "app.Mail":"메일", "app.Photos":"사진", "app.Music":"음악", "app.Notes":"메모",
     "app.Maps":"지도", "app.Settings":"설정", "app.Safari":"Safari", "app.ART MUSEUM":"ART MUSEUM",
     "skip":"인트로 건너뛰기",
-    "panes.cap":"작품 16점 · 전시실 7곳", "panes.read":"컬렉션을 읽는 중", "panes.enter":"공간으로 들어가는 중",
+    "panes.cap":"작품 15점 · 전시실 6곳", "panes.read":"컬렉션을 읽는 중", "panes.enter":"공간으로 들어가는 중",
     "mount":(n) => [
       `&gt; mount <b>/volumes/ART_MUSEUM</b>`,
       `&gt; 매니페스트 읽는 중 … <b>ok</b>`,
-      `&gt; 컬렉션: <b>작품 ${n}점</b> · 전시실 5곳`,
-      `&gt; 전시실 구성: 팝 아트, 스트리트 아트, 설치 미술, 개념 미술, 기하 추상`,
+      `&gt; 컬렉션: <b>작품 ${n}점</b> · 전시실 6곳`,
+      `&gt; 전시실 구성: 팝 아트, 스트리트 아트, 설치 미술, 미디어 아트, 신표현주의, 기하 추상`,
       `&gt; 조명 맞추는 중 … <b>ok</b>`,
       `&gt; <em>livingmuseum.art 여는 중</em>`],
     "set.title":"설정", "set.close":"닫기", "set.h":"언어 및 지역",
@@ -1100,7 +1100,7 @@ const I18N = {
     "card.foot":"휠을 스크롤하거나 드래그 · 작품을 클릭",
     "disp.fit":"맞춤", "disp.in":"확대", "disp.out":"축소",
     "disp.foot":"드래그로 이동 · 스크롤로 확대 · 작품을 클릭",
-    "salon.q":"열여섯 작품,<br>한 벽",
+    "salon.q":"열다섯 작품,<br>한 벽",
     "salon.p":"1930년부터 오늘까지, 시간 순서대로 살롱처럼 촘촘하게 걸었습니다. 가까이 다가가면 하나씩 열립니다.",
     "hud.move":"<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 이동", "hud.look":"드래그해 둘러보기",
     "hud.run":"<kbd>shift</kbd> 달리기", "hud.tools":"도구",
@@ -1110,7 +1110,7 @@ const I18N = {
     "toast.lightsUp":"조명 밝게", "toast.lightsDown":"전시 조명",
     "toast.next":(title) => `“${title}” 체험은 다음 단계에서 열립니다`,
     "boot.t":"갤러리 입장", "boot.0":"전시실을 짓는 중 …",
-    "boot.lines":["0 1 형태를 읽는 중 …", "작품 16점을 거는 중 …", "준비 완료"],
+    "boot.lines":["0 1 형태를 읽는 중 …", "작품 15점을 거는 중 …", "준비 완료"],
     "exp.frame":"체험",
   },
 };
@@ -1530,7 +1530,7 @@ async function launch(){
   if (launching) return;
   closeSettings();
   launching = true;
-  const MOUNT_LINES = t("mount", WORKS.length);
+  const MOUNT_LINES = t("mount", SHOW.length);
   $("hint").classList.remove("in");
   dockEl.querySelectorAll(".d.museum").forEach(d => { d.classList.add("open"); nudge(d); });
   await wait(220); if (skipped) return;

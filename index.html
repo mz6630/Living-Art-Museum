@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261114102619";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261114104311";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -810,7 +810,7 @@ html[lang="ko"] .minimap .cap, html[lang="ko"] .wsec h4, html[lang="ko"] .dpanel
                 <div class="hint" id="hint" data-i18n-html="mac.hint">Click the <b>ART MUSEUM</b> app to enter</div>
 
                 <!-- app window -->
-                <div class="win" id="win" role="dialog" aria-label="ART MUSEUM">
+                <div class="win" id="win" role="dialog" aria-label="ART MUSEUM" data-i18n-aria="win.aria">
                   <div class="titlebar">
                     <span class="tl r"></span><span class="tl y"></span><span class="tl g"></span>
                     <span class="name">ART MUSEUM</span>
@@ -862,9 +862,9 @@ html[lang="ko"] .minimap .cap, html[lang="ko"] .wsec h4, html[lang="ko"] .dpanel
   </section>
 
   <!-- ============ 2. THE COLLECTION DRIFTS PAST AND DIGITISES ============ -->
-  <section class="scene" id="s-panes" aria-label="The collection">
+  <section class="scene" id="s-panes" aria-label="The collection" data-i18n-aria="panes.aria">
     <div class="pstage"><div class="prow" id="prow"></div></div>
-    <div class="pcaption" id="pcaption" data-i18n="panes.cap">16 works · 7 rooms</div>
+    <div class="pcaption" id="pcaption" data-i18n="panes.cap">15 works · 6 rooms</div>
     <button class="skip" id="skip2" data-i18n="skip">Skip intro</button>
   </section>
 
@@ -882,7 +882,7 @@ html[lang="ko"] .minimap .cap, html[lang="ko"] .wsec h4, html[lang="ko"] .dpanel
   </section>
 
   <!-- ===================== MAIN — CARD ===================== -->
-  <section class="scene" id="s-card" aria-label="Card view">
+  <section class="scene" id="s-card" aria-label="Card view" data-i18n-aria="card.aria">
     <div class="cardwrap">
       <div class="dial" id="dial">
         <div class="disc" id="disc"></div>
@@ -935,7 +935,7 @@ html[lang="ko"] .minimap .cap, html[lang="ko"] .wsec h4, html[lang="ko"] .dpanel
   </section>
 
   <!-- ===================== MAIN — DISPLAY (SALON) ===================== -->
-  <section class="scene" id="s-display" aria-label="Display view">
+  <section class="scene" id="s-display" aria-label="Display view" data-i18n-aria="disp.aria">
     <div class="salon" id="salon"><div class="wall3" id="wall3"></div></div>
     <div class="zoombar">
       <button class="glass" id="z-fit" data-i18n="disp.fit">Fit</button>
@@ -963,7 +963,7 @@ html[lang="ko"] .minimap .cap, html[lang="ko"] .wsec h4, html[lang="ko"] .dpanel
   </section>
 
   <!-- ===================== 3. THE MUSEUM, IN CHARACTERS ===================== -->
-  <section class="scene" id="s-space" aria-label="The museum">
+  <section class="scene" id="s-space" aria-label="The museum" data-i18n-aria="space.aria">
     <canvas id="grid"></canvas>
     <div class="hud">
       <button class="logo3d" id="logo3d" data-i18n-aria="logo.home" aria-label="Back to the start">Living Art Museum</button>
@@ -1035,19 +1035,19 @@ const I18N = {
   en: {
     "doc.title":"Living Art Museum — Open the app",
     "logo.home":"Back to the start",
-    "mac.aria":"Desktop", "mac.power":"Press anywhere to power on",
+    "mac.aria":"Desktop", "win.aria":"Art Museum", "panes.aria":"The collection", "card.aria":"Card view", "disp.aria":"Display view", "space.aria":"The museum", "mac.power":"Press anywhere to power on",
     "mac.file":"File", "mac.edit":"Edit", "mac.view":"View", "mac.window":"Window",
     "mac.hint":"Click the <b>ART MUSEUM</b> app to enter",
     "app.museum":"Open the ART MUSEUM app",
     "app.Finder":"Finder", "app.Mail":"Mail", "app.Photos":"Photos", "app.Music":"Music", "app.Notes":"Notes",
     "app.Maps":"Maps", "app.Settings":"Settings", "app.Safari":"Safari", "app.ART MUSEUM":"ART MUSEUM",
     "skip":"Skip intro",
-    "panes.cap":"16 works · 7 rooms", "panes.read":"reading the collection", "panes.enter":"entering the space",
+    "panes.cap":"15 works · 6 rooms", "panes.read":"reading the collection", "panes.enter":"entering the space",
     "mount":(n) => [
       `&gt; mount <b>/volumes/ART_MUSEUM</b>`,
       `&gt; reading manifest … <b>ok</b>`,
-      `&gt; collection: <b>${n} works</b> · 5 rooms`,
-      `&gt; building rooms: pop art, street art, installation, conceptual, geometric`,
+      `&gt; collection: <b>${n} works</b> · 6 rooms`,
+      `&gt; building rooms: pop art, street art, installation, media art, neo-expressionism, geometric abstraction`,
       `&gt; calibrating light … <b>ok</b>`,
       `&gt; <em>opening livingmuseum.art</em>`],
     "set.title":"Settings", "set.close":"Close", "set.h":"Language & Region",
@@ -1060,7 +1060,7 @@ const I18N = {
     "card.foot":"Scroll or drag the wheel · click a work",
     "disp.fit":"Fit", "disp.in":"Zoom in", "disp.out":"Zoom out",
     "disp.foot":"Drag to pan · scroll to zoom · click a work",
-    "salon.q":"Sixteen works,<br>one wall",
+    "salon.q":"Fifteen works,<br>one wall",
     "salon.p":"Hung in order of date, 1930 to today — close together, as a salon would. Come closer and each one opens.",
     "hud.move":"<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move", "hud.look":"drag to look",
     "hud.run":"<kbd>shift</kbd> run", "hud.tools":"Tools",
@@ -1070,25 +1070,25 @@ const I18N = {
     "toast.lightsUp":"Lights up", "toast.lightsDown":"Gallery light",
     "toast.next":(title) => `“${title}” experience — next build step`,
     "boot.t":"ENTERING THE GALLERY", "boot.0":"building the room …",
-    "boot.lines":["reading 0 1 geometry …", "placing 16 works …", "ready"],
+    "boot.lines":["reading 0 1 geometry …", "placing 15 works …", "ready"],
     "exp.frame":"Experience",
   },
   ko: {
     "doc.title":"Living Art Museum — 앱을 열어 입장하세요",
     "logo.home":"처음으로",
-    "mac.aria":"데스크톱", "mac.power":"아무 곳이나 눌러 전원 켜기",
+    "mac.aria":"데스크톱", "win.aria":"아트 뮤지엄", "panes.aria":"컬렉션", "card.aria":"카드 보기", "disp.aria":"전시 보기", "space.aria":"미술관", "mac.power":"아무 곳이나 눌러 전원 켜기",
     "mac.file":"파일", "mac.edit":"편집", "mac.view":"보기", "mac.window":"윈도우",
     "mac.hint":"<b>ART MUSEUM</b> 앱을 클릭해 입장하세요",
     "app.museum":"ART MUSEUM 앱 열기",
     "app.Finder":"Finder", "app.Mail":"메일", "app.Photos":"사진", "app.Music":"음악", "app.Notes":"메모",
     "app.Maps":"지도", "app.Settings":"설정", "app.Safari":"Safari", "app.ART MUSEUM":"ART MUSEUM",
     "skip":"인트로 건너뛰기",
-    "panes.cap":"작품 16점 · 전시실 7곳", "panes.read":"컬렉션을 읽는 중", "panes.enter":"공간으로 들어가는 중",
+    "panes.cap":"작품 15점 · 전시실 6곳", "panes.read":"컬렉션을 읽는 중", "panes.enter":"공간으로 들어가는 중",
     "mount":(n) => [
       `&gt; mount <b>/volumes/ART_MUSEUM</b>`,
       `&gt; 매니페스트 읽는 중 … <b>ok</b>`,
-      `&gt; 컬렉션: <b>작품 ${n}점</b> · 전시실 5곳`,
-      `&gt; 전시실 구성: 팝 아트, 스트리트 아트, 설치 미술, 개념 미술, 기하 추상`,
+      `&gt; 컬렉션: <b>작품 ${n}점</b> · 전시실 6곳`,
+      `&gt; 전시실 구성: 팝 아트, 스트리트 아트, 설치 미술, 미디어 아트, 신표현주의, 기하 추상`,
       `&gt; 조명 맞추는 중 … <b>ok</b>`,
       `&gt; <em>livingmuseum.art 여는 중</em>`],
     "set.title":"설정", "set.close":"닫기", "set.h":"언어 및 지역",
@@ -1101,7 +1101,7 @@ const I18N = {
     "card.foot":"휠을 스크롤하거나 드래그 · 작품을 클릭",
     "disp.fit":"맞춤", "disp.in":"확대", "disp.out":"축소",
     "disp.foot":"드래그로 이동 · 스크롤로 확대 · 작품을 클릭",
-    "salon.q":"열여섯 작품,<br>한 벽",
+    "salon.q":"열다섯 작품,<br>한 벽",
     "salon.p":"1930년부터 오늘까지, 시간 순서대로 살롱처럼 촘촘하게 걸었습니다. 가까이 다가가면 하나씩 열립니다.",
     "hud.move":"<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 이동", "hud.look":"드래그해 둘러보기",
     "hud.run":"<kbd>shift</kbd> 달리기", "hud.tools":"도구",
@@ -1111,7 +1111,7 @@ const I18N = {
     "toast.lightsUp":"조명 밝게", "toast.lightsDown":"전시 조명",
     "toast.next":(title) => `“${title}” 체험은 다음 단계에서 열립니다`,
     "boot.t":"갤러리 입장", "boot.0":"전시실을 짓는 중 …",
-    "boot.lines":["0 1 형태를 읽는 중 …", "작품 16점을 거는 중 …", "준비 완료"],
+    "boot.lines":["0 1 형태를 읽는 중 …", "작품 15점을 거는 중 …", "준비 완료"],
     "exp.frame":"체험",
   },
 };
@@ -1531,7 +1531,7 @@ async function launch(){
   if (launching) return;
   closeSettings();
   launching = true;
-  const MOUNT_LINES = t("mount", WORKS.length);
+  const MOUNT_LINES = t("mount", SHOW.length);
   $("hint").classList.remove("in");
   dockEl.querySelectorAll(".d.museum").forEach(d => { d.classList.add("open"); nudge(d); });
   await wait(220); if (skipped) return;
@@ -3963,7 +3963,7 @@ const KO = {
  "Display": "전시",
  "Main view": "메인 보기",
  "preparing the pumpkin": "호박을 준비하는 중",
- "the 3d library did not load — please refresh": "3D 라이브러리를 불러오지 못했습니다 — 새로고침해 주세요",
+ "the 3d library did not load — please refresh": "3D 라이브러리를 불러오지 못했어요 — 새로고침해 주세요",
  "Pumpkin": "호박",
  "Yayoi Kusama · 1994 · painted fibreglass": "쿠사마 야요이 · 1994 · 채색한 섬유 강화 플라스틱",
  "Tools": "도구",
@@ -3978,11 +3978,11 @@ const KO = {
  "Flow": "농도",
  "So far": "지금까지",
  "marks": "획",
- "Press and drag on the pumpkin to paint. Drag the empty space to turn it.": "호박 위를 누른 채 드래그하면 칠해집니다. 빈 곳을 드래그하면 돌아갑니다.",
- "Each press leaves one dot; drag for a trail. Spacing sets how far apart they fall.": "누를 때마다 점이 하나 찍히고, 드래그하면 점이 이어집니다. 간격으로 점 사이 거리를 정하세요.",
- "Drag over the paint to smudge it, the way a wet brush would.": "칠한 곳을 드래그하면 젖은 붓처럼 번집니다.",
- "Drag to wipe back to the bare pumpkin.": "드래그하면 빈 호박으로 되돌아갑니다.",
- "Yayoi Kusama first met pumpkins as a child, in her family's seed nursery. She has described the dots as a way of meeting the patterns she has seen since childhood — repetition as a way of living with something. The yellow pumpkin on the pier at Naoshima was set down in 1994.": "쿠사마 야요이는 어린 시절, 집안의 종묘장에서 처음 호박을 만났습니다. 그녀는 점을 어릴 때부터 보아 온 무늬와 마주하는 방법이라고 말합니다 — 무언가와 함께 살아가는 방법으로서의 반복. 나오시마 부두의 노란 호박은 1994년에 놓였습니다.",
+ "Press and drag on the pumpkin to paint. Drag the empty space to turn it.": "호박 위를 누른 채 드래그하면 칠해져요. 빈 곳을 드래그하면 돌아가요.",
+ "Each press leaves one dot; drag for a trail. Spacing sets how far apart they fall.": "누를 때마다 점이 하나 찍히고, 드래그하면 점이 이어져요. 간격으로 점 사이 거리를 정해요.",
+ "Drag over the paint to smudge it, the way a wet brush would.": "칠한 곳을 드래그하면 젖은 붓처럼 번져요.",
+ "Drag to wipe back to the bare pumpkin.": "드래그하면 빈 호박으로 되돌아가요.",
+ "Yayoi Kusama first met pumpkins as a child, in her family's seed nursery. She has described the dots as a way of meeting the patterns she has seen since childhood — repetition as a way of living with something. The yellow pumpkin on the pier at Naoshima was set down in 1994.": "쿠사마 야요이는 어린 시절, 집안의 종묘장에서 처음 호박을 만났어요. 그녀는 점을 어릴 때부터 보아 온 무늬와 마주하는 방법이라고 말해요 — 무언가와 함께 살아가는 방법으로서의 반복이죠. 나오시마 부두의 노란 호박은 1994년에 놓였어요.",
  "Actions": "동작",
  "Undo": "실행 취소",
  "Fill the whole pumpkin with this colour": "호박 전체를 이 색으로 채우기",
@@ -4001,23 +4001,23 @@ const KO = {
  "Back to the field": "호박 밭으로",
  "Drag to turn it · pinch or scroll to come closer": "드래그해 돌리기 · 두 손가락이나 스크롤로 다가가기",
  "Connect again": "다시 연결",
- "Your pumpkin is in the field — on every device.": "호박이 호박 밭에 놓였습니다 — 어느 기기에서나 보입니다.",
- "Kept on this device for now — it joins the shared field once it connects.": "지금은 이 기기에 보관했어요 — 공유 호박 밭에 연결되면 자동으로 올라갑니다.",
- "The shared field is full, so this one could not be added.": "공유 호박 밭이 가득 차서 더 놓을 수 없습니다.",
- "Its paint could not be fetched — here is its photo.": "칠한 무늬를 불러오지 못해 사진으로 보여 드립니다.",
+ "Your pumpkin is in the field — on every device.": "호박이 호박 밭에 놓였어요 — 어느 기기에서나 보여요.",
+ "Kept on this device for now — it joins the shared field once it connects.": "지금은 이 기기에 보관했어요 — 공유 호박 밭에 연결되면 자동으로 올라가요.",
+ "The shared field is full, so this one could not be added.": "공유 호박 밭이 가득 차서 더 놓을 수 없어요.",
+ "Its paint could not be fetched — here is its photo.": "칠한 무늬를 불러오지 못해 사진으로 보여 드려요.",
  " · this device": " · 이 기기에만",
  "Name your pumpkin": "호박에 이름을 붙이세요",
  "Untitled pumpkin": "이름 없는 호박",
  "Name": "이름",
  "Cancel": "취소",
  "Pick a colour": "색 고르기",
- "The whole pumpkin, in one colour.": "호박 전체를 한 색으로 칠했습니다.",
- "Back to a bare pumpkin — undo brings it back.": "빈 호박으로 돌아갔습니다 — 실행 취소로 되돌릴 수 있어요.",
- "Turning slowly — press again to stop.": "천천히 도는 중 — 다시 누르면 멈춥니다.",
- "Your pumpkin stays on this page for now. Saving comes in the next build step.": "호박은 지금은 이 페이지에만 남습니다.",
- "Your pumpkin is in the field.": "당신의 호박이 호박 밭에 놓였습니다.",
- "That could not be saved. Please try again.": "저장하지 못했습니다. 다시 시도해 주세요.",
- "This one was saved before turning was possible.": "이 호박은 돌려 볼 수 있기 전에 저장되었습니다.",
+ "The whole pumpkin, in one colour.": "호박 전체를 한 색으로 칠했어요.",
+ "Back to a bare pumpkin — undo brings it back.": "빈 호박으로 돌아갔어요 — 실행 취소로 되돌릴 수 있어요.",
+ "Turning slowly — press again to stop.": "천천히 도는 중 — 다시 누르면 멈춰요.",
+ "Your pumpkin stays on this page for now. Saving comes in the next build step.": "호박은 지금 이 페이지에만 남아요.",
+ "Your pumpkin is in the field.": "당신의 호박이 호박 밭에 놓였어요.",
+ "That could not be saved. Please try again.": "저장하지 못했어요. 다시 시도해 주세요.",
+ "This one was saved before turning was possible.": "이 호박은 돌려 보기 기능이 생기기 전에 저장돼서 돌려 볼 수 없어요.",
  "Save": "저장",
  "just now": "방금",
  " · yours": " · 내 호박",
@@ -4619,7 +4619,7 @@ async function migrateLocal(){
   }
   writeLocal(left);
   migrating = false;
-  if (moved) toast(LANG === "ko" ? `이 기기에 있던 호박 ${moved}개가 공유 호박 밭으로 옮겨졌습니다.`
+  if (moved) toast(LANG === "ko" ? `이 기기에 있던 호박 ${moved}개가 공유 호박 밭으로 옮겨졌어요.`
                                  : `${moved} pumpkin${moved > 1 ? "s" : ""} from this device joined the shared field.`);
   refresh();
 }
@@ -4667,14 +4667,14 @@ function drawField(){
   $("field-sync").hidden = fieldState !== "local";
   $("field-count").textContent =
       fieldState === "shared"
-    ? (ko ? `관람객들이 남긴 호박 ${fieldList.length}개 · 어느 기기에서 열어도 같은 밭입니다` : `${fieldList.length} pumpkins left by visitors · the same field on every device`)
+    ? (ko ? `관람객들이 남긴 호박 ${fieldList.length}개 · 어느 기기에서 열어도 같은 밭이에요` : `${fieldList.length} pumpkins left by visitors · the same field on every device`)
       + (waiting.length ? (ko ? ` · 이 기기에서 올라가는 중 ${waiting.length}개` : ` · ${waiting.length} still moving over from this device`) : "")
     : fieldState === "loading"
     ? (ko ? "공유 호박 밭에 연결하는 중…" : "Connecting to the shared field…")
     : (ko ? `공유 호박 밭에 연결하지 못해 이 기기에만 보관 중 · ${n}개` : `Could not reach the shared field · ${n} kept on this device only`);
   if (!n){
     grid.innerHTML = fieldState === "loading" ? "" :
-      (ko ? `<p class="empty">호박 밭이 비어 있습니다.<br>호박을 칠해 여기에 놓아 보세요.</p>`
+      (ko ? `<p class="empty">호박 밭이 비어 있어요.<br>호박을 칠해 여기에 놓아 보세요.</p>`
           : `<p class="empty">The field is empty.<br>Paint a pumpkin and put it here.</p>`);
     return;
   }
@@ -5094,18 +5094,18 @@ const KO = {
  "Adjust": "조절",
  "Ripple": "물결",
  "Dots": "도트",
- "Press and drag across the floor to send rings out. Tap her and she answers; drag her to turn her round. Drag the dark sky to walk round the room.": "바닥을 누른 채 드래그하면 빛의 고리가 퍼져 나갑니다. 그녀를 탭하면 대답하고, 드래그하면 돌아갑니다. 어두운 하늘을 드래그하면 방을 돌아볼 수 있어요.",
+ "Press and drag across the floor to send rings out. Tap her and she answers; drag her to turn her round. Drag the dark sky to walk round the room.": "바닥을 누른 채 드래그하면 빛의 고리가 퍼져 나가요. 그녀를 탭하면 대답하고, 드래그하면 돌아가요. 어두운 하늘을 드래그하면 방을 돌아볼 수 있어요.",
  "Colour, heard": "들리는 색",
  "Red — low, warm": "빨강 — 낮고 따뜻하게",
  "Yellow — open fifth": "노랑 — 열린 5도",
  "Green — soft bell": "초록 — 부드러운 종",
  "Blue — high chime": "파랑 — 높은 차임",
  "Violet — glassy": "보라 — 유리처럼",
- "Warhol printed one face over and over, each time in another colour. Here the colour is what you hear.": "워홀은 한 얼굴을 몇 번이고, 매번 다른 색으로 찍었습니다. 여기서는 그 색이 소리가 됩니다.",
+ "Warhol printed one face over and over, each time in another colour. Here the colour is what you hear.": "워홀은 한 얼굴을 몇 번이고, 매번 다른 색으로 찍었어요. 여기서는 그 색이 소리가 돼요.",
  "The crystal": "크리스털",
  "Prism": "프리즘",
  "Orbit": "궤도",
- "Your pointer is a light: move it over her and it shines into the glass, splitting into colour inside her. Drag her to turn her, tap to strike the glass. Drag the dark to walk round her.": "포인터가 곧 빛입니다. 그녀 위로 움직이면 빛이 유리 속으로 스며 색으로 갈라집니다. 드래그하면 돌아가고, 탭하면 유리가 울립니다. 어두운 곳을 드래그하면 그녀 주위를 돌아볼 수 있어요.",
+ "Your pointer is a light: move it over her and it shines into the glass, splitting into colour inside her. Drag her to turn her, tap to strike the glass. Drag the dark to walk round her.": "포인터가 곧 빛이에요. 그녀 위로 움직이면 빛이 유리 속으로 스며 색으로 갈라져요. 드래그하면 돌아가고, 탭하면 유리가 울려요. 어두운 곳을 드래그하면 그녀 주위를 돌아볼 수 있어요.",
  "Glass, heard": "들리는 유리",
  "Red — singing bowl": "빨강 — 싱잉 볼",
  "Orange — wine glass": "주황 — 와인 잔",
@@ -5113,13 +5113,13 @@ const KO = {
  "Green — glass chime": "초록 — 유리 차임",
  "Blue — crystal bell": "파랑 — 크리스털 종",
  "Violet — glass harmonica": "보라 — 글라스 하모니카",
- "Every facet splits the light into its colours, and every colour rings its own glass.": "모든 면이 빛을 색으로 나누고, 모든 색은 저마다의 유리를 울립니다.",
+ "Every facet splits the light into its colours, and every colour rings its own glass.": "모든 면이 빛을 색으로 나누고, 모든 색은 저마다의 유리를 울려요.",
  "The fog": "안개",
  "Fog": "안개",
  "Flow": "흐름",
- "Drag through her and the mist follows your hand, slowly, bending her out of shape like a dream. Tap and the next colour of her comes forward.": "그녀를 가로질러 드래그하면 안개가 손길을 천천히 따라오며, 꿈처럼 그녀를 일그러뜨립니다. 탭하면 다음 색의 그녀가 다가옵니다.",
+ "Drag through her and the mist follows your hand, slowly, bending her out of shape like a dream. Tap and the next colour of her comes forward.": "그녀를 가로질러 드래그하면 안개가 손길을 천천히 따라오며, 꿈처럼 그녀를 일그러뜨려요. 탭하면 다음 색의 그녀가 다가와요.",
  "Her colours": "그녀의 색",
- "Pink, then blue, then a dark figure rimmed in light, then the prism: each colour of her gathers out of the smoke as Marilyn, holds, and goes back into it while the next arrives.": "분홍, 파랑, 빛의 테두리를 두른 어두운 형상, 그리고 프리즘. 각각의 색이 연기 속에서 마릴린으로 모였다가 머물고, 다음 색이 오는 동안 다시 연기로 돌아갑니다.",
+ "Pink, then blue, then a dark figure rimmed in light, then the prism: each colour of her gathers out of the smoke as Marilyn, holds, and goes back into it while the next arrives.": "분홍, 파랑, 빛의 테두리를 두른 어두운 형상, 그리고 프리즘. 각각의 색이 연기 속에서 마릴린으로 모였다가 머물고, 다음 색이 오는 동안 다시 연기로 돌아가요.",
  "Controls": "조작",
  "Centre": "가운데",
  "Face the portrait": "정면 보기",
@@ -5130,7 +5130,7 @@ const KO = {
  "Sound": "소리",
  "Throw light through her": "그녀에게 빛 비추기",
  "Call her next colour": "다음 색 부르기",
- "Crystal needs WebGL, which this browser doesn't offer": "크리스털 버전에는 WebGL이 필요하지만, 이 브라우저는 지원하지 않습니다",
+ "Crystal needs WebGL, which this browser doesn't offer": "크리스털 버전에는 WebGL이 필요하지만, 이 브라우저는 지원하지 않아요",
  "Sound on": "소리 켬",
  "Sound off": "소리 끔"
 };
@@ -8191,13 +8191,13 @@ const KO = {
  "Name a fruit or a vegetable.": "과일이나 채소 이름을 적어 보세요.",
  "Now take the tape and drag a strip across it.": "이제 테이프를 들고 그 위로 한 줄 그어 보세요.",
  "Drag a strip across what you painted. Put the tape down to move or peel things.": "그린 것 위로 테이프를 한 줄 그으세요. 옮기거나 떼려면 테이프를 내려놓으세요.",
- "Tape back on the shelf — you can move things again.": "테이프를 선반에 돌려놓았습니다 — 다시 옮길 수 있어요.",
- "Taped. That is the whole work — and it is yours to repeat.": "붙였습니다. 이것이 작품의 전부이고, 얼마든지 반복할 수 있습니다.",
- "A strip on the bare wall. Drag it across your fruit or vegetable.": "빈 벽에 테이프가 붙었습니다. 과일이나 채소 위로 그어 보세요.",
+ "Tape back on the shelf — you can move things again.": "테이프를 선반에 돌려놓았어요 — 다시 옮길 수 있어요.",
+ "Taped. That is the whole work — and it is yours to repeat.": "붙였어요. 이게 작품의 전부예요 — 얼마든지 반복할 수 있어요.",
+ "A strip on the bare wall. Drag it across your fruit or vegetable.": "빈 벽에 테이프가 붙었어요. 과일이나 채소 위로 그어 보세요.",
  "Put a fruit or vegetable on the wall first.": "먼저 과일이나 채소를 벽에 올려 두세요.",
- "Nothing is taped. Click a taped one to peel just that one.": "붙은 것이 없습니다. 붙인 것을 클릭하면 그것만 뗄 수 있어요.",
- "Nothing to clear.": "치울 것이 없습니다.",
- "The wall is bare again.": "벽이 다시 비었습니다."
+ "Nothing is taped. Click a taped one to peel just that one.": "붙은 게 없어요. 붙인 것을 클릭하면 그것만 뗄 수 있어요.",
+ "Nothing to clear.": "치울 게 없어요.",
+ "The wall is bare again.": "벽이 다시 비었어요."
 };
 const L = (s) => (LANG === "ko" && KO[s] !== undefined) ? KO[s] : s;
 (function localise(){
@@ -9971,7 +9971,7 @@ async function build(){
     const left = 700 - (performance.now() - t0); if (left > 0) await wait(left);
     await paintThing(T, r);
     $("again").hidden = false;
-    setHint(ko ? `“${r.label}” — 다 그렸습니다. 벽으로 끌어다 놓으세요. 다른 이름을 적으면 함께 놓입니다.`
+    setHint(ko ? `“${r.label}” — 다 그렸어요. 벽으로 끌어다 놓으세요. 다른 이름을 적으면 함께 놓여요.`
                : `“${r.label}” — painted. Drag it onto the wall. Name another and it joins the first.`);
     $("word").value = "";
     step(2); SFX.made();
@@ -10178,7 +10178,7 @@ $("room").addEventListener("pointerup", () => {
     step(3); fadePapers();
     best.el.style.filter = "drop-shadow(0 14px 14px rgba(0,0,0,.45))";
     toast(things.filter(t => t.taped).length > 1
-      ? (LANG === "ko" ? `“${best.word}”도 붙었습니다. 지침에 하나뿐이라는 말은 없었죠.` : `“${best.word}” is up too. The instructions never said just one.`)
+      ? (LANG === "ko" ? `“${best.word}”도 붙었어요. 지침에 하나뿐이라는 말은 없었죠.` : `“${best.word}” is up too. The instructions never said just one.`)
       : "Taped. That is the whole work — and it is yours to repeat.");
   } else {
     const anyPlaced = things.some(t => t.placed && !t.taped);
@@ -10200,7 +10200,7 @@ function peel(T){
   }
   T.taped = false; T.tape = null; T.el.classList.remove("taped");
   setTimeout(() => drop(T), 200);
-  toast(LANG === "ko" ? `“${T.word}”을 떼어 냈습니다. 작품은 과일보다 오래 남습니다.` : `“${T.word}” comes off. The work survives the fruit.`);
+  toast(LANG === "ko" ? `“${T.word}”${(c => c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 === 0 ? "를" : "을")(String(T.word).trim().slice(-1).charCodeAt(0))} 떼어 냈어요. 작품은 과일보다 오래 남아요.` : `“${T.word}” comes off. The work survives the fruit.`);
 }
 $("t-peel").onclick = () => {
   const up = things.filter(T => T.taped);
@@ -11371,7 +11371,7 @@ const KO = {
  "Paint the Wall": "벽화 그리기", "Wiped.": "지웠어요.", "after Banksy · spray paint and stencils on brick": "뱅크시 풍 · 벽돌에 스프레이와 스텐실",
  "Spray": "스프레이", "Me": "나", "On the wall": "벽 앞에 (크로마키)", "Small cam below": "아래 작은 캠", "You: cut out, in front of the wall": "나: 크로마키로 벽 앞에", "You: the camera, small, at the bottom": "나: 아래 작은 캠 화면", "Wall": "배경", "Walls": "배경", "Loading the cut-out…": "사람 분리 준비 중…", "Stencil": "도장", "Cans and stencils": "스프레이와 도장",
  "Paint with your hand": "손으로 그려 보세요",
- "Your camera watches one hand. Nothing is recorded or sent anywhere — the picture stays in this page.": "카메라가 한 손을 따라갑니다. 영상은 녹화되거나 어디로도 보내지지 않고 이 페이지 안에서만 쓰여요.",
+ "Your camera watches one hand. Nothing is recorded or sent anywhere — the picture stays in this page.": "카메라가 한 손을 따라가요. 영상은 녹화되거나 어디로도 보내지지 않고 이 페이지 안에서만 쓰여요.",
  "Start": "시작하기", "Open in a new tab": "새 탭에서 열기", "Try again": "다시 시도", "Wipe": "지우기",
  "You appear in front of a real wall — only you, cut out of the camera picture (or paint on the plain camera view). It watches your hands — nothing is recorded or sent anywhere.": "카메라 속 배경은 지워지고, 나만 벽 사진 앞에 서 있는 것처럼 보여요. ‘일반 캠’을 고르면 캠 화면 그대로 그릴 수 있어요. 손만 따라가며, 영상은 녹화되거나 어디로도 보내지지 않아요.",
  "Your camera, to paint on": "그림을 그릴 카메라 화면",
@@ -20102,7 +20102,7 @@ $("ab-ol").innerHTML = "";
  { en:"To get rid of one: peel it and drop it in the wastebasket, or double-click it and it peels itself off into the bin.", ko:"없애려면: 떼어서 휴지통에 놓거나, 두 번 누르면 스스로 떨어져 휴지통으로 날아가요." },
  { en:"Nothing runs out. A cut-out in the bin goes back into the magazine, and any hole is reprinted after a while; the sticker sheets refill themselves.", ko:"아무것도 동나지 않아요. 휴지통에 버린 조각은 잡지로 돌아가고, 남은 구멍도 시간이 지나면 다시 인쇄돼요. 스티커 시트도 저절로 다시 채워져요." },
  { en:"Open the magazine, take the scissors and cut round something. Carry it over, then rub glue on it.", ko:"잡지를 열고 가위로 오린 뒤, 노트로 옮겨 풀로 문질러 붙이세요." },
- { en:"Oilstick: drag to draw, click a line to type. Eraser: rub out ink and letters.", ko:"오일스틱: 끌면 그려지고, 줄을 누르면 타자로 써져요. 지우개: 그림과 글씨를 문질러 지우기." },
+ { en:"Oilstick: drag to draw, click a line to type. Eraser: rub out ink and letters.", ko:"오일스틱: 끌면 그려지고, 줄을 누르면 글자를 입력할 수 있어요. 지우개: 그림과 글씨를 문질러 지워요." },
  { en:"Anything dropped on the desk just lies there. Move the mug. Nobody minds.", ko:"책상에 떨어뜨린 건 그냥 거기 놓여 있어요. 머그잔도 옮겨 보세요. 아무도 뭐라 하지 않아요." },
  { en:"The lamp switches on and off. The radio plays. A jar of paint loads the oilstick with its colour; the spray can sprays.", ko:"스탠드는 켜고 끌 수 있고, 라디오에서는 음악이 나와요. 물감 병을 누르면 오일스틱에 그 색이 묻고, 스프레이 캔은 뿌려져요." },
  { en:"Everything stays — on the pages, on the desk, in the magazine — and the next person can peel it, move it or rub it out.", ko:"페이지 위, 책상 위, 잡지에 남긴 모든 것이 그대로 남고, 다음 사람이 떼고, 옮기고, 지울 수 있어요." }]
@@ -23785,7 +23785,7 @@ function renderServers(){
   for (const s of [1, 2]) box.appendChild(srvChip(s, chosen === s, () => { chosen = s; renderServers(); AUD.click(); }));
   const pb = $("psrvs"); pb.innerHTML = "";
   for (const s of [1, 2]) pb.appendChild(srvChip(s, NET.srv === s, () => { closePops(); if (s !== NET.srv) enter(s); }));
-  $("go").textContent = inWorld ? (chosen !== NET.srv ? T({ en:`Move to server ${chosen}`, ko:`서버 ${chosen}(으)로 이동` }) : T({ en:"Back to the pool", ko:"수영장으로 돌아가기" })) : T({ en:"Enter", ko:"입장하기" });
+  $("go").textContent = inWorld ? (chosen !== NET.srv ? T({ en:`Move to server ${chosen}`, ko:`서버 ${chosen}로 이동` }) : T({ en:"Back to the pool", ko:"수영장으로 돌아가기" })) : T({ en:"Enter", ko:"입장하기" });
   $("b-srv").querySelector(".lb").textContent = `${T({ en:"Server", ko:"서버" })} ${NET.srv || chosen}`;
 }
 function renderNet(){
@@ -24179,7 +24179,7 @@ function drawArc(put){                                                          
 }
 /* where to aim, and what it takes to get there */
 const canThrow = (say) => { if (!inWorld || making) return false;
-  if (me.y < -.5){ if (say) hint(T({ en:"Balloons are thrown from up by the pool", ko:"물풍선은 위층 수영장 가에서 던질 수 있어요" })); return false; } return true; };
+  if (me.y < -.5){ if (say) hint(T({ en:"Balloons are thrown from up by the pool", ko:"물풍선은 위층 물가에서 던질 수 있어요" })); return false; } return true; };
 const flight = (d) => ({ T:360 + d * 68, h:.45 + d * .15 });
 function groundAt(cx, cy){
   const f = norm(sub(camTgt, camPos)), r = norm(cross(f, [0, 1, 0])), u = cross(r, f), th = Math.tan(fov / 2);
@@ -26114,21 +26114,22 @@ function about(){
   $("ab-h3").textContent = T({ en:"Here", ko:"이 공간에서" });
   const ol = $("ab-ol"); ol.innerHTML = "";
   [{ en:"Make a character and pick one of two servers — up to twenty people share each", ko:"캐릭터를 꾸미고 두 서버 중 하나를 골라요 — 서버마다 20명까지 함께해요" },
-   { en:"Click the ground to walk there (shift-click to run) — or WASD, the arrows, the joystick on a phone; drag to look round, scroll to zoom", ko:"바닥을 클릭하면 그곳까지 걸어가요(Shift+클릭은 달리기) — WASD·방향키·휴대폰 조이스틱도 돼요. 드래그로 둘러보고, 휠로 거리를 바꿔요" },
+   { en:"Walk with WASD or the arrows (a joystick on a phone), Shift to run — choose click-to-walk (tap-to-walk on a phone) in ⓘ to walk to where you click. Drag to look round, scroll to zoom", ko:"WASD·방향키(휴대폰은 조이스틱)로 걷고 Shift로 달려요 — ⓘ에서 ‘클릭해서 이동’(휴대폰은 ‘탭해서 이동’)을 고르면 누른 곳까지 걸어가요. 드래그로 둘러보고, 휠로 거리를 바꿔요" },
    { en:"Take the stairs by the pool down: through the water the people above are blurred, and the sound turns to water", ko:"수영장 옆 계단으로 내려가면 물결 너머로 위의 사람들이 흐릿하게 보이고, 물속 소리가 들려요" },
-   { en:"Beach ball: walk into it to kick it, jump for a high one. Get close and press G (or tap the ball) to pick it up; holding it, press and drag to aim and let go to throw. G puts it down", ko:"비치볼: 몸으로 밀면 차고, 점프하며 부딪히면 높이 떠요. 가까이 가서 G(또는 공을 누르기)로 잡고, 잡은 채 화면을 누르고 끌어 조준한 뒤 놓으면 던져요. G로 내려놓아요" },
-   { en:"Wish coins: write a wish, throw the coin into the pool. Walk close to a coin — by the edge, or underneath — to read the wish on it", ko:"소원 동전: 소원을 적어 수영장에 던져요. 물가나 아래층에서 동전 가까이 가면 적힌 소원을 읽을 수 있어요" },
-   { en:"Water balloons: press and hold anywhere, drag to where it should land — the arc shows the way — and let go. On a computer you can also hold F and point", ko:"물풍선: 화면을 꾹 누른 채 떨어질 곳으로 끌면 포물선이 보여요. 손을 떼면 던져요. 컴퓨터에서는 F를 누른 채 마우스로 조준해도 돼요" },
-   { en:"Vending machines: two against the glass across the pool, one on the wall by the stairs. Walk up (or press E) and pick a drink — energy (faster), cider (higher jumps), lemonade (sour!), milk (big), tiny juice (small), beer (seeing double), clear soda (only your reflection and shadow), glass soda (walk on the water), fire soda (red face, fire breath), slush (brain freeze, frosty steps); water clears it all. One effect at a time; the × at the top ends it", ko:"자판기: 수영장 건너편 유리벽에 2대, 계단 쪽 벽에 1대가 있어요. 가까이 가서(또는 E) 음료를 골라요 — 에너지 드링크(빨라짐), 사이다(점프 2배), 레몬에이드(새콤!), 우유(커짐), 꼬마 주스(작아짐), 맥주(겹쳐 보임), 투명 음료(물에 비친 모습과 그림자만), 유리 소다(물 위 걷기), 매운 음료(빨간 얼굴·불 뿜기), 슬러시(머리 띵·서리 발자국). 생수는 효과를 모두 없애요. 효과는 한 번에 하나, 위쪽 알림의 ×로 언제든 끌 수 있어요" },
+   { en:"Talk (Enter), wave, bow, jump, dance, sit or strike a pose — a pose holds until you move, even sitting down. Near a bench every free seat shows a ring: click it, or press E, to sit", ko:"말하기(Enter)와 손 흔들기·인사·점프·춤·앉기, 포즈로 만나요 — 포즈는 움직이기 전까지 유지되고 앉아서도 할 수 있어요. 벤치 가까이 가면 빈자리에 동그라미가 떠요. 누르거나 E 키로 앉아요" },
+   { en:"Beach ball: walk into it to kick it, jump for a high one. Get close and press G (or tap the ball) to pick it up, then point and click to throw — on a phone, tap where it should go and press the round throw button. G puts it down", ko:"비치볼: 몸으로 밀면 차고, 점프하며 부딪히면 높이 떠요. 가까이 가서 G(또는 공을 눌러)로 잡은 뒤, 컴퓨터에서는 가리키고 클릭하면, 휴대폰에서는 던질 곳을 탭하고 동그란 던지기 버튼을 누르면 던져요. G로 내려놓아요" },
+   { en:"Wish coins: write a wish and throw the coin into the pool; walk close to a coin — by the edge, or underneath — to read the wish on it. Distance, angle and skips make a score for the ranking (on a phone the ranking opens with the wish coin)", ko:"소원 동전: 소원을 적어 동전을 수영장에 던져요. 물가나 아래층에서 동전 가까이 가면 적힌 소원을 읽을 수 있어요. 거리·각도·물수제비로 점수가 매겨져 랭킹에 올라요(휴대폰에서는 소원 동전을 누르면 랭킹이 함께 보여요)" },
+   { en:"Water balloons: turn them on (the balloon button, or F), then point where one should land and click — on a phone, tap the spot and press the round throw button", ko:"물풍선: 물풍선 버튼(또는 F)을 켠 뒤, 컴퓨터에서는 떨어질 곳을 가리켜 클릭하고, 휴대폰에서는 떨어질 곳을 탭한 뒤 동그란 던지기 버튼을 눌러요" },
+   { en:"Vending machines: two against the glass across the pool, one on the wall by the stairs. Walk up (or press E) and pick a drink — energy (faster), cider (higher jumps), lemonade (sour!), milk (big), tiny juice (small), beer (seeing double), clear soda (only your reflection and shadow), glass soda (walk on the water), fire soda (red face, fire breath), slush (brain freeze, frosty steps); water clears it all. One effect at a time; the × at the top ends it; in spring, summer and autumn they also hold that season's things", ko:"자판기: 수영장 건너편 유리벽에 2대, 계단 쪽 벽에 1대가 있어요. 가까이 가서(또는 E) 음료를 골라요 — 에너지 드링크(빨라짐), 사이다(점프 2배), 레몬에이드(새콤!), 우유(커짐), 꼬마 주스(작아짐), 맥주(겹쳐 보임), 투명 음료(물에 비친 모습과 그림자만), 유리 소다(물 위 걷기), 매운 음료(빨간 얼굴·불 뿜기), 슬러시(머리 띵·서리 발자국). 생수는 효과를 모두 없애요. 효과는 한 번에 하나, 위쪽 알림의 ×로 언제든 끌 수 있어요. 봄·여름·가을에는 그 계절의 물건도 있어요" },
    { en:"Day and night take turns every three minutes, the same for everyone here. At night the lamps and strings of bulbs along the walls and the vending machines light up, and the water glows softly — the count at the top shows how long till it turns", ko:"3분마다 낮과 밤이 바뀌어요(모든 방문자가 같은 시간). 밤에는 벽을 따라 벽등과 줄 전구, 자판기 불빛이 켜지고 수영장 물빛이 은은하게 빛나요 — 위쪽 표시에서 바뀔 때까지 남은 시간을 볼 수 있어요" },
-   { en:"Seasons: tap the sun or moon at the top to pick spring, summer, autumn or winter — it changes for everyone on the server. Spring brings cherry petals, summer cicadas (and fireflies at night), autumn falling leaves; walk up to a tree and it lets go of a handful. In winter it snows, footprints stay in it, and the pool freezes: walk onto the ice and ski", ko:"계절: 위쪽 해·달 표시를 누르면 봄·여름·가을·겨울을 고를 수 있어요 — 바꾸면 서버의 모두에게 함께 바뀌어요. 봄엔 벚꽃잎, 여름엔 매미 소리(밤엔 반딧불), 가을엔 낙엽이 날리고, 나무에 다가가면 우수수 떨어져요. 겨울엔 눈이 내려 발자국이 남고, 수영장이 얼어 얼음 위에서 스키를 탈 수 있어요" },
-   { en:"Spring rain: now and then a shower passes over — the sky greys and rings spread across the pool; pick an umbrella or a raincoat from a vending machine (free in spring) or get soaked; afterwards, by day, a rainbow stands over the far wall and in the water. Everyone shares the same shower", ko:"봄비: 가끔 소나기가 지나가요 — 하늘이 흐려지고 수영장에 빗방울 동그라미가 퍼져요. 봄엔 자판기에서 우산이나 우비를 무료로 고를 수 있어요 — 없으면 비를 맞아요. 비가 그치면 낮에는 건너편 하늘과 물 위에 무지개가 떠요. 모두에게 같은 비가 내려요" },
+   { en:"Seasons: tap the sun or moon at the top to pick spring, summer, autumn or winter (tap it again for none) — it changes for everyone on the server. Walk up to a tree and it lets go of a handful of petals or leaves", ko:"계절: 위쪽 해·달 표시를 누르면 봄·여름·가을·겨울을 고를 수 있어요(같은 계절을 다시 누르면 기본) — 바꾸면 서버의 모두에게 함께 바뀌어요. 나무에 다가가면 꽃잎이나 잎이 우수수 떨어져요" },
    { en:"Spring: walk through fallen petals and they come to you — thirty make a crown of blossom that everyone sees; by day butterflies drift about and settle on the head of anyone who keeps still", ko:"봄: 바닥에 떨어진 꽃잎 위를 걸으면 꽃잎이 모여요 — 30장을 모으면 벚꽃 화관이 생기고 다른 사람에게도 보여요. 낮에는 나비가 날아다니다 가만히 있는 사람 머리에 앉아요" },
-   { en:"Autumn nights: a bonfire burns on the deck — bring chestnuts and roast them (E) until they pop. Five roasted chestnuts and five acorns trade for a sky lantern at a vending machine: make a wish and let it float up (everyone sees it). The moon is full and gold; a wish coin thrown by its light draws a moonbeam down onto it. And once a night a moon rabbit comes down on a moonbeam and hops round the pool's edge — meet it for the moon's blessing. Everyone sees the same rabbit", ko:"가을 밤: 데크에 모닥불이 타요 — 밤을 가져와 구우면(E) 탁! 하고 군밤이 돼요. 군밤 5개와 도토리 5개를 모으면 자판기에서 풍등으로 바꿔, 소원을 빌며 하늘로 날려 보낼 수 있어요(모두에게 보여요). 밤하늘엔 커다란 금빛 보름달이 뜨고, 달빛에 소원 동전을 던지면 달빛 기둥이 내려와요. 그리고 밤마다 한 번, 달토끼가 달빛을 타고 내려와 수영장 가장자리를 뛰어다녀요 — 만나면 달님의 축복이 반짝여요. 모두에게 같은 달토끼가 보여요" },
-   { en:"The seasons on you: in summer running wears you out — you sweat and pant and can only walk until you rest (quicker in a tree's shade, at once with water or a slush); in winter your breath shows as you talk", ko:"계절이 몸으로: 여름에 계속 뛰면 더워서 땀을 흘리고 헥헥거리며 걷기만 할 수 있어요 — 쉬면 회복(나무 그늘이면 더 빨리, 생수·슬러시는 바로). 겨울엔 말할 때 입김이 나와요" },
-   { en:"Autumn: fallen leaves crunch underfoot and fly up as you walk, gusts of wind sweep them across the deck; jump (Space) into a pile of leaves and it bursts all over — anyone's jump does it. Walk up to a tree and shake it (E, or the button): leaves pour down and acorns and chestnuts drop; walk over them to pick them up", ko:"가을: 바닥의 낙엽을 밟으면 바스락 소리와 함께 흩날리고, 가끔 바람이 불어 낙엽을 쓸고 가요. 낙엽 더미에 점프(Space)하면 와사삭 흩날려요 — 다른 사람이 뛰어들어도 함께 보여요. 나무 앞에서 흔들면(E 또는 버튼) 낙엽이 쏟아지고 도토리와 밤이 떨어져요 — 위로 걸어가면 주워요" },
+   { en:"Spring rain: now and then a shower passes over — the sky greys and rings spread across the pool; pick an umbrella or a raincoat from a vending machine (free in spring) or get soaked; afterwards, by day, a rainbow stands over the far wall and in the water. Everyone shares the same shower", ko:"봄비: 가끔 소나기가 지나가요 — 하늘이 흐려지고 수영장에 빗방울 동그라미가 퍼져요. 봄엔 자판기에서 우산이나 우비를 무료로 고를 수 있어요 — 없으면 비를 맞아요. 비가 그치면 낮에는 건너편 하늘과 물 위에 무지개가 떠요. 모두에게 같은 비가 내려요" },
    { en:"Summer: the vending machines give out a sparkler and a bug net, free. The sparkler sparks for forty seconds and harder beside a friend's; swing the net (F) at eight kinds of insect — on the trees, in the air, on the benches, by the planters, on the water — each is counted, then let go; catch every kind for a 🐛 Bug King badge before your name. At night, now and then, fireworks open over the far wall, the same for everyone", ko:"여름: 자판기에서 스파클라와 잠자리채를 무료로 받아요. 스파클라는 40초 동안 반짝이고, 친구 스파클라 곁에서는 더 화려해져요. 잠자리채를 휘둘러(F) 나무·공중·벤치·화단·물 위의 곤충 8종을 잡으면 세고 놓아줘요 — 모두 모으면 이름 앞에 🐛 벌레왕 배지가 붙어요. 밤이면 가끔 건너편 하늘에 불꽃놀이가 터져요 — 모두에게 똑같이 보여요" },
-   { en:"Talk (Enter), wave, bow, jump, dance or sit — near a bench every free seat shows a ring: click it, or press E, to sit", ko:"말하기(Enter), 손 흔들기·인사·점프·춤·앉기로 만나요 — 벤치 가까이 가면 빈자리에 동그라미가 떠요. 누르거나 E 키로 앉아요" }]
+   { en:"Autumn: fallen leaves crunch underfoot and fly up as you walk, gusts of wind sweep them across the deck; jump (Space) into a pile of leaves and it bursts all over — anyone's jump does it. Walk up to a tree and shake it (E, or the button): leaves pour down and acorns and chestnuts drop; walk over them to pick them up", ko:"가을: 바닥의 낙엽을 밟으면 바스락 소리와 함께 흩날리고, 가끔 바람이 불어 낙엽을 쓸고 가요. 낙엽 더미에 점프(Space)하면 와사삭 흩날려요 — 다른 사람이 뛰어들어도 함께 보여요. 나무 앞에서 흔들면(E 또는 버튼) 낙엽이 쏟아지고 도토리와 밤이 떨어져요 — 위로 걸어가면 주워요" },
+   { en:"Autumn nights: a bonfire burns on the deck — bring chestnuts and roast them (E) until they pop. Five roasted chestnuts and five acorns trade for a sky lantern at a vending machine: make a wish and let it float up (everyone sees it). The moon is full and gold; a wish coin thrown by its light draws a moonbeam down onto it. And once a night a moon rabbit comes down on a moonbeam and hops round the pool's edge — meet it for the moon's blessing. Everyone sees the same rabbit", ko:"가을 밤: 데크에 모닥불이 타요 — 밤을 가져와 구우면(E) 탁! 하고 군밤이 돼요. 군밤 5개와 도토리 5개를 모으면 자판기에서 풍등으로 바꿔, 소원을 빌며 하늘로 날려 보낼 수 있어요(모두에게 보여요). 밤하늘엔 커다란 금빛 보름달이 뜨고, 달빛에 소원 동전을 던지면 달빛 기둥이 내려와요. 그리고 밤마다 한 번, 달토끼가 달빛을 타고 내려와 수영장 가장자리를 뛰어다녀요 — 만나면 달님의 축복이 반짝여요. 모두에게 같은 달토끼가 보여요" },
+   { en:"Winter: it snows and footprints stay in it; the pool freezes — walk onto the ice and ski. Push a snowball and it grows as it rolls; once it's big you take hold of it — roll a small one onto a big one for a snowman", ko:"겨울: 눈이 내려 발자국이 남고, 수영장이 얼어 얼음 위에서 스키를 타요. 눈덩이를 밀면 굴러가며 커지고, 커지면 손으로 잡고 굴려요 — 작은 눈덩이를 큰 눈덩이에 올리면 눈사람이 돼요" },
+   { en:"The seasons on you: in summer running wears you out — you sweat and pant and can only walk until you rest (quicker in a tree's shade, at once with water or a slush); in winter your breath shows as you talk", ko:"계절이 몸으로: 여름에 계속 뛰면 더워서 땀을 흘리고 헥헥거리며 걷기만 할 수 있어요 — 쉬면 회복(나무 그늘이면 더 빨리, 생수·슬러시는 바로). 겨울엔 말할 때 입김이 나와요" }]
     .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); ol.appendChild(li); });
   const lab = { wave:{ en:"Wave", ko:"손 흔들기" }, bow:{ en:"Bow", ko:"인사" }, jump:{ en:"Jump", ko:"점프" }, dance:{ en:"Dance", ko:"춤" }, sit:{ en:"Sit", ko:"앉기" }, heart:{ en:"Heart", ko:"하트" } };
   document.querySelectorAll("#pop-emo [data-e]").forEach(b => { b.querySelector(".lb").textContent = T(lab[b.dataset.e]); });

@@ -361,13 +361,13 @@ const KO = {
  "Name a fruit or a vegetable.": "과일이나 채소 이름을 적어 보세요.",
  "Now take the tape and drag a strip across it.": "이제 테이프를 들고 그 위로 한 줄 그어 보세요.",
  "Drag a strip across what you painted. Put the tape down to move or peel things.": "그린 것 위로 테이프를 한 줄 그으세요. 옮기거나 떼려면 테이프를 내려놓으세요.",
- "Tape back on the shelf — you can move things again.": "테이프를 선반에 돌려놓았습니다 — 다시 옮길 수 있어요.",
- "Taped. That is the whole work — and it is yours to repeat.": "붙였습니다. 이것이 작품의 전부이고, 얼마든지 반복할 수 있습니다.",
- "A strip on the bare wall. Drag it across your fruit or vegetable.": "빈 벽에 테이프가 붙었습니다. 과일이나 채소 위로 그어 보세요.",
+ "Tape back on the shelf — you can move things again.": "테이프를 선반에 돌려놓았어요 — 다시 옮길 수 있어요.",
+ "Taped. That is the whole work — and it is yours to repeat.": "붙였어요. 이게 작품의 전부예요 — 얼마든지 반복할 수 있어요.",
+ "A strip on the bare wall. Drag it across your fruit or vegetable.": "빈 벽에 테이프가 붙었어요. 과일이나 채소 위로 그어 보세요.",
  "Put a fruit or vegetable on the wall first.": "먼저 과일이나 채소를 벽에 올려 두세요.",
- "Nothing is taped. Click a taped one to peel just that one.": "붙은 것이 없습니다. 붙인 것을 클릭하면 그것만 뗄 수 있어요.",
- "Nothing to clear.": "치울 것이 없습니다.",
- "The wall is bare again.": "벽이 다시 비었습니다."
+ "Nothing is taped. Click a taped one to peel just that one.": "붙은 게 없어요. 붙인 것을 클릭하면 그것만 뗄 수 있어요.",
+ "Nothing to clear.": "치울 게 없어요.",
+ "The wall is bare again.": "벽이 다시 비었어요."
 };
 const L = (s) => (LANG === "ko" && KO[s] !== undefined) ? KO[s] : s;
 (function localise(){
@@ -2141,7 +2141,7 @@ async function build(){
     const left = 700 - (performance.now() - t0); if (left > 0) await wait(left);
     await paintThing(T, r);
     $("again").hidden = false;
-    setHint(ko ? `“${r.label}” — 다 그렸습니다. 벽으로 끌어다 놓으세요. 다른 이름을 적으면 함께 놓입니다.`
+    setHint(ko ? `“${r.label}” — 다 그렸어요. 벽으로 끌어다 놓으세요. 다른 이름을 적으면 함께 놓여요.`
                : `“${r.label}” — painted. Drag it onto the wall. Name another and it joins the first.`);
     $("word").value = "";
     step(2); SFX.made();
@@ -2348,7 +2348,7 @@ $("room").addEventListener("pointerup", () => {
     step(3); fadePapers();
     best.el.style.filter = "drop-shadow(0 14px 14px rgba(0,0,0,.45))";
     toast(things.filter(t => t.taped).length > 1
-      ? (LANG === "ko" ? `“${best.word}”도 붙었습니다. 지침에 하나뿐이라는 말은 없었죠.` : `“${best.word}” is up too. The instructions never said just one.`)
+      ? (LANG === "ko" ? `“${best.word}”도 붙었어요. 지침에 하나뿐이라는 말은 없었죠.` : `“${best.word}” is up too. The instructions never said just one.`)
       : "Taped. That is the whole work — and it is yours to repeat.");
   } else {
     const anyPlaced = things.some(t => t.placed && !t.taped);
@@ -2370,7 +2370,7 @@ function peel(T){
   }
   T.taped = false; T.tape = null; T.el.classList.remove("taped");
   setTimeout(() => drop(T), 200);
-  toast(LANG === "ko" ? `“${T.word}”을 떼어 냈습니다. 작품은 과일보다 오래 남습니다.` : `“${T.word}” comes off. The work survives the fruit.`);
+  toast(LANG === "ko" ? `“${T.word}”${(c => c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 === 0 ? "를" : "을")(String(T.word).trim().slice(-1).charCodeAt(0))} 떼어 냈어요. 작품은 과일보다 오래 남아요.` : `“${T.word}” comes off. The work survives the fruit.`);
 }
 $("t-peel").onclick = () => {
   const up = things.filter(T => T.taped);
