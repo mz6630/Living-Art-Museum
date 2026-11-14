@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261113142147";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261114072338";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -21857,6 +21857,17 @@ body.making #hint{display:none;}
 .av.ghost .tg{opacity:.42;}
 /* the beer: a warm blush round the picture's edge (opacity set from the script, only while it lasts) */
 #tipsy{position:fixed;inset:0;z-index:3;pointer-events:none;display:none;opacity:0;background:radial-gradient(ellipse 72% 68% at 50% 48%, transparent 48%, rgba(255,160,118,.5) 100%);}
+#petalc{position:fixed;right:20px;top:calc(112px + env(safe-area-inset-top,0px));z-index:9;display:none;padding:7px 12px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+#petalc.on{display:block;} @media (max-width:760px){ #petalc{right:10px;top:calc(146px + env(safe-area-inset-top,0px));} }
+#flash{position:fixed;inset:0;z-index:30;pointer-events:none;background:#fff;opacity:0;} #flash.go{animation:flashA .5s ease-out;}
+@keyframes flashA{0%{opacity:0;}12%{opacity:.85;}100%{opacity:0;}}
+#photo{position:fixed;right:20px;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:15;display:none;width:min(240px,calc(100% - 40px));padding:9px 9px 8px;border-radius:16px;transform:rotate(-2deg);}
+#photo.on{display:block;animation:photoIn .45s cubic-bezier(.2,.9,.3,1.2);} @keyframes photoIn{from{opacity:0;transform:translateY(16px) rotate(4deg) scale(.9);}to{opacity:1;transform:rotate(-2deg);}}
+#photo img{display:block;width:100%;border-radius:6px;background:#eee;} #photo p{margin:7px 2px 6px;font-size:12px;color:var(--ink);font-weight:500;}
+#photo .pa{display:flex;gap:6px;} #photo .pbtn{flex:1;padding:7px 0;border-radius:999px;font-size:12px;font-weight:600;text-align:center;background:rgba(22,21,15,.07);color:var(--ink);text-decoration:none;cursor:pointer;}
+#photo .pbtn:hover{background:rgba(22,21,15,.13);} #ph-save{background:var(--chip-on) !important;color:var(--chip-on-ink) !important;}
+@media (max-width:760px){ #photo{right:10px;bottom:calc(150px + env(safe-area-inset-bottom,0px));width:190px;} }
+body:not(.in) #photo, body.making #photo, body:not(.in) #petalc, body.making #petalc{display:none !important;}
 /* the drink you are on: top right, a ring that runs down, × to stop */
 #drinkfx{position:fixed;right:20px;top:calc(62px + env(safe-area-inset-top,0px));z-index:9;display:none;align-items:center;gap:10px;padding:6px 6px 6px 7px;border-radius:999px;max-width:min(300px,calc(100% - 20px));}
 body.in:not(.making) #drinkfx.on{display:flex;animation:dfxIn .35s cubic-bezier(.2,.9,.3,1.25);}
@@ -22102,6 +22113,9 @@ body.move-click #joy{display:none !important;}
 <div id="pop-season" class="pop glass" role="dialog" aria-labelledby="sea-t"><p class="st" id="sea-t"></p><div class="sg" id="sea-g"></div><p class="note" id="sea-n"></p></div>
 <div id="goal" aria-hidden="true"></div>
 <div id="tipsy" aria-hidden="true"></div>
+<div id="flash" aria-hidden="true"></div>
+<div id="petalc" class="glass" aria-live="polite"></div>
+<div id="photo" class="glass" role="dialog"><img id="ph-img" alt=""><p id="ph-cap"></p><div class="pa"><a id="ph-save" class="pbtn"></a><button type="button" id="ph-x" class="pbtn"></button></div></div>
 <div id="hint" class="glass off"></div>
 <button id="throwb" class="glass" type="button"><i class="orb"></i><span class="tl"></span></button>
 <button id="throwx" class="glass" type="button"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -23199,6 +23213,7 @@ function pose(a, now){
     q.l1 = g * .22 * a.mv; q.l2 = -q.l1; q.bow += .16 * Math.min(1, a.mv + .3); q.a1z = -.8 - .1 * g; q.a2z = .8 - .1 * g; q.a1x = q.a2x = -.25; q.lift = q.lift * .3; }
   if (a.sit && a.bench){ q.l1 = q.l2 = -1.3; q.lift = .06; q.a1x = q.a2x = -.25; q.a1z = -.14; q.a2z = .14; }   /* on a bench */
   else if (a.sit){ q.l1 = q.l2 = -1.45; q.lift = -.3; q.a1x = q.a2x = -.35; }
+  if (a.emote === "pose" && now - a.et0 < 2600){ const e = Math.min(1, (now - a.et0) / 200); q.a2z = lerp(q.a2z, 2.25, e); q.a2x = lerp(q.a2x, -.3, e); q.sway += .08 * e; }   /* the photo: one hand up in a V */
   return q;
 }
 /* the face, alive: a blink every few seconds (now and then two), a smile through an emote,
@@ -23540,7 +23555,7 @@ function cleanState(st){
   const e = typeof st.e === "string" && EMOTES[st.e] ? st.e : "";
   return { x:num(st.x, -CXW, CXW, 0), y:num(st.y, FLOOR - .1, 1.5, 0), z:num(st.z, -CZW, CZW, 0), r:num(st.r, -7, 7, 0), w:st.w ? 1 : 0, e, et:num(st.et, 0, 1e15, 0),
     m:cleanText(st.m, 40), mt:num(st.mt, 0, 1e15, 0), n:cleanText(st.n, 12) || "…", look:lookFrom(st.k), f:typeof st.f === "string" ? st.f.slice(0, 48) : "", b:typeof st.b === "string" ? st.b.slice(0, 60) : "",
-    d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "", q:typeof st.q === "string" && /^[psawn][0-9a-z]{1,11}$/.test(st.q) ? st.q : "" };
+    d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "", q:typeof st.q === "string" && /^[psawn][0-9a-z]{1,11}$/.test(st.q) ? st.q : "", h:st.h === "c" ? "c" : "" };
 }
 function onPeerList(list){
   const seen = new Set(), now = performance.now();
@@ -23549,7 +23564,7 @@ function onPeerList(list){
     const id = p.id.slice(0, 64); seen.add(id);
     let a = PEERS.get(id);
     if (!a){ a = newAvatar(st.look); a.id = id; a.x = st.x; a.y = st.y; a.z = st.z; a.r = st.r; a.lastE = st.et; a.lastM = st.mt; a.lastF = st.f; a.lastB = st.b; a.name = st.n; PEERS.set(id, a); if (st.b) ballFrom(a, st.b, true);
-      a.lastD = st.d; if (st.d) drinkFrom(a, st.d, true); a.lastQ = st.q; seasonFrom(a, st.q);
+      a.lastD = st.d; if (st.d) drinkFrom(a, st.d, true); a.lastQ = st.q; seasonFrom(a, st.q); a.crown = st.h === "c";
       if (inWorld){ AUD.joined(); logLine(st.n, T({ en:"came in", ko:"님이 들어왔어요" }), true); } }
     else {
       if (st.et !== a.lastE){ a.lastE = st.et; if (st.e && st.e !== "sit" && st.e !== "bench"){ a.emote = st.e; a.et0 = now; popEmote(a, st.e); } }
@@ -23557,6 +23572,7 @@ function onPeerList(list){
       if (st.b !== a.lastB){ a.lastB = st.b; if (st.b) ballFrom(a, st.b, false); }
       if (st.d !== a.lastD){ a.lastD = st.d; drinkFrom(a, st.d, false); }
       if (st.q !== a.lastQ){ a.lastQ = st.q; seasonFrom(a, st.q); }
+      a.crown = st.h === "c";
       if (st.mt !== a.lastM){ a.lastM = st.mt; if (st.m){ a.msg = st.m; a.msgUntil = now + 6500; logLine(st.n, st.m); AUD.chat(); } }
     }
     pushSample(a, st, now); a.name = st.n; a.sit = st.e === "sit" || st.e === "bench"; a.bench = st.e === "bench";
@@ -23567,13 +23583,13 @@ function onPeerList(list){
 }
 function myState(){
   return { s:NET.srv, x:+me.x.toFixed(2), y:+me.y.toFixed(2), z:+me.z.toFixed(2), r:+wrap(me.r).toFixed(2), w:me.moving ? 1 : 0, e:me.sit ? (me.bench ? "bench" : "sit") : (me.emote || ""),
-    et:me.et, m:me.msg || "", mt:me.mt, n:me.name, k:lookArr(me.look), t:Date.now(), ...(FX.f && !FX.blocked && performance.now() - FX.at < 4000 ? { f:FX.f } : {}), ...(BALL.mine && !FX.blocked ? { b:BALL.mine } : {}), ...(me.dk && !FX.blocked ? { d:DRINKS[me.dk.k].c + me.dk.seq } : {}), ...(SEASON.stamp && !FX.blocked ? { q:SEA_C[SEASON.cur] + SEASON.stamp.toString(36) } : {}) };
+    et:me.et, m:me.msg || "", mt:me.mt, n:me.name, k:lookArr(me.look), t:Date.now(), ...(FX.f && !FX.blocked && performance.now() - FX.at < 4000 ? { f:FX.f } : {}), ...(BALL.mine && !FX.blocked ? { b:BALL.mine } : {}), ...(me.dk && !FX.blocked ? { d:DRINKS[me.dk.k].c + me.dk.seq } : {}), ...(SEASON.stamp && !FX.blocked ? { q:SEA_C[SEASON.cur] + SEASON.stamp.toString(36) } : {}), ...(CROWN.on && !FX.blocked ? { h:"c" } : {}) };
 }
 let lastSend = 0, lastSig = "";
 function maybeSend(){
   if (!inWorld || !NET.be || !NET.srv) return;
-  const now = performance.now(), s = myState(), sig = [s.x, s.y, s.z, s.r, s.w, s.e, s.et, s.mt, s.n, s.k.join(""), s.f || "", s.b || "", s.d || "", s.q || ""].join("|");
-  if ((sig !== lastSig && now - lastSend > NET.be.sendMs) || now - lastSend > NET.be.beatMs){ FX.sent = !!(s.f || s.b || s.d || s.q); NET.be.send(s); lastSend = now; lastSig = sig; }
+  const now = performance.now(), s = myState(), sig = [s.x, s.y, s.z, s.r, s.w, s.e, s.et, s.mt, s.n, s.k.join(""), s.f || "", s.b || "", s.d || "", s.q || "", s.h || ""].join("|");
+  if ((sig !== lastSig && now - lastSend > NET.be.sendMs) || now - lastSend > NET.be.beatMs){ FX.sent = !!(s.f || s.b || s.d || s.q || s.h); NET.be.send(s); lastSend = now; lastSig = sig; }
 }
 async function enter(srv){
   if (srv !== NET.srv && NET.be && NET.counts[srv - 1] >= MAX){ hint(T({ en:"That server is full — try the other one", ko:"그 서버는 가득 찼어요 — 다른 서버로 들어가 보세요" }), true); return; }
@@ -23916,6 +23932,8 @@ const AUD = (() => {
     skate(k){ if (!ok() || k <= 0) return; const tt = ctx.currentTime; burst(tt, .22, 4200, 1.1, .016 * k); burst(tt + .05, .16, 2600, 2, .008 * k); },
     cicada(k){ if (!ok() || k <= 0) return; const tt = ctx.currentTime, n = 4 + (Math.random() * 3 | 0), f = 3100 + Math.random() * 500;   /* maem — maem — maem */
       for (let i = 0; i < n; i++){ tone(tt + i * .3, f, .22, .0045 * k, f * .9, "sawtooth"); tone(tt + i * .3 + .02, f * 1.5, .18, .0025 * k, null, "triangle"); } },
+    petal(){ if (!ok()) return; const tt = ctx.currentTime, f = 2093 + Math.random() * 600; tone(tt, f, .07, .008, f * 1.25); },
+    shutter(){ if (!ok()) return; const tt = ctx.currentTime; burst(tt, .03, 3000, 3, .05); burst(tt + .07, .05, 1800, 2.4, .04); tone(tt + .12, 2637, .12, .012); },
     chime(night){ if (!ok()) return; const tt = ctx.currentTime; (night ? [1568, 1319, 1047, 784] : [1047, 1319, 1568, 2093]).forEach((f, i) => tone(tt + i * .12, f, .28, .016)); },
     roll(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; burst(tt, .09, 1600, 2.5, .016 * h); burst(tt + .05, .07, 2600, 3, .01 * h); },   /* snow crunching under a rolling ball */
     snowman(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; [1568, 2093, 2637, 3136, 4186].forEach((f, i) => tone(tt + i * .07, f, .22, .016 * h)); },
@@ -24777,7 +24795,13 @@ function stepSeason(dt, now){
     const u = (now - p.t0) / 1000;
     if (p.kind === "fly"){ p.x += (Math.sin(u * .7 + p.ph) * .35) * dt; p.z += Math.cos(u * .6 + p.ph * 1.3) * .35 * dt; p.y += Math.sin(u * 1.1 + p.ph) * .18 * dt;
       if (u > 14 || NIGHT.k < .4 || S.cur !== "summer") p.on = false; continue; }
+    if (p.home){ const t = (now - p.home) / 450, hx = me.x, hy = me.y + 1.5 * (me.sc || 1), hz = me.z;                   /* a gathered petal, drawn up to you */
+      p.x += (hx - p.x) * Math.min(1, dt * 9); p.y += (hy - p.y) * Math.min(1, dt * 9); p.z += (hz - p.z) * Math.min(1, dt * 9); p.a += dt * 9;
+      if (t > 1){ p.on = false; p.home = 0; if (!CROWN.on && SEASON.cur === "spring"){ CROWN.n++; AUD.petal(); if (CROWN.n >= CROWN.need){ setCrown(true); popEmote(me, "heart"); AUD.fanfare();
+        hint(T({ en:"🌸 A crown of blossom — everyone can see it", ko:"🌸 벚꽃 화관 완성! — 다른 사람에게도 보여요" })); } } }
+      continue; }
     if (p.land){ if (now - p.land > (p.kind === "winter" ? 1200 : 7000)) p.on = false;
+      else if (mvMe && p.kind === "spring" && Math.hypot(p.x - me.x, p.z - me.z) < .6 && takePetal(p)){}
       else if (mvMe && p.kind !== "winter" && Math.hypot(p.x - me.x, p.z - me.z) < .45){ p.land = 0; p.vy = 1 + Math.random() * .8; p.vx = (p.x - me.x) * 3 + Math.sin(me.r) * 1.2; p.vz = (p.z - me.z) * 3 + Math.cos(me.r) * 1.2; }   /* kicked up as you walk through */
       continue; }
     const fall = p.kind === "winter" ? 1 : p.kind === "autumn" ? .75 : .55;
@@ -24793,7 +24817,7 @@ function stepSeason(dt, now){
   for (const p of SP){ if (!p.on) continue;
     let ax, ay, az, bx, by, bz, s = p.s, c = p.c;
     if (p.kind === "fly"){ const bl = .5 + .5 * Math.sin((now - p.t0) / 300 + p.ph * 3); s *= .5 + bl; c = [.86 * (.6 + .4 * bl), 1 * (.6 + .4 * bl), .45]; }
-    else { if (p.land && p.kind === "winter") s *= 1 - (now - p.land) / 1200; c = [c[0] * nk, c[1] * nk, c[2] * nk]; }
+    else { if (p.land && p.kind === "winter") s *= 1 - (now - p.land) / 1200; if (p.home) s *= 1 - Math.min(1, (now - p.home) / 450) * .7; c = [c[0] * nk, c[1] * nk, c[2] * nk]; }
     if (p.kind === "winter" || p.kind === "fly"){ const x = p.x, y = p.y, z = p.z;                                   /* a little diamond, facing you */
       put(x - R[0] * s, y - R[1] * s, z - R[2] * s, c); put(x + U[0] * s, y + U[1] * s, z + U[2] * s, c); put(x + R[0] * s, y + R[1] * s, z + R[2] * s, c);
       put(x - R[0] * s, y - R[1] * s, z - R[2] * s, c); put(x + R[0] * s, y + R[1] * s, z + R[2] * s, c); put(x - U[0] * s, y - U[1] * s, z - U[2] * s, c); spN += 6; continue; }
@@ -24906,6 +24930,86 @@ function drawSnow(p){
 }
 
 /* ==========================================================================
+   9h. SPRING — three small things. Walk through fallen petals and they come
+       to you; thirty make a crown of blossom on your head, which everyone
+       sees. Sit on a bench and petals pour down round you, you strike a
+       pose, and a little photo is taken. Butterflies drift about by day and
+       settle on the head of anyone who keeps still
+   ========================================================================== */
+const CROWN = { n:0, on:false, need:30, shown:-1 };
+const PHOTO = { t0:0, done:false, want:false, url:"" };
+const BFLY = Array.from({ length:4 }, (_, i) => ({ x:0, y:-9, z:0, tx:0, ty:1, tz:0, ph:i * 1.7, yaw:0, k:i % 3, perch:null, next:0, live:false }));
+let BFM = null;
+function springMeshes(){
+  const one = (fn) => { const A = maker(); fn(A); return upload(A.v); }, M = { wing:[], body:null, crown:null };
+  M.crown = one(A => { for (let i = 0; i < 10; i++){ const g = i / 10 * Math.PI * 2, x = Math.sin(g) * .3, z = Math.cos(g) * .3;   /* a ring of blossom and leaves */
+      A.ell([x, 0, z], .065, .045, .065, i % 2 ? [1, .8, .88] : [1, .68, .8], 5, 8); A.ell([x, .03, z], .022, .015, .022, [1, .86, .4], 5, 6);
+      const h = g + Math.PI / 10; A.ell([Math.sin(h) * .31, -.012, Math.cos(h) * .31], .045, .014, .03, [.52, .78, .42], 5, 6); } });
+  M.body = one(A => { A.ell([0, 0, 0], .012, .012, .06, [.22, .2, .24], 5, 6); A.tube([0, .005, .05], [-.02, .03, .08], .003, .003, [.22, .2, .24], 9, 3); A.tube([0, .005, .05], [.02, .03, .08], .003, .003, [.22, .2, .24], 9, 3); });
+  for (const c of [[1, .93, .45], [.98, .98, .98], [1, .72, .84]]) M.wing.push(one(A => { A.ell([.05, 0, .02], .05, .004, .04, c, 9, 10); A.ell([.04, 0, -.035], .035, .004, .028, c.map(v => v * .92), 9, 8); }));
+  return M;
+}
+const headM = (a, now) => { const q = pose(a, now), base = mm4(Tm(a.x, a.y + q.lift, a.z), RYS(a.r + q.spin, a.sc || 1)); return mm4(base, mm4(Tm(0, .42, 0), mm4(RX(q.bow), mm4(RZ(q.sway), Tm(0, -.42, 0))))); };
+function setCrown(on){ if (CROWN.on === on) return; CROWN.on = on; if (!on) CROWN.n = 0; CROWN.shown = -1; lastSig = ""; }
+/* a landed petal near you as you walk: it comes to you */
+function takePetal(p){ if (CROWN.on || SEASON.cur !== "spring") return false; p.land = 0; p.home = performance.now(); return true; }
+function stepSpring(dt, now){
+  const spring = SEASON.cur === "spring" && inWorld && !making;
+  if (!spring && CROWN.on && SEASON.cur !== "spring"){ setCrown(false); }
+  /* the petal count, top right, while you gather */
+  const el = $("petalc"), show = spring && !CROWN.on && CROWN.n > 0;
+  el.classList.toggle("on", show); if (show && CROWN.shown !== CROWN.n){ CROWN.shown = CROWN.n; el.textContent = `🌸 ${CROWN.n} / ${CROWN.need}`; }
+  /* the photo on a bench */
+  if (spring && me.sit && me.bench){ if (!PHOTO.t0){ PHOTO.t0 = now; PHOTO.done = false; }
+    const u = now - PHOTO.t0;
+    if (u > 600 && now > (PHOTO.rain || 0)){ PHOTO.rain = now + 120; for (let k = 0; k < 2; k++) spawnP("spring", me.x + (Math.random() - .5) * 3, 2.6 + Math.random() * 1.6, me.z + (Math.random() - .5) * 3); }   /* petals pour down round you */
+    if (!PHOTO.done && u > 2600){ PHOTO.done = true; PHOTO.want = true; me.emote = "pose"; me.et0 = now; }
+  } else PHOTO.t0 = 0;
+  /* butterflies, by day */
+  const day = spring && NIGHT.k < .5 && camPos[1] > -.05;
+  for (const b of BFLY){
+    if (!day){ b.live = false; b.perch = null; continue; }
+    if (!b.live){ b.live = true; b.x = me.x + (Math.random() - .5) * 10; b.z = me.z + (Math.random() - .5) * 10; b.y = 1 + Math.random(); b.next = 0; }
+    if (b.perch){ const a = b.perch; if (!AVATARS().includes(a) || a.mv > .12 || (a.dk && dkOn(a, "ghost", now))){ b.perch = null; b.next = 0; b.ty = 2.4; }
+      else { const M = headM(a, now), h = HEAD + .5; b.x = M[4] * h + M[12]; b.y = M[5] * h + M[13]; b.z = M[6] * h + M[14]; b.yaw = a.r + .6; continue; } }
+    if (now > b.next){ b.next = now + 2000 + Math.random() * 2500; let tgt = null;
+      for (const a of AVATARS()) if (a.mesh && (a.still || 0) > 3 && Math.hypot(a.x - b.x, a.z - b.z) < 9 && !BFLY.some(o => o !== b && (o.perch === a || o.goal === a))){ tgt = a; break; }
+      b.goal = tgt; if (!tgt){ b.tx = me.x + (Math.random() - .5) * 12; b.tz = me.z + (Math.random() - .5) * 12; b.ty = .6 + Math.random() * 1.6; } }
+    if (b.goal){ const a = b.goal; if (!AVATARS().includes(a) || (a.still || 0) < 1){ b.goal = null; }
+      else { const M = headM(a, now), h = HEAD + .5; b.tx = M[4] * h + M[12]; b.ty = M[5] * h + M[13]; b.tz = M[6] * h + M[14];
+        if (Math.hypot(b.tx - b.x, b.ty - b.y, b.tz - b.z) < .12){ b.perch = a; b.goal = null; if (a === me) hint(T({ en:"🦋 A butterfly landed on your head — keep still", ko:"🦋 나비가 머리에 앉았어요 — 가만히 있어 봐요" }), true); continue; } } }
+    const dx = b.tx - b.x, dy = b.ty - b.y, dz = b.tz - b.z, d = Math.hypot(dx, dy, dz) || 1, sp = Math.min(1.6, d * 1.5);
+    b.x += dx / d * sp * dt + Math.sin(now / 260 + b.ph) * .25 * dt; b.y += dy / d * sp * dt + Math.sin(now / 140 + b.ph) * .5 * dt; b.z += dz / d * sp * dt + Math.cos(now / 300 + b.ph) * .25 * dt;
+    b.yaw += wrap(Math.atan2(dx, dz) - b.yaw) * Math.min(1, dt * 5); }
+}
+/* who has kept still, and for how long (the butterflies' landing places) */
+function stepStill(dt){ for (const a of AVATARS()) a.still = (a.mv || 0) < .05 && Math.abs(a.y) < 1.2 ? (a.still || 0) + dt : 0; }
+function drawSpring(p, now){
+  const crowns = AVATARS().filter(a => a.mesh && (a === me ? CROWN.on : a.crown) && !(a.dk && dkOn(a, "ghost", now)) && !(a === me && tooClose()));
+  const flies = BFLY.some(b => b.live);
+  if (!crowns.length && !flies) return;
+  if (!BFM) BFM = springMeshes();
+  const u = p.u, put = (m, M) => { gl.uniformMatrix4fv(u.uM, false, M); bindMesh(m); gl.drawArrays(gl.TRIANGLES, 0, m.n); };
+  for (const a of crowns){ const ac = a.look && a.look.ac, hy = ac === 1 ? HEAD + .3 : ac === 4 ? HEAD + .25 : 0;   /* on the hair, or round the band of a hat or cap */
+    put(BFM.crown, mm4(headM(a, now), hy ? mm4(Tm(0, hy, 0), [1.55, 0, 0, 0, 0, 1.2, 0, 0, 0, 0, 1.55, 0, 0, 0, 0, 1]) : mm4(Tm(0, HEAD + .31, -.02), mm4(RX(-.12), [1.42, 0, 0, 0, 0, 1.15, 0, 0, 0, 0, 1.42, 0, 0, 0, 0, 1])))); }
+  if (PASS === "sh") return;
+  for (const b of BFLY){ if (!b.live) continue;
+    const base = mm4(mm4(Tm(b.x, b.y, b.z), RY(b.yaw)), [1.8, 0, 0, 0, 0, 1.8, 0, 0, 0, 0, 1.8, 0, 0, 0, 0, 1]), fl = b.perch ? .25 + .25 * Math.sin(now / 420 + b.ph) : .9 * Math.sin(now / 55 + b.ph), w = BFM.wing[b.k];
+    put(BFM.body, base); put(w, mm4(base, RZ(fl))); put(w, mm4(base, mm4(RZ(-fl), [-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]))); }
+}
+/* the photo: the picture just drawn, made small, as a little print you can keep */
+function takePhoto(){
+  if (!PHOTO.want) return; PHOTO.want = false;
+  try { const w = 480, h = Math.round(w * cv.height / cv.width), c = document.createElement("canvas"); c.width = w; c.height = h;
+    c.getContext("2d").drawImage(cv, 0, 0, w, h); PHOTO.url = c.toDataURL("image/jpeg", .84); } catch (_){ return; }
+  const fl = $("flash"); fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go"); AUD.shutter();
+  $("ph-img").src = PHOTO.url; const d = new Date();
+  $("ph-cap").textContent = `${T({ en:"Under the blossom", ko:"벚꽃 아래에서" })} · ${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
+  const a = $("ph-save"); a.href = PHOTO.url; a.download = `pool-blossom-${d.getTime()}.jpg`;
+  $("photo").classList.add("on");
+}
+
+/* ==========================================================================
    10. INPUT
    ========================================================================== */
 const ptrs = new Map(); let pinch0 = 0, d0 = 0;
@@ -24958,6 +25062,7 @@ document.querySelectorAll("#mv-seg [data-mv]").forEach(b => b.onclick = () => { 
 setMove(MOVE);
 $("calm").onchange = () => { AUD.click(); setCalm($("calm").checked); }; setCalm(CALM);
 $("dfx-x").onclick = () => { AUD.click(); endDrink(true); };
+$("ph-x").onclick = () => { AUD.click(); $("photo").classList.remove("on"); };
 $("c-dn").onclick = (e) => { e.stopPropagation(); AUD.click(); renderSeason(); const on = openPop("pop-season"); $("c-dn").classList.toggle("open", on); };
 $("vend-x").onclick = () => { AUD.click(); closePops(); };
 $("b-bal").onclick = () => { AUD.click(); closePops(); setArmed(!AIM.armed); };
@@ -25039,7 +25144,7 @@ function drawPeople(p, now){
       gl.uniform3f(p.u.uTint, hot ? 1 + .22 * e : cold ? 1 - .16 * e : 1, hot ? 1 - .27 * e : cold ? 1 - .05 * e : 1, hot ? 1 - .31 * e : cold ? 1 + .24 * e : 1); }
     for (const [M, part] of mats){ gl.uniformMatrix4fv(p.u.uM, false, M); bindMesh(part); gl.drawArrays(gl.TRIANGLES, 0, part.n); } }
   if (p.u.uAvY) gl.uniform1f(p.u.uAvY, -99); if (p.u.uTint) gl.uniform3f(p.u.uTint, 1, 1, 1);
-  drawBalloons(p); drawDrinks(p, now); drawSeason(p); drawSnow(p);
+  drawBalloons(p); drawDrinks(p, now); drawSeason(p); drawSpring(p, now); drawSnow(p);
 }
 function drawSky(VP, clip, t){ gl.depthMask(false); useProg(P.sky, VP, clip, 0, t); gl.uniformMatrix4fv(P.sky.u.uM, false, Tm(camPos[0], camPos[1], camPos[2])); bindMesh(SKY); gl.drawArrays(gl.TRIANGLES, 0, SKY.n); gl.depthMask(true); }
 function drawScene(VP, clip, below, t, now){ useProg(P.main, VP, clip, below, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.main, now); }
@@ -25086,9 +25191,9 @@ let lastT = performance.now(), pruneAt = 0, zoneHint = { below:false, up:false }
 function frame(now){
   tuneQuality(now - lastT);
   const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; const t = now / 1000;
-  stepNight(); moveMe(dt); stepPeers(dt); stepSeason(dt, now); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); stepSnow(dt, now); placeCamera(dt);
+  stepNight(); moveMe(dt); stepPeers(dt); stepSeason(dt, now); stepStill(dt); stepSpring(dt, now); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); stepSnow(dt, now); placeCamera(dt);
   if (me.emote && now - me.et0 > 4200) me.emote = "";
-  render(t, now); updateTags(now); updateSeats(); updateBallUI(); updateVend(now); updateSnowUI(); maybeSend();
+  render(t, now); takePhoto(); updateTags(now); updateSeats(); updateBallUI(); updateVend(now); updateSnowUI(); maybeSend();
   { const el = $("goal"), p = goal && inWorld && !making ? project([goal.x, goal.y + .02, goal.z]) : null;           /* where you are walking to */
     if (p){ const k = clamp(9 / p[2], .45, 1.6); el.style.transform = `translate(${p[0]}px, ${p[1]}px) translate(-50%, -50%) scale(${k})`; el.classList.add("on"); } else el.classList.remove("on"); }
   const z = zoneOf(me.x, me.y, me.z);
@@ -25122,6 +25227,7 @@ function about(){
       b.onclick = () => { AUD.click(); pickSeason(k); }; g.appendChild(b); }
     renderSeason(); }
   $("c-dn").setAttribute("aria-label", T({ en:"Season and time of day — change the season", ko:"계절과 밤낮 — 계절 바꾸기" }));
+  $("ph-save").textContent = T({ en:"Save", ko:"저장" }); $("ph-x").textContent = T({ en:"Close", ko:"닫기" });
   $("ab-h3").textContent = T({ en:"Here", ko:"이 공간에서" });
   const ol = $("ab-ol"); ol.innerHTML = "";
   [{ en:"Make a character and pick one of two servers — up to twenty people share each", ko:"캐릭터를 꾸미고 두 서버 중 하나를 골라요 — 서버마다 20명까지 함께해요" },
@@ -25133,6 +25239,7 @@ function about(){
    { en:"Vending machines: two against the glass across the pool, one on the wall by the stairs. Walk up (or press E) and pick a drink — energy (faster), cider (higher jumps), lemonade (sour!), milk (big), tiny juice (small), beer (seeing double), clear soda (only your reflection and shadow), glass soda (walk on the water), fire soda (red face, fire breath), slush (brain freeze, frosty steps); water clears it all. One effect at a time; the × at the top ends it", ko:"자판기: 수영장 건너편 유리벽에 2대, 계단 쪽 벽에 1대가 있어요. 가까이 가서(또는 E) 음료를 골라요 — 에너지 드링크(빨라짐), 사이다(점프 2배), 레몬에이드(새콤!), 우유(커짐), 꼬마 주스(작아짐), 맥주(겹쳐 보임), 투명 음료(물에 비친 모습과 그림자만), 유리 소다(물 위 걷기), 매운 음료(빨간 얼굴·불 뿜기), 슬러시(머리 띵·서리 발자국). 생수는 효과를 모두 없애요. 효과는 한 번에 하나, 위쪽 알림의 ×로 언제든 끌 수 있어요" },
    { en:"Day and night take turns every three minutes, the same for everyone here. At night the lamps and strings of bulbs along the walls and the vending machines light up, and the water glows softly — the count at the top shows how long till it turns", ko:"3분마다 낮과 밤이 바뀌어요(모든 방문자가 같은 시간). 밤에는 벽을 따라 벽등과 줄 전구, 자판기 불빛이 켜지고 수영장 물빛이 은은하게 빛나요 — 위쪽 표시에서 바뀔 때까지 남은 시간을 볼 수 있어요" },
    { en:"Seasons: tap the sun or moon at the top to pick spring, summer, autumn or winter — it changes for everyone on the server. Spring brings cherry petals, summer cicadas (and fireflies at night), autumn falling leaves; walk up to a tree and it lets go of a handful. In winter it snows, footprints stay in it, and the pool freezes: walk onto the ice and ski", ko:"계절: 위쪽 해·달 표시를 누르면 봄·여름·가을·겨울을 고를 수 있어요 — 바꾸면 서버의 모두에게 함께 바뀌어요. 봄엔 벚꽃잎, 여름엔 매미 소리(밤엔 반딧불), 가을엔 낙엽이 날리고, 나무에 다가가면 우수수 떨어져요. 겨울엔 눈이 내려 발자국이 남고, 수영장이 얼어 얼음 위에서 스키를 탈 수 있어요" },
+   { en:"Spring: walk through fallen petals and they come to you — thirty make a crown of blossom that everyone sees; sit on a bench and petals pour down, you pose and a little photo is taken (save it if you like); by day butterflies drift about and settle on the head of anyone who keeps still", ko:"봄: 바닥에 떨어진 꽃잎 위를 걸으면 꽃잎이 모여요 — 30장을 모으면 벚꽃 화관이 생기고 다른 사람에게도 보여요. 벤치에 앉으면 꽃잎이 쏟아지고 포즈와 함께 사진이 찍혀요(저장 가능). 낮에는 나비가 날아다니다 가만히 있는 사람 머리에 앉아요" },
    { en:"Talk (Enter), wave, bow, jump, dance or sit — near a bench every free seat shows a ring: click it, or press E, to sit", ko:"말하기(Enter), 손 흔들기·인사·점프·춤·앉기로 만나요 — 벤치 가까이 가면 빈자리에 동그라미가 떠요. 누르거나 E 키로 앉아요" }]
     .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); ol.appendChild(li); });
   const lab = { wave:{ en:"Wave", ko:"손 흔들기" }, bow:{ en:"Bow", ko:"인사" }, jump:{ en:"Jump", ko:"점프" }, dance:{ en:"Dance", ko:"춤" }, sit:{ en:"Sit", ko:"앉기" }, heart:{ en:"Heart", ko:"하트" } };
@@ -25164,7 +25271,7 @@ if (!initGL()){
   netInit();
 }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
-window.__pool = { SNB, SNM, makeSnowman, night(k){ NIGHT.force = k; }, season(s){ setSeason(s, Date.now(), null); }, SEASON, faceOf, AUD, buyDrink, openVend, endDrink, setCalm, DRINKS, VENDS, handAt, pose, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
+window.__pool = { CROWN, BFLY, PHOTO, SNB, SNM, makeSnowman, night(k){ NIGHT.force = k; }, season(s){ setSeason(s, Date.now(), null); }, SEASON, faceOf, AUD, buyDrink, openVend, endDrink, setCalm, DRINKS, VENDS, handAt, pose, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
 <!--SCRIPT_END-->
 </body>
 </html>
