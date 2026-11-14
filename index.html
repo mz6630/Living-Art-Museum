@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261114100527";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261114101008";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -22029,6 +22029,7 @@ body.in:not(.making) #rank{display:block;}
 @keyframes rkFlash{20%{box-shadow:0 0 0 3px rgba(240,190,60,.75), 0 10px 30px -10px rgba(0,0,0,.35);}}
 #rank-me{margin:5px 6px 2px;font-size:11px;color:var(--ink-dim);display:flex;justify-content:space-between;gap:8px;}
 #rank-me button{border:0;background:none;padding:0;font:600 11px/1 inherit;font-family:inherit;color:var(--accent);cursor:pointer;}
+body.rkm #rank{display:none !important;} body.rkm.rk-on.in:not(.making) #rank{display:block !important;animation:rise .2s ease-out;}   /* phones: only with the wish coin */
 @media (max-width:760px){ #rank{left:10px;top:calc(100px + env(safe-area-inset-top,0px));width:214px;} body.embedded #rank{top:calc(108px + env(safe-area-inset-top,0px));} }
 @media (max-width:440px){ #bar{gap:1px;padding:5px;} #bar .chip{padding:8px 8px;} #bar .sep{margin:0 1px;} }
 #rank-l{list-style:none;margin:0;padding:0;max-height:300px;overflow:auto;}
@@ -23793,7 +23794,7 @@ function renderPill(){
 }
 /* pop-ups above the bar */
 function openPop(id){ const p = $(id), on = !p.classList.contains("on"); closePops(); if (on){ p.classList.add("on"); document.body.classList.add("popped"); const b = { "pop-say":"b-say", "pop-emo":"b-emo", "pop-srv":"b-srv" }[id]; if (b && b !== "b-say") $(b).setAttribute("aria-pressed", "true"); } return on; }
-function closePops(){ document.body.classList.remove("popped"); const cd = document.getElementById("c-dn"); if (cd) cd.classList.remove("open"); document.querySelectorAll(".pop.on").forEach(p => p.classList.remove("on")); ["b-emo", "b-srv"].forEach(b => $(b).setAttribute("aria-pressed", "false")); }
+function closePops(){ document.body.classList.remove("popped"); if (document.body.classList.contains("rk-on") && !rkT) document.body.classList.remove("rk-on"); const cd = document.getElementById("c-dn"); if (cd) cd.classList.remove("open"); document.querySelectorAll(".pop.on").forEach(p => p.classList.remove("on")); ["b-emo", "b-srv"].forEach(b => $(b).setAttribute("aria-pressed", "false")); }
 /* tags */
 const TAGS = new Map();
 function tagFor(a){
@@ -24422,7 +24423,7 @@ function showScore(P, sc){
     const place = 1 + RANK.top.filter(r => r.id !== RANK.uid && r.s > sc.total).length;
     line = T({ en:"New personal best!", ko:"개인 최고 기록!" }) + (place <= 10 ? T({ en:` · #${place} overall`, ko:` · 전체 ${place}위` }) : "");
     if (RANK.col) RANK.col.doc(RANK.uid).set({ n:me.name || "…", s:sc.total, k:P.skips, d:+f1(P.dist), t:Date.now() }).catch(() => {});
-    AUD.fanfare(); const rk = $("rank"); rk.classList.remove("flash", "min"); void rk.offsetWidth; rk.classList.add("flash"); }
+    AUD.fanfare(); const rk = $("rank"); rk.classList.remove("flash", "min"); void rk.offsetWidth; rk.classList.add("flash"); if (document.body.classList.contains("rkm")) rankShow(true, 6000); }   /* phones: a new record shows the ranking a moment */
   el.querySelector(".cs3").textContent = line; renderRank();
   el.classList.add("on"); clearTimeout(showScore.t); showScore.t = setTimeout(() => el.classList.remove("on"), best ? 5200 : 3800);
 }
@@ -25930,8 +25931,10 @@ $("c-dn").onclick = (e) => { e.stopPropagation(); AUD.click(); renderSeason(); c
 $("vend-x").onclick = () => { AUD.click(); closePops(); };
 $("b-bal").onclick = () => { AUD.click(); closePops(); setArmed(!AIM.armed); };
 $("rank-h").onclick = () => { AUD.click(); $("rank").classList.toggle("min"); };
-if (!HOVER || innerWidth < 760) $("rank").classList.add("min");
-$("b-wish").onclick = () => { AUD.click(); $("wish-n").classList.remove("warn"); $("wish-n").textContent = T(WISH_NOTE); if (BALL.holder === me){ hint(T({ en:"Put the ball down first (G)", ko:"먼저 공을 내려놓아요 (G)" })); return; } if (!canThrow(true)) return; if (openPop("pop-wish")){ wishInit(); setTimeout(() => $("wish-i").focus(), 40); } };
+const rkMode = () => { const m = !HOVER || innerWidth < 760; document.body.classList.toggle("rkm", m); if (!m) document.body.classList.remove("rk-on"); };   /* phones: the ranking shows with the wish coin */
+rkMode(); addEventListener("resize", rkMode);
+let rkT = 0; function rankShow(on, ms){ clearTimeout(rkT); rkT = 0; document.body.classList.toggle("rk-on", on); if (on){ $("rank").classList.remove("min"); renderRank(); if (ms) rkT = setTimeout(() => { rkT = 0; if (!$("pop-wish").classList.contains("on")) document.body.classList.remove("rk-on"); }, ms); } }
+$("b-wish").onclick = () => { AUD.click(); $("wish-n").classList.remove("warn"); $("wish-n").textContent = T(WISH_NOTE); if (BALL.holder === me){ hint(T({ en:"Put the ball down first (G)", ko:"먼저 공을 내려놓아요 (G)" })); return; } if (!canThrow(true)) return; const op = openPop("pop-wish"); if (document.body.classList.contains("rkm")) rankShow(op); if (op){ wishInit(); setTimeout(() => $("wish-i").focus(), 40); } };
 $("wish-i").addEventListener("input", () => { $("wish-c").textContent = `${$("wish-i").value.length}/60`; });
 $("wish-go").onclick = () => { const w = cleanText($("wish-i").value, 60);
   if (!w){ $("wish-i").focus(); $("wish-i").classList.add("shake"); setTimeout(() => $("wish-i").classList.remove("shake"), 400); return; }
