@@ -166,7 +166,16 @@ body.in:not(.making) #itemfx.on{display:flex;animation:dfxIn .35s cubic-bezier(.
 #itemfx .dt small{font-size:11px;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;}
 #it-sw{display:none;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;background:var(--chip-on);color:var(--chip-on-ink);font-size:12.5px;font-weight:600;flex:none;transition:transform .12s;}
 #it-sw:active{transform:scale(.94);} #itemfx.net #it-sw{display:flex;}
-#itemfx.ready #it-sw{animation:swRdy 1s ease-in-out infinite;} @keyframes swRdy{50%{box-shadow:0 0 0 5px rgba(255,196,80,.45);}}
+#itemfx.ready #it-sw{animation:swRdy 1s ease-in-out infinite;}
+/* phones: the swing (or let-go) as a big round button under the right thumb */
+#actb{position:fixed;right:14px;bottom:calc(168px + env(safe-area-inset-bottom,0px));width:80px;height:80px;border-radius:50%;z-index:9;display:none;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;padding:0;
+  background:rgba(255,255,255,.94);box-shadow:0 10px 26px -10px rgba(0,0,0,.5),inset 0 0 0 1px rgba(0,0,0,.06);-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none;transition:transform .1s;}
+body.in:not(.making):not(.popped) #actb.on{display:flex;} #actb:active, #actb.hit{transform:scale(.9);}
+#actb .ai{font-size:28px;line-height:1;} #actb .al{font-size:11.5px;font-weight:700;color:#25231c;letter-spacing:-.01em;}
+#actb.ready{animation:swRdy 1s ease-in-out infinite;} body.night #actb{background:rgba(250,248,240,.92);}
+@media (pointer:fine){ #actb{display:none !important;} }
+#throwb.on ~ #actb{right:104px;}                                                                       /* side by side with the throw button */
+@media (pointer:coarse){ #itemfx.net #it-sw{display:none;} } @keyframes swRdy{50%{box-shadow:0 0 0 5px rgba(255,196,80,.45);}}
 #it-sw kbd{font:600 10px/1 "JetBrains Mono",monospace;padding:3px 5px;border-radius:5px;background:rgba(255,255,255,.2);}
 #it-x{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex:none;background:rgba(22,21,15,.07);transition:background .2s;} #it-x:hover{background:rgba(22,21,15,.14);}
 #it-x svg{width:14px;height:14px;fill:none;stroke:var(--ink-dim);stroke-width:2;stroke-linecap:round;}
@@ -419,6 +428,7 @@ body.move-click #joy{display:none !important;}
 <div id="itemfx" class="glass"><i class="ic"></i><span class="dt"><b id="it-n"></b><small id="it-s"></small></span><button type="button" id="it-sw"><span></span><kbd>F</kbd></button><button type="button" id="it-x"><svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
 <div id="hint" class="glass off"></div>
 <button id="throwb" class="glass" type="button"><i class="orb"></i><span class="tl"></span></button>
+<button id="actb" type="button"><span class="ai"></span><span class="al"></span></button>
 <button id="throwx" class="glass" type="button"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
 <div id="log"></div>
 
@@ -1547,6 +1557,7 @@ function pose(a, now){
     else { const u = (now - (a.swing || -1e9)) / 420;
       if (u >= 0 && u < 1){ const e = Math.min(1, u / .3), s = Math.max(0, (u - .3) / .7), w = 1 - (1 - s) * (1 - s); q.a1x = lerp(lerp(-.75, -2.7, e), -.25, w); q.a1z = -.25 - Math.sin(u * Math.PI) * .45; q.bow += Math.sin(u * Math.PI) * .1; }
       else { q.a1x = -.75; q.a1z = -.22; } } }
+  if (a.item === "lan" && BALL.holder !== a && !(a === me && SN.held)){ q.a1x = -.7 + Math.sin(now / 500) * .05; q.a1z = -.25; }   /* a sky lantern, held out */
   if (a.item === "umb" && BALL.holder !== a && !(a === me && SN.held)){ if (umbUp(a)){ q.a1x = -.95; q.a1z = -.12; } else { q.a1x = -.25; q.a1z = -.2; } }   /* the umbrella: up in the rain, carried furled otherwise */
   if (a.dk) dkPose(a, q, now);                                                              /* a drink: to the lips, then what it does */
   if (a === me && SN.held){ q.a1x = q.a2x = -1.25; q.a1z = -.2; q.a2z = .2; q.bow += .22; }                  /* both hands on the snowball */
@@ -1911,7 +1922,7 @@ function cleanState(st){
   const e = typeof st.e === "string" && (EMOTES[st.e] || POSE_RE.test(st.e)) ? st.e : "";
   return { x:num(st.x, -CXW, CXW, 0), y:num(st.y, FLOOR - .1, 1.5, 0), z:num(st.z, -CZW, CZW, 0), r:num(st.r, -7, 7, 0), w:st.w ? 1 : 0, e, et:num(st.et, 0, 1e15, 0),
     m:cleanText(st.m, 40), mt:num(st.mt, 0, 1e15, 0), n:cleanText(st.n, 12) || "…", look:lookFrom(st.k), f:typeof st.f === "string" ? st.f.slice(0, 48) : "", b:typeof st.b === "string" ? st.b.slice(0, 60) : "",
-    d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "", q:typeof st.q === "string" && /^[psawn][0-9a-z]{1,11}$/.test(st.q) ? st.q : "", h:typeof st.h === "string" && /^c?[snurSNURK]?$/.test(st.h) ? st.h : "" };
+    d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "", q:typeof st.q === "string" && /^[psawn][0-9a-z]{1,11}$/.test(st.q) ? st.q : "", h:typeof st.h === "string" && /^c?[snurlSNURLK]?$/.test(st.h) ? st.h : "" };
 }
 function onPeerList(list){
   const seen = new Set(), now = performance.now();
@@ -1933,7 +1944,7 @@ function onPeerList(list){
       if (st.mt !== a.lastM){ a.lastM = st.mt; if (st.m){ a.msg = st.m; a.msgUntil = now + 6500; logLine(st.n, st.m); AUD.chat(); } }
     }
     pushSample(a, st, now); a.name = st.n; a.sit = st.e === "sit" || st.e === "bench" || /^[bs]:/.test(st.e); a.bench = st.e === "bench" || st.e.startsWith("b:");
-    { const hh = st.h.replace("c", ""), it = IT_OF[hh.toLowerCase()] || ""; a.king = /[SNURK]/.test(hh); if (it !== (a.item || "")){ a.item = it; a.itT0 = now; if (it === "sp" && inWorld) AUD.ignite(hear(a.x, a.z) * .6); } }   /* what they hold: a sparkler, a net
+    { const hh = st.h.replace("c", ""), it = IT_OF[hh.toLowerCase()] || ""; a.king = /[SNURLK]/.test(hh); if (it !== (a.item || "")){ a.item = it; a.itT0 = now; if (it === "sp" && inWorld) AUD.ignite(hear(a.x, a.z) * .6); } }   /* what they hold: a sparkler, a net
     { const pz = st.e.includes(":") ? st.e.slice(2) : ""; if (pz !== (a.pose || "")){ a.pose = pz; a.pt0 = now; } }          /* the pose they hold, if any */
     if (lookKey(st.look) !== lookKey(a.look)){ a.look = st.look; a.mesh = meshFor(st.look); }
   }
@@ -2076,7 +2087,7 @@ function tagFor(a){
   t = { el, bb, nm, emo, pz, kg, msg:"", king:null }; TAGS.set(a.id, t); return t;
 }
 function dropTag(id){ const t = TAGS.get(id); if (t){ t.el.remove(); TAGS.delete(id); } }
-const EMO_CH = { catch:"🥅", leaf:"🍂", hot:"🥵", yum:"😋", rabbit:"🐇", pose_v:"✌️", pose_hearth:"🥰", pose_bloom:"🌼", pose_think:"🤔", pose_hooray:"🙌", pose_flex:"💪", wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️", splash:"💦", dizzy:"💫", steal:"😎", oops:"😮", energy:"⚡", cider:"🫧", water:"✨", beer:"🥴", milk:"🥛", ghost:"👻", burp:"😮‍💨", lemon:"🍋", kid:"🧃", glass:"🌊", spicy:"🔥", slush:"🥶" };
+const EMO_CH = { catch:"🥅", leaf:"🍂", hot:"🥵", yum:"😋", rabbit:"🐇", lantern:"🏮", pose_v:"✌️", pose_hearth:"🥰", pose_bloom:"🌼", pose_think:"🤔", pose_hooray:"🙌", pose_flex:"💪", wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️", splash:"💦", dizzy:"💫", steal:"😎", oops:"😮", energy:"⚡", cider:"🫧", water:"✨", beer:"🥴", milk:"🥛", ghost:"👻", burp:"😮‍💨", lemon:"🍋", kid:"🧃", glass:"🌊", spicy:"🔥", slush:"🥶" };
 function popEmote(a, e){ if (!EMO_CH[e]) return; const t = tagFor(a); t.emo.textContent = EMO_CH[e]; t.emo.classList.remove("go"); void t.emo.offsetWidth; t.emo.classList.add("go"); }
 function project(p){
   const M = VPm; if (!M) return null;
@@ -2492,6 +2503,7 @@ function onFx(a, f){
   if (f[0] === "s"){ snowFrom(a, n); return; }
   if (f[0] === "r"){ if (fireOn() && FIRE.roast.length < 6){ const g = Math.random() * 6.283; FIRE.roast.push({ t0:performance.now(), x:FIRE.x + Math.cos(g) * .16, z:FIRE.z + Math.sin(g) * .16, mine:false }); } return; }
   if (f[0] === "m"){ a.moonlit = performance.now(); popEmote(a, "rabbit"); return; }
+  if (f[0] === "L" && n.length >= 2){ if (SEASON.cur === "autumn"){ lanternUp(clamp(n[0], -CXW, CXW), a.y + 1.5, clamp(n[1], -CZW, CZW)); popEmote(a, "lantern"); AUD.magic(hear(a.x, a.z) * .5); } return; }
   if (f[0] === "t"){ const i = n[0] | 0; if (i >= 0 && i < TREES.length && autumnOn()) treeShake(i, a); return; }
   if (f[0] === "n"){ a.swing = performance.now(); const h = hear(a.x, a.z); AUD.swish(h * .6); if (n[0] >= 0 && n[0] < BUG_IDS.length){ popEmote(a, "catch"); AUD.caught(h * .6); } return; }
   if (f[0] !== "b" || n.length < 5) return;
@@ -2906,12 +2918,14 @@ function renderVend(){
     b.querySelector("em").textContent = cur ? T({ en:"On now", ko:"효과 중" }) : D.dur ? T({ en:`${D.dur}s`, ko:`${D.dur}초` }) : T({ en:"At once", ko:"바로" });
     b.onclick = () => buyDrink(k); L.appendChild(b); }
   const sk = Object.keys(ITEMS).filter(k => ITEMS[k].sea === SEASON.cur);
-  if (sk.length){ const h = document.createElement("p"); h.className = "vsum"; h.textContent = T(SEASON.cur === "summer" ? { en:"🍉 Summer only · free", ko:"🍉 여름 한정 · 무료" } : { en:"🌸 Spring only · free", ko:"🌸 봄 한정 · 무료" }); L.appendChild(h);   /* this season's free things */
+  if (sk.length){ const h = document.createElement("p"); h.className = "vsum"; h.textContent = T(SEASON.cur === "summer" ? { en:"🍉 Summer only · free", ko:"🍉 여름 한정 · 무료" } : SEASON.cur === "autumn" ? { en:"🍁 Autumn only · trade", ko:"🍁 가을 한정 · 교환" } : { en:"🌸 Spring only · free", ko:"🌸 봄 한정 · 무료" }); L.appendChild(h);   /* this season's free things */
     for (const k of sk){ const I = ITEMS[k], b = document.createElement("button"), cur = me.item === k;
       b.type = "button"; b.className = "dk item" + (cur ? " cur" : ""); b.style.setProperty("--c1", rgb(I.can)); b.style.setProperty("--c2", rgb(I.band));
       b.innerHTML = '<i class="can"><span></span></i><span class="dt"><b></b><small></small></span><em></em>';
       b.querySelector(".can span").textContent = I.ico; b.querySelector(".dt b").textContent = T(I.name); b.querySelector(".dt small").textContent = T(I.fx);
-      b.querySelector("em").textContent = cur ? T({ en:"Holding", ko:"들고 있음" }) : T({ en:"Get", ko:"받기" }); b.onclick = () => getItem(k); L.appendChild(b); } }
+      b.querySelector("em").textContent = cur ? T({ en:"Holding", ko:"들고 있음" }) : I.trade ? T(AUT.roast >= I.trade.roast && AUT.acorn >= I.trade.acorn ? { en:"Trade", ko:"교환" } : { en:"Not yet", ko:"부족" }) : T({ en:"Get", ko:"받기" });
+      if (I.trade) b.querySelector(".dt small").textContent = `${T(I.fx)} · ${T({ en:`you have ${AUT.roast} roasted, ${AUT.acorn} acorns`, ko:`보유: 군밤 ${AUT.roast} · 도토리 ${AUT.acorn}` })}`;
+      b.onclick = () => getItem(k); L.appendChild(b); } }
   $("vend-n").textContent = T(v.kinds.includes("glass") ? { en:"The glass soda wears off once you step off the water — no sudden dip.", ko:"유리 소다는 물 밖으로 나와야 효과가 끝나요 — 갑자기 빠지지 않아요." }
                            : v.kinds.includes("beer") ? { en:"Sensitive to motion? Turn on “Calm the screen” in ⓘ — the beer then leaves the picture still.", ko:"멀미가 걱정되면 ⓘ에서 ‘화면 흔들림 줄이기’를 켜요 — 맥주를 마셔도 화면이 흔들리거나 겹쳐 보이지 않아요." }
                                                  : { en:"Any effect can be ended early with the × at the top right.", ko:"효과는 오른쪽 위 알림의 ×로 언제든 끌 수 있어요." });
@@ -3432,7 +3446,8 @@ Object.assign(ITEMS, {
   umb:{ c:"u", sea:"spring", ico:"☂️", dur:0, can:[.98, .6, .68], band:[.55, .78, .98], name:{ en:"Umbrella", ko:"우산" }, fx:{ en:"Opens by itself when it rains", ko:"비가 오면 저절로 펼쳐져요" } },
   coat:{ c:"r", sea:"spring", ico:"🧥", dur:0, can:[1, .84, .28], band:[1, .93, .6], name:{ en:"Raincoat", ko:"우비" }, fx:{ en:"A yellow raincoat with a hood — rain or shine", ko:"모자 달린 노란 우비 — 비가 와도 끄떡없어요" } },
 });
-const IT_OF = { s:"sp", n:"net", u:"umb", r:"coat" };
+ITEMS.lan = { c:"l", sea:"autumn", trade:{ roast:5, acorn:5 }, ico:"🏮", dur:0, can:[1, .55, .25], band:[1, .82, .45], name:{ en:"Sky lantern", ko:"풍등" }, fx:{ en:"Trade 5 roasted chestnuts and 5 acorns — make a wish and let it float up to the moon", ko:"군밤 5개 + 도토리 5개와 교환 — 소원을 빌며 달까지 날려 보내요" } };
+const IT_OF = { s:"sp", n:"net", u:"umb", r:"coat", l:"lan" };
 /* the eight, and where each is found */
 const BUGK = {
   cicada:{ ico:"🦗", n:{ en:"Cicada", ko:"매미" }, w:{ en:"Day · tree trunks", ko:"낮 · 나무줄기" } },
@@ -3512,19 +3527,28 @@ function getItem(k){
   const I = ITEMS[k]; if (!I || !inWorld || making) return;
   if (I.sea !== SEASON.cur){ hint(T(I.sea === "summer" ? { en:"Only in summer", ko:"여름에만 받을 수 있어요" } : { en:"Only in spring", ko:"봄에만 받을 수 있어요" })); return; }
   if (DKS.open < 0 || nearVend(2.9) !== DKS.open){ closePops(); hint(T({ en:"Walk up to the machine first", ko:"자판기 앞으로 가서 골라요" })); return; }
-  if (k === "net" && me.item === "net"){ hint(T({ en:"You're already holding one", ko:"이미 들고 있어요" }), true); return; }
+  if ((k === "net" || k === "lan") && me.item === k){ hint(T({ en:"You're already holding one", ko:"이미 들고 있어요" }), true); return; }
+  if (I.trade){ const t = I.trade; if (AUT.roast < t.roast || AUT.acorn < t.acorn){ hint(T({ en:`Not enough yet — roasted chestnuts ${AUT.roast}/${t.roast} · acorns ${AUT.acorn}/${t.acorn}`, ko:`아직 부족해요 — 군밤 ${AUT.roast}/${t.roast} · 도토리 ${AUT.acorn}/${t.acorn}` }), true); return; }
+    AUT.roast -= t.roast; AUT.acorn -= t.acorn; saveNuts(); AUT.shown = ""; }
   closePops(); const now = performance.now();
   me.item = k; me.itT0 = now; SUM.t0 = now; SUM.end = I.dur ? now + I.dur * 1000 : Infinity; SUM.secs = -1; lastSig = "";
   AUD.vend("can");
   if (k === "sp"){ setTimeout(() => AUD.ignite(1), 380); hint(T({ en:"🎇 Lit! Bring it close to a friend's and both sparkle harder", ko:"🎇 불이 붙었어요! 친구 스파클라 가까이 가면 둘 다 더 화려해져요" }), true); }
+  else if (k === "lan") hint(T({ en:"🏮 A sky lantern! Make a wish and let it go (F, or the button)", ko:"🏮 풍등을 받았어요! 소원을 빌며 날려 보내요 (F 또는 버튼)" }));
   else if (k === "umb") hint(T({ en:"☂️ It opens by itself when the rain comes", ko:"☂️ 비가 오면 저절로 펼쳐져요" }), true);
   else if (k === "coat") hint(T({ en:"🧥 A yellow raincoat — let it rain", ko:"🧥 노란 우비를 입었어요 — 비가 와도 괜찮아요" }), true);
   else hint(T({ en:"🥅 F (or the button) to swing — tap the net's name to see which insects are where", ko:"🥅 F(또는 버튼)로 휘둘러요 — 잠자리채 이름을 누르면 곤충 도감이 열려요" }));
   itemUI();
 }
 function putAway(why){ if (!me.item) return; me.item = ""; SUM.hitAt = 0; lastSig = ""; itemUI(); if ($("pop-dex").classList.contains("on")) closePops(); if (why) hint(T(why), true); }
+function netAuto(){ let best = null, bd = 1e9; const fx = Math.sin(me.r), fz = Math.cos(me.r), cy = me.y + 1.2;
+  const consider = (x, y, z) => { const dx = x - me.x, dz = z - me.z, d = Math.hypot(dx, dz); if (d < .2 || d > 1.95 || Math.abs(y - cy) > 1.15) return; const c = (dx * fx + dz * fz) / d; if (c < .2) return; const sc = d - c * .6; if (sc < bd){ bd = sc; best = [x, z]; } };
+  for (const b of BUG) if (b.on && !b.rel) consider(b.x, b.y, b.z);
+  for (const p of SP) if (p.on && p.kind === "fly") consider(p.x, p.y, p.z);
+  return best; }
 function swingNet(){
   if (me.item !== "net" || !inWorld || making) return; const now = performance.now(); if (now - SUM.swing < 520) return;
+  const a = netAuto(); if (a){ me.r = Math.atan2(a[0] - me.x, a[1] - me.z); goal = null; }                                       /* turn to face it */
   SUM.swing = me.swing = now; SUM.hitAt = now + 180; AUD.swish(1);
 }
 /* the nearest thing in front of you, in reach of the net: a bug, or a firefly */
@@ -3535,10 +3559,12 @@ function netTarget(){ const cx = me.x + Math.sin(me.r) * 1.05, cz = me.z + Math.
 const dexN = () => BUG_IDS.filter(b => SUM.got[b]).length;
 /* the little notice for what you hold: the sparkler's seconds, or the net's catch, a swing button, and × */
 function itemUI(){
-  const el = $("itemfx"), k = me.item; el.classList.toggle("on", !!k); el.classList.toggle("net", k === "net"); if (!k) return;
+  const el = $("itemfx"), k = me.item, ab = $("actb"); el.classList.toggle("on", !!k); el.classList.toggle("net", k === "net" || k === "lan");
+  ab.classList.toggle("on", k === "net" || k === "lan"); if (k === "net" || k === "lan"){ ab.querySelector(".ai").textContent = ITEMS[k].ico; const al = T(k === "lan" ? { en:"Let go", ko:"날리기" } : { en:"Swing", ko:"휘두르기" }); ab.querySelector(".al").textContent = al; ab.setAttribute("aria-label", al); }
+  if (!k) return;
   const I = ITEMS[k]; el.style.setProperty("--ic", rgb(I.band)); el.querySelector(".ic").textContent = I.ico; $("it-n").textContent = T(I.name) + (k === "net" ? " · " + T({ en:"Field guide ›", ko:"도감 ›" }) : "");
-  $("it-sw").firstChild.textContent = T({ en:"Swing", ko:"휘두르기" }); $("it-x").setAttribute("aria-label", T({ en:"Put away", ko:"넣기" })); $("it-x").title = T({ en:"Put away", ko:"넣기" });
-  $("it-s").textContent = k === "umb" ? T(RAIN.k > .25 ? { en:"Open — keeping you dry", ko:"펼침 — 비를 막아 줘요" } : { en:"Opens when it rains", ko:"비가 오면 펼쳐져요" }) : k === "coat" ? T({ en:"Hood up, rain or shine", ko:"비가 와도 끄떡없어요" }) : k === "net" ? (SUM.n ? T({ en:`${SUM.n} caught · ${dexN()}/${BUG_IDS.length} kinds`, ko:`${SUM.n}마리 잡음 · 도감 ${dexN()}/${BUG_IDS.length}` }) : T({ en:"Tap the name above for where to look", ko:"위 이름을 누르면 어디서 찾는지 알려줘요" }))
+  $("it-sw").firstChild.textContent = T(k === "lan" ? { en:"Let it go", ko:"날리기" } : { en:"Swing", ko:"휘두르기" }); $("it-x").setAttribute("aria-label", T({ en:"Put away", ko:"넣기" })); $("it-x").title = T({ en:"Put away", ko:"넣기" });
+  $("it-s").textContent = k === "lan" ? T({ en:"Make a wish, then let it go", ko:"소원을 빌고 날려 보내요" }) : k === "umb" ? T(RAIN.k > .25 ? { en:"Open — keeping you dry", ko:"펼침 — 비를 막아 줘요" } : { en:"Opens when it rains", ko:"비가 오면 펼쳐져요" }) : k === "coat" ? T({ en:"Hood up, rain or shine", ko:"비가 와도 끄떡없어요" }) : k === "net" ? (SUM.n ? T({ en:`${SUM.n} caught · ${dexN()}/${BUG_IDS.length} kinds`, ko:`${SUM.n}마리 잡음 · 도감 ${dexN()}/${BUG_IDS.length}` }) : T({ en:"Tap the name above for where to look", ko:"위 이름을 누르면 어디서 찾는지 알려줘요" }))
     : `${T({ en:`${Math.max(0, SUM.secs)}s left`, ko:`${Math.max(0, SUM.secs)}초 남음` })}${SUM.near ? " · " + T({ en:"together ✨", ko:"함께 ✨" }) : ""}`;
   if ($("pop-dex").classList.contains("on")) renderDex();
 }
@@ -3604,7 +3630,7 @@ function stepSummer(dt, now){
   if (day && camPos[1] > -.05 && now > SUM.singAt){ let c = null, cd = 4.5;                                   /* only within a few steps */
     for (const b of BUG) if (b.on && !b.rel && b.k === "cicada"){ const d = Math.hypot(b.x - me.x, b.z - me.z); if (d < cd){ cd = d; c = b; } }
     SUM.singAt = now + (c ? 4200 + Math.random() * 4000 : 1200); if (c && inWorld){ const stop = AUD.cicada(Math.pow(clamp(1 - cd / 4.5, 0, 1), 1.3) * 1.1); SUM.song = stop ? { b:c, stop, until:now + 5200 } : null; } }
-  if (me.item === "net" && now > SUM.rdy){ SUM.rdy = now + 200; $("itemfx").classList.toggle("ready", !!netTarget()); }   /* something in reach: the swing button glows */
+  if (me.item === "net" && now > SUM.rdy){ SUM.rdy = now + 200; const r = !!netAuto(); $("itemfx").classList.toggle("ready", r); $("actb").classList.toggle("ready", r); }   /* something in reach: the swing button glows */
   /* the swing lands: the nearest thing in front of you, in reach of the net */
   if (SUM.hitAt && now >= SUM.hitAt){ SUM.hitAt = 0; const fx = Math.sin(me.r), fz = Math.cos(me.r), tg = netTarget(), best = tg && tg[0], kind = tg ? tg[1] : "";
     let ki = -1;
@@ -3705,7 +3731,9 @@ function buildFW(now){
   FW.add = NIGHT.k > .35;
   { const f = norm(sub(camTgt, camPos)), R = norm(cross(f, [0, 1, 0])), U = cross(R, f); fwRx = R[0]; fwRy = R[1]; fwRz = R[2]; fwUx = U[0]; fwUy = U[1]; fwUz = U[2]; }
   if (autumnOn() && FIRE){ const f = 1 + .08 * Math.sin(now / 80); glow(FIRE.x, .5, FIRE.z, 3 * f, [1, .48, .16], .34); glow(FIRE.x, .4, FIRE.z, 1.1 * f, [1, .78, .4], .4);   /* the fire's glow, the rabbit's, at night: soft and round */
-    if (RAB.on && RAB.k > .01) glow(RAB.x, RAB.y + .26, RAB.z, 1.7, [.7, .82, 1], .4 * RAB.k); }
+    if (RAB.on && RAB.k > .01) glow(RAB.x, RAB.y + .26, RAB.z, 1.7, [.7, .82, 1], .4 * RAB.k);
+    for (const l of LANS){ const fl = .85 + .15 * Math.sin(now / 120 + l.ph * 5); glow(l.x, l.y + .3, l.z, 2.2 * fl, [1, .58, .24], .32 * (1 - sstep(34, 42, l.y))); }   /* each lantern's warm glow */
+    for (const a of AVATARS()) if (a.lanF) glow(a.lanF.g[0], a.lanF.g[1] + .35, a.lanF.g[2], 1.4, [1, .58, .24], .3); }
   for (const a of AVATARS()) if (a.itF && a.itF.tip) glow(a.itF.tip[0], a.itF.tip[1], a.itF.tip[2], a.tg ? .9 : .65, SPC0, .32);   /* a sparkler's glow, at night */
   for (const p of SPK){ if (!p.on) continue; const u = (now - p.t0) / 1000, f = 1 - u / p.life, w = .026 * f + .007;
     streak(p.x - p.vx * .035, p.y - p.vy * .035, p.z - p.vz * .035, p.x, p.y, p.z, w, p.c ? SPC1 : SPC0, .5 + .7 * f); }
@@ -3996,7 +4024,11 @@ function drawRain(p, now){
 FIRE = { x:-4.5, z:PZ + 3.15, mesh:null, roast:[], crk:0, told:false };
 MOON = { k:0 };
 const RAB = { mesh:null, on:false, x:0, y:0, z:0, yaw:0, k:0, beam:0, met:-1, told:-1, toldN:-1, ni:-1, P:null, D:null, L:0, ring:0 };
-const MOONW = [];                                                                                   /* moonbeams on wishes */
+const MOONW = [], LANS = [];                                                                       /* moonbeams on wishes; sky lanterns rising */
+function lanternUp(x, y, z){ LANS.push({ x, y, z, t0:performance.now(), ph:Math.random() * 6.28, c:Math.floor(Math.random() * 3) }); if (LANS.length > 14) LANS.shift(); }
+function releaseLantern(){ if (me.item !== "lan" || !inWorld || making) return; const f = itemFrame(me, performance.now()), x = f.g[0], z = f.g[2];
+  me.item = ""; lastSig = ""; itemUI(); lanternUp(x, f.g[1] + .3, z); sendFx(`L#:${f2(x)}:${f2(z)}`); AUD.magic(.7); popEmote(me, "lantern"); me.thr = performance.now();
+  hint(T(MOON.k > .5 && NIGHT.k > .5 ? { en:"🏮 Your lantern floats up towards the full moon — may your wish come true", ko:"🏮 풍등이 보름달을 향해 떠올라요 — 소원이 이루어지길" } : { en:"🏮 Your lantern floats up into the sky", ko:"🏮 소원을 빌며 풍등을 날려 보냈어요" })); }                                                                                   /* moonbeams on wishes */
 const MD = norm([.22, .36, -1]);                                                                    /* where the moon is */
 function fireMeshes(){ const one = (fn) => { const A = maker(); fn(A); return upload(A.v); };
   return {
@@ -4013,6 +4045,8 @@ function fireMeshes(){ const one = (fn) => { const A = maker(); fn(A); return up
       A.ell([0, .18, .18], .01, .008, .006, P, 9, 5); }),
     beam:one(A => A.tube([0, 0, 0], [0, 1, 0], 1, 1, [.72, .84, 1], 13, 14)),
     glow:one(A => A.ell([0, 0, 0], 1, 1, 1, [.7, .82, 1], 13, 12)),
+    lan:[[1, .6, .28], [1, .72, .36], [1, .5, .32]].map(c => one(A => { A.lathe([[.1, 0], [.15, .07], [.165, .2], [.155, .32], [.11, .4], [0, .41]], c, 13, 10);   /* paper, lit from inside */
+      A.lathe([[.102, -.005], [.102, .012]], [.4, .28, .2], 0, 10); A.ell([0, .03, 0], .03, .03, .03, [1, .95, .7], 13, 6); })),
   };
 }
 /* the rabbit's path for night ni: nine points near the pool's edge, hopped through in forty seconds */
@@ -4042,6 +4076,11 @@ function stepFire(dt, now){
   /* the full moon, autumn nights */
   MOON.k = SEASON.cur === "autumn" ? (SEASON.ib === 2 ? SEASON.mix : 1) : 0;
   for (let i = MOONW.length - 1; i >= 0; i--) if (now - MOONW[i].t0 > 3200) MOONW.splice(i, 1);
+  if (SEASON.cur !== "autumn"){ LANS.length = 0; if (me.item === "lan") putAway(inWorld ? { en:"Autumn's over — put away", ko:"가을이 끝나서 넣어 뒀어요" } : null); }
+  for (let i = LANS.length - 1; i >= 0; i--){ const l = LANS[i], t = (now - l.t0) / 1000;                       /* up they go, slowly, drifting towards the moon */
+    l.y += (.5 + Math.min(.3, t * .02)) * dt; l.x += (MD[0] * .35 + Math.sin(t * .7 + l.ph) * .12) * dt; l.z += (MD[2] * .35 + Math.cos(t * .6 + l.ph) * .1) * dt;
+    if (l.y > 42 || t > 90) LANS.splice(i, 1); }
+  for (const a of AVATARS()) a.lanF = a.item === "lan" && a.mesh && SEASON.cur === "autumn" && BALL.holder !== a && Math.hypot(a.x - camPos[0], a.z - camPos[2]) < 30 ? itemFrame(a, now) : null;
   /* the moon rabbit: once a night, 45 s in, for 50 s */
   const ni = Math.floor(T0 / DAYLEN), night = ni % 2 === 1, u = (T0 - ni * DAYLEN - 45000) / 1000;
   RAB.on = false;
@@ -4084,7 +4123,7 @@ function updateFireUI(){
     b.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`; }
 }
 function drawMoon(p, now){
-  const fire = fireOn() && PASS !== "rf", rab = RAB.on && RAB.k > .01, beams = MOONW.length > 0; if (!fire && !rab && !beams) return;
+  const fire = fireOn() && PASS !== "rf", rab = RAB.on && RAB.k > .01, beams = MOONW.length > 0, lans = LANS.length > 0 || AVATARS().some(a => a.lanF); if (!fire && !rab && !beams && !lans) return;
   if (!FIRE.mesh) FIRE.mesh = fireMeshes(); const M = FIRE.mesh, u = p.u, put = (m, X) => { gl.uniformMatrix4fv(u.uM, false, X); bindMesh(m); gl.drawArrays(gl.TRIANGLES, 0, m.n); }, lit = PASS === "main" || PASS === "mirror";
   if (fire){ put(M.pit, setM(FIRE.x, 0, FIRE.z, 1, 1, 1, .3));
     if (PASS !== "sh") for (const q of FIRE.roast){ const v = now - q.t0, j = Math.sin(v / 40) * .01 * Math.min(1, v / 1500); put(AUT.mesh ? AUT.mesh.nut : M.roast, setM(q.x + j, .14, q.z, 2.2, 2.2, 2.2, v / 900)); }
@@ -4092,6 +4131,8 @@ function drawMoon(p, now){
       for (let i = 0; i < 9; i++){ const L = i < 5 ? 0 : i < 8 ? 1 : 2, a = i * 2.4 + t * .4, r = L === 0 ? .1 : L === 1 ? .05 : 0, s = L === 0 ? .95 + (i % 2) * .25 : L === 1 ? .7 : .5;   /* tongues licking up, each to its own beat */
         const fl = 1 + .22 * Math.sin(t * (8 + i * 1.7) + i * 2.1) + .12 * Math.sin(t * 21 + i), w = s * (.9 - .1 * Math.sin(t * 13 + i));
         put(M.flame[L], setM(FIRE.x + Math.cos(a) * r, .07, FIRE.z + Math.sin(a) * r, w, s * fl, w, a)); } } }
+  if (lans && PASS !== "sh"){ for (const l of LANS){ const t = (now - l.t0) / 1000, k = 1.7 * (1 - sstep(34, 42, l.y)); if (k > .02) put(M.lan[l.c], setM(l.x, l.y, l.z, k, k, k, t * .3 + l.ph)); }
+    for (const a of AVATARS()){ const f = a.lanF; if (!f || (a === me && tooClose())) continue; put(M.lan[0], setM(f.g[0], f.g[1] + .08, f.g[2], 1.3 * f.sc, 1.3 * f.sc, 1.3 * f.sc, now / 2000)); } }
   if (rab && lit){ put(M.rabbit, setM(RAB.x, RAB.y + .004, RAB.z, 1.6 * RAB.k, 1.6 * RAB.k, 1.6 * RAB.k, RAB.yaw)); }
   if (!lit || PASS === "sh") return;
   /* the see-through parts, added on: the fire's glow, the rabbit's halo, the moonbeams */
@@ -4137,7 +4178,7 @@ window.addEventListener("keydown", e => {
   if (e.key === "Escape"){ cancelAim(); closePops(); document.body.classList.remove("about"); return; }
   keys[e.code] = true;
   if (e.code === "Space"){ e.preventDefault(); jump(); }
-  if (e.code === "KeyF" && !e.repeat && inWorld && !making){ if (me.item === "net" && BALL.holder !== me) swingNet(); else if (BALL.holder === me) throwNow(); else setArmed(!AIM.armed); }
+  if (e.code === "KeyF" && !e.repeat && inWorld && !making){ if (me.item === "net" && BALL.holder !== me) swingNet(); else if (me.item === "lan") releaseLantern(); else if (BALL.holder === me) throwNow(); else setArmed(!AIM.armed); }
   if (e.code === "KeyG" && !e.repeat && inWorld && !making){ if (SN.held) dropSnow(); else if (BALL.holder === me) dropBall(me, true); else grabBall(true); }
   if (e.code === "KeyE" && inWorld && !making && !e.repeat){ const vi = me.sit ? -1 : nearVend(2.2);
     if (vi >= 0){ if ($("pop-vend").classList.contains("on")) closePops(); else openVend(vi); }
@@ -4157,7 +4198,9 @@ setMove(MOVE);
 $("calm").onchange = () => { AUD.click(); setCalm($("calm").checked); }; setCalm(CALM);
 $("dfx-x").onclick = () => { AUD.click(); endDrink(true); };
 $("it-x").onclick = () => { AUD.click(); putAway(null); };
-$("it-sw").onclick = () => { AUD.unlock(); swingNet(); };
+$("it-sw").onclick = () => { AUD.unlock(); if (me.item === "lan") releaseLantern(); else swingNet(); };
+$("actb").addEventListener("pointerdown", e => { e.preventDefault(); e.stopPropagation(); AUD.unlock(); const b = $("actb"); b.classList.add("hit"); setTimeout(() => b.classList.remove("hit"), 120);
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_){} if (me.item === "lan") releaseLantern(); else swingNet(); });
 $("itemfx").querySelector(".dt").onclick = () => { if (me.item !== "net") return; AUD.click(); renderDex(); openPop("pop-dex"); };
 $("dex-x").onclick = () => { AUD.click(); closePops(); };
 $("c-dn").onclick = (e) => { e.stopPropagation(); AUD.click(); renderSeason(); const on = openPop("pop-season"); $("c-dn").classList.toggle("open", on); };
@@ -4340,7 +4383,7 @@ function about(){
    { en:"Seasons: tap the sun or moon at the top to pick spring, summer, autumn or winter — it changes for everyone on the server. Spring brings cherry petals, summer cicadas (and fireflies at night), autumn falling leaves; walk up to a tree and it lets go of a handful. In winter it snows, footprints stay in it, and the pool freezes: walk onto the ice and ski", ko:"계절: 위쪽 해·달 표시를 누르면 봄·여름·가을·겨울을 고를 수 있어요 — 바꾸면 서버의 모두에게 함께 바뀌어요. 봄엔 벚꽃잎, 여름엔 매미 소리(밤엔 반딧불), 가을엔 낙엽이 날리고, 나무에 다가가면 우수수 떨어져요. 겨울엔 눈이 내려 발자국이 남고, 수영장이 얼어 얼음 위에서 스키를 탈 수 있어요" },
    { en:"Spring rain: now and then a shower passes over — the sky greys and rings spread across the pool; pick an umbrella or a raincoat from a vending machine (free in spring) or get soaked; afterwards, by day, a rainbow stands over the far wall and in the water. Everyone shares the same shower", ko:"봄비: 가끔 소나기가 지나가요 — 하늘이 흐려지고 수영장에 빗방울 동그라미가 퍼져요. 봄엔 자판기에서 우산이나 우비를 무료로 고를 수 있어요 — 없으면 비를 맞아요. 비가 그치면 낮에는 건너편 하늘과 물 위에 무지개가 떠요. 모두에게 같은 비가 내려요" },
    { en:"Spring: walk through fallen petals and they come to you — thirty make a crown of blossom that everyone sees; by day butterflies drift about and settle on the head of anyone who keeps still", ko:"봄: 바닥에 떨어진 꽃잎 위를 걸으면 꽃잎이 모여요 — 30장을 모으면 벚꽃 화관이 생기고 다른 사람에게도 보여요. 낮에는 나비가 날아다니다 가만히 있는 사람 머리에 앉아요" },
-   { en:"Autumn nights: a bonfire burns on the deck — bring chestnuts and roast them (E) until they pop. The moon is full and gold; a wish coin thrown by its light draws a moonbeam down onto it. And once a night a moon rabbit comes down on a moonbeam and hops round the pool's edge — meet it for the moon's blessing. Everyone sees the same rabbit", ko:"가을 밤: 데크에 모닥불이 타요 — 밤을 가져와 구우면(E) 탁! 하고 군밤이 돼요. 밤하늘엔 커다란 금빛 보름달이 뜨고, 달빛에 소원 동전을 던지면 달빛 기둥이 내려와요. 그리고 밤마다 한 번, 달토끼가 달빛을 타고 내려와 수영장 가장자리를 뛰어다녀요 — 만나면 달님의 축복이 반짝여요. 모두에게 같은 달토끼가 보여요" },
+   { en:"Autumn nights: a bonfire burns on the deck — bring chestnuts and roast them (E) until they pop. Five roasted chestnuts and five acorns trade for a sky lantern at a vending machine: make a wish and let it float up (everyone sees it). The moon is full and gold; a wish coin thrown by its light draws a moonbeam down onto it. And once a night a moon rabbit comes down on a moonbeam and hops round the pool's edge — meet it for the moon's blessing. Everyone sees the same rabbit", ko:"가을 밤: 데크에 모닥불이 타요 — 밤을 가져와 구우면(E) 탁! 하고 군밤이 돼요. 군밤 5개와 도토리 5개를 모으면 자판기에서 풍등으로 바꿔, 소원을 빌며 하늘로 날려 보낼 수 있어요(모두에게 보여요). 밤하늘엔 커다란 금빛 보름달이 뜨고, 달빛에 소원 동전을 던지면 달빛 기둥이 내려와요. 그리고 밤마다 한 번, 달토끼가 달빛을 타고 내려와 수영장 가장자리를 뛰어다녀요 — 만나면 달님의 축복이 반짝여요. 모두에게 같은 달토끼가 보여요" },
    { en:"The seasons on you: in summer running wears you out — you sweat and pant and can only walk until you rest (quicker in a tree's shade, at once with water or a slush); in winter your breath shows as you talk", ko:"계절이 몸으로: 여름에 계속 뛰면 더워서 땀을 흘리고 헥헥거리며 걷기만 할 수 있어요 — 쉬면 회복(나무 그늘이면 더 빨리, 생수·슬러시는 바로). 겨울엔 말할 때 입김이 나와요" },
    { en:"Autumn: fallen leaves crunch underfoot and fly up as you walk, gusts of wind sweep them across the deck; jump (Space) into a pile of leaves and it bursts all over — anyone's jump does it. Walk up to a tree and shake it (E, or the button): leaves pour down and acorns and chestnuts drop; walk over them to pick them up", ko:"가을: 바닥의 낙엽을 밟으면 바스락 소리와 함께 흩날리고, 가끔 바람이 불어 낙엽을 쓸고 가요. 낙엽 더미에 점프(Space)하면 와사삭 흩날려요 — 다른 사람이 뛰어들어도 함께 보여요. 나무 앞에서 흔들면(E 또는 버튼) 낙엽이 쏟아지고 도토리와 밤이 떨어져요 — 위로 걸어가면 주워요" },
    { en:"Summer: the vending machines give out a sparkler and a bug net, free. The sparkler sparks for forty seconds and harder beside a friend's; swing the net (F) at eight kinds of insect — on the trees, in the air, on the benches, by the planters, on the water — each is counted, then let go; catch every kind for a 🐛 Bug King badge before your name. At night, now and then, fireworks open over the far wall, the same for everyone", ko:"여름: 자판기에서 스파클라와 잠자리채를 무료로 받아요. 스파클라는 40초 동안 반짝이고, 친구 스파클라 곁에서는 더 화려해져요. 잠자리채를 휘둘러(F) 나무·공중·벤치·화단·물 위의 곤충 8종을 잡으면 세고 놓아줘요 — 모두 모으면 이름 앞에 🐛 벌레왕 배지가 붙어요. 밤이면 가끔 건너편 하늘에 불꽃놀이가 터져요 — 모두에게 똑같이 보여요" },
@@ -4377,7 +4420,7 @@ if (!initGL()){
   netInit();
 }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
-window.__pool = { FIRE:() => FIRE, MOON, RAB, MOONW, moonWish, RAIN, rainWindow, CROWN, BFLY, POSES, SUM, BUG, ITEMS, BUGK, FW, AUT, PILES, NUTS, fw(ty, age){ const k = Math.floor(Date.now() / FWS); fwPlan(k).push({ t:Date.now() - 1200 - (age || 0) * 1000, x:(Math.random() - .5) * 16, z:-CZW - 14, y:17, R:5.5, c:0, c2:2, ty:ty || 0, rot:0, l:1, s:0 }); }, SNB, SNM, makeSnowman, night(k){ NIGHT.force = k; }, season(s){ setSeason(s, Date.now(), null); }, SEASON, faceOf, AUD, buyDrink, openVend, endDrink, setCalm, DRINKS, VENDS, handAt, pose, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
+window.__pool = { LANS, FIRE:() => FIRE, MOON, RAB, MOONW, moonWish, RAIN, rainWindow, CROWN, BFLY, POSES, SUM, BUG, ITEMS, BUGK, FW, AUT, PILES, NUTS, fw(ty, age){ const k = Math.floor(Date.now() / FWS); fwPlan(k).push({ t:Date.now() - 1200 - (age || 0) * 1000, x:(Math.random() - .5) * 16, z:-CZW - 14, y:17, R:5.5, c:0, c2:2, ty:ty || 0, rot:0, l:1, s:0 }); }, SNB, SNM, makeSnowman, night(k){ NIGHT.force = k; }, season(s){ setSeason(s, Date.now(), null); }, SEASON, faceOf, AUD, buyDrink, openVend, endDrink, setCalm, DRINKS, VENDS, handAt, pose, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
 </script>
 </body>
 </html>
