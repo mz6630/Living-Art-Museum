@@ -1536,12 +1536,12 @@ function pose(a, now){
   if (a.tired && SEASON.cur === "summer" && !a.sit){ q.bow += .2; q.a1x = q.a2x = -.22; q.a1z = -.12; q.a2z = .12; q.lift += Math.abs(Math.sin(now / 170)) * .015; }   /* hot and tired: bent over, panting */
   if (a.shake && now - a.shake < 700){ const v = (now - a.shake) / 700, e = Math.sin(v * Math.PI), w = Math.sin(v * Math.PI * 4) * .12 * e;   /* both hands on the trunk: shake, shake */
     q.a1x = q.a2x = -1.35 * e + w; q.a1z = -.15; q.a2z = .15; q.bow += .1 * e; q.sway += w * .3; }
-  if (a.item && BALL.holder !== a && !(a === me && SN.held)){                                         /* the left hand: a sparkler held up, or the net — and its swing */
+  if ((a.item === "sp" || a.item === "net") && BALL.holder !== a && !(a === me && SN.held)){                                         /* the left hand: a sparkler held up, or the net — and its swing */
     if (a.item === "sp"){ q.a1x = -1.15 + Math.sin(now / 260) * .06; q.a1z = -.32; }
     else { const u = (now - (a.swing || -1e9)) / 420;
       if (u >= 0 && u < 1){ const e = Math.min(1, u / .3), s = Math.max(0, (u - .3) / .7), w = 1 - (1 - s) * (1 - s); q.a1x = lerp(lerp(-.75, -2.7, e), -.25, w); q.a1z = -.25 - Math.sin(u * Math.PI) * .45; q.bow += Math.sin(u * Math.PI) * .1; }
       else { q.a1x = -.75; q.a1z = -.22; } } }
-  if (!a.item && umbUp(a)){ q.a1x = -.95; q.a1z = -.12; }                                            /* spring rain: an umbrella up */
+  if (a.item === "umb" && BALL.holder !== a && !(a === me && SN.held)){ if (umbUp(a)){ q.a1x = -.95; q.a1z = -.12; } else { q.a1x = -.25; q.a1z = -.2; } }   /* the umbrella: up in the rain, carried furled otherwise */
   if (a.dk) dkPose(a, q, now);                                                              /* a drink: to the lips, then what it does */
   if (a === me && SN.held){ q.a1x = q.a2x = -1.25; q.a1z = -.2; q.a2z = .2; q.bow += .22; }                  /* both hands on the snowball */
   if ((a === me ? a.skate : onIce(a)) && !a.emote){ const g = Math.sin(a.ph);                 /* skiing: leaning in, arms out, long slow strides */
@@ -1905,7 +1905,7 @@ function cleanState(st){
   const e = typeof st.e === "string" && (EMOTES[st.e] || POSE_RE.test(st.e)) ? st.e : "";
   return { x:num(st.x, -CXW, CXW, 0), y:num(st.y, FLOOR - .1, 1.5, 0), z:num(st.z, -CZW, CZW, 0), r:num(st.r, -7, 7, 0), w:st.w ? 1 : 0, e, et:num(st.et, 0, 1e15, 0),
     m:cleanText(st.m, 40), mt:num(st.mt, 0, 1e15, 0), n:cleanText(st.n, 12) || "…", look:lookFrom(st.k), f:typeof st.f === "string" ? st.f.slice(0, 48) : "", b:typeof st.b === "string" ? st.b.slice(0, 60) : "",
-    d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "", q:typeof st.q === "string" && /^[psawn][0-9a-z]{1,11}$/.test(st.q) ? st.q : "", h:typeof st.h === "string" && /^c?[snSNK]?$/.test(st.h) ? st.h : "" };
+    d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "", q:typeof st.q === "string" && /^[psawn][0-9a-z]{1,11}$/.test(st.q) ? st.q : "", h:typeof st.h === "string" && /^c?[snurSNURK]?$/.test(st.h) ? st.h : "" };
 }
 function onPeerList(list){
   const seen = new Set(), now = performance.now();
@@ -1927,7 +1927,7 @@ function onPeerList(list){
       if (st.mt !== a.lastM){ a.lastM = st.mt; if (st.m){ a.msg = st.m; a.msgUntil = now + 6500; logLine(st.n, st.m); AUD.chat(); } }
     }
     pushSample(a, st, now); a.name = st.n; a.sit = st.e === "sit" || st.e === "bench" || /^[bs]:/.test(st.e); a.bench = st.e === "bench" || st.e.startsWith("b:");
-    { const hh = st.h.replace("c", ""), it = IT_OF[hh.toLowerCase()] || ""; a.king = /[SNK]/.test(hh); if (it !== (a.item || "")){ a.item = it; a.itT0 = now; if (it === "sp" && inWorld) AUD.ignite(hear(a.x, a.z) * .6); } }   /* what they hold: a sparkler, a net
+    { const hh = st.h.replace("c", ""), it = IT_OF[hh.toLowerCase()] || ""; a.king = /[SNURK]/.test(hh); if (it !== (a.item || "")){ a.item = it; a.itT0 = now; if (it === "sp" && inWorld) AUD.ignite(hear(a.x, a.z) * .6); } }   /* what they hold: a sparkler, a net
     { const pz = st.e.includes(":") ? st.e.slice(2) : ""; if (pz !== (a.pose || "")){ a.pose = pz; a.pt0 = now; } }          /* the pose they hold, if any */
     if (lookKey(st.look) !== lookKey(a.look)){ a.look = st.look; a.mesh = meshFor(st.look); }
   }
@@ -2895,8 +2895,9 @@ function renderVend(){
     b.querySelector(".can span").textContent = D.ico; b.querySelector(".dt b").textContent = T(D.name); b.querySelector(".dt small").textContent = T(D.fx);
     b.querySelector("em").textContent = cur ? T({ en:"On now", ko:"효과 중" }) : D.dur ? T({ en:`${D.dur}s`, ko:`${D.dur}초` }) : T({ en:"At once", ko:"바로" });
     b.onclick = () => buyDrink(k); L.appendChild(b); }
-  if (summerOn()){ const h = document.createElement("p"); h.className = "vsum"; h.textContent = T({ en:"🍉 Summer only · free", ko:"🍉 여름 한정 · 무료" }); L.appendChild(h);   /* summer: two free things */
-    for (const k in ITEMS){ const I = ITEMS[k], b = document.createElement("button"), cur = me.item === k;
+  const sk = Object.keys(ITEMS).filter(k => ITEMS[k].sea === SEASON.cur);
+  if (sk.length){ const h = document.createElement("p"); h.className = "vsum"; h.textContent = T(SEASON.cur === "summer" ? { en:"🍉 Summer only · free", ko:"🍉 여름 한정 · 무료" } : { en:"🌸 Spring only · free", ko:"🌸 봄 한정 · 무료" }); L.appendChild(h);   /* this season's free things */
+    for (const k of sk){ const I = ITEMS[k], b = document.createElement("button"), cur = me.item === k;
       b.type = "button"; b.className = "dk item" + (cur ? " cur" : ""); b.style.setProperty("--c1", rgb(I.can)); b.style.setProperty("--c2", rgb(I.band));
       b.innerHTML = '<i class="can"><span></span></i><span class="dt"><b></b><small></small></span><em></em>';
       b.querySelector(".can span").textContent = I.ico; b.querySelector(".dt b").textContent = T(I.name); b.querySelector(".dt small").textContent = T(I.fx);
@@ -3410,10 +3411,14 @@ function drawSpring(p, now){
        courtyard. Sparks and fireworks are one buffer, one draw
    ========================================================================== */
 const ITEMS = {
-  sp:{ c:"s", ico:"🎇", dur:40, can:[.25, .22, .32], band:[1, .8, .36], name:{ en:"Sparkler", ko:"스파클라" }, fx:{ en:"Lit at once — 40 seconds of sparks, brighter with friends close by", ko:"바로 불이 붙어요 — 40초 동안 반짝, 친구와 가까이 모이면 더 화려해져요" } },
-  net:{ c:"n", ico:"🥅", dur:0, can:[.36, .64, .94], band:[.99, .78, .36], name:{ en:"Bug net", ko:"잠자리채" }, fx:{ en:"Swing it (F) — eight kinds of insect to find; catch them all for the Bug King badge", ko:"휘둘러서(F) 곤충 8종을 잡아요 — 모두 모으면 벌레왕 배지!" } },
+  sp:{ c:"s", sea:"summer", ico:"🎇", dur:40, can:[.25, .22, .32], band:[1, .8, .36], name:{ en:"Sparkler", ko:"스파클라" }, fx:{ en:"Lit at once — 40 seconds of sparks, brighter with friends close by", ko:"바로 불이 붙어요 — 40초 동안 반짝, 친구와 가까이 모이면 더 화려해져요" } },
+  net:{ c:"n", sea:"summer", ico:"🥅", dur:0, can:[.36, .64, .94], band:[.99, .78, .36], name:{ en:"Bug net", ko:"잠자리채" }, fx:{ en:"Swing it (F) — eight kinds of insect to find; catch them all for the Bug King badge", ko:"휘둘러서(F) 곤충 8종을 잡아요 — 모두 모으면 벌레왕 배지!" } },
 };
-const IT_OF = { s:"sp", n:"net" };
+Object.assign(ITEMS, {
+  umb:{ c:"u", sea:"spring", ico:"☂️", dur:0, can:[.98, .6, .68], band:[.55, .78, .98], name:{ en:"Umbrella", ko:"우산" }, fx:{ en:"Opens by itself when it rains", ko:"비가 오면 저절로 펼쳐져요" } },
+  coat:{ c:"r", sea:"spring", ico:"🧥", dur:0, can:[1, .84, .28], band:[1, .93, .6], name:{ en:"Raincoat", ko:"우비" }, fx:{ en:"A yellow raincoat with a hood — rain or shine", ko:"모자 달린 노란 우비 — 비가 와도 끄떡없어요" } },
+});
+const IT_OF = { s:"sp", n:"net", u:"umb", r:"coat" };
 /* the eight, and where each is found */
 const BUGK = {
   cicada:{ ico:"🦗", n:{ en:"Cicada", ko:"매미" }, w:{ en:"Day · tree trunks", ko:"낮 · 나무줄기" } },
@@ -3479,7 +3484,7 @@ function summerMeshes(){ const one = (fn) => { const A = maker(); fn(A); return 
 }
 /* what a hand holds: where the grip is, and which way the thing points (left hand; the right stays free for drinks and balloons) */
 function itemFrame(a, now){ const q = pose(a, now), sc = a.sc || 1, base = mm4(Tm(a.x, a.y + q.lift, a.z), RYS(a.r + q.spin, sc)), up = mm4(base, mm4(Tm(0, .42, 0), mm4(RX(q.bow), mm4(RZ(q.sway), Tm(0, -.42, 0)))));
-  const M = mm4(up, mm4(Tm(-.165, .79, 0), mm4(RZ(q.a1z), mm4(RX(q.a1x), Tm(.165, -.79, 0))))), p = [-.219, .5, .004], L = a.item === "net" ? [0, .1, 1] : [0, -.4, 1];
+  const M = mm4(up, mm4(Tm(-.165, .79, 0), mm4(RZ(q.a1z), mm4(RX(q.a1x), Tm(.165, -.79, 0))))), p = [-.219, .5, .004], L = a.item === "net" ? [0, .1, 1] : a.item === "umb" ? [0, -1, .35] : [0, -.4, 1];
   return { g:[M[0] * p[0] + M[4] * p[1] + M[8] * p[2] + M[12], M[1] * p[0] + M[5] * p[1] + M[9] * p[2] + M[13], M[2] * p[0] + M[6] * p[1] + M[10] * p[2] + M[14]],
            d:norm([M[0] * L[0] + M[4] * L[1] + M[8] * L[2], M[1] * L[0] + M[5] * L[1] + M[9] * L[2], M[2] * L[0] + M[6] * L[1] + M[10] * L[2]]), sc }; }
 function itAx(c, d, kx, ky){ let x0 = d[2], x2 = -d[0], l = Math.hypot(x0, x2); if (l < 1e-4){ x0 = 1; x2 = 0; l = 1; } x0 /= l; x2 /= l;
@@ -3491,13 +3496,15 @@ const burnOf = (a, now) => a === me ? clamp((now - SUM.t0) / (ITEMS.sp.dur * 100
 function hOf(){ const it = me.item ? ITEMS[me.item].c : ""; return (CROWN.on ? "c" : "") + (SUM.king ? (it ? it.toUpperCase() : "K") : it); }
 function getItem(k){
   const I = ITEMS[k]; if (!I || !inWorld || making) return;
-  if (!summerOn()){ hint(T({ en:"Only in summer", ko:"여름에만 받을 수 있어요" })); return; }
+  if (I.sea !== SEASON.cur){ hint(T(I.sea === "summer" ? { en:"Only in summer", ko:"여름에만 받을 수 있어요" } : { en:"Only in spring", ko:"봄에만 받을 수 있어요" })); return; }
   if (DKS.open < 0 || nearVend(2.9) !== DKS.open){ closePops(); hint(T({ en:"Walk up to the machine first", ko:"자판기 앞으로 가서 골라요" })); return; }
   if (k === "net" && me.item === "net"){ hint(T({ en:"You're already holding one", ko:"이미 들고 있어요" }), true); return; }
   closePops(); const now = performance.now();
   me.item = k; me.itT0 = now; SUM.t0 = now; SUM.end = I.dur ? now + I.dur * 1000 : Infinity; SUM.secs = -1; lastSig = "";
   AUD.vend("can");
   if (k === "sp"){ setTimeout(() => AUD.ignite(1), 380); hint(T({ en:"🎇 Lit! Bring it close to a friend's and both sparkle harder", ko:"🎇 불이 붙었어요! 친구 스파클라 가까이 가면 둘 다 더 화려해져요" }), true); }
+  else if (k === "umb") hint(T({ en:"☂️ It opens by itself when the rain comes", ko:"☂️ 비가 오면 저절로 펼쳐져요" }), true);
+  else if (k === "coat") hint(T({ en:"🧥 A yellow raincoat — let it rain", ko:"🧥 노란 우비를 입었어요 — 비가 와도 괜찮아요" }), true);
   else hint(T({ en:"🥅 F (or the button) to swing — tap the net's name to see which insects are where", ko:"🥅 F(또는 버튼)로 휘둘러요 — 잠자리채 이름을 누르면 곤충 도감이 열려요" }));
   itemUI();
 }
@@ -3517,7 +3524,7 @@ function itemUI(){
   const el = $("itemfx"), k = me.item; el.classList.toggle("on", !!k); el.classList.toggle("net", k === "net"); if (!k) return;
   const I = ITEMS[k]; el.style.setProperty("--ic", rgb(I.band)); el.querySelector(".ic").textContent = I.ico; $("it-n").textContent = T(I.name) + (k === "net" ? " · " + T({ en:"Field guide ›", ko:"도감 ›" }) : "");
   $("it-sw").firstChild.textContent = T({ en:"Swing", ko:"휘두르기" }); $("it-x").setAttribute("aria-label", T({ en:"Put away", ko:"넣기" })); $("it-x").title = T({ en:"Put away", ko:"넣기" });
-  $("it-s").textContent = k === "net" ? (SUM.n ? T({ en:`${SUM.n} caught · ${dexN()}/${BUG_IDS.length} kinds`, ko:`${SUM.n}마리 잡음 · 도감 ${dexN()}/${BUG_IDS.length}` }) : T({ en:"Tap the name above for where to look", ko:"위 이름을 누르면 어디서 찾는지 알려줘요" }))
+  $("it-s").textContent = k === "umb" ? T(RAIN.k > .25 ? { en:"Open — keeping you dry", ko:"펼침 — 비를 막아 줘요" } : { en:"Opens when it rains", ko:"비가 오면 펼쳐져요" }) : k === "coat" ? T({ en:"Hood up, rain or shine", ko:"비가 와도 끄떡없어요" }) : k === "net" ? (SUM.n ? T({ en:`${SUM.n} caught · ${dexN()}/${BUG_IDS.length} kinds`, ko:`${SUM.n}마리 잡음 · 도감 ${dexN()}/${BUG_IDS.length}` }) : T({ en:"Tap the name above for where to look", ko:"위 이름을 누르면 어디서 찾는지 알려줘요" }))
     : `${T({ en:`${Math.max(0, SUM.secs)}s left`, ko:`${Math.max(0, SUM.secs)}초 남음` })}${SUM.near ? " · " + T({ en:"together ✨", ko:"함께 ✨" }) : ""}`;
   if ($("pop-dex").classList.contains("on")) renderDex();
 }
@@ -3549,7 +3556,7 @@ function bugSpot(b, k){
 const nearEdge = (x, z) => Math.min(PX - Math.abs(x), PZ - Math.abs(z));
 function stepSummer(dt, now){
   const sum = summerOn() && inWorld;
-  if (!summerOn()){ for (const a of AVATARS()) a.itF = null; if (me.item) putAway(inWorld ? { en:"Summer's over — put away", ko:"여름이 끝나서 넣어 뒀어요" } : null); for (const b of BUG) b.on = false; for (const p of SPK) p.on = false; fwN = 0; FW.fl = 0; return; }
+  if (!summerOn()){ for (const a of AVATARS()) a.itF = null; if (me.item && ITEMS[me.item].sea === "summer") putAway(inWorld ? { en:"Summer's over — put away", ko:"여름이 끝나서 넣어 뒀어요" } : null); for (const b of BUG) b.on = false; for (const p of SPK) p.on = false; fwN = 0; FW.fl = 0; return; }
   if (me.item === "sp" && now > SUM.end) putAway({ en:"The sparkler burnt out", ko:"스파클라가 다 탔어요" });
   /* the bugs round you: five kinds by day, three at night (the fireflies are the season's own); the water striders stay day and night */
   const day = NIGHT.k < .5, want = day ? { cicada:3, dfly:3, lady:2, hopper:2, strider:2 } : { beetle:1, stag:1, strider:2 }, have = {};
@@ -3598,7 +3605,7 @@ function stepSummer(dt, now){
   /* what each hand holds, worked out once a frame for the drawing; the sparklers' sparks */
   let crk = 0;
   for (const a of AVATARS()){ a.itF = null;
-    if (!a.item || !a.mesh || a.npc || Math.hypot(a.x - camPos[0], a.z - camPos[2]) > 30) continue;
+    if ((a.item !== "sp" && a.item !== "net") || !a.mesh || a.npc || Math.hypot(a.x - camPos[0], a.z - camPos[2]) > 30) continue;
     a.itF = itemFrame(a, now); if (a.item !== "sp") continue;
     a.tg = false; for (const o of AVATARS()) if (o !== a && o.item === "sp" && Math.hypot(o.x - a.x, o.z - a.z) < 3){ a.tg = true; break; }
     const f = a.itF, len = (.14 + .28 * (1 - burnOf(a, now))) * f.sc; f.tip = [f.g[0] + f.d[0] * len, f.g[1] + f.d[1] * len, f.g[2] + f.d[2] * len];
@@ -3905,20 +3912,32 @@ const UMB_C = [[.98, .55, .62], [.55, .78, .98], [1, .84, .38], [.6, .86, .62], 
 function rainWindow(t){ const k = Math.floor(t / RAINP), r = mb32(k * 131 + 7), has = r() < .6, st = k * RAINP + 10000 + r() * 30000, dur = 38000 + r() * 22000;   /* this slot's shower, if any */
   return has ? { st, en:st + dur } : null; }
 function umbMeshes(){ const one = (fn) => { const A = maker(); fn(A); return upload(A.v); };
-  return { can:UMB_C.map(c => one(A => { A.lathe([[.44, -.15], [.38, -.07], [.24, .0], [0, .04]], c, 5, 8); A.lathe([[.445, -.15], [.445, -.135]], c.map(v => v * .82), 5, 8); A.ell([0, .05, 0], .018, .02, .018, [.3, .3, .32], 5, 6); })),   /* a scalloped canopy, a tip */
+  const coatC = [1, .84, .28], hr = HR[0] + .075, hy = HR[1] + .075, cap = []; for (let i = 0; i <= 6; i++){ const y = .1 + (hy - .1) * i / 6; cap.push([hr * Math.sqrt(Math.max(0, 1 - (y / hy) ** 2)), HEAD + y]); }
+  return { coat:one(A => { A.lathe([[.34, .36], [.31, .48], [.26, .62], [.2, .74], [.13, .83], [0, .86]], coatC, 5, 14);      /* a yellow poncho, a hood over the hair, its back down to the neck */
+             A.lathe([[.345, .36], [.345, .385]], [.92, .74, .2], 5, 14); A.lathe(cap, coatC, 5, 18); A.ell([0, HEAD - .1, -.12], .43, .33, .36, coatC, 5, 16); A.ell([0, HEAD + .37, -.02], .02, .02, .02, [.92, .74, .2], 5, 6); }),
+           closed:UMB_C.map(c => one(A => { A.tube([0, 0, 0], [0, .78, 0], .008, .008, [.32, .3, .3], 0, 5); A.tube([0, .2, 0], [0, .74, 0], .045, .012, c, 5, 8); A.tube([0, 0, 0], [0, -.05, .035], .01, .01, [.5, .34, .22], 0, 5); })),   /* furled */
+           can:UMB_C.map(c => one(A => { A.lathe([[.44, -.15], [.38, -.07], [.24, .0], [0, .04]], c, 5, 8); A.lathe([[.445, -.15], [.445, -.135]], c.map(v => v * .82), 5, 8); A.ell([0, .05, 0], .018, .02, .018, [.3, .3, .32], 5, 6); })),   /* a scalloped canopy, a tip */
            stick:one(A => { A.tube([0, 0, 0], [0, 1, 0], .008, .008, [.32, .3, .3], 0, 5); A.tube([0, 0, 0], [0, -.04, .03], .01, .01, [.5, .34, .22], 0, 5); }) }; }
 const umbOf = (a) => { let h = 0; const s = String(a.id || "me"); for (let i = 0; i < s.length; i++) h = h * 31 + s.charCodeAt(i) | 0; return Math.abs(h) % UMB_C.length; };
-const umbUp = (a) => RAIN.k > .25 && SEASON.cur === "spring" && a.y > -.5 && BALL.holder !== a && !(a === me && SN.held) && !a.npc;
+const umbUp = (a) => a.item === "umb" && RAIN.k > .25 && SEASON.cur === "spring" && a.y > -.5;
+const dryOf = (a) => a.item === "umb" || a.item === "coat" || a.y < -.5 || TREES.some(([tx, tz]) => Math.hypot(tx - a.x, tz - a.z) < 1.5);   /* under cover */
+const RAIN_W = { told:false };
 function stepRain(dt, now){
   const T0 = Date.now(), w = rainWindow(T0), spring = SEASON.cur === "spring", sm = SEASON.ib === 0 ? SEASON.mix : 0;
   let k = 0, bow = 0;
   if (w && spring){ k = sstep(w.st, w.st + 6000, T0) * (1 - sstep(w.en - 6000, w.en, T0)); bow = sstep(w.en - 4000, w.en + 3000, T0) * (1 - sstep(w.en + 35000, w.en + 45000, T0)) * (1 - NIGHT.k); }
   RAIN.k = k * sm; RAIN.bow = bow * sm;
-  const raining = RAIN.k > .3; if (raining !== RAIN.was){ RAIN.was = raining; if (inWorld && !making) hint(T(raining ? { en:"🌧️ A spring shower — up go the umbrellas", ko:"🌧️ 봄비가 내려요 — 모두 우산을 펼쳐요" } : { en:"☀️ The rain has passed", ko:"☀️ 비가 그쳤어요" }), true); }
+  const raining = RAIN.k > .3; if (raining !== RAIN.was){ RAIN.was = raining; if (inWorld && !making) hint(T(raining ? (me.item === "umb" || me.item === "coat" ? { en:"🌧️ A spring shower", ko:"🌧️ 봄비가 내려요" } : { en:"🌧️ A spring shower — the vending machines have umbrellas and raincoats", ko:"🌧️ 봄비가 내려요 — 자판기에서 우산이나 우비를 골라요" }) : { en:"☀️ The rain has passed", ko:"☀️ 비가 그쳤어요" }), true); if (me.item === "umb") itemUI(); }
   const bw = RAIN.bow > .4; if (bw !== RAIN.bowWas){ RAIN.bowWas = bw; if (bw && inWorld && !making){ hint(T({ en:"🌈 A rainbow over the far wall!", ko:"🌈 건너편 하늘에 무지개가 떴어요!" })); AUD.chime(0); } }
   AUD.rain(inWorld ? RAIN.k * (camPos[1] < -.05 ? .35 : 1) : 0);
   /* umbrellas: where each one's hand is, once a frame */
-  for (const a of AVATARS()) a.umF = umbUp(a) && a.mesh && Math.hypot(a.x - camPos[0], a.z - camPos[2]) < 30 ? (() => { const f = itemFrame(a, now), sc = a.sc || 1, fx = Math.sin(a.r), fz = Math.cos(a.r); return { g:f.g, top:[a.x + fx * .06 * sc, a.y + 1.86 * sc, a.z + fz * .06 * sc], sc, c:umbOf(a) }; })() : null;
+  if (SEASON.cur !== "spring" && me.item && ITEMS[me.item].sea === "spring") putAway(inWorld ? { en:"Spring's over — put away", ko:"봄이 끝나서 넣어 뒀어요" } : null);
+  for (const a of AVATARS()){ const near = a.mesh && !a.npc && Math.hypot(a.x - camPos[0], a.z - camPos[2]) < 30 && SEASON.cur === "spring" && BALL.holder !== a && !(a === me && SN.held);
+    a.umF = near && a.item === "umb" ? (() => { const f = itemFrame(a, now), sc = a.sc || 1, fx = Math.sin(a.r), fz = Math.cos(a.r); return { g:f.g, d:f.d, open:umbUp(a), top:[a.x + fx * .06 * sc, a.y + 1.86 * sc, a.z + fz * .06 * sc], sc, c:umbOf(a) }; })() : null;
+    a.coatM = a.mesh && a.item === "coat" && SEASON.cur === "spring" && Math.hypot(a.x - camPos[0], a.z - camPos[2]) < 30 ? headM(a, now) : null;
+    if (RAIN.k > .3 && a.mesh && !a.npc && camPos[1] > -.05 && !dryOf(a) && Math.hypot(a.x - camPos[0], a.z - camPos[2]) < 22 && now > (a.wet || 0)){ a.wet = now + 300; const sc = a.sc || 1;   /* caught in the rain: water running off */
+      Object.assign(slot(DROPS), { on:true, t0:now, x:a.x + (Math.random() - .5) * .5 * sc, y:a.y + 1.45 * sc, z:a.z + (Math.random() - .5) * .5 * sc, vx:(Math.random() - .5) * .4, vy:.2, vz:(Math.random() - .5) * .4, life:.35 });
+      if (a === me && !RAIN_W.told){ RAIN_W.told = true; hint(T({ en:"☔ You're getting soaked — the vending machines have umbrellas and raincoats (or stand under a tree)", ko:"☔ 비를 맞고 있어요 — 자판기에서 우산·우비를 고르거나 나무 밑으로 가요" })); } } }
   /* the drops: a box of rain round where you look; rings where they land on the water */
   RAIN.n = 0; if (RAIN.k < .02 || camPos[1] < -.05 || !gl) return;
   const n = Math.floor(RD.length * RAIN.k), cx = camTgt[0], cz = camTgt[2]; let o = 0;
@@ -3936,12 +3955,14 @@ function stepRain(dt, now){
   gl.bindBuffer(gl.ARRAY_BUFFER, RAIN.M.buf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, RV.subarray(0, RAIN.n * ST)); RAIN.M.n = RAIN.n;
 }
 function drawRain(p, now){
-  const ups = AVATARS().some(a => a.umF); if (!ups && !RAIN.n) return;
+  const ups = AVATARS().some(a => a.umF || a.coatM); if (!ups && !RAIN.n) return;
   const u = p.u, put = (m, M) => { gl.uniformMatrix4fv(u.uM, false, M); bindMesh(m); gl.drawArrays(gl.TRIANGLES, 0, m.n); };
   if (ups){ if (!RAIN.umb) RAIN.umb = umbMeshes(); const U = RAIN.umb;
     for (const a of AVATARS()){ const f = a.umF; if (!f || (a === me && tooClose())) continue; if (a.dk && (PASS === "main" || PASS === "nrm" || PASS === "rf") && dkOn(a, "ghost", now)) continue;
+      if (!f.open){ put(U.closed[f.c], itAx(f.g, f.d, f.sc, f.sc)); continue; }
       const dx = f.top[0] - f.g[0], dy = f.top[1] - f.g[1], dz = f.top[2] - f.g[2], L = Math.hypot(dx, dy, dz) || 1;
-      put(U.stick, itAx(f.g, [dx / L, dy / L, dz / L], f.sc, L)); put(U.can[f.c], setM(f.top[0], f.top[1], f.top[2], f.sc, f.sc, f.sc, a.r)); } }
+      put(U.stick, itAx(f.g, [dx / L, dy / L, dz / L], f.sc, L)); put(U.can[f.c], setM(f.top[0], f.top[1], f.top[2], f.sc, f.sc, f.sc, a.r)); }
+    for (const a of AVATARS()){ if (!a.coatM || (a === me && tooClose())) continue; if (a.dk && (PASS === "main" || PASS === "nrm" || PASS === "rf") && dkOn(a, "ghost", now)) continue; put(U.coat, a.coatM); } }
   if (RAIN.n && PASS === "main" && RAIN.M){ gl.uniformMatrix4fv(u.uM, false, I4); bindMesh(RAIN.M); gl.drawArrays(gl.TRIANGLES, 0, RAIN.n); }
 }
 
@@ -4180,7 +4201,7 @@ function about(){
    { en:"Vending machines: two against the glass across the pool, one on the wall by the stairs. Walk up (or press E) and pick a drink — energy (faster), cider (higher jumps), lemonade (sour!), milk (big), tiny juice (small), beer (seeing double), clear soda (only your reflection and shadow), glass soda (walk on the water), fire soda (red face, fire breath), slush (brain freeze, frosty steps); water clears it all. One effect at a time; the × at the top ends it", ko:"자판기: 수영장 건너편 유리벽에 2대, 계단 쪽 벽에 1대가 있어요. 가까이 가서(또는 E) 음료를 골라요 — 에너지 드링크(빨라짐), 사이다(점프 2배), 레몬에이드(새콤!), 우유(커짐), 꼬마 주스(작아짐), 맥주(겹쳐 보임), 투명 음료(물에 비친 모습과 그림자만), 유리 소다(물 위 걷기), 매운 음료(빨간 얼굴·불 뿜기), 슬러시(머리 띵·서리 발자국). 생수는 효과를 모두 없애요. 효과는 한 번에 하나, 위쪽 알림의 ×로 언제든 끌 수 있어요" },
    { en:"Day and night take turns every three minutes, the same for everyone here. At night the lamps and strings of bulbs along the walls and the vending machines light up, and the water glows softly — the count at the top shows how long till it turns", ko:"3분마다 낮과 밤이 바뀌어요(모든 방문자가 같은 시간). 밤에는 벽을 따라 벽등과 줄 전구, 자판기 불빛이 켜지고 수영장 물빛이 은은하게 빛나요 — 위쪽 표시에서 바뀔 때까지 남은 시간을 볼 수 있어요" },
    { en:"Seasons: tap the sun or moon at the top to pick spring, summer, autumn or winter — it changes for everyone on the server. Spring brings cherry petals, summer cicadas (and fireflies at night), autumn falling leaves; walk up to a tree and it lets go of a handful. In winter it snows, footprints stay in it, and the pool freezes: walk onto the ice and ski", ko:"계절: 위쪽 해·달 표시를 누르면 봄·여름·가을·겨울을 고를 수 있어요 — 바꾸면 서버의 모두에게 함께 바뀌어요. 봄엔 벚꽃잎, 여름엔 매미 소리(밤엔 반딧불), 가을엔 낙엽이 날리고, 나무에 다가가면 우수수 떨어져요. 겨울엔 눈이 내려 발자국이 남고, 수영장이 얼어 얼음 위에서 스키를 탈 수 있어요" },
-   { en:"Spring rain: now and then a shower passes over — the sky greys, rings spread across the pool and everyone puts up an umbrella; afterwards, by day, a rainbow stands over the far wall and in the water. Everyone shares the same shower", ko:"봄비: 가끔 소나기가 지나가요 — 하늘이 흐려지고 수영장에 빗방울 동그라미가 퍼지고, 모두 우산을 펼쳐요. 비가 그치면 낮에는 건너편 하늘과 물 위에 무지개가 떠요. 모두에게 같은 비가 내려요" },
+   { en:"Spring rain: now and then a shower passes over — the sky greys and rings spread across the pool; pick an umbrella or a raincoat from a vending machine (free in spring) or get soaked; afterwards, by day, a rainbow stands over the far wall and in the water. Everyone shares the same shower", ko:"봄비: 가끔 소나기가 지나가요 — 하늘이 흐려지고 수영장에 빗방울 동그라미가 퍼져요. 봄엔 자판기에서 우산이나 우비를 무료로 고를 수 있어요 — 없으면 비를 맞아요. 비가 그치면 낮에는 건너편 하늘과 물 위에 무지개가 떠요. 모두에게 같은 비가 내려요" },
    { en:"Spring: walk through fallen petals and they come to you — thirty make a crown of blossom that everyone sees; by day butterflies drift about and settle on the head of anyone who keeps still", ko:"봄: 바닥에 떨어진 꽃잎 위를 걸으면 꽃잎이 모여요 — 30장을 모으면 벚꽃 화관이 생기고 다른 사람에게도 보여요. 낮에는 나비가 날아다니다 가만히 있는 사람 머리에 앉아요" },
    { en:"The seasons on you: in summer running wears you out — you sweat and pant and can only walk until you rest (quicker in a tree's shade, at once with water or a slush); in winter your breath shows as you talk", ko:"계절이 몸으로: 여름에 계속 뛰면 더워서 땀을 흘리고 헥헥거리며 걷기만 할 수 있어요 — 쉬면 회복(나무 그늘이면 더 빨리, 생수·슬러시는 바로). 겨울엔 말할 때 입김이 나와요" },
    { en:"Autumn: fallen leaves crunch underfoot and fly up as you walk, gusts of wind sweep them across the deck; jump (Space) into a pile of leaves and it bursts all over — anyone's jump does it. Walk up to a tree and shake it (E, or the button): leaves pour down and acorns and chestnuts drop; walk over them to pick them up", ko:"가을: 바닥의 낙엽을 밟으면 바스락 소리와 함께 흩날리고, 가끔 바람이 불어 낙엽을 쓸고 가요. 낙엽 더미에 점프(Space)하면 와사삭 흩날려요 — 다른 사람이 뛰어들어도 함께 보여요. 나무 앞에서 흔들면(E 또는 버튼) 낙엽이 쏟아지고 도토리와 밤이 떨어져요 — 위로 걸어가면 주워요" },
