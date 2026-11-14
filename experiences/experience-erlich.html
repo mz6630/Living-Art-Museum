@@ -155,6 +155,23 @@ body.in:not(.making) #drinkfx.on{display:flex;animation:dfxIn .35s cubic-bezier(
 @media (max-width:760px){ #drinkfx{right:10px;top:calc(100px + env(safe-area-inset-top,0px));gap:6px;} #drinkfx .dt{display:none;} }
 body.embedded #drinkfx{top:calc(66px + env(safe-area-inset-top,0px));}
 @media (max-width:760px){ body.embedded #drinkfx{top:calc(108px + env(safe-area-inset-top,0px));} }
+/* what you hold, in summer: the sparkler's seconds or the net's catch */
+#itemfx{position:fixed;right:20px;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:9;display:none;align-items:center;gap:9px;padding:6px 6px 6px 7px;border-radius:999px;max-width:min(360px,calc(100% - 20px));}
+body.in:not(.making) #itemfx.on{display:flex;animation:dfxIn .35s cubic-bezier(.2,.9,.3,1.25);}
+#itemfx .ic{width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:50%;background:var(--ic,#ffd34d);font-style:normal;font-size:16px;line-height:1;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);}
+#itemfx .dt{display:flex;flex-direction:column;gap:2px;min-width:0;}
+#itemfx .dt b{font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap;}
+#itemfx .dt small{font-size:11px;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;}
+#it-sw{display:none;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;background:var(--chip-on);color:var(--chip-on-ink);font-size:12.5px;font-weight:600;flex:none;transition:transform .12s;}
+#it-sw:active{transform:scale(.94);} #itemfx.net #it-sw{display:flex;}
+#itemfx.ready #it-sw{animation:swRdy 1s ease-in-out infinite;} @keyframes swRdy{50%{box-shadow:0 0 0 5px rgba(255,196,80,.45);}}
+#it-sw kbd{font:600 10px/1 "JetBrains Mono",monospace;padding:3px 5px;border-radius:5px;background:rgba(255,255,255,.2);}
+#it-x{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex:none;background:rgba(22,21,15,.07);transition:background .2s;} #it-x:hover{background:rgba(22,21,15,.14);}
+#it-x svg{width:14px;height:14px;fill:none;stroke:var(--ink-dim);stroke-width:2;stroke-linecap:round;}
+@media (hover:none){ #it-sw kbd{display:none;} }
+@media (max-width:760px){ #itemfx{right:10px;bottom:auto;top:calc(146px + env(safe-area-inset-top,0px));} #it-sw{height:38px;padding:0 16px;} }
+.vsum{margin:8px 6px 2px;padding-top:9px;border-top:1px solid var(--glass-line);font-size:11px;font-weight:600;color:var(--ink-dim);}
+.dk.item .can{width:34px;height:34px;margin:0 -3px;border-radius:50%;} .dk.item .can::before, .dk.item .can::after{display:none;} .dk.item .can span{font-size:16px;}
 /* the machine's menu */
 #pop-vend{width:min(360px,calc(100% - 20px));padding:12px 10px 10px;}
 #pop-vend .vh{display:flex;align-items:center;gap:8px;margin:0 4px 3px;}
@@ -386,6 +403,7 @@ body.move-click #joy{display:none !important;}
 <div id="goal" aria-hidden="true"></div>
 <div id="tipsy" aria-hidden="true"></div>
 <div id="petalc" class="glass" aria-live="polite"></div>
+<div id="itemfx" class="glass"><i class="ic"></i><span class="dt"><b id="it-n"></b><small id="it-s"></small></span><button type="button" id="it-sw"><span></span><kbd>F</kbd></button><button type="button" id="it-x"><svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
 <div id="hint" class="glass off"></div>
 <button id="throwb" class="glass" type="button"><i class="orb"></i><span class="tl"></span></button>
 <button id="throwx" class="glass" type="button"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -1190,6 +1208,7 @@ void main(){
   bool soft = (m > 4.5 && m < 5.5) || (m > 7.5 && m < 8.5) || (m > 9.5 && m < 10.5);
   if (soft && dot(n, V) < -.2) n = -n;
   if ((m > 6.5 && m < 7.5) || (m > 8.5 && m < 9.5)){ gl_FragColor = vec4(col, uA); return; }       /* lamps, painted-on face details */
+  if (m > 12.5){ gl_FragColor = vec4(col, uA); return; }                                                        /* sparks and fireworks: their own light */
   if (m > 10.5){ gl_FragColor = vec4(mix(mix(col, vec3(.95, .94, .91), .72), min(col * 1.2 + .08, vec3(1.)), uNight), uA); return; }   /* night lamps: frosted by day, lit at night */
   vec2 fp = abs(n.y) > .5 ? vP.xz : (abs(n.x) > .5 ? vP.zy : vP.xy);
   if (m > .5 && m < 1.5){ vec2 g = fp / .6; col = mix(col * (.97 + .04 * hs(floor(g))), vec3(.62, .6, .57), grout(g) * .7); }
@@ -1486,6 +1505,11 @@ function pose(a, now){
   if (BALL.holder === a){ q.a1x = q.a2x = -1.05; q.a1z = -.12; q.a2z = .12; }                      /* the ball held in both hands, at the chest */
   else if (a === me && AIM.on){ q.a2x = -.75; q.a2z = 1.05; }                           /* a balloon held up in the right hand, out to the side */
   else if (a.thr && now - a.thr < 380){ const v = (now - a.thr) / 380; q.a2z = 2.3 - 1.5 * v; q.a2x = .9 - 2.2 * Math.sin(Math.PI * Math.min(1, v * 1.3)); }   /* the throw */
+  if (a.item && BALL.holder !== a && !(a === me && SN.held)){                                         /* the left hand: a sparkler held up, or the net — and its swing */
+    if (a.item === "sp"){ q.a1x = -1.15 + Math.sin(now / 260) * .06; q.a1z = -.32; }
+    else { const u = (now - (a.swing || -1e9)) / 420;
+      if (u >= 0 && u < 1){ const e = Math.min(1, u / .3), s = Math.max(0, (u - .3) / .7), w = 1 - (1 - s) * (1 - s); q.a1x = lerp(lerp(-.75, -2.7, e), -.25, w); q.a1z = -.25 - Math.sin(u * Math.PI) * .45; q.bow += Math.sin(u * Math.PI) * .1; }
+      else { q.a1x = -.75; q.a1z = -.22; } } }
   if (a.dk) dkPose(a, q, now);                                                              /* a drink: to the lips, then what it does */
   if (a === me && SN.held){ q.a1x = q.a2x = -1.25; q.a1z = -.2; q.a2z = .2; q.bow += .22; }                  /* both hands on the snowball */
   if ((a === me ? a.skate : onIce(a)) && !a.emote){ const g = Math.sin(a.ph);                 /* skiing: leaning in, arms out, long slow strides */
@@ -1848,7 +1872,7 @@ function cleanState(st){
   const e = typeof st.e === "string" && (EMOTES[st.e] || POSE_RE.test(st.e)) ? st.e : "";
   return { x:num(st.x, -CXW, CXW, 0), y:num(st.y, FLOOR - .1, 1.5, 0), z:num(st.z, -CZW, CZW, 0), r:num(st.r, -7, 7, 0), w:st.w ? 1 : 0, e, et:num(st.et, 0, 1e15, 0),
     m:cleanText(st.m, 40), mt:num(st.mt, 0, 1e15, 0), n:cleanText(st.n, 12) || "…", look:lookFrom(st.k), f:typeof st.f === "string" ? st.f.slice(0, 48) : "", b:typeof st.b === "string" ? st.b.slice(0, 60) : "",
-    d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "", q:typeof st.q === "string" && /^[psawn][0-9a-z]{1,11}$/.test(st.q) ? st.q : "", h:st.h === "c" ? "c" : "" };
+    d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "", q:typeof st.q === "string" && /^[psawn][0-9a-z]{1,11}$/.test(st.q) ? st.q : "", h:typeof st.h === "string" && /^c?[sn]?$/.test(st.h) ? st.h : "" };
 }
 function onPeerList(list){
   const seen = new Set(), now = performance.now();
@@ -1857,7 +1881,7 @@ function onPeerList(list){
     const id = p.id.slice(0, 64); seen.add(id);
     let a = PEERS.get(id);
     if (!a){ a = newAvatar(st.look); a.id = id; a.x = st.x; a.y = st.y; a.z = st.z; a.r = st.r; a.lastE = st.et; a.lastM = st.mt; a.lastF = st.f; a.lastB = st.b; a.name = st.n; PEERS.set(id, a); if (st.b) ballFrom(a, st.b, true);
-      a.lastD = st.d; if (st.d) drinkFrom(a, st.d, true); a.lastQ = st.q; seasonFrom(a, st.q); a.crown = st.h === "c";
+      a.lastD = st.d; if (st.d) drinkFrom(a, st.d, true); a.lastQ = st.q; seasonFrom(a, st.q); a.crown = st.h.includes("c");
       if (inWorld){ AUD.joined(); logLine(st.n, T({ en:"came in", ko:"님이 들어왔어요" }), true); } }
     else {
       if (st.et !== a.lastE){ a.lastE = st.et; if (st.e.includes(":")){ if (st.e.slice(2) !== a.pose) popEmote(a, "pose_" + st.e.slice(2)); }
@@ -1866,10 +1890,11 @@ function onPeerList(list){
       if (st.b !== a.lastB){ a.lastB = st.b; if (st.b) ballFrom(a, st.b, false); }
       if (st.d !== a.lastD){ a.lastD = st.d; drinkFrom(a, st.d, false); }
       if (st.q !== a.lastQ){ a.lastQ = st.q; seasonFrom(a, st.q); }
-      a.crown = st.h === "c";
+      a.crown = st.h.includes("c");
       if (st.mt !== a.lastM){ a.lastM = st.mt; if (st.m){ a.msg = st.m; a.msgUntil = now + 6500; logLine(st.n, st.m); AUD.chat(); } }
     }
     pushSample(a, st, now); a.name = st.n; a.sit = st.e === "sit" || st.e === "bench" || /^[bs]:/.test(st.e); a.bench = st.e === "bench" || st.e.startsWith("b:");
+    { const it = IT_OF[st.h.replace("c", "")] || ""; if (it !== (a.item || "")){ a.item = it; a.itT0 = now; if (it === "sp" && inWorld) AUD.ignite(hear(a.x, a.z) * .6); } }   /* what they hold: a sparkler, a net
     { const pz = st.e.includes(":") ? st.e.slice(2) : ""; if (pz !== (a.pose || "")){ a.pose = pz; a.pt0 = now; } }          /* the pose they hold, if any */
     if (lookKey(st.look) !== lookKey(a.look)){ a.look = st.look; a.mesh = meshFor(st.look); }
   }
@@ -1878,7 +1903,7 @@ function onPeerList(list){
 }
 function myState(){
   return { s:NET.srv, x:+me.x.toFixed(2), y:+me.y.toFixed(2), z:+me.z.toFixed(2), r:+wrap(me.r).toFixed(2), w:me.moving ? 1 : 0, e:me.pose ? (me.sit ? (me.bench ? "b:" : "s:") : "p:") + me.pose : me.sit ? (me.bench ? "bench" : "sit") : (me.emote || ""),
-    et:me.et, m:me.msg || "", mt:me.mt, n:me.name, k:lookArr(me.look), t:Date.now(), ...(FX.f && !FX.blocked && performance.now() - FX.at < 4000 ? { f:FX.f } : {}), ...(BALL.mine && !FX.blocked ? { b:BALL.mine } : {}), ...(me.dk && !FX.blocked ? { d:DRINKS[me.dk.k].c + me.dk.seq } : {}), ...(SEASON.stamp && !FX.blocked ? { q:SEA_C[SEASON.cur] + SEASON.stamp.toString(36) } : {}), ...(CROWN.on && !FX.blocked ? { h:"c" } : {}) };
+    et:me.et, m:me.msg || "", mt:me.mt, n:me.name, k:lookArr(me.look), t:Date.now(), ...(FX.f && !FX.blocked && performance.now() - FX.at < 4000 ? { f:FX.f } : {}), ...(BALL.mine && !FX.blocked ? { b:BALL.mine } : {}), ...(me.dk && !FX.blocked ? { d:DRINKS[me.dk.k].c + me.dk.seq } : {}), ...(SEASON.stamp && !FX.blocked ? { q:SEA_C[SEASON.cur] + SEASON.stamp.toString(36) } : {}), ...((CROWN.on || me.item) && !FX.blocked ? { h:(CROWN.on ? "c" : "") + (me.item ? ITEMS[me.item].c : "") } : {}) };
 }
 let lastSend = 0, lastSig = "";
 function maybeSend(){
@@ -2011,7 +2036,7 @@ function tagFor(a){
   t = { el, bb, nm, emo, pz, msg:"" }; TAGS.set(a.id, t); return t;
 }
 function dropTag(id){ const t = TAGS.get(id); if (t){ t.el.remove(); TAGS.delete(id); } }
-const EMO_CH = { pose_v:"✌️", pose_hearth:"🥰", pose_bloom:"🌼", pose_think:"🤔", pose_hooray:"🙌", pose_flex:"💪", wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️", splash:"💦", dizzy:"💫", steal:"😎", oops:"😮", energy:"⚡", cider:"🫧", water:"✨", beer:"🥴", milk:"🥛", ghost:"👻", burp:"😮‍💨", lemon:"🍋", kid:"🧃", glass:"🌊", spicy:"🔥", slush:"🥶" };
+const EMO_CH = { catch:"🥅", pose_v:"✌️", pose_hearth:"🥰", pose_bloom:"🌼", pose_think:"🤔", pose_hooray:"🙌", pose_flex:"💪", wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️", splash:"💦", dizzy:"💫", steal:"😎", oops:"😮", energy:"⚡", cider:"🫧", water:"✨", beer:"🥴", milk:"🥛", ghost:"👻", burp:"😮‍💨", lemon:"🍋", kid:"🧃", glass:"🌊", spicy:"🔥", slush:"🥶" };
 function popEmote(a, e){ if (!EMO_CH[e]) return; const t = tagFor(a); t.emo.textContent = EMO_CH[e]; t.emo.classList.remove("go"); void t.emo.offsetWidth; t.emo.classList.add("go"); }
 function project(p){
   const M = VPm; if (!M) return null;
@@ -2233,6 +2258,15 @@ const AUD = (() => {
     petal(){ if (!ok()) return; const tt = ctx.currentTime, f = 2093 + Math.random() * 600; tone(tt, f, .07, .008, f * 1.25); },
     chime(night){ if (!ok()) return; const tt = ctx.currentTime; (night ? [1568, 1319, 1047, 784] : [1047, 1319, 1568, 2093]).forEach((f, i) => tone(tt + i * .12, f, .28, .016)); },
     roll(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; burst(tt, .09, 1600, 2.5, .016 * h); burst(tt + .05, .07, 2600, 3, .01 * h); },   /* snow crunching under a rolling ball */
+    ignite(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; burst(tt, .3, 5200, .8, .018 * h); for (let i = 0; i < 5; i++) burst(tt + .04 + i * .05, .03, 6500 + Math.random() * 2500, 4, .009 * h); },   /* tssss — a sparkler catching */
+    crackle(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; for (let i = 0; i < 2; i++) burst(tt + Math.random() * .08, .018, 5500 + Math.random() * 3500, 5, .006 * h); },
+    swish(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime, s = src(white), f = filt("bandpass", 700, 1.2), a = ctx.createGain();   /* a net through the air */
+      f.frequency.setValueAtTime(700, tt); f.frequency.exponentialRampToValueAtTime(3200, tt + .2); a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(.03 * h, tt + .08); a.gain.exponentialRampToValueAtTime(.0001, tt + .24);
+      s.connect(f); f.connect(a); a.connect(fx); s.start(tt, Math.random() * 3); s.stop(tt + .3); },
+    caught(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; tone(tt, 1568, .08, .02 * h, null, "triangle"); tone(tt + .07, 2349, .14, .018 * h, null, "triangle"); },
+    whistle(k){ if (!ok() || k <= 0) return; tone(ctx.currentTime, 900, 1.05, .004 * k, 2600); },                     /* fireworks: up it goes, then a soft boom and a crackle */
+    boom(k, crk){ if (!ok() || k <= 0) return; const tt = ctx.currentTime; tone(tt, 110, .5, .026 * k, 46); burst(tt, .38, 420, .7, .02 * k);
+      if (crk) for (let i = 0; i < 8; i++) burst(tt + .35 + Math.random() * 1.1, .025, 4200 + Math.random() * 3000, 4, .0035 * k); },
     snowman(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; [1568, 2093, 2637, 3136, 4186].forEach((f, i) => tone(tt + i * .07, f, .22, .016 * h)); },
     hic(h){ if (!ok() || h <= 0) return; tone(ctx.currentTime, 820, .06, .03 * h, 1350, "triangle"); },
     stretch(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 760, .12, .012, 1150, "triangle"); },
@@ -2383,6 +2417,7 @@ function onFx(a, f){
   if (f[0] === "c" && n.length >= 6){ a.thr = performance.now(); AUD.flick(hear(a.x, a.z) * .7); a.r = n[2];
     flipCoin(coinPath({ x0:clamp(n[0], -CXW, CXW), z0:clamp(n[1], -CZW, CZW), a:n[2], v:clamp(n[3], 1, 10), th:clamp(n[4], 2, 85), k:clamp(n[5] | 0, 0, 5) })); return; }
   if (f[0] === "s"){ snowFrom(a, n); return; }
+  if (f[0] === "n"){ a.swing = performance.now(); const h = hear(a.x, a.z); AUD.swish(h * .6); if (n[0] >= 0 && n[0] < 4){ popEmote(a, "catch"); AUD.caught(h * .6); } return; }
   if (f[0] !== "b" || n.length < 5) return;
   a.thr = performance.now(); launch(a, clamp(n[0], -CXW, CXW), a.y + 1.2, clamp(n[1], -CZW, CZW), clamp(n[2], -CXW, CXW), clamp(n[3], -CZW, CZW), Math.abs(n[4] | 0) % BAL_COL.length);
 }
@@ -2794,6 +2829,12 @@ function renderVend(){
     b.querySelector(".can span").textContent = D.ico; b.querySelector(".dt b").textContent = T(D.name); b.querySelector(".dt small").textContent = T(D.fx);
     b.querySelector("em").textContent = cur ? T({ en:"On now", ko:"효과 중" }) : D.dur ? T({ en:`${D.dur}s`, ko:`${D.dur}초` }) : T({ en:"At once", ko:"바로" });
     b.onclick = () => buyDrink(k); L.appendChild(b); }
+  if (summerOn()){ const h = document.createElement("p"); h.className = "vsum"; h.textContent = T({ en:"🍉 Summer only · free", ko:"🍉 여름 한정 · 무료" }); L.appendChild(h);   /* summer: two free things */
+    for (const k in ITEMS){ const I = ITEMS[k], b = document.createElement("button"), cur = me.item === k;
+      b.type = "button"; b.className = "dk item" + (cur ? " cur" : ""); b.style.setProperty("--c1", rgb(I.can)); b.style.setProperty("--c2", rgb(I.band));
+      b.innerHTML = '<i class="can"><span></span></i><span class="dt"><b></b><small></small></span><em></em>';
+      b.querySelector(".can span").textContent = I.ico; b.querySelector(".dt b").textContent = T(I.name); b.querySelector(".dt small").textContent = T(I.fx);
+      b.querySelector("em").textContent = cur ? T({ en:"Holding", ko:"들고 있음" }) : T({ en:"Get", ko:"받기" }); b.onclick = () => getItem(k); L.appendChild(b); } }
   $("vend-n").textContent = T(v.kinds.includes("glass") ? { en:"The glass soda wears off once you step off the water — no sudden dip.", ko:"유리 소다는 물 밖으로 나와야 효과가 끝나요 — 갑자기 빠지지 않아요." }
                            : v.kinds.includes("beer") ? { en:"Sensitive to motion? Turn on “Calm the screen” in ⓘ — the beer then leaves the picture still.", ko:"멀미가 걱정되면 ⓘ에서 ‘화면 흔들림 줄이기’를 켜요 — 맥주를 마셔도 화면이 흔들리거나 겹쳐 보이지 않아요." }
                                                  : { en:"Any effect can be ended early with the × at the top right.", ko:"효과는 오른쪽 위 알림의 ×로 언제든 끌 수 있어요." });
@@ -3035,7 +3076,7 @@ function stepNight(){
    ========================================================================== */
 const SEASONS = ["spring", "summer", "autumn", "winter"], SEA_C = { none:"n", spring:"p", summer:"s", autumn:"a", winter:"w" }, SEA_OF = { n:"none", p:"spring", s:"summer", a:"autumn", w:"winter" };
 const sIdx = (s) => s === "none" ? 1 : SEASONS.indexOf(s);                                         /* none: the trees as they are */
-const SEA_INFO = { none:{ ico:"", to:"기본으로", n:{ en:"Default", ko:"기본" }, d:{ en:"", ko:"" } }, spring:{ ico:"🌸", to:"봄으로", n:{ en:"Spring", ko:"봄" }, d:{ en:"Cherry petals", ko:"벚꽃잎" } }, summer:{ ico:"🍉", to:"여름으로", n:{ en:"Summer", ko:"여름" }, d:{ en:"Cicadas, fireflies", ko:"매미·반딧불" } },
+const SEA_INFO = { none:{ ico:"", to:"기본으로", n:{ en:"Default", ko:"기본" }, d:{ en:"", ko:"" } }, spring:{ ico:"🌸", to:"봄으로", n:{ en:"Spring", ko:"봄" }, d:{ en:"Cherry petals", ko:"벚꽃잎" } }, summer:{ ico:"🍉", to:"여름으로", n:{ en:"Summer", ko:"여름" }, d:{ en:"Fireworks, bug nets", ko:"불꽃놀이·곤충 채집" } },
                    autumn:{ ico:"🍁", to:"가을로", n:{ en:"Autumn", ko:"가을" }, d:{ en:"Falling leaves", ko:"낙엽" } }, winter:{ ico:"❄️", to:"겨울로", n:{ en:"Winter", ko:"겨울" }, d:{ en:"Snow, ski the ice", ko:"눈·얼음 스키" } } };
 const SEASON = { cur:"none", from:null, stamp:0, t0:-1e9, ia:1, ib:1, mix:1, snow:0, ice:0, pickAt:0 };     /* by default: no season at all */
 const iceOn = () => SEASON.ice > .6;
@@ -3292,6 +3333,205 @@ function drawSpring(p, now){
 }
 
 /* ==========================================================================
+   9i. SUMMER — the machines hand out two summer things for free. A
+       sparkler, lit at once, sparks for forty seconds; everyone sees it,
+       and it sparkles harder with someone else's close by. A bug net:
+       cicadas cling to the trees by day and a beetle by night, red
+       dragonflies dart about, fireflies glow — swing, and whatever you
+       catch is counted, then let go. Now and then fireworks open over the
+       far wall, on a plan worked out from the clock, so every page sees the
+       same ones at the same moment. Sparks and fireworks are drawn from one
+       buffer in one call, and nothing is sent for them
+   ========================================================================== */
+const ITEMS = {
+  sp:{ c:"s", ico:"🎇", dur:40, can:[.25, .22, .32], band:[1, .8, .36], name:{ en:"Sparkler", ko:"스파클라" }, fx:{ en:"Lit at once — 40 seconds of sparks, brighter with friends close by", ko:"바로 불이 붙어요 — 40초 동안 반짝, 친구와 가까이 모이면 더 화려해져요" } },
+  net:{ c:"n", ico:"🥅", dur:0, can:[.36, .64, .94], band:[.99, .78, .36], name:{ en:"Bug net", ko:"잠자리채" }, fx:{ en:"Swing it (F) at cicadas, dragonflies, beetles and fireflies — then let them go", ko:"휘둘러서(F) 매미·잠자리·장수풍뎅이·반딧불이를 잡고 놓아줘요" } },
+};
+const IT_OF = { s:"sp", n:"net" };
+const BUGK = { cicada:{ ico:"🦗", n:{ en:"cicada", ko:"매미" } }, dfly:{ ico:"🥅", n:{ en:"red dragonfly", ko:"고추잠자리" } }, beetle:{ ico:"🪲", n:{ en:"rhinoceros beetle", ko:"장수풍뎅이" } }, fly:{ ico:"✨", n:{ en:"firefly", ko:"반딧불이" } } };
+const BUG_IDS = ["cicada", "dfly", "beetle", "fly"];
+const SUM = { mesh:null, t0:0, end:0, swing:0, hitAt:0, got:{ cicada:0, dfly:0, beetle:0, fly:0 }, n:0, done:false, secs:-1, near:false, nearTold:false, crk:0, spawn:0 };
+const BUG = Array.from({ length:8 }, () => ({ on:false, k:"", x:0, y:0, z:0, tx:0, ty:0, tz:0, yaw:0, ph:Math.random() * 6.28, next:0, rel:0, vx:0, vy:0, vz:0, tree:-1 }));
+const SPK = Array.from({ length:150 }, () => ({ on:false, t0:0, x:0, y:0, z:0, vx:0, vy:0, vz:0, life:0, c:0 }));
+const FWQ = 640, FWV = new Float32Array(FWQ * 6 * ST); let FWM = null, fwN = 0;
+const FWS = 6000, FW_COL = [[1, .45, .42], [1, .84, .38], [.52, .86, 1], [.78, .58, 1], [.58, 1, .62], [1, .62, .86], [1, .96, .84]];
+const FW_GOLD = [1, .8, .42], FW_ROCKET = [1, .88, .62], SPC0 = [1, .84, .48], SPC1 = [1, .98, .9];
+const summerOn = () => SEASON.cur === "summer";
+/* the fireworks' plan: worked out from the clock alone, six seconds at a time, so every page agrees */
+function mb32(a){ return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const FWC = new Map();
+function fwPlan(k){ let P = FWC.get(k); if (P) return P; P = [];
+  const r = mb32(k * 7919 + 13), night = Math.floor(k * FWS / DAYLEN) % 2 === 1, finale = night && k % 25 === 0;   /* the same clock as day and night; now and then a finale */
+  const n = finale ? 7 : r() < (night ? .55 : .1) ? 1 + Math.floor(r() * (night ? 3 : 1.4)) : 0;
+  for (let i = 0; i < n; i++) P.push({ t:k * FWS + (finale ? i * 650 : r() * 4800), x:(r() - .5) * 30, z:-CZW - 10 - r() * 14, y:15 + r() * 10, R:4 + r() * 3.5,
+    c:Math.floor(r() * FW_COL.length), c2:Math.floor(r() * FW_COL.length), ty:r() < .22 ? 2 : r() < .3 ? 1 : 0, rot:r() * 6.28, l:0, s:0 });
+  FWC.set(k, P); if (FWC.size > 4) FWC.delete(FWC.keys().next().value); return P; }
+function summerMeshes(){ const one = (fn) => { const A = maker(); fn(A); return upload(A.v); };
+  return {
+    wire:one(A => A.tube([0, -.05, 0], [0, .44, 0], .0045, .0045, [.62, .62, .66], 3, 5)),                          /* the sparkler: a wire, its coating burning down, a glowing tip */
+    coat:one(A => A.tube([0, 0, 0], [0, 1, 0], .011, .011, [.24, .21, .24], 0, 6)),
+    glow:one(A => A.ell([0, 0, 0], 1, 1, 1, [1, .94, .66], 13, 8)),
+    net:one(A => { A.tube([0, -.14, 0], [0, .9, 0], .012, .011, [.36, .62, .93], 0, 6);                             /* the net: a pole, a hoop, a soft white bag */
+      for (let i = 0; i < 16; i++){ const a0 = i / 16 * 6.283, a1 = (i + 1) / 16 * 6.283, R = .14; A.tube([Math.sin(a0) * R, 1.04 - Math.cos(a0) * R, 0], [Math.sin(a1) * R, 1.04 - Math.cos(a1) * R, 0], .007, .007, [.98, .66, .22], 0, 4); }
+      A.tube([0, 1.04, 0], [0, 1, .26], .134, .03, [.97, .97, .95], 5, 12); }),
+    cic:one(A => { A.ell([0, 0, 0], .028, .052, .022, [.32, .27, .17], 0, 8); A.ell([0, .052, .006], .032, .017, .02, [.25, .22, .15], 0, 8);   /* a cicada, head up the trunk */
+      for (const s of [-1, 1]){ A.ell([s * .027, .055, .012], .009, .009, .009, [.12, .1, .08], 0, 6); A.ell([s * .015, -.022, .024], .02, .066, .004, [.82, .9, .86], 9, 8); } }),
+    btl:one(A => { A.ell([0, 0, .006], .046, .062, .032, [.34, .18, .08], 8, 10); A.ell([0, .066, .012], .028, .02, .022, [.2, .11, .06], 8, 8); A.tube([0, .07, .028], [0, .135, .06], .011, .004, [.2, .11, .06], 8, 5); }),
+    dfb:one(A => { A.tube([0, 0, -.13], [0, 0, .04], .006, .009, [.9, .3, .2], 0, 6); A.ell([0, 0, .055], .017, .016, .024, [.8, .28, .2], 0, 8); A.ell([0, .002, .085], .02, .016, .015, [.72, .22, .16], 0, 8); }),
+    dfw:one(A => { A.ell([.07, 0, .06], .07, .003, .013, [.93, .96, .98], 9, 8); A.ell([.065, 0, .028], .065, .003, .012, [.93, .96, .98], 9, 8); }),
+  };
+}
+/* what a hand holds: where the grip is, and which way the thing points (left hand; the right stays free for drinks and balloons) */
+function itemFrame(a, now){ const q = pose(a, now), sc = a.sc || 1, base = mm4(Tm(a.x, a.y + q.lift, a.z), RYS(a.r + q.spin, sc)), up = mm4(base, mm4(Tm(0, .42, 0), mm4(RX(q.bow), mm4(RZ(q.sway), Tm(0, -.42, 0)))));
+  const M = mm4(up, mm4(Tm(-.165, .79, 0), mm4(RZ(q.a1z), mm4(RX(q.a1x), Tm(.165, -.79, 0))))), p = [-.219, .5, .004], L = a.item === "net" ? [0, .1, 1] : [0, -.4, 1];
+  return { g:[M[0] * p[0] + M[4] * p[1] + M[8] * p[2] + M[12], M[1] * p[0] + M[5] * p[1] + M[9] * p[2] + M[13], M[2] * p[0] + M[6] * p[1] + M[10] * p[2] + M[14]],
+           d:norm([M[0] * L[0] + M[4] * L[1] + M[8] * L[2], M[1] * L[0] + M[5] * L[1] + M[9] * L[2], M[2] * L[0] + M[6] * L[1] + M[10] * L[2]]), sc }; }
+function itAx(c, d, kx, ky){ let x0 = d[2], x2 = -d[0], l = Math.hypot(x0, x2); if (l < 1e-4){ x0 = 1; x2 = 0; l = 1; } x0 /= l; x2 /= l;
+  const z0 = -x2 * d[1], z1 = x2 * d[0] - x0 * d[2], z2 = x0 * d[1];
+  MX[0] = x0 * kx; MX[1] = 0; MX[2] = x2 * kx; MX[3] = 0; MX[4] = d[0] * ky; MX[5] = d[1] * ky; MX[6] = d[2] * ky; MX[7] = 0;
+  MX[8] = z0 * kx; MX[9] = z1 * kx; MX[10] = z2 * kx; MX[11] = 0; MX[12] = c[0]; MX[13] = c[1]; MX[14] = c[2]; MX[15] = 1; return MX; }
+const burnOf = (a, now) => a === me ? clamp((now - SUM.t0) / (ITEMS.sp.dur * 1000), 0, 1) : clamp((now - (a.itT0 || now)) / (ITEMS.sp.dur * 1000), 0, .92);
+function getItem(k){
+  const I = ITEMS[k]; if (!I || !inWorld || making) return;
+  if (!summerOn()){ hint(T({ en:"Only in summer", ko:"여름에만 받을 수 있어요" })); return; }
+  if (DKS.open < 0 || nearVend(2.9) !== DKS.open){ closePops(); hint(T({ en:"Walk up to the machine first", ko:"자판기 앞으로 가서 골라요" })); return; }
+  if (k === "net" && me.item === "net"){ hint(T({ en:"You're already holding one", ko:"이미 들고 있어요" }), true); return; }
+  closePops(); const now = performance.now();
+  me.item = k; me.itT0 = now; SUM.t0 = now; SUM.end = I.dur ? now + I.dur * 1000 : Infinity; SUM.secs = -1; lastSig = "";
+  AUD.vend("can");
+  if (k === "sp"){ setTimeout(() => AUD.ignite(1), 380); hint(T({ en:"🎇 Lit! Bring it close to a friend's and both sparkle harder", ko:"🎇 불이 붙었어요! 친구 스파클라 가까이 가면 둘 다 더 화려해져요" }), true); }
+  else hint(T({ en:"🥅 F (or the button) to swing — cicadas on the trees by day, beetles at night, dragonflies in the air, fireflies after dark", ko:"🥅 F(또는 버튼)로 휘둘러요 — 낮엔 나무에 매미, 밤엔 장수풍뎅이, 공중엔 잠자리, 어두워지면 반딧불이" }));
+  itemUI();
+}
+function putAway(why){ if (!me.item) return; me.item = ""; SUM.hitAt = 0; lastSig = ""; itemUI(); if (why) hint(T(why), true); }
+function swingNet(){
+  if (me.item !== "net" || !inWorld || making) return; const now = performance.now(); if (now - SUM.swing < 520) return;
+  SUM.swing = me.swing = now; SUM.hitAt = now + 180; AUD.swish(1);
+}
+/* the nearest thing in front of you, in reach of the net: a bug, or a firefly */
+function netTarget(){ const cx = me.x + Math.sin(me.r) * 1.05, cz = me.z + Math.cos(me.r) * 1.05, cy = me.y + 1.2; let best = null, bd = .95, kind = "";
+  for (const b of BUG) if (b.on && !b.rel){ const d = Math.hypot(b.x - cx, b.z - cz) + Math.max(0, Math.abs(b.y - cy) - .9); if (d < bd){ bd = d; best = b; kind = b.k; } }
+  if (!best) for (const p of SP) if (p.on && p.kind === "fly"){ const d = Math.hypot(p.x - cx, p.z - cz) + Math.max(0, Math.abs(p.y - cy) - .9); if (d < bd){ bd = d; best = p; kind = "fly"; } }
+  return best ? [best, kind] : null; }
+/* the little notice for what you hold: the sparkler's seconds, or the net's catch, a swing button, and × */
+function itemUI(){
+  const el = $("itemfx"), k = me.item; el.classList.toggle("on", !!k); el.classList.toggle("net", k === "net"); if (!k) return;
+  const I = ITEMS[k]; el.style.setProperty("--ic", rgb(I.band)); el.querySelector(".ic").textContent = I.ico; $("it-n").textContent = T(I.name);
+  $("it-sw").firstChild.textContent = T({ en:"Swing", ko:"휘두르기" }); $("it-x").setAttribute("aria-label", T({ en:"Put away", ko:"넣기" })); $("it-x").title = T({ en:"Put away", ko:"넣기" });
+  const kinds = BUG_IDS.filter(b => SUM.got[b]).length;
+  $("it-s").textContent = k === "net" ? (SUM.n ? T({ en:`${SUM.n} caught · ${kinds}/4 kinds`, ko:`${SUM.n}마리 잡음 · 도감 ${kinds}/4` }) : T(NIGHT.k > .5 ? { en:"Beetles on the trees, fireflies about", ko:"나무엔 장수풍뎅이, 주위엔 반딧불이" } : { en:"Cicadas on the trees, dragonflies in the air", ko:"나무엔 매미, 공중엔 잠자리" }))
+    : `${T({ en:`${Math.max(0, SUM.secs)}s left`, ko:`${Math.max(0, SUM.secs)}초 남음` })}${SUM.near ? " · " + T({ en:"together ✨", ko:"함께 ✨" }) : ""}`;
+}
+/* a cicada or beetle on a trunk (on the side towards the courtyard), or a dragonfly somewhere in the air round you */
+function bugSpot(b, k){
+  if (k === "dfly"){ const a = Math.random() * 6.28, r = 3 + Math.random() * 6; b.x = clamp(me.x + Math.cos(a) * r, -CXW + 1, CXW - 1); b.z = clamp(me.z + Math.sin(a) * r, -CZW + 1, CZW - 1);
+    b.y = 1 + Math.random() * .8; b.tx = b.x; b.ty = b.y; b.tz = b.z; b.next = 0; b.tree = -1; return true; }
+  const free = []; for (let i = 0; i < TREES.length; i++) if (!BUG.some(o => o.on && o.tree === i)) free.push(i); if (!free.length) return false;
+  free.sort((i, j) => Math.hypot(TREES[i][0] - me.x, TREES[i][1] - me.z) - Math.hypot(TREES[j][0] - me.x, TREES[j][1] - me.z));
+  const i = free[Math.floor(Math.random() * Math.min(3, free.length))], [tx, tz] = TREES[i], y = 1.05 + Math.random() * .6, u = (y - .5) / 1.9, a = Math.atan2(-tx, -tz) + (Math.random() - .5) * 1.6, r = .1 - .03 * u;
+  b.tree = i; b.y = y; b.x = tx + .1 * u + Math.sin(a) * r; b.z = tz - .05 * u + Math.cos(a) * r; b.yaw = a; return true; }
+function stepSummer(dt, now){
+  const sum = summerOn() && inWorld;
+  if (!summerOn()){ for (const a of AVATARS()) a.itF = null; if (me.item) putAway(inWorld ? { en:"Summer's over — put away", ko:"여름이 끝나서 넣어 뒀어요" } : null); for (const b of BUG) b.on = false; for (const p of SPK) p.on = false; fwN = 0; return; }
+  if (me.item === "sp" && now > SUM.end) putAway({ en:"The sparkler burnt out", ko:"스파클라가 다 탔어요" });
+  /* the bugs, round you: by day three cicadas and three dragonflies, at night two beetles (the fireflies are the season's own) */
+  const day = NIGHT.k < .5, want = { cicada:day ? 3 : 0, dfly:day ? 3 : 0, beetle:day ? 0 : 2 }, have = { cicada:0, dfly:0, beetle:0 };
+  for (const b of BUG) if (b.on){ if (!want[b.k] && !b.rel) b.on = false; else have[b.k]++; }
+  if (sum && now > SUM.spawn){ SUM.spawn = now + 2500; for (const k in want) if (have[k] < want[k]){ const b = BUG.find(o => !o.on); if (b && bugSpot(b, k)){ b.on = true; b.k = k; b.rel = 0; } break; } }
+  for (const b of BUG){ if (!b.on) continue;
+    if (b.rel){ b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt; b.vy += .5 * dt; b.yaw = Math.atan2(b.vx, b.vz); if (now - b.rel > 2400) b.on = false; continue; }   /* let go: off it flies */
+    if (b.k !== "dfly") continue;
+    if (now > b.next){ b.next = now + 900 + Math.random() * 1800; const a = Math.random() * 6.28, r = 1 + Math.random() * 3.5;     /* a hover, then a dart */
+      b.tx = clamp(b.x + Math.cos(a) * r, -CXW + 1, CXW - 1); b.tz = clamp(b.z + Math.sin(a) * r, -CZW + 1, CZW - 1); b.ty = .9 + Math.random() * .9;
+      if (Math.hypot(b.tx - me.x, b.tz - me.z) > 11){ b.tx = clamp(me.x + (Math.random() - .5) * 6, -CXW + 1, CXW - 1); b.tz = clamp(me.z + (Math.random() - .5) * 6, -CZW + 1, CZW - 1); } }
+    const dx = b.tx - b.x, dy = b.ty - b.y, dz = b.tz - b.z, d = Math.hypot(dx, dy, dz);
+    if (d > .03){ const sp = Math.min(3.2, d * 4); b.x += dx / d * sp * dt; b.y += dy / d * sp * dt; b.z += dz / d * sp * dt; b.yaw += wrap(Math.atan2(dx, dz) - b.yaw) * Math.min(1, dt * 8); }
+    b.y += Math.sin(now / 180 + b.ph) * .05 * dt; }
+  /* the swing lands: the nearest thing in front of you, in reach of the net */
+  if (me.item === "net" && now > (SUM.rdy || 0)){ SUM.rdy = now + 200; $("itemfx").classList.toggle("ready", !!netTarget()); }   /* something in reach: the swing button glows */
+  if (SUM.hitAt && now >= SUM.hitAt){ SUM.hitAt = 0; const fx = Math.sin(me.r), fz = Math.cos(me.r), tg = netTarget(), best = tg && tg[0], kind = tg ? tg[1] : "";
+    let ki = -1;
+    if (best){ ki = BUG_IDS.indexOf(kind);
+      if (kind === "fly") best.on = false; else { best.rel = now; best.vx = fx * .9 + (Math.random() - .5); best.vz = fz * .9 + (Math.random() - .5); best.vy = 1.3; best.tree = -1; }
+      SUM.got[kind]++; SUM.n++; AUD.caught(1); popEmote(me, "catch");
+      hint(`${BUGK[kind].ico} ${T({ en:`Caught a ${BUGK[kind].n.en} — and let it go`, ko:`${BUGK[kind].n.ko}를 잡았어요 — 살짝 놓아줬어요` })}`, true);
+      if (!SUM.done && BUG_IDS.every(k => SUM.got[k] > 0)){ SUM.done = true; setTimeout(() => { AUD.fanfare(); hint(T({ en:"🏅 All four summer bugs caught once — the collection is complete!", ko:"🏅 여름 곤충 네 종류를 모두 잡았어요 — 도감 완성!" })); }, 1200); } }
+    sendFx(`n#:${ki}`); itemUI(); }
+  /* what each hand holds, worked out once a frame for the drawing; the sparklers' sparks */
+  let crk = 0;
+  for (const a of AVATARS()){ a.itF = null;
+    if (!a.item || !a.mesh || a.npc || Math.hypot(a.x - camPos[0], a.z - camPos[2]) > 30) continue;
+    a.itF = itemFrame(a, now); if (a.item !== "sp") continue;
+    a.tg = false; for (const o of AVATARS()) if (o !== a && o.item === "sp" && Math.hypot(o.x - a.x, o.z - a.z) < 3){ a.tg = true; break; }
+    const f = a.itF, len = (.14 + .28 * (1 - burnOf(a, now))) * f.sc; f.tip = [f.g[0] + f.d[0] * len, f.g[1] + f.d[1] * len, f.g[2] + f.d[2] * len];
+    if (a.dk && dkOn(a, "ghost", now)) continue;
+    a.spkAcc = (a.spkAcc || 0) + dt * (a.tg ? 100 : 55);
+    while (a.spkAcc > 1){ a.spkAcc--; const p = slot(SPK), th = Math.random() * 6.283, cph = 2 * Math.random() - 1, sph = Math.sqrt(1 - cph * cph), v = 1 + Math.random() * (a.tg ? 2.1 : 1.5);
+      p.on = true; p.t0 = now; p.x = f.tip[0]; p.y = f.tip[1]; p.z = f.tip[2]; p.vx = sph * Math.cos(th) * v; p.vy = cph * v + .35; p.vz = sph * Math.sin(th) * v; p.life = .2 + Math.random() * (a.tg ? .4 : .28); p.c = Math.random() < .3 ? 1 : 0; }
+    crk = Math.max(crk, a === me ? 1 : hear(a.x, a.z) * .6); }
+  for (const p of SPK) if (p.on){ if ((now - p.t0) / 1000 > p.life){ p.on = false; continue; } p.vy -= 2.6 * dt; const dr = Math.pow(.3, dt); p.vx *= dr; p.vz *= dr; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; }
+  if (crk > .05 && now > SUM.crk){ SUM.crk = now + 140; AUD.crackle(crk); }
+  if (me.item === "sp"){ const s = Math.ceil((SUM.end - now) / 1000), near = !!me.tg; if (s !== SUM.secs || near !== SUM.near){ SUM.secs = s; SUM.near = near; itemUI(); }
+    if (near && !SUM.nearTold){ SUM.nearTold = true; hint(T({ en:"🎇 Together they sparkle harder", ko:"🎇 함께 하니까 더 반짝여요" }), true); } }
+  /* fireworks: a whistle as each goes up, a soft boom as it opens */
+  const T0 = Date.now(), ks = Math.floor(T0 / FWS), vol = camPos[1] < -.05 ? .35 : 1;
+  for (let kk = ks - 1; kk <= ks; kk++) for (const b of fwPlan(kk)){ const u = (T0 - b.t) / 1000;
+    if (u >= 0 && !b.l){ b.l = 1; if (u < .4 && inWorld) AUD.whistle(vol); }
+    if (u >= 1.2 && !b.s){ b.s = 1; if (u < 1.8 && inWorld) AUD.boom(vol, b.ty !== 1); } }
+  buildFW(now);
+}
+/* sparks and fireworks: thin streaks facing the camera, all in one buffer */
+let fwO = 0;
+function fwV(x, y, z, c){ FWV[fwO] = x; FWV[fwO + 1] = y; FWV[fwO + 2] = z; FWV[fwO + 3] = 0; FWV[fwO + 4] = 1; FWV[fwO + 5] = 0; FWV[fwO + 6] = c[0]; FWV[fwO + 7] = c[1]; FWV[fwO + 8] = c[2]; FWV[fwO + 9] = 13; fwO += ST; }
+function streak(ax, ay, az, bx, by, bz, w, c){
+  if (fwN >= FWQ * 6 || w < .002) return;
+  let dx = bx - ax, dy = by - ay, dz = bz - az; const L = Math.hypot(dx, dy, dz), mn = w * .9;
+  if (L < mn){ if (L < 1e-5){ dx = 0; dy = 1; dz = 0; } else { dx /= L; dy /= L; dz /= L; } bx = ax + dx * mn; by = ay + dy * mn; bz = az + dz * mn; dx = bx - ax; dy = by - ay; dz = bz - az; }   /* never thinner than it is wide */
+  const mx = (ax + bx) * .5 - camPos[0], my = (ay + by) * .5 - camPos[1], mz = (az + bz) * .5 - camPos[2];
+  let sx = dy * mz - dz * my, sy = dz * mx - dx * mz, sz = dx * my - dy * mx; const l = Math.hypot(sx, sy, sz) || 1, k = w * .5 / l; sx *= k; sy *= k; sz *= k;
+  fwV(ax - sx, ay - sy, az - sz, c); fwV(ax + sx, ay + sy, az + sz, c); fwV(bx + sx, by + sy, bz + sz, c);
+  fwV(ax - sx, ay - sy, az - sz, c); fwV(bx + sx, by + sy, bz + sz, c); fwV(bx - sx, by - sy, bz - sz, c); fwN += 6; }
+function fwBurst(b, u, L){
+  const N = b.ty === 1 ? 40 : b.ty === 2 ? 46 : 60, g = b.ty === 2 ? 1.25 : .32, up = Math.max(0, u - (b.ty === 2 ? .16 : .09)), e = 1 - Math.exp(-3 * u), eu = 1 - Math.exp(-3 * up);
+  const w = (.17 + .3 * Math.exp(-6 * u)) * (1 - sstep(L * .5, L, u)); if (w < .01) return;
+  if (u < .16){ const k = 1.8 * (1 - u / .16); streak(b.x, b.y - k * .5, b.z, b.x, b.y + k * .5, b.z, k, SPC1); }                                /* the flash as it opens */
+  const ca = FW_COL[b.c], cb = FW_COL[b.c2], cr = Math.cos(b.rot), sr = Math.sin(b.rot);
+  for (let i = 0; i < N; i++){ let dx, dy, dz;
+    if (b.ty === 1){ const a = i / N * 6.283, x = Math.cos(a), zz = Math.sin(a) * .83; dy = Math.sin(a) * .55; dx = x * cr - zz * sr; dz = x * sr + zz * cr; }   /* a tilted ring */
+    else { dy = 1 - 2 * (i + .5) / N; const r = Math.sqrt(1 - dy * dy), a = i * 2.39996 + b.rot; dx = Math.cos(a) * r; dz = Math.sin(a) * r; }   /* a full round burst */
+    const R = b.R, ww = b.ty === 2 && u > L * .4 ? w * (.45 + .55 * Math.abs(Math.sin(i * 7.1 + u * 23))) : w;   /* the gold willow glitters as it falls */
+    streak(b.x + dx * R * eu, b.y + dy * R * eu - g * up * up, b.z + dz * R * eu, b.x + dx * R * e, b.y + dy * R * e - g * u * u, b.z + dz * R * e, ww, b.ty === 2 ? FW_GOLD : i & 1 ? ca : cb); } }
+function buildFW(now){
+  fwN = 0; fwO = 0; if (!gl) return;
+  for (const p of SPK){ if (!p.on) continue; const u = (now - p.t0) / 1000, w = .026 * (1 - u / p.life) + .007;
+    streak(p.x - p.vx * .035, p.y - p.vy * .035, p.z - p.vz * .035, p.x, p.y, p.z, w, p.c ? SPC1 : SPC0); }
+  if (camPos[1] > -.05){ const T0 = Date.now(), ks = Math.floor(T0 / FWS);
+    for (let kk = ks - 1; kk <= ks; kk++) for (const b of fwPlan(kk)){ const u = (T0 - b.t) / 1000; if (u < 0) continue;
+      if (u < 1.2){ const v = u / 1.2, v0 = Math.max(0, v - .12), y = 2 + (b.y - 2) * (1 - (1 - v) * (1 - v)), y0 = 2 + (b.y - 2) * (1 - (1 - v0) * (1 - v0)); streak(b.x, y0, b.z, b.x, y, b.z, .13, FW_ROCKET); continue; }   /* going up */
+      const L = b.ty === 2 ? 3.2 : 2; if (u - 1.2 < L) fwBurst(b, u - 1.2, L); } }
+  if (fwN){ if (!FWM){ FWM = { buf:gl.createBuffer(), n:0 }; gl.bindBuffer(gl.ARRAY_BUFFER, FWM.buf); gl.bufferData(gl.ARRAY_BUFFER, FWV.byteLength, gl.DYNAMIC_DRAW); }
+    gl.bindBuffer(gl.ARRAY_BUFFER, FWM.buf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, FWV.subarray(0, fwN * ST)); FWM.n = fwN; }
+}
+function drawSummer(p, now){
+  const held = AVATARS().some(a => a.itF), bugs = BUG.some(b => b.on);
+  if (!held && !bugs && !fwN) return;
+  if ((held || bugs) && !SUM.mesh) SUM.mesh = summerMeshes();
+  const u = p.u, put = (m, M) => { gl.uniformMatrix4fv(u.uM, false, M); bindMesh(m); gl.drawArrays(gl.TRIANGLES, 0, m.n); }, M = SUM.mesh, lit = PASS === "main" || PASS === "mirror";
+  for (const a of AVATARS()){ const f = a.itF; if (!f || (a === me && tooClose()) || BALL.holder === a || (a === me && SN.held)) continue;
+    if (a.dk && (PASS === "main" || PASS === "nrm" || PASS === "rf") && dkOn(a, "ghost", now)) continue;
+    if (a.item === "net"){ put(M.net, itAx(f.g, f.d, f.sc, f.sc)); continue; }
+    put(M.wire, itAx(f.g, f.d, f.sc, f.sc)); if (!f.tip) continue;
+    const c0 = [f.g[0] + f.d[0] * .16 * f.sc, f.g[1] + f.d[1] * .16 * f.sc, f.g[2] + f.d[2] * .16 * f.sc], cl = Math.max(.005, Math.hypot(f.tip[0] - c0[0], f.tip[1] - c0[1], f.tip[2] - c0[2]));
+    put(M.coat, itAx(c0, f.d, f.sc, cl));
+    if (lit){ const r = (.02 + .007 * Math.sin(now / 37 + a.x)) * f.sc * (a.tg ? 1.3 : 1); put(M.glow, setM(f.tip[0], f.tip[1], f.tip[2], r, r, r, 0)); } }
+  if (PASS !== "sh") for (const b of BUG){ if (!b.on) continue;
+    if (b.k === "dfly"){ const base = mm4(mm4(Tm(b.x, b.y, b.z), RY(b.yaw)), [2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1]), fl = .45 * Math.sin(now / 22 + b.ph);
+      put(M.dfb, base); put(M.dfw, mm4(base, RZ(fl))); put(M.dfw, mm4(base, mm4(RZ(-fl), [-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]))); }
+    else put(b.k === "beetle" ? M.btl : M.cic, setM(b.x, b.y, b.z, 2.1, 2.1, 2.1, b.yaw)); }
+  if (lit && fwN && FWM){ gl.uniformMatrix4fv(u.uM, false, I4); bindMesh(FWM); gl.drawArrays(gl.TRIANGLES, 0, fwN); }
+}
+
+/* ==========================================================================
    10. INPUT
    ========================================================================== */
 const ptrs = new Map(); let pinch0 = 0, d0 = 0;
@@ -3325,7 +3565,7 @@ window.addEventListener("keydown", e => {
   if (e.key === "Escape"){ cancelAim(); closePops(); document.body.classList.remove("about"); return; }
   keys[e.code] = true;
   if (e.code === "Space"){ e.preventDefault(); jump(); }
-  if (e.code === "KeyF" && !e.repeat && inWorld && !making){ if (BALL.holder === me) throwNow(); else setArmed(!AIM.armed); }
+  if (e.code === "KeyF" && !e.repeat && inWorld && !making){ if (me.item === "net" && BALL.holder !== me) swingNet(); else if (BALL.holder === me) throwNow(); else setArmed(!AIM.armed); }
   if (e.code === "KeyG" && !e.repeat && inWorld && !making){ if (SN.held) dropSnow(); else if (BALL.holder === me) dropBall(me, true); else grabBall(true); }
   if (e.code === "KeyE" && inWorld && !making && !e.repeat){ const vi = me.sit ? -1 : nearVend(2.2);
     if (vi >= 0){ if ($("pop-vend").classList.contains("on")) closePops(); else openVend(vi); }
@@ -3344,6 +3584,8 @@ document.querySelectorAll("#mv-seg [data-mv]").forEach(b => b.onclick = () => { 
 setMove(MOVE);
 $("calm").onchange = () => { AUD.click(); setCalm($("calm").checked); }; setCalm(CALM);
 $("dfx-x").onclick = () => { AUD.click(); endDrink(true); };
+$("it-x").onclick = () => { AUD.click(); putAway(null); };
+$("it-sw").onclick = () => { AUD.unlock(); swingNet(); };
 $("c-dn").onclick = (e) => { e.stopPropagation(); AUD.click(); renderSeason(); const on = openPop("pop-season"); $("c-dn").classList.toggle("open", on); };
 $("vend-x").onclick = () => { AUD.click(); closePops(); };
 $("b-bal").onclick = () => { AUD.click(); closePops(); setArmed(!AIM.armed); };
@@ -3426,7 +3668,7 @@ function drawPeople(p, now){
       gl.uniform3f(p.u.uTint, hot ? 1 + .22 * e : cold ? 1 - .16 * e : 1, hot ? 1 - .27 * e : cold ? 1 - .05 * e : 1, hot ? 1 - .31 * e : cold ? 1 + .24 * e : 1); }
     for (const [M, part] of mats){ gl.uniformMatrix4fv(p.u.uM, false, M); bindMesh(part); gl.drawArrays(gl.TRIANGLES, 0, part.n); } }
   if (p.u.uAvY) gl.uniform1f(p.u.uAvY, -99); if (p.u.uTint) gl.uniform3f(p.u.uTint, 1, 1, 1);
-  drawBalloons(p); drawDrinks(p, now); drawSeason(p); drawSpring(p, now); drawSnow(p);
+  drawBalloons(p); drawDrinks(p, now); drawSeason(p); drawSpring(p, now); drawSnow(p); drawSummer(p, now);
 }
 function drawSky(VP, clip, t){ gl.depthMask(false); useProg(P.sky, VP, clip, 0, t); gl.uniformMatrix4fv(P.sky.u.uM, false, Tm(camPos[0], camPos[1], camPos[2])); bindMesh(SKY); gl.drawArrays(gl.TRIANGLES, 0, SKY.n); gl.depthMask(true); }
 function drawScene(VP, clip, below, t, now){ useProg(P.main, VP, clip, below, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.main, now); }
@@ -3473,7 +3715,7 @@ let lastT = performance.now(), pruneAt = 0, zoneHint = { below:false, up:false }
 function frame(now){
   tuneQuality(now - lastT);
   const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; const t = now / 1000;
-  stepNight(); moveMe(dt); stepPeers(dt); stepSeason(dt, now); stepStill(dt); stepSpring(dt, now); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); stepSnow(dt, now); placeCamera(dt);
+  stepNight(); moveMe(dt); stepPeers(dt); stepSeason(dt, now); stepStill(dt); stepSpring(dt, now); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); stepSnow(dt, now); placeCamera(dt); stepSummer(dt, now);
   if (me.emote && now - me.et0 > 4200) me.emote = "";
   render(t, now); updateTags(now); updateSeats(); updateBallUI(); updateVend(now); updateSnowUI(); maybeSend();
   { const el = $("goal"), p = goal && inWorld && !making ? project([goal.x, goal.y + .02, goal.z]) : null;           /* where you are walking to */
@@ -3521,6 +3763,7 @@ function about(){
    { en:"Day and night take turns every three minutes, the same for everyone here. At night the lamps and strings of bulbs along the walls and the vending machines light up, and the water glows softly — the count at the top shows how long till it turns", ko:"3분마다 낮과 밤이 바뀌어요(모든 방문자가 같은 시간). 밤에는 벽을 따라 벽등과 줄 전구, 자판기 불빛이 켜지고 수영장 물빛이 은은하게 빛나요 — 위쪽 표시에서 바뀔 때까지 남은 시간을 볼 수 있어요" },
    { en:"Seasons: tap the sun or moon at the top to pick spring, summer, autumn or winter — it changes for everyone on the server. Spring brings cherry petals, summer cicadas (and fireflies at night), autumn falling leaves; walk up to a tree and it lets go of a handful. In winter it snows, footprints stay in it, and the pool freezes: walk onto the ice and ski", ko:"계절: 위쪽 해·달 표시를 누르면 봄·여름·가을·겨울을 고를 수 있어요 — 바꾸면 서버의 모두에게 함께 바뀌어요. 봄엔 벚꽃잎, 여름엔 매미 소리(밤엔 반딧불), 가을엔 낙엽이 날리고, 나무에 다가가면 우수수 떨어져요. 겨울엔 눈이 내려 발자국이 남고, 수영장이 얼어 얼음 위에서 스키를 탈 수 있어요" },
    { en:"Spring: walk through fallen petals and they come to you — thirty make a crown of blossom that everyone sees; sit on a bench and petals pour down round you; by day butterflies drift about and settle on the head of anyone who keeps still", ko:"봄: 바닥에 떨어진 꽃잎 위를 걸으면 꽃잎이 모여요 — 30장을 모으면 벚꽃 화관이 생기고 다른 사람에게도 보여요. 벤치에 앉으면 꽃잎이 쏟아져요. 낮에는 나비가 날아다니다 가만히 있는 사람 머리에 앉아요" },
+   { en:"Summer: the vending machines give out a sparkler and a bug net, free. The sparkler sparks for forty seconds and harder beside a friend's; swing the net (F) at cicadas and beetles on the trees, dragonflies in the air and fireflies at night — each is counted, then let go. Now and then fireworks open over the far wall, the same for everyone", ko:"여름: 자판기에서 스파클라와 잠자리채를 무료로 받아요. 스파클라는 40초 동안 반짝이고, 친구 스파클라 곁에서는 더 화려해져요. 잠자리채를 휘둘러(F) 나무의 매미·장수풍뎅이, 공중의 잠자리, 밤의 반딧불이를 잡으면 세고 놓아줘요. 가끔 건너편 하늘에 불꽃놀이가 터져요 — 모두에게 똑같이 보여요" },
    { en:"Talk (Enter), wave, bow, jump, dance or sit — near a bench every free seat shows a ring: click it, or press E, to sit", ko:"말하기(Enter), 손 흔들기·인사·점프·춤·앉기로 만나요 — 벤치 가까이 가면 빈자리에 동그라미가 떠요. 누르거나 E 키로 앉아요" }]
     .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); ol.appendChild(li); });
   const lab = { wave:{ en:"Wave", ko:"손 흔들기" }, bow:{ en:"Bow", ko:"인사" }, jump:{ en:"Jump", ko:"점프" }, dance:{ en:"Dance", ko:"춤" }, sit:{ en:"Sit", ko:"앉기" }, heart:{ en:"Heart", ko:"하트" } };
@@ -3554,7 +3797,7 @@ if (!initGL()){
   netInit();
 }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
-window.__pool = { CROWN, BFLY, POSES, SNB, SNM, makeSnowman, night(k){ NIGHT.force = k; }, season(s){ setSeason(s, Date.now(), null); }, SEASON, faceOf, AUD, buyDrink, openVend, endDrink, setCalm, DRINKS, VENDS, handAt, pose, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
+window.__pool = { CROWN, BFLY, POSES, SUM, BUG, ITEMS, fw(ty, age){ const k = Math.floor(Date.now() / FWS); fwPlan(k).push({ t:Date.now() - 1200 - (age || 0) * 1000, x:(Math.random() - .5) * 16, z:-CZW - 14, y:17, R:5.5, c:0, c2:2, ty:ty || 0, rot:0, l:1, s:0 }); }, SNB, SNM, makeSnowman, night(k){ NIGHT.force = k; }, season(s){ setSeason(s, Date.now(), null); }, SEASON, faceOf, AUD, buyDrink, openVend, endDrink, setCalm, DRINKS, VENDS, handAt, pose, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
 </script>
 </body>
 </html>
