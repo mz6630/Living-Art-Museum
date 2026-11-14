@@ -3340,6 +3340,14 @@ setMove(MOVE);
 $("calm").onchange = () => { AUD.click(); setCalm($("calm").checked); }; setCalm(CALM);
 $("dfx-x").onclick = () => { AUD.click(); endDrink(true); };
 $("ph-x").onclick = () => { AUD.click(); $("photo").classList.remove("on"); };
+/* saving the print: a plain download on the site; inside claude.ai the viewer is asked through its own save */
+$("ph-save").onclick = async (e) => {
+  if (!owners().some(R => { try { return R.claude && typeof R.claude.use === "function"; } catch (_){ return false; } })) return;
+  e.preventDefault(); AUD.click(); const a = $("ph-save");
+  try { const d = await findCap("downloads"); if (!d){ hint(T({ en:"Saving isn't available here", ko:"여기서는 저장할 수 없어요" })); return; }
+    const raw = atob(PHOTO.url.split(",")[1] || ""), bytes = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i); const blob = new Blob([bytes], { type:"image/jpeg" }); await d.c.save({ filename:a.download || "pool-blossom.jpg", data:blob });
+    hint(T({ en:"📸 Saved", ko:"📸 사진을 저장했어요" }), true); }
+  catch (err){ const c = err && err.code; if (c !== "declined") hint(T(c === "rate_limited" ? { en:"One moment, then try again", ko:"잠시 후 다시 눌러 주세요" } : { en:"Couldn't save the photo", ko:"사진을 저장하지 못했어요" })); } };
 $("c-dn").onclick = (e) => { e.stopPropagation(); AUD.click(); renderSeason(); const on = openPop("pop-season"); $("c-dn").classList.toggle("open", on); };
 $("vend-x").onclick = () => { AUD.click(); closePops(); };
 $("b-bal").onclick = () => { AUD.click(); closePops(); setArmed(!AIM.armed); };
