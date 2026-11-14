@@ -206,7 +206,9 @@ html{touch-action:pan-x pan-y;}   /* no page pinch or double-tap zoom; scrolling
 }
 .bottom .lbl-s{display:none;}
 /* phones: the same tools, smaller */
+.tool.m-only{display:none;}
 @media (max-width:600px){
+  .tool.m-only{display:grid;} .side .block.brush{display:none;} body.opts .side .block.brush{display:block;}
   .logo{font-size:15.5px;}
   .top{gap:10px;} .top .title{display:none;}
   .views{padding:3px;margin-left:auto;} .views a{padding:6px 10px;font-size:10.5px;}
@@ -275,6 +277,8 @@ html[lang="ko"] .side h2, html[lang="ko"] .tools .lab{letter-spacing:.06em;}
     <svg viewBox="0 0 24 24"><path d="M12 3c3.5 4 6 6.8 6 9.6A6 6 0 0 1 6 12.6C6 9.8 8.5 7 12 3z"/><path d="M9 13c1.6 1.4 4.4 1.4 6 0"/></svg></button>
   <button class="tool" data-tool="eraser" aria-pressed="false" aria-label="Eraser" title="Eraser">
     <svg viewBox="0 0 24 24"><path d="M8 19h11"/><path d="M15.5 5.5l3 3L10 17H7l-1.5-1.5z"/><path d="M11 9l3 3"/></svg></button>
+  <button class="tool m-only" id="t-opts" aria-pressed="false" aria-label="Brush settings" title="Brush settings">
+    <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
   <span class="sep"></span>
   <span class="lab" id="tool-name">Brush</span>
 </nav>
@@ -285,7 +289,7 @@ html[lang="ko"] .side h2, html[lang="ko"] .tools .lab{letter-spacing:.06em;}
     <h2>Colour</h2>
     <div class="swatches" id="swatches"></div>
   </div>
-  <div class="block">
+  <div class="block brush">
     <h2>Brush</h2>
     <div class="row"><label for="size">Size</label><input type="range" id="size" min="6" max="90" value="30"><span class="val" id="size-v">30</span></div>
     <div class="row" id="gap-row"><label for="gap">Spacing</label><input type="range" id="gap" min="10" max="320" value="60"><span class="val" id="gap-v">0.6</span></div>
@@ -377,6 +381,7 @@ const KO = {
  "Yayoi Kusama · 1994 · painted fibreglass": "쿠사마 야요이 · 1994 · 채색한 섬유 강화 플라스틱",
  "Tools": "도구",
  "Brush": "붓",
+ "Brush settings": "붓 설정",
  "Dots": "도트",
  "Smudge": "번지기",
  "Eraser": "지우개",
@@ -604,10 +609,11 @@ const TOOL_HINT = {
   eraser:"Drag to wipe back to the bare pumpkin.",
 };
 const TOOL_NAME = { brush:"Brush", dot:"Dots", blur:"Smudge", eraser:"Eraser" };
-document.querySelectorAll(".tool").forEach(b => b.onclick = () => setTool(b.dataset.tool));
+document.querySelectorAll(".tool[data-tool]").forEach(b => b.onclick = () => setTool(b.dataset.tool));
+document.getElementById("t-opts").onclick = () => { const on = document.body.classList.toggle("opts"); document.getElementById("t-opts").setAttribute("aria-pressed", String(on)); };   /* phones: the brush sliders when asked for */
 function setTool(t){
   tool = t;
-  document.querySelectorAll(".tool").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tool === t)));
+  document.querySelectorAll(".tool[data-tool]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tool === t)));
   $("tool-name").textContent = L(TOOL_NAME[t]);
   $("hint").textContent = L(TOOL_HINT[t]);
   $("gap-row").style.opacity = (t === "dot" || t === "brush") ? "1" : ".35";
