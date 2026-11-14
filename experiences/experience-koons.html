@@ -33,7 +33,6 @@ body{background:#e9edf3;color:var(--ink);font-family:Inter,"Noto Sans KR",system
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px;}
 .serif{font-family:var(--serif);}
-.mono{font-family:"JetBrains Mono","Noto Sans KR",ui-monospace,monospace;}
 .glass{background:linear-gradient(180deg,var(--glass-a),var(--glass-b));
   backdrop-filter:blur(26px) saturate(170%);-webkit-backdrop-filter:blur(26px) saturate(170%);
   border:1px solid var(--glass-line);box-shadow:0 22px 50px -34px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.35);}
@@ -925,7 +924,6 @@ const S = { rot:0.55, rotVel:0, rotTgt:null, rotTo:undefined, lastTouch:performa
   brush:[], popT:-1e9, rub:0, mouse:[0.5, 0.5], env:[0, 0] };
 function toDog(p){ const x = p[0], y = p[1] - TOP - S.hop, z = p[2], c = Math.cos(S.rot), s = Math.sin(S.rot); return [c * x - s * z, y, s * x + c * z]; }
 function fromDog(q){ const c = Math.cos(S.rot), s = Math.sin(S.rot); return [c * q[0] + s * q[2], q[1] + TOP + S.hop, -s * q[0] + c * q[2]]; }
-function dirFromDog(q){ const c = Math.cos(S.rot), s = Math.sin(S.rot); return [c * q[0] + s * q[2], q[1], -s * q[0] + c * q[2]]; }
 function dirToDog(p){ const c = Math.cos(S.rot), s = Math.sin(S.rot); return [c * p[0] - s * p[2], p[1], s * p[0] + c * p[2]]; }
 function dogJS(q){
   const m = ED[cur].mat, infl = m === 2 ? S.infl : 1;

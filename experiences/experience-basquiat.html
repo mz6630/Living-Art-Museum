@@ -1155,7 +1155,6 @@ function flap(front, back, sx, y, W, H, a){
 }
 /* the pages on show while nothing turns */
 function restPages(){ return single ? { L:null, R:B.cp } : { L:2 * B.s, R:2 * B.s + 1 }; }
-function pageRect(side){ return side === "L" ? { x:spineX - PW, y:B.y } : { x:spineX, y:B.y }; }
 function drawPage(p, side){
   /* the insides of the covers are the boards themselves, already drawn underneath */
   if (p == null || p <= 0 || p > NP) return;
@@ -1220,7 +1219,6 @@ function looseRec(o, patch){
 }
 let held = null;            /* what the hand is carrying */
 let peel = null;            /* a sticker or cut-out coming off */
-let uidN = 1;
 function looseSprite(o){ return o.kind === "st" ? STKSP[o.s] : cutSprite(o.m, o.poly); }
 
 /* ==========================================================================

@@ -60,7 +60,6 @@ body.embedded .top{display:none;}
   border:1px solid rgba(0,0,0,.1);background:rgba(255,255,255,.6);transition:background .2s,color .2s;}
 .bar button:hover{background:#fff;color:#141414;}
 .bar button[aria-pressed="false"]{color:rgba(20,20,20,.45);}
-.bar .short{display:none;}
 .pill{display:none;position:fixed;left:50%;bottom:calc(64px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:20;
   padding:7px 13px;border-radius:999px;font-size:11.5px;color:var(--ink-dim);white-space:nowrap;}
 
@@ -449,7 +448,6 @@ const KINDS = {
     return { st, face:face(0, 0.12, 0.6, { kind:pick(["teeth", "grin", "open"]), mw:0.7 }) }; },
 };
 delete KINDS.blob;                                   /* the made-up monsters below cover every blob */
-const TEMPLATES = Object.keys(KINDS);                 /* each of these appears once at most */
 
 /* ---- monsters, assembled from parts: no two come out the same ---- */
 const ROOM = { none:0, horns:0.26, ears:0.24, antenna:0.3, antenna2:0.3, hair:0.16, spikes:0.24, crown:0.32, hat:0.34, horn:0.34, curl:0.24, bow:0.2, stalks:0.38, mohawk:0.24 };
@@ -995,7 +993,6 @@ function crayonShape(){ const st = [];
   st.push(S([[-0.84, -0.12], [-0.84, 0.12]]));
   return { st, face:face(-0.15, 0.02, 0.26, { kind:"smile", er:0.24 }) }; }
 KINDS.crayon = crayonShape; NK.crayon = crayonShape;
-const ALL_FX = Object.assign({}, FX, NFX);
 for (const k in NFX) if (FX[k]) console.warn("name clash", k);
 
 /* ---- one-off line marks for the smallest gaps: random every time, so no two match ---- */
@@ -2310,7 +2307,6 @@ function clearPaint(){ paint.width = cv.width; paint.height = cv.height; pg2.cle
 const crayonOf = () => live.find(o => o.special === "crayon");
 let crayonDrag = null, lastTip = null, scribbleT = 0;
 const CRAY_NAMES = { en:["red", "orange", "yellow", "green", "blue", "purple", "pink", "brown"], ko:["빨강", "주황", "노랑", "초록", "파랑", "보라", "분홍", "갈색"] };
-const tipOf = (o) => { const P = pose(o, NOW()), a = P.rot; return [P.x + Math.cos(a) * o.r * 0.95 * (P.sx / o.r), P.y + Math.sin(a) * o.r * 0.95 * (P.sx / o.r)]; };
 function nextColour(o){
   o.ci = (o.ci + 1) % CRAYON.length; o.color = CRAYON[o.ci]; o.spr = null; o.pop = 1;
   AUD.sfx("pop", o.hx, 0, 1); AUD.sfx("ting", o.hx, 0.06, 0.6);

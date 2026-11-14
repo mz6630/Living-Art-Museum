@@ -42,8 +42,10 @@ jobs:
       - name: Collect the site
         run: |
           mkdir -p _site
+          # every room is already built into index.html; only the build stamp is fetched on its own
+          mkdir -p _site/experiences
           cp index.html firebase-config.js _site/
-          cp -r experiences _site/
+          cp experiences/version.txt _site/experiences/
           touch _site/.nojekyll
 
       - uses: actions/configure-pages@v5

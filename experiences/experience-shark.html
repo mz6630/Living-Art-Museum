@@ -179,7 +179,6 @@ const T = (o) => (o && (o[LANG] ?? o.en)) || "";
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t;
 const ease = (x) => 1 - Math.pow(1 - clamp(x, 0, 1), 3);
-const mix3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ==========================================================================

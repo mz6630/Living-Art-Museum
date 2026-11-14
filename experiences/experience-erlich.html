@@ -2152,8 +2152,8 @@ function logLine(name, text, quiet){
   box.appendChild(d); while (box.children.length > 5) box.firstChild.remove();
   setTimeout(() => d.classList.add("old"), 11000); setTimeout(() => d.remove(), 12000);
 }
-let hintAt = 0, hintT = 0;
-function hint(s, brief){ const h = $("hint"); h.textContent = s; h.classList.remove("off"); hintAt = performance.now(); clearTimeout(hintT); hintT = setTimeout(() => h.classList.add("off"), brief ? 3600 : 7000); }
+let hintT = 0;
+function hint(s, brief){ const h = $("hint"); h.textContent = s; h.classList.remove("off"); clearTimeout(hintT); hintT = setTimeout(() => h.classList.add("off"), brief ? 3600 : 7000); }
 const chatFocus = () => document.activeElement === $("say-i") || document.activeElement === $("nm");
 function siteLight(on){ try { if (window.parent !== window){ const ex = window.parent.document.getElementById("s-exp"); if (ex) ex.classList.toggle("light", on); } } catch (_){} }
 

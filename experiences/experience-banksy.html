@@ -702,7 +702,6 @@ function setGesture(g){
   if (g !== "fist") hand.fistStill = 0;
   if (prev === "point" || g !== "point"){ hand.dwell = 0; setRing(null); }
 }
-let lastStamp = 0;
 function setRing(el, p = 0){
   [...tools, ...document.querySelectorAll(".wallbtn")].forEach(b => { if (b !== el){ b.style.setProperty("--p", 0); b.classList.remove("hover"); } });
   if (el){ el.style.setProperty("--p", p); el.classList.add("hover"); }

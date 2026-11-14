@@ -621,7 +621,6 @@ function box(){ const pos = [], nor = [], uv = [], idx = [];
   return { pos, nor, uv, idx }; }
 function quadXY(){ return { pos:[-.5, -.5, 0, .5, -.5, 0, .5, .5, 0, -.5, .5, 0], nor:[0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], uv:[0, 0, 1, 0, 1, 1, 0, 1], idx:[0, 1, 2, 0, 2, 3] }; }
 function quadXZ(){ return { pos:[-.5, 0, -.5, .5, 0, -.5, .5, 0, .5, -.5, 0, .5], nor:[0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0], uv:[0, 0, 1, 0, 1, 1, 0, 1], idx:[0, 2, 1, 0, 3, 2] }; }
-function tubeX(segs){ const g = cyl(1, -.5, .5, 1, segs); return xform(g, ([x, y, z]) => [y, x, z]); }
 function tubeXfix(segs){ const g = cyl(1, -.5, .5, 1, segs); const o = xform(g, ([x, y, z]) => [y, x, z]); for (let i = 0; i < o.nor.length; i += 3){ const nx = o.nor[i], ny = o.nor[i + 1]; o.nor[i] = ny; o.nor[i + 1] = nx; } for (let i = 0; i < o.idx.length; i += 3){ const t = o.idx[i + 1]; o.idx[i + 1] = o.idx[i + 2]; o.idx[i + 2] = t; } return o; }
 /* the ring-pull: ring, tongue, rivet, lying flat on the lid */
 const LIDY = H - .03;
@@ -725,36 +724,6 @@ function buildLabels(){
   TEX.hall = SOUPS.map((_, k) => { sc.clearRect(0, 0, sm.width, sm.height); sc.drawImage(labelFull(k), 0, 0, sm.width, sm.height); return tex(sm, true); });
 }
 function zoomLabel(k){ if (TEX.zoomK === k && TEX.zoom) return TEX.zoom; if (TEX.zoom) gl.deleteTexture(TEX.zoom); TEX.zoom = tex(labelFull(k), true); TEX.zoomK = k; return TEX.zoom; }
-/* the machine house's front: stencils, a window onto the press, the counter */
-const FW = 1024, FH = 680, front = document.createElement("canvas"); front.width = FW; front.height = FH;
-function drawFront(count){
-  const c = front.getContext("2d"); c.clearRect(0, 0, FW, FH);
-  /* an inspection window, lit from inside */
-  const wx = 60, wy = 150, ww = 360, wh = 190;
-  const g = c.createLinearGradient(0, wy, 0, wy + wh); g.addColorStop(0, "rgba(255,170,80,.45)"); g.addColorStop(1, "rgba(200,90,30,.45)"); c.fillStyle = g; c.fillRect(wx, wy, ww, wh);
-  c.fillStyle = "rgba(40,20,10,.95)";
-  c.fillRect(wx + 30, wy + 40, 40, wh - 40); c.fillRect(wx + 120, wy + 20, 26, wh - 20); c.fillRect(wx + 20, wy + 120, ww - 40, 18);
-  c.beginPath(); c.arc(wx + 250, wy + 90, 56, 0, 7); c.fill(); c.fillStyle = "rgba(255,170,80,.45)"; c.beginPath(); c.arc(wx + 250, wy + 90, 20, 0, 7); c.fill();
-  c.fillStyle = "rgba(40,20,10,.95)"; for (let i = 0; i < 12; i++){ const a = i / 12 * Math.PI * 2; c.fillRect(wx + 250 + Math.cos(a) * 58 - 7, wy + 90 + Math.sin(a) * 58 - 7, 14, 14); }
-  c.strokeStyle = "rgba(30,34,38,1)"; c.lineWidth = 12; c.strokeRect(wx, wy, ww, wh); c.lineWidth = 6; c.beginPath(); c.moveTo(wx + ww / 2, wy); c.lineTo(wx + ww / 2, wy + wh); c.stroke();
-  /* stencilled words */
-  c.fillStyle = "rgba(232,228,214,1)"; c.font = "700 46px JetBrains Mono, monospace"; c.fillText("CANNING HALL — B", 60, 110);
-  c.font = "500 22px JetBrains Mono, monospace"; c.fillText("LINES 1 – 4  ·  24 H  ·  NO STOP", 62, 380);
-  /* the counter */
-  c.fillStyle = "rgba(14,14,16,1)"; c.fillRect(60, 410, 360, 110);
-  c.font = "700 64px JetBrains Mono, monospace"; const digits = String(count).padStart(7, "0");
-  c.globalCompositeOperation = "destination-out"; c.fillStyle = "#000"; c.fillText(digits, 78, 492);
-  c.globalCompositeOperation = "source-over"; c.fillStyle = "rgba(255,70,50,.5)"; c.fillText(digits, 78, 492);
-  c.fillStyle = "rgba(232,228,214,1)"; c.font = "500 18px JetBrains Mono, monospace"; c.fillText("OUTPUT  ·  UNITS", 62, 548);
-  /* a warning sign */
-  c.fillStyle = "rgba(240,190,30,1)"; c.beginPath(); c.moveTo(500, 520); c.lineTo(560, 410); c.lineTo(620, 520); c.closePath(); c.fill();
-  c.fillStyle = "rgba(20,20,20,1)"; c.font = "800 70px Inter, sans-serif"; c.textAlign = "center"; c.fillText("!", 560, 506); c.textAlign = "left";
-  /* indicator lamps */
-  [["rgba(60,230,120,.4)", 470], ["rgba(255,190,40,.4)", 520], ["rgba(255,60,40,.4)", 570]].forEach(([col, x]) => { c.fillStyle = col; c.beginPath(); c.arc(x, 200, 16, 0, 7); c.fill(); });
-}
-let frontTex = null;
-function updateFront(n){ drawFront(n); gl.bindTexture(gl.TEXTURE_2D, frontTex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, front); }
-drawFront(0); frontTex = tex(front, false, true);
 /* creases: a grey field; ridges lighter, valleys darker */
 const CW = 1024, CH = 384, crease = document.createElement("canvas"); crease.width = CW; crease.height = CH;
 const cctx = crease.getContext("2d");
@@ -874,7 +843,6 @@ function fitCam(){
 function camMats(){ const c = S.cam; const P = M4.persp(c.fov, c.a, .5, 80), V = M4.look([c.x, c.y + .9, c.z], [c.x, c.y, 0], [0, 1, 0]); return { P, V, PV:M4.mul(P, V), eye:[c.x, c.y + .9, c.z] }; }
 
 /* ---------------- drawing ---------------- */
-let curPV = null;
 function draw(m, mat, M, A, B, C, tx){
   use(mat);
   gl.uniformMatrix4fv(U.uM, false, M); gl.uniformMatrix3fv(U.uNM, false, M4.nrm(M));

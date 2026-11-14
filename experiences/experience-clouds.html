@@ -462,7 +462,6 @@ function hitCloud(o, d){
   return best ? { c:best, t:bt } : null;
 }
 const ptr = { x:0, y:0, down:false, mode:"", moved:0, t0:0, lx:0, ly:0, lt:0, vel:v3() };
-function setHint(){}
 glc.addEventListener("pointerdown", e => {
   AUD.unlock(); hideHint();
   const x = e.clientX, y = e.clientY; ptr.down = true; ptr.x = ptr.lx = x; ptr.y = ptr.ly = y; ptr.moved = 0; ptr.t0 = ptr.lt = performance.now(); ptr.vel = v3();
