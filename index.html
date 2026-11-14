@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261114084159";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261114085653";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -21852,16 +21852,16 @@ body.making #hint{display:none;}
 #sitb{position:absolute;left:0;top:0;display:none;align-items:center;gap:7px;padding:8px 14px 8px 12px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:#25231c;
   font:600 12.5px/1 inherit;font-family:inherit;white-space:nowrap;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);pointer-events:auto;cursor:pointer;will-change:transform;}
 #sitb.on{display:flex;}
-#vendb, #snowb{position:absolute;left:0;top:0;display:none;align-items:center;gap:7px;padding:8px 14px 8px 11px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:#25231c;
+#vendb, #snowb, #treeb{position:absolute;left:0;top:0;display:none;align-items:center;gap:7px;padding:8px 14px 8px 11px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:#25231c;
   font:600 12.5px/1 inherit;font-family:inherit;white-space:nowrap;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);pointer-events:auto;cursor:pointer;will-change:transform;}
-#vendb.on, #snowb.on{display:flex;} #vendb:hover, #snowb:hover{background:#fff;} #vendb .vi, #snowb .vi{font-size:14px;line-height:1;}
-#vendb kbd, #snowb kbd{font:600 10px/1 "JetBrains Mono",monospace;padding:3px 5px;border-radius:5px;background:rgba(37,35,28,.09);color:#5a5648;}
-@media (hover:none){ #vendb kbd, #snowb kbd{display:none;} }
+#vendb.on, #snowb.on, #treeb.on{display:flex;} #vendb:hover, #snowb:hover, #treeb:hover{background:#fff;} #vendb .vi, #snowb .vi, #treeb .vi{font-size:14px;line-height:1;}
+#vendb kbd, #snowb kbd, #treeb kbd{font:600 10px/1 "JetBrains Mono",monospace;padding:3px 5px;border-radius:5px;background:rgba(37,35,28,.09);color:#5a5648;}
+@media (hover:none){ #vendb kbd, #snowb kbd, #treeb kbd{display:none;} }
 .av.ghost .tg{opacity:.42;}
 /* the beer: a warm blush round the picture's edge (opacity set from the script, only while it lasts) */
 #tipsy{position:fixed;inset:0;z-index:3;pointer-events:none;display:none;opacity:0;background:radial-gradient(ellipse 72% 68% at 50% 48%, transparent 48%, rgba(255,160,118,.5) 100%);}
-#petalc{position:fixed;right:20px;top:calc(112px + env(safe-area-inset-top,0px));z-index:9;display:none;padding:7px 12px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
-#petalc.on{display:block;} @media (max-width:760px){ #petalc{right:10px;top:calc(146px + env(safe-area-inset-top,0px));} }
+#petalc, #nutc{position:fixed;right:20px;top:calc(112px + env(safe-area-inset-top,0px));z-index:9;display:none;padding:7px 12px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+#petalc.on, #nutc.on{display:block;} @media (max-width:760px){ #petalc, #nutc{right:10px;top:calc(146px + env(safe-area-inset-top,0px));} }
 /* the drink you are on: top right, a ring that runs down, × to stop */
 #drinkfx{position:fixed;right:20px;top:calc(62px + env(safe-area-inset-top,0px));z-index:9;display:none;align-items:center;gap:10px;padding:6px 6px 6px 7px;border-radius:999px;max-width:min(300px,calc(100% - 20px));}
 body.in:not(.making) #drinkfx.on{display:flex;animation:dfxIn .35s cubic-bezier(.2,.9,.3,1.25);}
@@ -21974,7 +21974,7 @@ body.in:not(.making) #bar{display:flex;}
 #pop-emo .grid{display:grid;grid-template-columns:repeat(3,auto);gap:4px;}
 #pop-emo .pz-t{margin:10px 6px 6px;padding-top:9px;border-top:1px solid var(--glass-line);font-size:11px;color:var(--ink-dim);}
 #pop-emo .pe{font-size:15px;line-height:1;width:18px;text-align:center;}
-body:not(.in) #petalc, body.making #petalc{display:none !important;}
+body:not(.in) #petalc, body.making #petalc, body:not(.in) #nutc, body.making #nutc{display:none !important;}
 #pop-srv .row2{display:flex;gap:6px;}
 #pop-srv .chip{border:1px solid var(--glass-line);flex-direction:column;align-items:flex-start;gap:3px;padding:10px 14px;min-width:132px;}
 #pop-srv .chip small{font-family:"JetBrains Mono","Noto Sans KR",monospace;font-size:10.5px;letter-spacing:.04em;opacity:.75;}
@@ -22138,7 +22138,7 @@ body.move-click #joy{display:none !important;}
 <div id="pop-season" class="pop glass" role="dialog" aria-labelledby="sea-t"><p class="st" id="sea-t"></p><div class="sg" id="sea-g"></div><p class="note" id="sea-n"></p></div>
 <div id="goal" aria-hidden="true"></div>
 <div id="tipsy" aria-hidden="true"></div>
-<div id="petalc" class="glass" aria-live="polite"></div>
+<div id="petalc" class="glass" aria-live="polite"></div><div id="nutc" class="glass" aria-live="polite"></div>
 <div id="itemfx" class="glass"><i class="ic"></i><span class="dt"><b id="it-n"></b><small id="it-s"></small></span><button type="button" id="it-sw"><span></span><kbd>F</kbd></button><button type="button" id="it-x"><svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
 <div id="hint" class="glass off"></div>
 <button id="throwb" class="glass" type="button"><i class="orb"></i><span class="tl"></span></button>
@@ -23244,6 +23244,8 @@ function pose(a, now){
   if (BALL.holder === a){ q.a1x = q.a2x = -1.05; q.a1z = -.12; q.a2z = .12; }                      /* the ball held in both hands, at the chest */
   else if (a === me && AIM.on){ q.a2x = -.75; q.a2z = 1.05; }                           /* a balloon held up in the right hand, out to the side */
   else if (a.thr && now - a.thr < 380){ const v = (now - a.thr) / 380; q.a2z = 2.3 - 1.5 * v; q.a2x = .9 - 2.2 * Math.sin(Math.PI * Math.min(1, v * 1.3)); }   /* the throw */
+  if (a.shake && now - a.shake < 700){ const v = (now - a.shake) / 700, e = Math.sin(v * Math.PI), w = Math.sin(v * Math.PI * 4) * .12 * e;   /* both hands on the trunk: shake, shake */
+    q.a1x = q.a2x = -1.35 * e + w; q.a1z = -.15; q.a2z = .15; q.bow += .1 * e; q.sway += w * .3; }
   if (a.item && BALL.holder !== a && !(a === me && SN.held)){                                         /* the left hand: a sparkler held up, or the net — and its swing */
     if (a.item === "sp"){ q.a1x = -1.15 + Math.sin(now / 260) * .06; q.a1z = -.32; }
     else { const u = (now - (a.swing || -1e9)) / 420;
@@ -23776,7 +23778,7 @@ function tagFor(a){
   t = { el, bb, nm, emo, pz, kg, msg:"", king:null }; TAGS.set(a.id, t); return t;
 }
 function dropTag(id){ const t = TAGS.get(id); if (t){ t.el.remove(); TAGS.delete(id); } }
-const EMO_CH = { catch:"🥅", pose_v:"✌️", pose_hearth:"🥰", pose_bloom:"🌼", pose_think:"🤔", pose_hooray:"🙌", pose_flex:"💪", wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️", splash:"💦", dizzy:"💫", steal:"😎", oops:"😮", energy:"⚡", cider:"🫧", water:"✨", beer:"🥴", milk:"🥛", ghost:"👻", burp:"😮‍💨", lemon:"🍋", kid:"🧃", glass:"🌊", spicy:"🔥", slush:"🥶" };
+const EMO_CH = { catch:"🥅", leaf:"🍂", pose_v:"✌️", pose_hearth:"🥰", pose_bloom:"🌼", pose_think:"🤔", pose_hooray:"🙌", pose_flex:"💪", wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️", splash:"💦", dizzy:"💫", steal:"😎", oops:"😮", energy:"⚡", cider:"🫧", water:"✨", beer:"🥴", milk:"🥛", ghost:"👻", burp:"😮‍💨", lemon:"🍋", kid:"🧃", glass:"🌊", spicy:"🔥", slush:"🥶" };
 function popEmote(a, e){ if (!EMO_CH[e]) return; const t = tagFor(a); t.emo.textContent = EMO_CH[e]; t.emo.classList.remove("go"); void t.emo.offsetWidth; t.emo.classList.add("go"); }
 function project(p){
   const M = VPm; if (!M) return null;
@@ -24011,6 +24013,12 @@ const AUD = (() => {
     petal(){ if (!ok()) return; const tt = ctx.currentTime, f = 2093 + Math.random() * 600; tone(tt, f, .07, .008, f * 1.25); },
     chime(night){ if (!ok()) return; const tt = ctx.currentTime; (night ? [1568, 1319, 1047, 784] : [1047, 1319, 1568, 2093]).forEach((f, i) => tone(tt + i * .12, f, .28, .016)); },
     roll(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; burst(tt, .09, 1600, 2.5, .016 * h); burst(tt + .05, .07, 2600, 3, .01 * h); },   /* snow crunching under a rolling ball */
+    shake(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; tone(tt, 150, .14, .03 * h, 90); for (let i = 0; i < 7; i++) burst(tt + .05 + i * .07 + Math.random() * .05, .1, 2600 + Math.random() * 2400, 1.3, .016 * h); },   /* a thump on the trunk, the crown rustling */
+    pile(h, big){ if (!ok() || h <= 0) return; const tt = ctx.currentTime, n = big ? 10 : 3;                       /* crunch — leaves */
+      for (let i = 0; i < n; i++) burst(tt + i * (big ? .035 : .06) + Math.random() * .03, big ? .12 : .08, 1800 + Math.random() * 3500, 1.1, (big ? .03 : .014) * h);
+      if (big) tone(tt + .02, 2093, .1, .008 * h, 2637, "triangle"); },
+    tok(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime, f = 900 + Math.random() * 500; tone(tt, f, .05, .022 * h, f * .7, "triangle"); burst(tt, .03, 2200, 3, .008 * h); },   /* a nut on the boards */
+    pick(k){ if (!ok()) return; const tt = ctx.currentTime, f = k ? 1175 : 1397; tone(tt, f, .07, .016, null, "triangle"); tone(tt + .06, f * 1.5, .1, .014, null, "triangle"); },
     ignite(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; burst(tt, .3, 5200, .8, .018 * h); for (let i = 0; i < 5; i++) burst(tt + .04 + i * .05, .03, 6500 + Math.random() * 2500, 4, .009 * h); },   /* tssss — a sparkler catching */
     crackle(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; for (let i = 0; i < 2; i++) burst(tt + Math.random() * .08, .018, 5500 + Math.random() * 3500, 5, .006 * h); },
     swish(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime, s = src(white), f = filt("bandpass", 700, 1.2), a = ctx.createGain();   /* a net through the air */
@@ -24170,6 +24178,7 @@ function onFx(a, f){
   if (f[0] === "c" && n.length >= 6){ a.thr = performance.now(); AUD.flick(hear(a.x, a.z) * .7); a.r = n[2];
     flipCoin(coinPath({ x0:clamp(n[0], -CXW, CXW), z0:clamp(n[1], -CZW, CZW), a:n[2], v:clamp(n[3], 1, 10), th:clamp(n[4], 2, 85), k:clamp(n[5] | 0, 0, 5) })); return; }
   if (f[0] === "s"){ snowFrom(a, n); return; }
+  if (f[0] === "t"){ const i = n[0] | 0; if (i >= 0 && i < TREES.length && autumnOn()) treeShake(i, a); return; }
   if (f[0] === "n"){ a.swing = performance.now(); const h = hear(a.x, a.z); AUD.swish(h * .6); if (n[0] >= 0 && n[0] < BUG_IDS.length){ popEmote(a, "catch"); AUD.caught(h * .6); } return; }
   if (f[0] !== "b" || n.length < 5) return;
   a.thr = performance.now(); launch(a, clamp(n[0], -CXW, CXW), a.y + 1.2, clamp(n[1], -CZW, CZW), clamp(n[2], -CXW, CXW), clamp(n[3], -CZW, CZW), Math.abs(n[4] | 0) % BAL_COL.length);
@@ -24830,7 +24839,7 @@ function stepNight(){
 const SEASONS = ["spring", "summer", "autumn", "winter"], SEA_C = { none:"n", spring:"p", summer:"s", autumn:"a", winter:"w" }, SEA_OF = { n:"none", p:"spring", s:"summer", a:"autumn", w:"winter" };
 const sIdx = (s) => s === "none" ? 1 : SEASONS.indexOf(s);                                         /* none: the trees as they are */
 const SEA_INFO = { none:{ ico:"", to:"기본으로", n:{ en:"Default", ko:"기본" }, d:{ en:"", ko:"" } }, spring:{ ico:"🌸", to:"봄으로", n:{ en:"Spring", ko:"봄" }, d:{ en:"Cherry petals", ko:"벚꽃잎" } }, summer:{ ico:"🍉", to:"여름으로", n:{ en:"Summer", ko:"여름" }, d:{ en:"Fireworks, bug nets", ko:"불꽃놀이·곤충 채집" } },
-                   autumn:{ ico:"🍁", to:"가을로", n:{ en:"Autumn", ko:"가을" }, d:{ en:"Falling leaves", ko:"낙엽" } }, winter:{ ico:"❄️", to:"겨울로", n:{ en:"Winter", ko:"겨울" }, d:{ en:"Snow, ski the ice", ko:"눈·얼음 스키" } } };
+                   autumn:{ ico:"🍁", to:"가을로", n:{ en:"Autumn", ko:"가을" }, d:{ en:"Leaf piles, acorns", ko:"낙엽 더미·도토리" } }, winter:{ ico:"❄️", to:"겨울로", n:{ en:"Winter", ko:"겨울" }, d:{ en:"Snow, ski the ice", ko:"눈·얼음 스키" } } };
 const SEASON = { cur:"none", from:null, stamp:0, t0:-1e9, ia:1, ib:1, mix:1, snow:0, ice:0, pickAt:0 };     /* by default: no season at all */
 const iceOn = () => SEASON.ice > .6;
 function setSeason(s, stamp, by){
@@ -24860,6 +24869,7 @@ function spawnP(kind, x, y, z, burst){
   Object.assign(p, { on:true, kind, x, y, z, vx:(Math.random() - .5) * (burst ? 1.4 : .3), vy:burst ? .4 + Math.random() * .6 : 0, vz:(Math.random() - .5) * (burst ? 1.4 : .3),
     a:Math.random() * 6.28, b:Math.random() * 6.28, sa:(Math.random() - .5) * 5, ph:Math.random() * 6.28, land:0, t0:performance.now(), c,
     s:kind === "winter" ? .045 + Math.random() * .03 : kind === "autumn" ? .085 + Math.random() * .04 : kind === "fly" ? .045 : kind === "summer" ? .075 : .06 + Math.random() * .03 });
+  return p;
 }
 function stepSeason(dt, now){
   const S = SEASON; S.mix = sstep(0, 2600, now - S.t0); if (S.mix >= 1) S.ia = S.ib;
@@ -25410,6 +25420,116 @@ function drawSummer(p, now){
 }
 
 /* ==========================================================================
+   9j. AUTUMN — piles of fallen leaves lie about the deck: walk through one
+       and it rustles, jump into one and it bursts all over (anyone's jump
+       does it, on every page), then slowly gathers again. Walk up to a tree
+       and shake it: leaves pour down, acorns and chestnuts drop and bounce;
+       walk over them to pick them up. Each page drops its own nuts; a shake
+       is told to the others, who see the leaves come down
+   ========================================================================== */
+const AUT = { mesh:null, acorn:0, chest:0, shown:"", told:false, toldNut:false, jy:0, shook:new Float32Array(TREES.length) };
+try { const d = JSON.parse(localStorage.getItem("lam-pool-nuts") || "null"); if (d){ AUT.acorn = Math.max(0, d.a | 0); AUT.chest = Math.max(0, d.c | 0); } } catch (_){}
+const saveNuts = () => { try { localStorage.setItem("lam-pool-nuts", JSON.stringify({ a:AUT.acorn, c:AUT.chest })); } catch (_){} };
+/* five piles, each out from a tree towards the courtyard, clear of the planter */
+const PILES = [0, 2, 4, 5, 7].map(i => { const [tx, tz] = TREES[i], a = Math.atan2(-tx, -tz) + (i % 2 ? .5 : -.5); return { x:tx + Math.sin(a) * 2, z:tz + Math.cos(a) * 2, sq:0, t:0, rot:i * 1.3, near:false }; });
+const NUTS = Array.from({ length:14 }, () => ({ on:false, k:0, x:0, y:0, z:0, vx:0, vy:0, vz:0, rest:false, t0:0, home:0, r:0, spin:0 }));
+const autumnOn = () => SEASON.cur === "autumn";
+function autumnMeshes(){ const one = (fn) => { const A = maker(); fn(A); return upload(A.v); }, C = SP_COL.autumn;
+  return {
+    pile:one(A => { A.ell([0, .02, 0], .62, .2, .58, [.78, .42, .18], 5, 16);                                       /* a mound, and leaves lying all over it */
+      for (let i = 0; i < 26; i++){ const a = i * 2.39996, r = .1 + .48 * Math.sqrt((i + .5) / 26), x = Math.cos(a) * r, z = Math.sin(a) * r * .94, y = .02 + .2 * Math.sqrt(Math.max(0, 1 - (r / .62) ** 2));
+        A.ell([x, y, z], .09 + (i % 3) * .015, .022, .065 + (i % 2) * .02, C[i % C.length], 5, 8); } }),
+    acorn:one(A => { A.ell([0, .03, 0], .026, .034, .026, [.64, .42, .2], 8, 10); A.ell([0, .058, 0], .029, .015, .029, [.44, .32, .2], 5, 10); A.tube([0, .07, 0], [.004, .084, 0], .004, .003, [.36, .26, .16], 5, 4); }),
+    nut:one(A => { A.ell([0, .03, 0], .036, .032, .028, [.44, .23, .1], 8, 10); A.ell([0, .012, 0], .03, .014, .024, [.78, .66, .48], 5, 8); A.tube([0, .055, 0], [0, .068, 0], .006, .002, [.86, .78, .6], 5, 4); }),
+    burr:one(A => { A.ell([0, 0, 0], .045, .045, .045, [.6, .64, .3], 5, 10);                                       /* a chestnut in its spiky case, as it falls */
+      for (let i = 0; i < 18; i++){ const y = 1 - 2 * (i + .5) / 18, r = Math.sqrt(1 - y * y), a = i * 2.39996, d = [Math.cos(a) * r, y, Math.sin(a) * r];
+        A.tube([d[0] * .04, d[1] * .04, d[2] * .04], [d[0] * .075, d[1] * .075, d[2] * .075], .006, .001, [.52, .56, .24], 5, 3); } }),
+  };
+}
+function nearTree(rad){ if (!inWorld || making || Math.abs(me.y) > .3 || me.sit) return -1; let best = -1, bd = rad;
+  TREES.forEach(([tx, tz], i) => { const d = Math.hypot(tx - me.x, tz - me.z); if (d < bd){ bd = d; best = i; } }); return best; }
+/* a tree shaken: leaves pour down from the crown, and (on your own page) a few nuts drop */
+function treeShake(i, by){
+  const [tx, tz] = TREES[i], now = performance.now(), mine = by === me;
+  for (let k = 0; k < 22; k++){ spawnP("autumn", tx + (Math.random() - .5) * 2, 2.2 + Math.random() * 1.3, tz + (Math.random() - .5) * 2, true); }
+  AUD.shake(mine ? 1 : hear(tx, tz) * .7); by.shake = now;
+  if (!mine) return;
+  const n = 2 + Math.floor(Math.random() * 3);
+  const toMe = Math.atan2(me.x - tx, me.z - tz);
+  for (let k = 0; k < n; k++) setTimeout(() => { const p = slot(NUTS), a = Math.PI / 2 - toMe + (Math.random() - .5) * 1.7, r = .5 + Math.random() * .7;   /* towards whoever shook it */
+    Object.assign(p, { on:true, k:Math.random() < .32 ? 1 : 0, x:tx + Math.cos(a) * r, y:2.3 + Math.random() * .6, z:tz + Math.sin(a) * r, vx:Math.cos(a) * .6, vy:0, vz:Math.sin(a) * .6, rest:false, t0:performance.now(), home:0, r:Math.random() * 6.28, spin:(Math.random() - .5) * 12 }); }, 250 + k * 160 + Math.random() * 120);
+  if (!AUT.toldNut){ AUT.toldNut = true; hint(T({ en:"🌰 Acorns and chestnuts! Walk over them to pick them up", ko:"🌰 도토리와 밤이 떨어졌어요! 위로 걸어가면 주워요" })); }
+}
+function shakeTree(){ const i = nearTree(1.8); if (i < 0) return; const now = performance.now();
+  if (now < AUT.shook[i]){ hint(T({ en:"Let it settle a moment", ko:"조금 있다가 다시 흔들어요" }), true); return; }
+  AUT.shook[i] = now + 4500; goal = null; me.r = Math.atan2(TREES[i][0] - me.x, TREES[i][1] - me.z); treeShake(i, me); sendFx(`t#:${i}`); }
+/* a pile hit: a few leaves for walking through, a burst for a jump */
+function pileHit(p, big, by){
+  const n = big ? 34 : 5, now = performance.now();
+  for (let k = 0; k < n; k++){ const a = Math.random() * 6.283, r = Math.random() * .45, q = spawnP("autumn", p.x + Math.cos(a) * r, .15 + Math.random() * .2, p.z + Math.sin(a) * r, true);
+    if (big){ q.vy = 1.8 + Math.random() * 2.4; q.vx *= 2.2; q.vz *= 2.2; } }
+  if (big){ p.sq = 1; p.t = now; AUD.pile(by === me ? 1 : hear(p.x, p.z) * .8, true); popEmote(by, "leaf"); }
+  else AUD.pile(by === me ? .5 : 0, false);
+}
+function stepAutumn(dt, now){
+  const on = autumnOn() && inWorld;
+  if (!autumnOn()){ for (const q of NUTS) q.on = false; $("nutc").classList.remove("on"); return; }
+  /* the piles: walking through, landing in one (yours, or anyone's jump) */
+  const landed = AUT.jy > .05 && me.jy === 0; AUT.jy = me.jy;
+  for (const p of PILES){
+    if (p.sq > 0) p.sq = Math.max(0, 1 - (now - p.t) / 7000);                                                  /* gathering itself up again */
+    const d = Math.hypot(me.x - p.x, me.z - p.z), inside = on && d < .62 && Math.abs(me.y) < .3;
+    if (inside && landed){ pileHit(p, true, me); if (!AUT.told){ AUT.told = true; hint(T({ en:"🍂 Whoosh! Jump into the leaf piles", ko:"🍂 와사삭! 낙엽 더미에 점프해 봐요" }), true); } }
+    else if (inside && !p.near && me.mv > .3 && p.sq < .5) pileHit(p, false, me);
+    p.near = inside;
+    for (const a of PEERS.values()){ if (a.emote !== "jump" || Math.hypot(a.x - p.x, a.z - p.z) > .62) continue;   /* someone else's jump lands in it */
+      const u = now - a.et0; if (u > 820 && u < 1100 && a.pileAt !== a.et0){ a.pileAt = a.et0; pileHit(p, true, a); } } }
+  /* first time near a pile: say so */
+  if (on && !AUT.told && PILES.some(p => Math.hypot(me.x - p.x, me.z - p.z) < 2.2)){ AUT.told = true; hint(T({ en:"🍂 A pile of leaves — jump into it (Space)", ko:"🍂 낙엽 더미예요 — 점프(Space)해서 뛰어들어 봐요" })); }
+  /* the nuts: drop, bounce, roll off the planter, lie still; walk over one and it comes to you */
+  for (const q of NUTS){ if (!q.on) continue;
+    if (q.home){ const t = (now - q.home) / 380, hy = me.y + 1.3 * (me.sc || 1);
+      q.x += (me.x - q.x) * Math.min(1, dt * 10); q.y += (hy - q.y) * Math.min(1, dt * 10); q.z += (me.z - q.z) * Math.min(1, dt * 10); q.r += dt * 9;
+      if (t > 1){ q.on = false; if (q.k) AUT.chest++; else AUT.acorn++; saveNuts(); AUD.pick(q.k); AUT.shown = "";
+        if (q.k && AUT.chest === 1) hint(T({ en:"🌰 A chestnut — out of its prickly case", ko:"🌰 밤송이에서 밤을 꺼냈어요 — 따끔!" }), true); }
+      continue; }
+    if (now - q.t0 > 90000){ q.on = false; continue; }
+    if (!q.rest){ q.vy -= 9.8 * dt; q.x += q.vx * dt; q.y += q.vy * dt; q.z += q.vz * dt; q.r += q.spin * dt;
+      let floor = inPool(q.x, q.z) ? -9 : 0; const pl = TREES.find(([tx, tz]) => Math.abs(q.x - tx) < .6 && Math.abs(q.z - tz) < .6);
+      if (pl) floor = .52;
+      if (q.y <= floor + .02){ if (floor < -1){ splash(q.x, 0, q.z, 4, true); q.on = false; continue; }
+        q.y = floor + .02; if (pl){ const ox = q.x - pl[0], oz = q.z - pl[1], l = Math.hypot(ox, oz) || 1; q.vx = ox / l * 1.1; q.vz = oz / l * 1.1; }   /* off the planter it rolls */
+        if (Math.abs(q.vy) > 1.2){ q.vy = -q.vy * .35; AUD.tok(hear(q.x, q.z)); } else if (!pl){ q.vy = 0; q.vx *= .5; q.vz *= .5; if (Math.hypot(q.vx, q.vz) < .08){ q.rest = true; q.restAt = now; } }
+        else q.vy = 0; q.spin *= .6; }
+      else if (q.y < 2.2 && Math.abs(q.vx) + Math.abs(q.vz) > 0) { q.vx *= Math.pow(.7, dt); q.vz *= Math.pow(.7, dt); } }
+    if (on && q.rest && now - q.restAt > 600 && Math.hypot(me.x - q.x, me.z - q.z) < .55 && Math.abs(me.y) < .4){ q.home = now; } }   /* lying still a moment: then yours to pick up
+  /* the count, top right */
+  const el = $("nutc"), show = on && (AUT.acorn + AUT.chest > 0);
+  el.classList.toggle("on", show);
+  if (show){ const s = `🌰 ${T({ en:"Acorns", ko:"도토리" })} ${AUT.acorn} · ${T({ en:"Chestnuts", ko:"밤" })} ${AUT.chest}`; if (AUT.shown !== s){ AUT.shown = s; el.textContent = s; } }
+}
+/* by a tree in autumn: a button to shake it */
+function updateTreeUI(){
+  let b = $("treeb");
+  if (!b){ b = document.createElement("button"); b.id = "treeb"; b.type = "button"; b.innerHTML = '<span class="vi">🌳</span><span></span><kbd>E</kbd>'; $("tags").appendChild(b); b.onclick = () => { AUD.unlock(); shakeTree(); }; }
+  const i = autumnOn() && camPos[1] > -.05 && nearVend(2.2) < 0 ? nearTree(1.8) : -1, q = i >= 0 ? project([TREES[i][0], 2.15, TREES[i][1]]) : null;
+  b.classList.toggle("on", !!q);
+  if (q){ const lab = T({ en:"Shake the tree", ko:"나무 흔들기" }); if (b.children[1].textContent !== lab) b.children[1].textContent = lab;
+    b.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`; }
+}
+function drawAutumn(p, now){
+  if (!autumnOn() || PASS === "rf") return; const nuts = NUTS.some(q => q.on);
+  if (!AUT.mesh) AUT.mesh = autumnMeshes();
+  const u = p.u, put = (m, M) => { gl.uniformMatrix4fv(u.uM, false, M); bindMesh(m); gl.drawArrays(gl.TRIANGLES, 0, m.n); }, M = AUT.mesh, grow = SEASON.ib === 2 ? SEASON.mix : 1;
+  for (const pl of PILES){ const sq = pl.sq, wob = sq > .8 ? Math.sin(now / 40) * .04 : 0, sy = (1 - .72 * sq) * grow, sx = (1 + .25 * sq + wob) * grow;   /* flattened when jumped in, gathering again */
+    if (grow > .02) put(M.pile, setM(pl.x, 0, pl.z, sx, Math.max(.05, sy), sx, pl.rot)); }
+  if (!nuts || PASS === "sh") return;
+  for (const q of NUTS){ if (!q.on) continue; const s = 2.2, m = q.k ? (q.rest || q.home ? M.nut : M.burr) : M.acorn;
+    if (q.k && !q.rest && !q.home) put(m, setM(q.x, q.y + .1, q.z, s, s, s, q.r));
+    else put(m, mm4(Tm(q.x, q.y + (q.rest ? .04 : -.02), q.z), mm4(RY(q.r), mm4(RZ(q.rest ? 1.45 : q.r), [s, 0, 0, 0, 0, s, 0, 0, 0, 0, s, 0, 0, 0, 0, 1])))); }
+}
+
+/* ==========================================================================
    10. INPUT
    ========================================================================== */
 const ptrs = new Map(); let pinch0 = 0, d0 = 0;
@@ -25447,7 +25567,7 @@ window.addEventListener("keydown", e => {
   if (e.code === "KeyG" && !e.repeat && inWorld && !making){ if (SN.held) dropSnow(); else if (BALL.holder === me) dropBall(me, true); else grabBall(true); }
   if (e.code === "KeyE" && inWorld && !making && !e.repeat){ const vi = me.sit ? -1 : nearVend(2.2);
     if (vi >= 0){ if ($("pop-vend").classList.contains("on")) closePops(); else openVend(vi); }
-    else if (me.sit) standUp(); else { const st = Math.abs(me.y) < .3 && seatNear(me.x, me.z, 2.4); if (st) goSit(st); } }
+    else if (me.sit) standUp(); else if (autumnOn() && nearTree(1.8) >= 0) shakeTree(); else { const st = Math.abs(me.y) < .3 && seatNear(me.x, me.z, 2.4); if (st) goSit(st); } }
   if (e.code === "Enter" && inWorld && !making){ e.preventDefault(); openSay(); }
   if (/^Arrow/.test(e.code)) e.preventDefault();
 });
@@ -25549,7 +25669,7 @@ function drawPeople(p, now){
       gl.uniform3f(p.u.uTint, hot ? 1 + .22 * e : cold ? 1 - .16 * e : 1, hot ? 1 - .27 * e : cold ? 1 - .05 * e : 1, hot ? 1 - .31 * e : cold ? 1 + .24 * e : 1); }
     for (const [M, part] of mats){ gl.uniformMatrix4fv(p.u.uM, false, M); bindMesh(part); gl.drawArrays(gl.TRIANGLES, 0, part.n); } }
   if (p.u.uAvY) gl.uniform1f(p.u.uAvY, -99); if (p.u.uTint) gl.uniform3f(p.u.uTint, 1, 1, 1);
-  drawBalloons(p); drawDrinks(p, now); drawSeason(p); drawSpring(p, now); drawSnow(p); drawSummer(p, now);
+  drawBalloons(p); drawDrinks(p, now); drawSeason(p); drawSpring(p, now); drawSnow(p); drawSummer(p, now); drawAutumn(p, now);
 }
 function drawSky(VP, clip, t){ gl.depthMask(false); useProg(P.sky, VP, clip, 0, t); gl.uniformMatrix4fv(P.sky.u.uM, false, Tm(camPos[0], camPos[1], camPos[2])); bindMesh(SKY); gl.drawArrays(gl.TRIANGLES, 0, SKY.n); gl.depthMask(true); }
 function drawScene(VP, clip, below, t, now){ useProg(P.main, VP, clip, below, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.main, now); }
@@ -25596,9 +25716,9 @@ let lastT = performance.now(), pruneAt = 0, zoneHint = { below:false, up:false }
 function frame(now){
   tuneQuality(now - lastT);
   const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; const t = now / 1000;
-  stepNight(); moveMe(dt); stepPeers(dt); stepSeason(dt, now); stepStill(dt); stepSpring(dt, now); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); stepSnow(dt, now); placeCamera(dt); stepSummer(dt, now);
+  stepNight(); moveMe(dt); stepPeers(dt); stepSeason(dt, now); stepStill(dt); stepSpring(dt, now); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); stepSnow(dt, now); placeCamera(dt); stepSummer(dt, now); stepAutumn(dt, now);
   if (me.emote && now - me.et0 > 4200) me.emote = "";
-  render(t, now); updateTags(now); updateSeats(); updateBallUI(); updateVend(now); updateSnowUI(); maybeSend();
+  render(t, now); updateTags(now); updateSeats(); updateBallUI(); updateVend(now); updateSnowUI(); updateTreeUI(); maybeSend();
   { const el = $("goal"), p = goal && inWorld && !making ? project([goal.x, goal.y + .02, goal.z]) : null;           /* where you are walking to */
     if (p){ const k = clamp(9 / p[2], .45, 1.6); el.style.transform = `translate(${p[0]}px, ${p[1]}px) translate(-50%, -50%) scale(${k})`; el.classList.add("on"); } else el.classList.remove("on"); }
   const z = zoneOf(me.x, me.y, me.z);
@@ -25644,6 +25764,7 @@ function about(){
    { en:"Day and night take turns every three minutes, the same for everyone here. At night the lamps and strings of bulbs along the walls and the vending machines light up, and the water glows softly — the count at the top shows how long till it turns", ko:"3분마다 낮과 밤이 바뀌어요(모든 방문자가 같은 시간). 밤에는 벽을 따라 벽등과 줄 전구, 자판기 불빛이 켜지고 수영장 물빛이 은은하게 빛나요 — 위쪽 표시에서 바뀔 때까지 남은 시간을 볼 수 있어요" },
    { en:"Seasons: tap the sun or moon at the top to pick spring, summer, autumn or winter — it changes for everyone on the server. Spring brings cherry petals, summer cicadas (and fireflies at night), autumn falling leaves; walk up to a tree and it lets go of a handful. In winter it snows, footprints stay in it, and the pool freezes: walk onto the ice and ski", ko:"계절: 위쪽 해·달 표시를 누르면 봄·여름·가을·겨울을 고를 수 있어요 — 바꾸면 서버의 모두에게 함께 바뀌어요. 봄엔 벚꽃잎, 여름엔 매미 소리(밤엔 반딧불), 가을엔 낙엽이 날리고, 나무에 다가가면 우수수 떨어져요. 겨울엔 눈이 내려 발자국이 남고, 수영장이 얼어 얼음 위에서 스키를 탈 수 있어요" },
    { en:"Spring: walk through fallen petals and they come to you — thirty make a crown of blossom that everyone sees; sit on a bench and petals pour down round you; by day butterflies drift about and settle on the head of anyone who keeps still", ko:"봄: 바닥에 떨어진 꽃잎 위를 걸으면 꽃잎이 모여요 — 30장을 모으면 벚꽃 화관이 생기고 다른 사람에게도 보여요. 벤치에 앉으면 꽃잎이 쏟아져요. 낮에는 나비가 날아다니다 가만히 있는 사람 머리에 앉아요" },
+   { en:"Autumn: jump (Space) into a pile of leaves and it bursts all over — anyone's jump does it. Walk up to a tree and shake it (E, or the button): leaves pour down and acorns and chestnuts drop; walk over them to pick them up", ko:"가을: 낙엽 더미에 점프(Space)하면 와사삭 흩날려요 — 다른 사람이 뛰어들어도 함께 보여요. 나무 앞에서 흔들면(E 또는 버튼) 낙엽이 쏟아지고 도토리와 밤이 떨어져요 — 위로 걸어가면 주워요" },
    { en:"Summer: the vending machines give out a sparkler and a bug net, free. The sparkler sparks for forty seconds and harder beside a friend's; swing the net (F) at eight kinds of insect — on the trees, in the air, on the benches, by the planters, on the water — each is counted, then let go; catch every kind for a 🐛 Bug King badge before your name. Now and then fireworks open over the far wall, the same for everyone", ko:"여름: 자판기에서 스파클라와 잠자리채를 무료로 받아요. 스파클라는 40초 동안 반짝이고, 친구 스파클라 곁에서는 더 화려해져요. 잠자리채를 휘둘러(F) 나무·공중·벤치·화단·물 위의 곤충 8종을 잡으면 세고 놓아줘요 — 모두 모으면 이름 앞에 🐛 벌레왕 배지가 붙어요. 가끔 건너편 하늘에 불꽃놀이가 터져요 — 모두에게 똑같이 보여요" },
    { en:"Talk (Enter), wave, bow, jump, dance or sit — near a bench every free seat shows a ring: click it, or press E, to sit", ko:"말하기(Enter), 손 흔들기·인사·점프·춤·앉기로 만나요 — 벤치 가까이 가면 빈자리에 동그라미가 떠요. 누르거나 E 키로 앉아요" }]
     .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); ol.appendChild(li); });
@@ -25678,7 +25799,7 @@ if (!initGL()){
   netInit();
 }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
-window.__pool = { CROWN, BFLY, POSES, SUM, BUG, ITEMS, BUGK, FW, fw(ty, age){ const k = Math.floor(Date.now() / FWS); fwPlan(k).push({ t:Date.now() - 1200 - (age || 0) * 1000, x:(Math.random() - .5) * 16, z:-CZW - 14, y:17, R:5.5, c:0, c2:2, ty:ty || 0, rot:0, l:1, s:0 }); }, SNB, SNM, makeSnowman, night(k){ NIGHT.force = k; }, season(s){ setSeason(s, Date.now(), null); }, SEASON, faceOf, AUD, buyDrink, openVend, endDrink, setCalm, DRINKS, VENDS, handAt, pose, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
+window.__pool = { CROWN, BFLY, POSES, SUM, BUG, ITEMS, BUGK, FW, AUT, PILES, NUTS, fw(ty, age){ const k = Math.floor(Date.now() / FWS); fwPlan(k).push({ t:Date.now() - 1200 - (age || 0) * 1000, x:(Math.random() - .5) * 16, z:-CZW - 14, y:17, R:5.5, c:0, c2:2, ty:ty || 0, rot:0, l:1, s:0 }); }, SNB, SNM, makeSnowman, night(k){ NIGHT.force = k; }, season(s){ setSeason(s, Date.now(), null); }, SEASON, faceOf, AUD, buyDrink, openVend, endDrink, setCalm, DRINKS, VENDS, handAt, pose, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
 <!--SCRIPT_END-->
 </body>
 </html>
