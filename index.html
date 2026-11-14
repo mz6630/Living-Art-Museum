@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261114085653";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261114091027";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -23244,6 +23244,7 @@ function pose(a, now){
   if (BALL.holder === a){ q.a1x = q.a2x = -1.05; q.a1z = -.12; q.a2z = .12; }                      /* the ball held in both hands, at the chest */
   else if (a === me && AIM.on){ q.a2x = -.75; q.a2z = 1.05; }                           /* a balloon held up in the right hand, out to the side */
   else if (a.thr && now - a.thr < 380){ const v = (now - a.thr) / 380; q.a2z = 2.3 - 1.5 * v; q.a2x = .9 - 2.2 * Math.sin(Math.PI * Math.min(1, v * 1.3)); }   /* the throw */
+  if (a.tired && SEASON.cur === "summer" && !a.sit){ q.bow += .2; q.a1x = q.a2x = -.22; q.a1z = -.12; q.a2z = .12; q.lift += Math.abs(Math.sin(now / 170)) * .015; }   /* hot and tired: bent over, panting */
   if (a.shake && now - a.shake < 700){ const v = (now - a.shake) / 700, e = Math.sin(v * Math.PI), w = Math.sin(v * Math.PI * 4) * .12 * e;   /* both hands on the trunk: shake, shake */
     q.a1x = q.a2x = -1.35 * e + w; q.a1z = -.15; q.a2z = .15; q.bow += .1 * e; q.sway += w * .3; }
   if (a.item && BALL.holder !== a && !(a === me && SN.held)){                                         /* the left hand: a sparkler held up, or the net — and its swing */
@@ -23268,6 +23269,7 @@ function faceOf(a, now){
   if (a.emote === "dizzy" && now - a.et0 < DIZZY_MS) return [3, 1];                          /* seeing stars */
   if (a.dk && now - a.dk.t0 > SIP * .24 && now - a.dk.t0 < SIP * .86) return [1, 1];          /* gulping, eyes shut */
   if (a.dk && (sour(a, now) || a.dk.k === "slush" && now - a.dk.on >= 0 && now - a.dk.on < 1600)) return [4, 1];   /* > < : too sour, too cold */
+  if (a.tired && SEASON.cur === "summer") return [4, Math.sin(now / 140) > -.2 ? 1 : 0];                   /* > < and puffing */
   const happy = a.emote && a.emote !== "sit" && now - a.et0 < 2800, pf = !happy && a.pose && POSES[a.pose] && POSES[a.pose].face;   /* each pose has its own face */
   let eye = happy ? 2 : now >= a.blinkAt ? 1 : 0, mouth = happy ? 2 : 0;
   if (pf){ eye = pf[0]; mouth = pf[1]; if ((eye === 0 || eye === 7) && now >= a.blinkAt) eye = 1; }
@@ -23324,7 +23326,7 @@ function moveMe(dt){
     else if (d < .18 || goal.stuck > .45){ goal = null; }
     else { vx = dx / d; vz = dz / d; il = Math.min(1, d / .35); goal.last = [me.x, me.z]; } }
   const run = keys.ShiftLeft || keys.ShiftRight || il > .95 && joy.on && Math.hypot(joy.x, joy.y) > .97 || goal && goal.run;
-  const speed = (run ? 5 : 3) * (dkOn(me, "energy", performance.now()) ? (run ? (CALM ? 1.12 : 1.3) : (CALM ? 1.3 : 1.55)) : 1);   /* the energy drink: quicker, never wild */
+  const speed = (run && !me.tired ? 5 : me.tired ? 2.5 : 3) * (dkOn(me, "energy", performance.now()) ? (run ? (CALM ? 1.12 : 1.3) : (CALM ? 1.3 : 1.55)) : 1);   /* the energy drink: quicker, never wild */
   me.moving = il > .08 && !making;
   if (me.moving && me.pose){ me.pose = ""; me.et = Date.now(); syncBar(); }                                  /* walking off ends a pose */
   me.skate = onIce(me) && !making;
@@ -23352,7 +23354,7 @@ function moveMe(dt){
     me.r += wrap(Math.atan2(vx, vz) - me.r) * Math.min(1, dt * 12);
     me.ph += s * 5.2; me.mv = lerp(me.mv, clamp(speed * Math.min(1, il) / 3, 0, 1.35), Math.min(1, dt * 8));
     stepAcc += s; if (stepAcc > .62){ stepAcc = 0; if (onWater()) AUD.wstep();
-      else { const n = performance.now(), dk = me.dk && n >= me.dk.on && n < me.dk.end ? me.dk.k : ""; AUD.step(me.y < -1.4, dk === "milk" || dk === "kid" || dk === "energy" || dk === "slush" ? dk : SEASON.snow > .6 && me.y > -.3 ? "snow" : ""); } }
+      else { const n = performance.now(), dk = me.dk && n >= me.dk.on && n < me.dk.end ? me.dk.k : ""; AUD.step(me.y < -1.4, dk === "milk" || dk === "kid" || dk === "energy" || dk === "slush" ? dk : SEASON.snow > .6 && me.y > -.3 ? "snow" : leafStep(me) ? "leaf" : ""); } }
     if (goal && goal.last){ const gain = Math.hypot(goal.x - goal.last[0], goal.z - goal.last[1]) - Math.hypot(goal.x - me.x, goal.z - me.z); goal.stuck = gain < s * .5 ? goal.stuck + dt : 0; }   /* not getting closer (a wall, the pool's edge): stop */
   } else me.mv = Math.max(0, me.mv - dt * 5);
   const f = myFloor(me.x, me.z, me.y); if (f !== null) me.y += (f - me.y) * Math.min(1, dt * 14);
@@ -23778,7 +23780,7 @@ function tagFor(a){
   t = { el, bb, nm, emo, pz, kg, msg:"", king:null }; TAGS.set(a.id, t); return t;
 }
 function dropTag(id){ const t = TAGS.get(id); if (t){ t.el.remove(); TAGS.delete(id); } }
-const EMO_CH = { catch:"🥅", leaf:"🍂", pose_v:"✌️", pose_hearth:"🥰", pose_bloom:"🌼", pose_think:"🤔", pose_hooray:"🙌", pose_flex:"💪", wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️", splash:"💦", dizzy:"💫", steal:"😎", oops:"😮", energy:"⚡", cider:"🫧", water:"✨", beer:"🥴", milk:"🥛", ghost:"👻", burp:"😮‍💨", lemon:"🍋", kid:"🧃", glass:"🌊", spicy:"🔥", slush:"🥶" };
+const EMO_CH = { catch:"🥅", leaf:"🍂", hot:"🥵", pose_v:"✌️", pose_hearth:"🥰", pose_bloom:"🌼", pose_think:"🤔", pose_hooray:"🙌", pose_flex:"💪", wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️", splash:"💦", dizzy:"💫", steal:"😎", oops:"😮", energy:"⚡", cider:"🫧", water:"✨", beer:"🥴", milk:"🥛", ghost:"👻", burp:"😮‍💨", lemon:"🍋", kid:"🧃", glass:"🌊", spicy:"🔥", slush:"🥶" };
 function popEmote(a, e){ if (!EMO_CH[e]) return; const t = tagFor(a); t.emo.textContent = EMO_CH[e]; t.emo.classList.remove("go"); void t.emo.offsetWidth; t.emo.classList.add("go"); }
 function project(p){
   const M = VPm; if (!M) return null;
@@ -23914,7 +23916,6 @@ const AUD = (() => {
       if (t > nextWave){ nextWave = t + 5.5 + Math.random() * 3.5; wave(tt + .05, .7 + Math.random() * .5); if (Math.random() < .35) wave(tt + 1.4 + Math.random(), .45); }
       if (t > nextLap && up > .3){ nextLap = t + 1.1 + Math.random() * 2.2; lap(tt); if (Math.random() < .25) lap(tt + .12 + Math.random() * .15); }
       if (t > nextDrop && up > .3){ nextDrop = t + 2.2 + Math.random() * 4; const f = 1300 + Math.random() * 700; tone(tt, f, .08, .012 * up, f * 1.6, "sine", amb.up); }
-      if (t > nextCic && up > .3 && NIGHT.k < .4 && SEASON.cur === "summer"){ nextCic = t + 12 + Math.random() * 10; this.cicada(.22); }   /* summer days: cicadas far off (the near ones sing from their trees) */
       if (t > nextBird && up > .3 && NIGHT.k < .4 && SEASON.cur === "spring"){ nextBird = t + 3.5 + Math.random() * 6; const f = 2500 + Math.random() * 900;   /* spring days: birds */
         for (let i = 0; i < 2 + (Math.random() * 3 | 0); i++) tone(tt + i * .11, f + i * 120, .07, .009 * up, f * 1.35, "sine"); }
       if (t > nextCri && up > .3 && NIGHT.k > .6 && SEASON.cur !== "winter"){ nextCri = t + 1.3 + Math.random() * 3; const f = 4100 + Math.random() * 600, g = .005 * NIGHT.k * up;   /* crickets, at night */
@@ -23926,6 +23927,7 @@ const AUD = (() => {
       else if (kind === "kid"){ tone(tt, 1900, .04, .012, 2500); burst(tt, .025, 4200, 4, .006); }                /* tiny: pip */
       else if (kind === "energy"){ burst(tt, .035, 3400, 3, .012); tone(tt, 1300, .05, .008, 2300, "triangle"); }  /* quick: zip */
       else if (kind === "slush" || kind === "snow"){ burst(tt, .04, 1800, 3, .014); burst(tt + .025, .035, 3200, 3, .01); }   /* crunch */
+      else if (kind === "leaf") this.leaves(1);
       else burst(tt, .045, low ? 1700 : 2600, 4, .012); },
     click(){ if (!ok()) return; tone(ctx.currentTime, 1760, .05, .012, null, "triangle"); },                  /* buttons stay a quiet tick */
     chat(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 1568, .08, .03); tone(tt + .07, 2093, .1, .025); },
@@ -24013,6 +24015,12 @@ const AUD = (() => {
     petal(){ if (!ok()) return; const tt = ctx.currentTime, f = 2093 + Math.random() * 600; tone(tt, f, .07, .008, f * 1.25); },
     chime(night){ if (!ok()) return; const tt = ctx.currentTime; (night ? [1568, 1319, 1047, 784] : [1047, 1319, 1568, 2093]).forEach((f, i) => tone(tt + i * .12, f, .28, .016)); },
     roll(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; burst(tt, .09, 1600, 2.5, .016 * h); burst(tt + .05, .07, 2600, 3, .01 * h); },   /* snow crunching under a rolling ball */
+    pant(){ if (!ok()) return; const tt = ctx.currentTime; burst(tt, .13, 1500, .9, .011); burst(tt + .24, .11, 1200, .9, .008); },   /* huff, huff */
+    gust(){ if (!ok()) return; const tt = ctx.currentTime, s = src(brown, true), f = filt("lowpass", 300, .6), a = ctx.createGain();   /* a gust of autumn wind */
+      f.frequency.setValueAtTime(300, tt); f.frequency.exponentialRampToValueAtTime(1500, tt + .9); f.frequency.exponentialRampToValueAtTime(350, tt + 2.4);
+      a.gain.setValueAtTime(.0001, tt); a.gain.exponentialRampToValueAtTime(.09, tt + .8); a.gain.exponentialRampToValueAtTime(.0001, tt + 2.5); s.connect(f); f.connect(a); a.connect(fx); s.start(tt, Math.random() * 3); s.stop(tt + 2.6);
+      for (let i = 0; i < 8; i++) burst(tt + .4 + i * .18 + Math.random() * .1, .09, 2500 + Math.random() * 3000, 1.3, .01); },
+    leaves(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; for (let i = 0; i < 3; i++) burst(tt + i * .022 + Math.random() * .015, .055, 2200 + Math.random() * 3800, 1.4, .018 * h); },   /* crunch of dry leaves underfoot */
     shake(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; tone(tt, 150, .14, .03 * h, 90); for (let i = 0; i < 7; i++) burst(tt + .05 + i * .07 + Math.random() * .05, .1, 2600 + Math.random() * 2400, 1.3, .016 * h); },   /* a thump on the trunk, the crown rustling */
     pile(h, big){ if (!ok() || h <= 0) return; const tt = ctx.currentTime, n = big ? 10 : 3;                       /* crunch — leaves */
       for (let i = 0; i < n; i++) burst(tt + i * (big ? .035 : .06) + Math.random() * .03, big ? .12 : .08, 1800 + Math.random() * 3500, 1.1, (big ? .03 : .014) * h);
@@ -24867,7 +24875,7 @@ const SP_COL = { spring:[[1, .78, .86], [1, .86, .91], [.98, .7, .8]], autumn:[[
 function spawnP(kind, x, y, z, burst){
   const p = slot(SP), C = SP_COL[kind], c = C[Math.floor(Math.random() * C.length)];
   Object.assign(p, { on:true, kind, x, y, z, vx:(Math.random() - .5) * (burst ? 1.4 : .3), vy:burst ? .4 + Math.random() * .6 : 0, vz:(Math.random() - .5) * (burst ? 1.4 : .3),
-    a:Math.random() * 6.28, b:Math.random() * 6.28, sa:(Math.random() - .5) * 5, ph:Math.random() * 6.28, land:0, t0:performance.now(), c,
+    a:Math.random() * 6.28, b:Math.random() * 6.28, sa:(Math.random() - .5) * 5, ph:Math.random() * 6.28, land:0, t0:performance.now(), c, gust:0, home:0,
     s:kind === "winter" ? .045 + Math.random() * .03 : kind === "autumn" ? .085 + Math.random() * .04 : kind === "fly" ? .045 : kind === "summer" ? .075 : .06 + Math.random() * .03 });
   return p;
 }
@@ -24908,7 +24916,7 @@ function stepSeason(dt, now){
     const fall = p.kind === "winter" ? 1 : p.kind === "autumn" ? .75 : .55;
     p.vy += (-fall - p.vy) * Math.min(1, dt * 2.2);
     p.x += (p.vx + Math.sin(u * 1.6 + p.ph) * (p.kind === "winter" ? .15 : .55)) * dt; p.z += (p.vz + Math.cos(u * 1.3 + p.ph) * (p.kind === "winter" ? .12 : .4)) * dt; p.y += p.vy * dt;
-    p.vx *= Math.pow(.6, dt); p.vz *= Math.pow(.6, dt); p.a += p.sa * dt; p.b += p.sa * .7 * dt;
+    { const dr = Math.pow(p.gust ? .86 : .6, dt); p.vx *= dr; p.vz *= dr; } p.a += p.sa * dt * (p.gust ? 2 : 1); p.b += p.sa * .7 * dt;
     const g = inR(p.x, p.z, HOLE.x0, HOLE.x1, HOLE.z0, HOLE.z1) ? FLOOR : 0;
     if (p.y <= g + .01){ p.y = g + .012; p.land = now; }
     if (u > 20 || Math.abs(p.x) > CXW || Math.abs(p.z) > CZW) p.on = false; }
@@ -25279,9 +25287,9 @@ function stepSummer(dt, now){
       if (d > .02){ const sp = Math.min(1.4, d * 5); b.x += dx / d * sp * dt; b.z += dz / d * sp * dt; b.yaw += wrap(Math.atan2(dx, dz) - b.yaw) * Math.min(1, dt * 10);
         if (now > b.rip && camPos[1] > -.05){ b.rip = now + 260; Object.assign(slot(DKS.R), { on:true, t0:now, x:b.x, z:b.z }); } } } }   /* rings on the water as it strokes */
   /* the cicadas sing — the nearest one, now and then, louder as you come near; caught mid-song, it squawks */
-  if (day && camPos[1] > -.05 && now > SUM.singAt){ let c = null, cd = 16;
+  if (day && camPos[1] > -.05 && now > SUM.singAt){ let c = null, cd = 4.5;                                   /* only within a few steps */
     for (const b of BUG) if (b.on && !b.rel && b.k === "cicada"){ const d = Math.hypot(b.x - me.x, b.z - me.z); if (d < cd){ cd = d; c = b; } }
-    SUM.singAt = now + (c ? 5000 + Math.random() * 6000 : 3000); if (c && inWorld){ const stop = AUD.cicada(clamp(1.15 - cd / 13, .14, 1)); SUM.song = stop ? { b:c, stop, until:now + 5200 } : null; } }
+    SUM.singAt = now + (c ? 4200 + Math.random() * 4000 : 1200); if (c && inWorld){ const stop = AUD.cicada(Math.pow(clamp(1 - cd / 4.5, 0, 1), 1.3) * 1.1); SUM.song = stop ? { b:c, stop, until:now + 5200 } : null; } }
   if (me.item === "net" && now > SUM.rdy){ SUM.rdy = now + 200; $("itemfx").classList.toggle("ready", !!netTarget()); }   /* something in reach: the swing button glows */
   /* the swing lands: the nearest thing in front of you, in reach of the net */
   if (SUM.hitAt && now >= SUM.hitAt){ SUM.hitAt = 0; const fx = Math.sin(me.r), fz = Math.cos(me.r), tg = netTarget(), best = tg && tg[0], kind = tg ? tg[1] : "";
@@ -25427,7 +25435,7 @@ function drawSummer(p, now){
        walk over them to pick them up. Each page drops its own nuts; a shake
        is told to the others, who see the leaves come down
    ========================================================================== */
-const AUT = { mesh:null, acorn:0, chest:0, shown:"", told:false, toldNut:false, jy:0, shook:new Float32Array(TREES.length) };
+const AUT = { mesh:null, acorn:0, chest:0, shown:"", told:false, toldNut:false, jy:0, shook:new Float32Array(TREES.length), gustAt:0 };
 try { const d = JSON.parse(localStorage.getItem("lam-pool-nuts") || "null"); if (d){ AUT.acorn = Math.max(0, d.a | 0); AUT.chest = Math.max(0, d.c | 0); } } catch (_){}
 const saveNuts = () => { try { localStorage.setItem("lam-pool-nuts", JSON.stringify({ a:AUT.acorn, c:AUT.chest })); } catch (_){} };
 /* five piles, each out from a tree towards the courtyard, clear of the planter */
@@ -25446,6 +25454,25 @@ function autumnMeshes(){ const one = (fn) => { const A = maker(); fn(A); return 
         A.tube([d[0] * .04, d[1] * .04, d[2] * .04], [d[0] * .075, d[1] * .075, d[2] * .075], .006, .001, [.52, .56, .24], 5, 3); } }),
   };
 }
+/* the carpet of fallen leaves: the same for everyone (a fixed seed), one buffer made once, drawn flat on the deck */
+const LIT = { M:null, cells:new Set() };
+const litKey = (x, z) => Math.floor(x / .6) * 1000 + Math.floor(z / .6);
+function buildLitter(){ const r = mb32(4242), A = maker(), C = SP_COL.autumn;
+  const ok = (x, z) => Math.abs(x) < CXW - .2 && Math.abs(z) < CZW - .2 && !inPool(x, z) && !TREES.some(([tx, tz]) => Math.abs(x - tx) < .66 && Math.abs(z - tz) < .66) && !vendBlock(x, z, .1) && (() => { const f = floorAt(x, z, 0); return f !== null && Math.abs(f) < .03; })();
+  const leaf = (x, z) => { if (!ok(x, z)) return; const s = .12 + r() * .07, a = r() * 6.283, ca = Math.cos(a) * s, sa = Math.sin(a) * s, y = .005 + r() * .005, c0 = C[Math.floor(r() * C.length)], k = .78 + r() * .3, c = [c0[0] * k, c0[1] * k, c0[2] * k];
+    const P = (u, v) => [x + ca * u - sa * v, y, z + sa * u + ca * v]; A.quad(P(-1, 0), P(0, -.55), P(1, 0), P(0, .55), [0, 1, 0], c, 0); LIT.cells.add(litKey(x, z)); };
+  for (const [tx, tz] of TREES) for (let i = 0; i < 64; i++){ const a = r() * 6.283, d = .72 + Math.pow(r(), .9) * 3.1; leaf(tx + Math.cos(a) * d, tz + Math.sin(a) * d); }   /* thick under the trees */
+  for (let i = 0; i < 240; i++){ const sd = Math.floor(r() * 4), u = (r() - .5) * 2, e = .25 + Math.pow(r(), 1.7) * 2.6;            /* drifted against the glass */
+    if (sd < 2) leaf(u * (CXW - .4), (sd ? 1 : -1) * (CZW - e)); else leaf((sd === 2 ? 1 : -1) * (CXW - e), u * (CZW - .4)); }
+  for (const [bx, bz] of BENCHES) for (let i = 0; i < 14; i++) leaf(bx + (r() - .5) * 2.8, bz + (r() - .5) * 1.8);
+  return upload(A.v); }
+const onLitter = (x, z) => LIT.cells.has(litKey(x, z));
+/* a step in autumn: on fallen leaves it crunches, and a few fly up round your feet */
+function leafStep(a){ if (!autumnOn() || Math.abs(a.y) > .3) return false;
+  let on = onLitter(a.x, a.z); if (!on) for (const p of SP) if (p.on && p.land && p.kind === "autumn" && Math.abs(p.x - a.x) < .6 && Math.abs(p.z - a.z) < .6){ on = true; break; }
+  if (!on) return false;
+  for (let k = 0; k < 2 + (Math.random() * 2 | 0); k++){ const q = spawnP("autumn", a.x + (Math.random() - .5) * .4, .05, a.z + (Math.random() - .5) * .4, true); q.vy = .7 + Math.random() * .9; q.vx += Math.sin(a.r) * .6; q.vz += Math.cos(a.r) * .6; }
+  return true; }
 function nearTree(rad){ if (!inWorld || making || Math.abs(me.y) > .3 || me.sit) return -1; let best = -1, bd = rad;
   TREES.forEach(([tx, tz], i) => { const d = Math.hypot(tx - me.x, tz - me.z); if (d < bd){ bd = d; best = i; } }); return best; }
 /* a tree shaken: leaves pour down from the crown, and (on your own page) a few nuts drop */
@@ -25484,6 +25511,14 @@ function stepAutumn(dt, now){
     p.near = inside;
     for (const a of PEERS.values()){ if (a.emote !== "jump" || Math.hypot(a.x - p.x, a.z - p.z) > .62) continue;   /* someone else's jump lands in it */
       const u = now - a.et0; if (u > 820 && u < 1100 && a.pileAt !== a.et0){ a.pileAt = a.et0; pileHit(p, true, a); } } }
+  /* others walking through the leaves: the crunch and the kick, quieter */
+  if (on) for (const a of PEERS.values()){ if (a.mv < .3 || now < (a.lstep || 0)) continue; a.lstep = now + 340; const h = hear(a.x, a.z); if (h > .05 && leafStep(a)) AUD.leaves(h * .55); }
+  /* now and then a gust of wind sweeps leaves across the deck */
+  if (on && camPos[1] > -.05){ if (!AUT.gustAt) AUT.gustAt = now + 9000 + Math.random() * 8000;
+    else if (now > AUT.gustAt){ AUT.gustAt = now + 26000 + Math.random() * 22000; const g = Math.random() * 6.283, gx = Math.cos(g), gz = Math.sin(g); AUD.gust();
+      for (let k = 0; k < 26; k++){ const x = clamp(me.x - gx * 5 + (Math.random() - .5) * 10, -CXW + .3, CXW - .3), z = clamp(me.z - gz * 5 + (Math.random() - .5) * 10, -CZW + .3, CZW - .3);
+        const q = spawnP("autumn", x, .2 + Math.random() * 1.6, z, false); q.t0 = now + k * 40; q.vx = gx * (3 + Math.random() * 1.8); q.vz = gz * (3 + Math.random() * 1.8); q.vy = .4 + Math.random() * .9; q.gust = 1; }
+      for (const p of SP) if (p.on && p.land && p.kind === "autumn" && Math.hypot(p.x - me.x, p.z - me.z) < 9){ p.land = 0; p.vy = .8 + Math.random(); p.vx = gx * (2 + Math.random() * 1.5); p.vz = gz * (2 + Math.random() * 1.5); p.gust = 1; } } }
   /* first time near a pile: say so */
   if (on && !AUT.told && PILES.some(p => Math.hypot(me.x - p.x, me.z - p.z) < 2.2)){ AUT.told = true; hint(T({ en:"🍂 A pile of leaves — jump into it (Space)", ko:"🍂 낙엽 더미예요 — 점프(Space)해서 뛰어들어 봐요" })); }
   /* the nuts: drop, bounce, roll off the planter, lie still; walk over one and it comes to you */
@@ -25520,6 +25555,7 @@ function updateTreeUI(){
 function drawAutumn(p, now){
   if (!autumnOn() || PASS === "rf") return; const nuts = NUTS.some(q => q.on);
   if (!AUT.mesh) AUT.mesh = autumnMeshes();
+  if (PASS === "main" && (SEASON.ib !== 2 || SEASON.mix > .4)){ if (!LIT.M) LIT.M = buildLitter(); gl.uniformMatrix4fv(p.u.uM, false, I4); bindMesh(LIT.M); gl.drawArrays(gl.TRIANGLES, 0, LIT.M.n); }   /* the leaf carpet (main picture only: flat, no outline) */
   const u = p.u, put = (m, M) => { gl.uniformMatrix4fv(u.uM, false, M); bindMesh(m); gl.drawArrays(gl.TRIANGLES, 0, m.n); }, M = AUT.mesh, grow = SEASON.ib === 2 ? SEASON.mix : 1;
   for (const pl of PILES){ const sq = pl.sq, wob = sq > .8 ? Math.sin(now / 40) * .04 : 0, sy = (1 - .72 * sq) * grow, sx = (1 + .25 * sq + wob) * grow;   /* flattened when jumped in, gathering again */
     if (grow > .02) put(M.pile, setM(pl.x, 0, pl.z, sx, Math.max(.05, sy), sx, pl.rot)); }
@@ -25529,6 +25565,38 @@ function drawAutumn(p, now){
     else put(m, mm4(Tm(q.x, q.y + (q.rest ? .04 : -.02), q.z), mm4(RY(q.r), mm4(RZ(q.rest ? 1.45 : q.r), [s, 0, 0, 0, 0, s, 0, 0, 0, 0, s, 0, 0, 0, 0, 1])))); }
 }
 
+/* ==========================================================================
+   9k. THE SEASONS ON PEOPLE — in summer, running wears you out: after a few
+       seconds you are hot and tired (sweat flies off, you pant, your face
+       goes red, you can only walk) until a rest puts it right — quicker in
+       the shade of a tree, at once with water or a slush. In winter your
+       breath shows when you talk or run. Everyone works this out for
+       everyone else from how they move, so nothing is sent
+   ========================================================================== */
+const FEEL = { told:false, pant:0 };
+const isTalking = (a, now) => { if (!a.msg) return false; const t0 = a.msgUntil - 6500; return now > t0 && now < t0 + Math.min(3800, 600 + a.msg.length * 110); };
+function stepFeel(dt, now){
+  const summer = SEASON.cur === "summer", winter = SEASON.cur === "winter";
+  for (const a of AVATARS()){ if (a.npc || !a.mesh) continue;
+    const dx = a.x - (a.lx == null ? a.x : a.lx), dz = a.z - (a.lz == null ? a.z : a.lz); a.lx = a.x; a.lz = a.z;
+    a.spd = lerp(a.spd || 0, Math.min(9, Math.hypot(dx, dz) / Math.max(dt, 1e-3)), Math.min(1, dt * 4));         /* how fast they are going, from where they are */
+    if (summer && Math.abs(a.y) < .4 && !onIce(a)){
+      const cool = a.dk && a.dk.started && (a.dk.k === "water" || dkOn(a, "slush", now)), run = a.spd > 3.7 && !a.sit;
+      const shade = TREES.some(([tx, tz]) => Math.hypot(tx - a.x, tz - a.z) < 2.3);
+      a.heat = cool ? 0 : clamp((a.heat || 0) + (run ? dt * (NIGHT.k > .5 ? .55 : 1) : -dt * (a.spd < .4 ? (shade ? 2.4 : 1.15) : .45)), 0, 7); }
+    else a.heat = Math.max(0, (a.heat || 0) - dt * 2);
+    const was = !!a.tired; if (!a.tired && a.heat > 5) a.tired = true; else if (a.tired && a.heat < 1.4) a.tired = false;
+    if (a.tired && !was){ popEmote(a, "hot");
+      if (a === me){ goal = goal && goal.run ? Object.assign(goal, { run:false }) : goal; if (!FEEL.told){ FEEL.told = true; hint(T({ en:"🥵 Too hot to run — rest a moment (quicker in a tree's shade), or drink water or a slush", ko:"🥵 더워서 지쳤어요 — 잠깐 쉬면 회복돼요 (나무 그늘이면 더 빨리, 생수·슬러시는 바로!)" })); } } }
+    if (!a.tired && was && a === me) hint(T({ en:"😌 Got your breath back", ko:"😌 숨을 돌렸어요" }), true);
+    const far = Math.hypot(a.x - camPos[0], a.z - camPos[2]) > 24 || camPos[1] < -.05;
+    if (a.tired && !far && now > (a.swt || 0)){ a.swt = now + 240; const sc = a.sc || 1, sd = Math.random() < .5 ? -1 : 1, rx = Math.cos(a.r), rz = -Math.sin(a.r);   /* sweat flying off */
+      Object.assign(slot(DROPS), { on:true, t0:now, x:a.x + rx * .27 * sd * sc, y:a.y + 1.42 * sc, z:a.z + rz * .27 * sd * sc, vx:rx * .55 * sd, vy:.9 + Math.random() * .5, vz:rz * .55 * sd, life:.32 }); }
+    if (a === me && a.tired && now > FEEL.pant){ FEEL.pant = now + 520; AUD.pant(); }
+    if (winter && !far && Math.abs(a.y) < 1.5 && !(a.dk && dkOn(a, "ghost", now))){ const talk = isTalking(a, now);   /* breath in the cold */
+      if ((talk || a.spd > 3.2) && now > (a.brt2 || 0)){ a.brt2 = now + (talk ? 260 : 600); const M = bodyPt(a, now, [0, HEAD - .15, .4]), sc = a.sc || 1;
+        for (let k = 0; k < (talk ? 2 : 1); k++) Object.assign(slot(DKS.P), { on:true, t0:now + k * 90, kind:4, x:M[0], y:M[1], z:M[2], vx:Math.sin(a.r) * (.45 + Math.random() * .2), vz:Math.cos(a.r) * (.45 + Math.random() * .2), vy:.14, life:1.3, s:((talk ? 2.3 : 1.7) + Math.random() * .8) * sc, r:0 }); } } }
+}
 /* ==========================================================================
    10. INPUT
    ========================================================================== */
@@ -25665,8 +25733,8 @@ function drawPeople(p, now){
     if (a.dk && (PASS === "main" || PASS === "nrm" || PASS === "rf") && dkOn(a, "ghost", now)) continue;   /* the clear soda: only the reflection and the shadow are left */
     if (p.u.uAvY) gl.uniform1f(p.u.uAvY, a.y);
     const mats = partMats(a, now); if (p.u.uAvP) gl.uniform3f(p.u.uAvP, a.x, a.y + mats.lift + ((a.sc || 1) - 1) * .82, a.z);
-    if (p.u.uTint){ const e = a.dk ? dkEnv(a, now) : 0, hot = e && dkOn(a, "spicy", now), cold = e && dkOn(a, "slush", now);
-      gl.uniform3f(p.u.uTint, hot ? 1 + .22 * e : cold ? 1 - .16 * e : 1, hot ? 1 - .27 * e : cold ? 1 - .05 * e : 1, hot ? 1 - .31 * e : cold ? 1 + .24 * e : 1); }
+    if (p.u.uTint){ const e = a.dk ? dkEnv(a, now) : 0, hot = e && dkOn(a, "spicy", now), cold = e && dkOn(a, "slush", now), tir = a.tired && SEASON.cur === "summer" ? 1 : 0;
+      gl.uniform3f(p.u.uTint, (hot ? 1 + .22 * e : cold ? 1 - .16 * e : 1) * (1 + .1 * tir), (hot ? 1 - .27 * e : cold ? 1 - .05 * e : 1) * (1 - .1 * tir), (hot ? 1 - .31 * e : cold ? 1 + .24 * e : 1) * (1 - .12 * tir)); }
     for (const [M, part] of mats){ gl.uniformMatrix4fv(p.u.uM, false, M); bindMesh(part); gl.drawArrays(gl.TRIANGLES, 0, part.n); } }
   if (p.u.uAvY) gl.uniform1f(p.u.uAvY, -99); if (p.u.uTint) gl.uniform3f(p.u.uTint, 1, 1, 1);
   drawBalloons(p); drawDrinks(p, now); drawSeason(p); drawSpring(p, now); drawSnow(p); drawSummer(p, now); drawAutumn(p, now);
@@ -25716,7 +25784,7 @@ let lastT = performance.now(), pruneAt = 0, zoneHint = { below:false, up:false }
 function frame(now){
   tuneQuality(now - lastT);
   const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; const t = now / 1000;
-  stepNight(); moveMe(dt); stepPeers(dt); stepSeason(dt, now); stepStill(dt); stepSpring(dt, now); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); stepSnow(dt, now); placeCamera(dt); stepSummer(dt, now); stepAutumn(dt, now);
+  stepNight(); moveMe(dt); stepPeers(dt); stepSeason(dt, now); stepStill(dt); stepSpring(dt, now); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); stepSnow(dt, now); placeCamera(dt); stepSummer(dt, now); stepAutumn(dt, now); stepFeel(dt, now);
   if (me.emote && now - me.et0 > 4200) me.emote = "";
   render(t, now); updateTags(now); updateSeats(); updateBallUI(); updateVend(now); updateSnowUI(); updateTreeUI(); maybeSend();
   { const el = $("goal"), p = goal && inWorld && !making ? project([goal.x, goal.y + .02, goal.z]) : null;           /* where you are walking to */
@@ -25764,7 +25832,8 @@ function about(){
    { en:"Day and night take turns every three minutes, the same for everyone here. At night the lamps and strings of bulbs along the walls and the vending machines light up, and the water glows softly — the count at the top shows how long till it turns", ko:"3분마다 낮과 밤이 바뀌어요(모든 방문자가 같은 시간). 밤에는 벽을 따라 벽등과 줄 전구, 자판기 불빛이 켜지고 수영장 물빛이 은은하게 빛나요 — 위쪽 표시에서 바뀔 때까지 남은 시간을 볼 수 있어요" },
    { en:"Seasons: tap the sun or moon at the top to pick spring, summer, autumn or winter — it changes for everyone on the server. Spring brings cherry petals, summer cicadas (and fireflies at night), autumn falling leaves; walk up to a tree and it lets go of a handful. In winter it snows, footprints stay in it, and the pool freezes: walk onto the ice and ski", ko:"계절: 위쪽 해·달 표시를 누르면 봄·여름·가을·겨울을 고를 수 있어요 — 바꾸면 서버의 모두에게 함께 바뀌어요. 봄엔 벚꽃잎, 여름엔 매미 소리(밤엔 반딧불), 가을엔 낙엽이 날리고, 나무에 다가가면 우수수 떨어져요. 겨울엔 눈이 내려 발자국이 남고, 수영장이 얼어 얼음 위에서 스키를 탈 수 있어요" },
    { en:"Spring: walk through fallen petals and they come to you — thirty make a crown of blossom that everyone sees; sit on a bench and petals pour down round you; by day butterflies drift about and settle on the head of anyone who keeps still", ko:"봄: 바닥에 떨어진 꽃잎 위를 걸으면 꽃잎이 모여요 — 30장을 모으면 벚꽃 화관이 생기고 다른 사람에게도 보여요. 벤치에 앉으면 꽃잎이 쏟아져요. 낮에는 나비가 날아다니다 가만히 있는 사람 머리에 앉아요" },
-   { en:"Autumn: jump (Space) into a pile of leaves and it bursts all over — anyone's jump does it. Walk up to a tree and shake it (E, or the button): leaves pour down and acorns and chestnuts drop; walk over them to pick them up", ko:"가을: 낙엽 더미에 점프(Space)하면 와사삭 흩날려요 — 다른 사람이 뛰어들어도 함께 보여요. 나무 앞에서 흔들면(E 또는 버튼) 낙엽이 쏟아지고 도토리와 밤이 떨어져요 — 위로 걸어가면 주워요" },
+   { en:"The seasons on you: in summer running wears you out — you sweat and pant and can only walk until you rest (quicker in a tree's shade, at once with water or a slush); in winter your breath shows as you talk", ko:"계절이 몸으로: 여름에 계속 뛰면 더워서 땀을 흘리고 헥헥거리며 걷기만 할 수 있어요 — 쉬면 회복(나무 그늘이면 더 빨리, 생수·슬러시는 바로). 겨울엔 말할 때 입김이 나와요" },
+   { en:"Autumn: fallen leaves crunch underfoot and fly up as you walk, gusts of wind sweep them across the deck; jump (Space) into a pile of leaves and it bursts all over — anyone's jump does it. Walk up to a tree and shake it (E, or the button): leaves pour down and acorns and chestnuts drop; walk over them to pick them up", ko:"가을: 바닥의 낙엽을 밟으면 바스락 소리와 함께 흩날리고, 가끔 바람이 불어 낙엽을 쓸고 가요. 낙엽 더미에 점프(Space)하면 와사삭 흩날려요 — 다른 사람이 뛰어들어도 함께 보여요. 나무 앞에서 흔들면(E 또는 버튼) 낙엽이 쏟아지고 도토리와 밤이 떨어져요 — 위로 걸어가면 주워요" },
    { en:"Summer: the vending machines give out a sparkler and a bug net, free. The sparkler sparks for forty seconds and harder beside a friend's; swing the net (F) at eight kinds of insect — on the trees, in the air, on the benches, by the planters, on the water — each is counted, then let go; catch every kind for a 🐛 Bug King badge before your name. Now and then fireworks open over the far wall, the same for everyone", ko:"여름: 자판기에서 스파클라와 잠자리채를 무료로 받아요. 스파클라는 40초 동안 반짝이고, 친구 스파클라 곁에서는 더 화려해져요. 잠자리채를 휘둘러(F) 나무·공중·벤치·화단·물 위의 곤충 8종을 잡으면 세고 놓아줘요 — 모두 모으면 이름 앞에 🐛 벌레왕 배지가 붙어요. 가끔 건너편 하늘에 불꽃놀이가 터져요 — 모두에게 똑같이 보여요" },
    { en:"Talk (Enter), wave, bow, jump, dance or sit — near a bench every free seat shows a ring: click it, or press E, to sit", ko:"말하기(Enter), 손 흔들기·인사·점프·춤·앉기로 만나요 — 벤치 가까이 가면 빈자리에 동그라미가 떠요. 누르거나 E 키로 앉아요" }]
     .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); ol.appendChild(li); });
