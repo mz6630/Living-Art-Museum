@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261114093343";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261114094820";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -21852,11 +21852,11 @@ body.making #hint{display:none;}
 #sitb{position:absolute;left:0;top:0;display:none;align-items:center;gap:7px;padding:8px 14px 8px 12px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:#25231c;
   font:600 12.5px/1 inherit;font-family:inherit;white-space:nowrap;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);pointer-events:auto;cursor:pointer;will-change:transform;}
 #sitb.on{display:flex;}
-#vendb, #snowb, #treeb{position:absolute;left:0;top:0;display:none;align-items:center;gap:7px;padding:8px 14px 8px 11px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:#25231c;
+#vendb, #snowb, #treeb, #fireb{position:absolute;left:0;top:0;display:none;align-items:center;gap:7px;padding:8px 14px 8px 11px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:#25231c;
   font:600 12.5px/1 inherit;font-family:inherit;white-space:nowrap;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);pointer-events:auto;cursor:pointer;will-change:transform;}
-#vendb.on, #snowb.on, #treeb.on{display:flex;} #vendb:hover, #snowb:hover, #treeb:hover{background:#fff;} #vendb .vi, #snowb .vi, #treeb .vi{font-size:14px;line-height:1;}
-#vendb kbd, #snowb kbd, #treeb kbd{font:600 10px/1 "JetBrains Mono",monospace;padding:3px 5px;border-radius:5px;background:rgba(37,35,28,.09);color:#5a5648;}
-@media (hover:none){ #vendb kbd, #snowb kbd, #treeb kbd{display:none;} }
+#vendb.on, #snowb.on, #treeb.on, #fireb.on{display:flex;} #vendb:hover, #snowb:hover, #treeb:hover, #fireb:hover{background:#fff;} #vendb .vi, #snowb .vi, #treeb .vi, #fireb .vi{font-size:14px;line-height:1;}
+#vendb kbd, #snowb kbd, #treeb kbd, #fireb kbd{font:600 10px/1 "JetBrains Mono",monospace;padding:3px 5px;border-radius:5px;background:rgba(37,35,28,.09);color:#5a5648;}
+@media (hover:none){ #vendb kbd, #snowb kbd, #treeb kbd, #fireb kbd{display:none;} }
 .av.ghost .tg{opacity:.42;}
 /* the beer: a warm blush round the picture's edge (opacity set from the script, only while it lasts) */
 #tipsy{position:fixed;inset:0;z-index:3;pointer-events:none;display:none;opacity:0;background:radial-gradient(ellipse 72% 68% at 50% 48%, transparent 48%, rgba(255,160,118,.5) 100%);}
@@ -22283,7 +22283,9 @@ const LAMPS = [[-10.5, -CZW, 0, 1], [10.5, -CZW, 0, 1], [-10.5, CZW, 0, -1], [10
 const GARLANDS = [[0, 1], [2, 3], [4, 5], [6, 7]];
 const lampAt = (l, out, y) => [l[0] + l[2] * out, y, l[1] + l[3] * out];
 const onVend = (x, z, pad) => VENDS.findIndex(v => x > v.x0 - pad && x < v.x1 + pad && z > v.z0 - pad && z < v.z1 + pad);
-const vendBlock = (x, z, pad) => onVend(x, z, pad) >= 0 || Math.hypot(x - VBIN[0], z - VBIN[1]) < .22 + pad || snowBlock(x, z, pad);
+var FIRE = null, MOON = { k:0 };
+const fireOn = () => !!FIRE && SEASON.cur === "autumn";
+const vendBlock = (x, z, pad) => (!!FIRE && SEASON.cur === "autumn" && Math.hypot(x - FIRE.x, z - FIRE.z) < .5 + pad) || onVend(x, z, pad) >= 0 || Math.hypot(x - VBIN[0], z - VBIN[1]) < .22 + pad || snowBlock(x, z, pad);
 const onBench = (x, z, pad) => BENCHES.findIndex(([bx, bz, ax]) => Math.abs(x - bx) < (ax ? .95 : .24) + pad && Math.abs(z - bz) < (ax ? .24 : .95) + pad);
 /* may the camera stand here? it keeps to the same side of the water as you, and out of the trees */
 function camOK(x, y, z, below){
@@ -22895,7 +22897,7 @@ const SHADOW_FS = `precision highp float; varying vec3 vP; varying vec3 vN; vary
 vec4 enc(float d){ vec4 e = fract(d * vec4(1., 255., 65025., 16581375.)); e -= e.yzww * vec4(1. / 255., 1. / 255., 1. / 255., 0.); return e; }
 void main(){ gl_FragColor = enc(gl_FragCoord.z); }`;
 const SKY_FS = `precision highp float; varying vec3 vP; varying vec3 vN; varying vec3 vC; varying float vM;
-uniform vec3 uCam, uSun; uniform float uT, uClip, uNight, uRain, uBow; uniform vec4 uFwP; uniform vec3 uFwC;
+uniform vec3 uCam, uSun; uniform float uT, uClip, uNight, uRain, uBow, uMoon, uFwK; uniform vec4 uFwP; uniform vec3 uFwC;
 ${SKYFN}
 ${BOWFN}
 ${NOISE}
@@ -22912,16 +22914,19 @@ void main(){
       nc += vec3(1., .97, .9) * step(.962, r) * smoothstep(.1, .0, length(fq)) * smoothstep(.04, .25, d.y) * (.65 + .35 * sin(uT * 1.7 + r * 40.)); }
     vec3 md = normalize(vec3(.22, .36, -1.)), mr = normalize(cross(md, vec3(0., 1., 0.))), ms = normalize(md - mr * .032 + vec3(0., .012, 0.));
     float mm = dot(d, md), disc = smoothstep(.9986, .9992, mm), shade = smoothstep(.9986, .9992, dot(d, ms));      /* a crescent: the disc, less a disc shifted to one side */
-    nc += vec3(1., .97, .88) * disc * (1. - shade) + vec3(.3, .33, .45) * disc * shade * .12 + vec3(.45, .5, .8) * pow(max(mm, 0.), 50.) * .18;
+    vec3 cres = vec3(1., .97, .88) * disc * (1. - shade) + vec3(.3, .33, .45) * disc * shade * .12 + vec3(.45, .5, .8) * pow(max(mm, 0.), 50.) * .18;
+    float fd = smoothstep(.99825, .99855, mm); vec2 mq = (d.xy - md.xy) * 120.; float sp = ns(mq) * .6 + ns(mq * 2.3 + 4.) * .4;    /* autumn: a big full moon, gold, with its grey seas */
+    vec3 full = mix(vec3(.98, .88, .62), vec3(.74, .64, .46), smoothstep(.48, .7, sp)) * fd + vec3(1., .82, .52) * (pow(max(mm, 0.), 260.) * .5 + pow(max(mm, 0.), 22.) * .16);
+    nc += mix(cres, full, uMoon);
     c = mix(c, nc, uNight); }
-  if (uFwP.w > .001){ float g = max(dot(d, normalize(uFwP.xyz - uCam)), 0.); c += uFwC * uFwP.w * (pow(g, 24.) * .32 + pow(g, 5.) * .07); }   /* the sky round a firework, lit for a moment */
+  if (uFwP.w > .001 && uFwK < .001){ float g = max(dot(d, normalize(uFwP.xyz - uCam)), 0.); c += uFwC * uFwP.w * (pow(g, 24.) * .32 + pow(g, 5.) * .07); }   /* the sky round a firework, lit for a moment */
   c = mix(c, mix(vec3(.66, .7, .74), vec3(.1, .11, .16), uNight), uRain * .62);                              /* rain: a grey sky */
   c += bow(d);
   gl_FragColor = vec4(c, 1.); }`;
 const MAIN_FS = `${DERIV ? "#extension GL_OES_standard_derivatives : enable\n" : ""}precision highp float;
 varying vec3 vP; varying vec3 vN; varying vec3 vC; varying float vM;
 uniform vec3 uCam, uSun, uAvP, uTint; uniform float uT, uClip, uBelow, uShTex, uAvY, uA, uNight; uniform mat4 uSV; uniform sampler2D uSh;
-uniform vec4 uLP[12]; uniform vec3 uLC[12]; uniform vec3 uSea; uniform float uSnow, uRain; uniform vec4 uFwP; uniform vec3 uFwC;
+uniform vec4 uLP[12]; uniform vec3 uLC[12]; uniform vec3 uSea; uniform float uSnow, uRain, uMoon, uFwK; uniform vec4 uFwP; uniform vec3 uFwC;
 ${SKYFN}
 ${NOISE}
 ${CAUST}
@@ -23008,8 +23013,8 @@ void main(){
   if (uNight > .001 && !under){ vec3 Ls = vec3(0.);
     for (int i = 0; i < 12; i++){ vec3 d = uLP[i].xyz - vP; float r = length(d) + 1e-4, a = clamp(1. - r / uLP[i].w, 0., 1.); a *= a;
       Ls += uLC[i] * a * (soft ? .45 + .55 * max(dot(n, d / r), 0.) : .2 + .8 * max(dot(n, d / r), 0.)); }
-    if (uFwP.w > .001){ vec3 d = normalize(uFwP.xyz - vP); Ls += uFwC * uFwP.w * .55 * (soft ? .5 + .5 * max(dot(n, d), 0.) : .15 + .85 * max(dot(n, d), 0.)); }   /* a firework's flash, coloured, on whatever faces it */
-    vec3 nc = c * (soft ? vec3(.34, .38, .6) : vec3(.14, .17, .33)) * mix(.7, 1., lit * sh) + col * Ls;
+    if (uFwP.w > .001){ vec3 fv = uFwP.xyz - vP, d = normalize(fv); Ls += uFwC * uFwP.w * .55 * (soft ? .5 + .5 * max(dot(n, d), 0.) : .15 + .85 * max(dot(n, d), 0.)) / (1. + dot(fv, fv) * uFwK); }   /* a firework's flash, coloured, on whatever faces it */
+    vec3 nc = c * (soft ? vec3(.34, .38, .6) : vec3(.14, .17, .33)) * mix(.7, 1., lit * sh) * (1. + uMoon * .3) + col * Ls;
     if (soft) nc += col * vec3(.35, .42, .72) * pow(1. - max(dot(n, V), 0.), 2.) * .45;                 /* people keep a moonlit rim, so you can find yourself */
     if (m > 3.5 && m < 4.5) nc = mix(vec3(.07, .09, .17), vec3(.12, .15, .27), step(.5, fract((vP.x + vP.z + vP.y * .7) * .22))) + Ls * .25;   /* the glass: dark, holding the night */
     c = mix(c, nc, uNight); }
@@ -23024,11 +23029,12 @@ const SKYW = `vec3 skyCol(vec3 d){
   float s = max(dot(d, uSun), 0.); c += vec3(1., .93, .8) * (pow(s, 600.) * 2. + pow(s, 8.) * .18) * (1. - uNight);
   vec3 nc = mix(vec3(.13, .15, .3), vec3(.03, .05, .13), pow(max(h, 0.), .55)); nc = mix(nc, vec3(.06, .07, .12), clamp(-h * 3., 0., 1.));
   vec3 md = normalize(vec3(.22, .36, -1.)), ms = normalize(md - normalize(cross(md, vec3(0., 1., 0.))) * .032 + vec3(0., .012, 0.)); float mm = max(dot(d, md), 0.);
-  nc += vec3(1., .97, .88) * smoothstep(.9986, .9992, mm) * (1. - smoothstep(.9986, .9992, dot(d, ms))) * 1.5 + vec3(1., .97, .88) * pow(mm, 40.) * .08;
+  nc += mix(vec3(1., .97, .88) * smoothstep(.9986, .9992, mm) * (1. - smoothstep(.9986, .9992, dot(d, ms))) * 1.5 + vec3(1., .97, .88) * pow(mm, 40.) * .08,
+             vec3(1., .9, .66) * smoothstep(.99825, .99855, mm) * 1.4 + vec3(1., .84, .56) * pow(mm, 22.) * .22, uMoon);
   return mix(c, nc, uNight); }`;
 const WATER_FS = `precision highp float;
 varying vec3 vP; varying vec3 vN; varying vec3 vC; varying float vM;
-uniform sampler2D uRef, uRefl; uniform vec2 uRes; uniform vec3 uCam, uSun; uniform float uT, uBelow, uHasRefl, uNight, uIce, uRain, uBow;
+uniform sampler2D uRef, uRefl; uniform vec2 uRes; uniform vec3 uCam, uSun; uniform float uT, uBelow, uHasRefl, uNight, uIce, uRain, uBow, uMoon;
 ${SKYW}
 ${BOWFN}
 ${NOISE}
@@ -23057,7 +23063,7 @@ void main(){
     float nh = max(dot(n, normalize(uSun + V)), 0.);
     c += vec3(1., .97, .9) * (pow(nh, 1400.) * 9. + pow(nh, 140.) * .3) * (1. - uNight);
     if (uNight > .001){ vec3 md = normalize(vec3(.22, .36, -1.)); float mh = max(dot(n, normalize(md + V)), 0.);     /* the moon on the water: a path of small glints, a faint silver sheen */
-      c += vec3(.8, .87, 1.) * (pow(mh, 700.) * 1.7 + pow(mh, 48.) * .07 + pow(mh, 6.) * .03) * uNight * ed; }   /* a crescent: a little dimmer */
+      c += mix(vec3(.8, .87, 1.), vec3(1., .9, .66), uMoon) * (pow(mh, 700.) * 1.7 + pow(mh, 48.) * .07 + pow(mh, 6.) * .03) * uNight * ed * (1. + uMoon * 1.3); }   /* a crescent: a little dimmer */
   } else {
     vec2 off = n.xz * .08 * ed, px = 2.4 / uRes; vec3 r = vec3(0.);
     for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) r += tap(uRef, uv + off + vec2(float(i), float(j)) * px);
@@ -23793,7 +23799,7 @@ function tagFor(a){
   t = { el, bb, nm, emo, pz, kg, msg:"", king:null }; TAGS.set(a.id, t); return t;
 }
 function dropTag(id){ const t = TAGS.get(id); if (t){ t.el.remove(); TAGS.delete(id); } }
-const EMO_CH = { catch:"🥅", leaf:"🍂", hot:"🥵", pose_v:"✌️", pose_hearth:"🥰", pose_bloom:"🌼", pose_think:"🤔", pose_hooray:"🙌", pose_flex:"💪", wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️", splash:"💦", dizzy:"💫", steal:"😎", oops:"😮", energy:"⚡", cider:"🫧", water:"✨", beer:"🥴", milk:"🥛", ghost:"👻", burp:"😮‍💨", lemon:"🍋", kid:"🧃", glass:"🌊", spicy:"🔥", slush:"🥶" };
+const EMO_CH = { catch:"🥅", leaf:"🍂", hot:"🥵", yum:"😋", rabbit:"🐇", pose_v:"✌️", pose_hearth:"🥰", pose_bloom:"🌼", pose_think:"🤔", pose_hooray:"🙌", pose_flex:"💪", wave:"👋", bow:"🙇", jump:"⤴️", dance:"💃", heart:"❤️", splash:"💦", dizzy:"💫", steal:"😎", oops:"😮", energy:"⚡", cider:"🫧", water:"✨", beer:"🥴", milk:"🥛", ghost:"👻", burp:"😮‍💨", lemon:"🍋", kid:"🧃", glass:"🌊", spicy:"🔥", slush:"🥶" };
 function popEmote(a, e){ if (!EMO_CH[e]) return; const t = tagFor(a); t.emo.textContent = EMO_CH[e]; t.emo.classList.remove("go"); void t.emo.offsetWidth; t.emo.classList.add("go"); }
 function project(p){
   const M = VPm; if (!M) return null;
@@ -24034,6 +24040,8 @@ const AUD = (() => {
       if (!rainN){ const s = src(white, true), h = filt("highpass", 600, .5), f = filt("lowpass", 2800, .5), g = ctx.createGain(); g.gain.value = 0; s.connect(h); h.connect(f); f.connect(g); g.connect(master); s.start(tt, Math.random() * 3); rainN = { s, g, off:0 }; }
       rainN.off = 0; rainN.g.gain.setTargetAtTime(.055 * k, tt, .6);
       if (tt > rainTick){ rainTick = tt + .05 + Math.random() * .18 / Math.max(.3, k); const f = 1800 + Math.random() * 2200; tone(tt, f, .03, .0035 * k, f * .7, "sine"); } },
+    magic(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; [1568, 1976, 2349, 2637, 3136, 3951].forEach((f, i) => tone(tt + i * .07, f, .55, .011 * h)); burst(tt + .1, .6, 7000, 1.5, .006 * h); },   /* a shimmer of moonlight */
+    nutpop(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; tone(tt, 820, .06, .03 * h, 380, "triangle"); burst(tt, .05, 2600, 2, .03 * h); },   /* tak! — a chestnut bursting */
     pant(){ if (!ok()) return; const tt = ctx.currentTime; burst(tt, .13, 1500, .9, .011); burst(tt + .24, .11, 1200, .9, .008); },   /* huff, huff */
     gust(){ if (!ok()) return; const tt = ctx.currentTime, s = src(brown, true), f = filt("lowpass", 300, .6), a = ctx.createGain();   /* a gust of autumn wind */
       f.frequency.setValueAtTime(300, tt); f.frequency.exponentialRampToValueAtTime(1500, tt + .9); f.frequency.exponentialRampToValueAtTime(350, tt + 2.4);
@@ -24205,6 +24213,8 @@ function onFx(a, f){
   if (f[0] === "c" && n.length >= 6){ a.thr = performance.now(); AUD.flick(hear(a.x, a.z) * .7); a.r = n[2];
     flipCoin(coinPath({ x0:clamp(n[0], -CXW, CXW), z0:clamp(n[1], -CZW, CZW), a:n[2], v:clamp(n[3], 1, 10), th:clamp(n[4], 2, 85), k:clamp(n[5] | 0, 0, 5) })); return; }
   if (f[0] === "s"){ snowFrom(a, n); return; }
+  if (f[0] === "r"){ if (fireOn() && FIRE.roast.length < 6){ const g = Math.random() * 6.283; FIRE.roast.push({ t0:performance.now(), x:FIRE.x + Math.cos(g) * .16, z:FIRE.z + Math.sin(g) * .16, mine:false }); } return; }
+  if (f[0] === "m"){ a.moonlit = performance.now(); popEmote(a, "rabbit"); return; }
   if (f[0] === "t"){ const i = n[0] | 0; if (i >= 0 && i < TREES.length && autumnOn()) treeShake(i, a); return; }
   if (f[0] === "n"){ a.swing = performance.now(); const h = hear(a.x, a.z); AUD.swish(h * .6); if (n[0] >= 0 && n[0] < BUG_IDS.length){ popEmote(a, "catch"); AUD.caught(h * .6); } return; }
   if (f[0] !== "b" || n.length < 5) return;
@@ -24353,7 +24363,7 @@ function stepCoins(now){
     if (!c.sunk){ let t = (now - c.t0) / 1000, i = 0; while (i < c.segs.length && t > c.segs[i].T){ t -= c.segs[i].T; i++; }
       while (c.si < i && c.si < c.segs.length){ c.si++; if (c.si < c.segs.length){ const g = c.segs[c.si]; splash(g.x0, 0, g.z0, 3, true); AUD.skip(hear(g.x0, g.z0), c.si); } }   /* a skip */
       if (i < c.segs.length){ const g = c.segs[i]; c.x = g.x0 + g.vx * t; c.z = g.z0 + g.vz * t; c.y = g.y0 + g.vy * t - 4.9 * t * t; c.tilt += .5; c.yaw = Math.atan2(g.vx, g.vz); }
-      else { c.sunk = true; c.t1 = now; c.x = c.x1; c.z = c.z1; splash(c.x1, 0, c.z1, 5, true); const k = hear(c.x1, c.z1); AUD.plop(k); AUD.coin(k * .8); } }
+      else { c.sunk = true; c.t1 = now; c.x = c.x1; c.z = c.z1; splash(c.x1, 0, c.z1, 5, true); moonWish(c.x1, c.z1, c.mine); const k = hear(c.x1, c.z1); AUD.plop(k); AUD.coin(k * .8); } }
     else { const v = (now - c.t1) / 1500;
       if (v >= 1){ c.on = false; WISH.settled.push({ x:c.x1, z:c.z1, at:now }); if (WISH.settled.length > 8) WISH.settled.shift();
         for (const q of WISH.list) if (q.hide && Math.hypot(q.x - c.x1, q.z - c.z1) < .4){ q.hide = false; WISH.dirty = true; }
@@ -24871,7 +24881,7 @@ function stepNight(){
 const SEASONS = ["spring", "summer", "autumn", "winter"], SEA_C = { none:"n", spring:"p", summer:"s", autumn:"a", winter:"w" }, SEA_OF = { n:"none", p:"spring", s:"summer", a:"autumn", w:"winter" };
 const sIdx = (s) => s === "none" ? 1 : SEASONS.indexOf(s);                                         /* none: the trees as they are */
 const SEA_INFO = { none:{ ico:"", to:"기본으로", n:{ en:"Default", ko:"기본" }, d:{ en:"", ko:"" } }, spring:{ ico:"🌸", to:"봄으로", n:{ en:"Spring", ko:"봄" }, d:{ en:"Petals, rain, rainbows", ko:"벚꽃·봄비·무지개" } }, summer:{ ico:"🍉", to:"여름으로", n:{ en:"Summer", ko:"여름" }, d:{ en:"Fireworks, bug nets", ko:"불꽃놀이·곤충 채집" } },
-                   autumn:{ ico:"🍁", to:"가을로", n:{ en:"Autumn", ko:"가을" }, d:{ en:"Leaf piles, acorns", ko:"낙엽 더미·도토리" } }, winter:{ ico:"❄️", to:"겨울로", n:{ en:"Winter", ko:"겨울" }, d:{ en:"Snow, ski the ice", ko:"눈·얼음 스키" } } };
+                   autumn:{ ico:"🍁", to:"가을로", n:{ en:"Autumn", ko:"가을" }, d:{ en:"Leaves, bonfire, full moon", ko:"낙엽·모닥불·보름달" } }, winter:{ ico:"❄️", to:"겨울로", n:{ en:"Winter", ko:"겨울" }, d:{ en:"Snow, ski the ice", ko:"눈·얼음 스키" } } };
 const SEASON = { cur:"none", from:null, stamp:0, t0:-1e9, ia:1, ib:1, mix:1, snow:0, ice:0, pickAt:0 };     /* by default: no season at all */
 const iceOn = () => SEASON.ice > .6;
 function setSeason(s, stamp, by){
@@ -25283,7 +25293,7 @@ function bugSpot(b, k){
 const nearEdge = (x, z) => Math.min(PX - Math.abs(x), PZ - Math.abs(z));
 function stepSummer(dt, now){
   const sum = summerOn() && inWorld;
-  if (!summerOn()){ for (const a of AVATARS()) a.itF = null; if (me.item && ITEMS[me.item].sea === "summer") putAway(inWorld ? { en:"Summer's over — put away", ko:"여름이 끝나서 넣어 뒀어요" } : null); for (const b of BUG) b.on = false; for (const p of SPK) p.on = false; fwN = 0; FW.fl = 0; return; }
+  if (!summerOn()){ for (const a of AVATARS()) a.itF = null; if (me.item && ITEMS[me.item].sea === "summer") putAway(inWorld ? { en:"Summer's over — put away", ko:"여름이 끝나서 넣어 뒀어요" } : null); for (const b of BUG) b.on = false; if (autumnOn()){ buildFW(now); fireLight(now); } else { for (const p of SPK) p.on = false; fwN = 0; FW.fl = 0; } return; }
   if (me.item === "sp" && now > SUM.end) putAway({ en:"The sparkler burnt out", ko:"스파클라가 다 탔어요" });
   /* the bugs round you: five kinds by day, three at night (the fireflies are the season's own); the water striders stay day and night */
   const day = NIGHT.k < .5, want = day ? { cicada:3, dfly:3, lady:2, hopper:2, strider:2 } : { beetle:1, stag:1, strider:2 }, have = {};
@@ -25414,13 +25424,15 @@ function fwBurst(b, u, L){
       fwStar(b, Math.cos(a) * r, dy, Math.sin(a) * r, R, u, L, .5, i % 3 ? FW_WHITE : ca, .12, w * .75, k, hot, u > .35 ? i + 3 : 0); } }
 }
 function buildFW(now){
-  fwN = 0; fwO = 0; FW.fl = 0; if (!gl) return;
+  fwN = 0; fwO = 0; FW.fl = 0; FW.k = 0; if (!gl) return;
   FW.add = NIGHT.k > .35;
   { const f = norm(sub(camTgt, camPos)), R = norm(cross(f, [0, 1, 0])), U = cross(R, f); fwRx = R[0]; fwRy = R[1]; fwRz = R[2]; fwUx = U[0]; fwUy = U[1]; fwUz = U[2]; }
+  if (autumnOn() && FIRE){ const f = 1 + .08 * Math.sin(now / 80); glow(FIRE.x, .5, FIRE.z, 3 * f, [1, .48, .16], .34); glow(FIRE.x, .4, FIRE.z, 1.1 * f, [1, .78, .4], .4);   /* the fire's glow, the rabbit's, at night: soft and round */
+    if (RAB.on && RAB.k > .01) glow(RAB.x, RAB.y + .26, RAB.z, 1.7, [.7, .82, 1], .4 * RAB.k); }
   for (const a of AVATARS()) if (a.itF && a.itF.tip) glow(a.itF.tip[0], a.itF.tip[1], a.itF.tip[2], a.tg ? .9 : .65, SPC0, .32);   /* a sparkler's glow, at night */
   for (const p of SPK){ if (!p.on) continue; const u = (now - p.t0) / 1000, f = 1 - u / p.life, w = .026 * f + .007;
     streak(p.x - p.vx * .035, p.y - p.vy * .035, p.z - p.vz * .035, p.x, p.y, p.z, w, p.c ? SPC1 : SPC0, .5 + .7 * f); }
-  if (camPos[1] > -.05){ const T0 = Date.now(), ks = Math.floor(T0 / FWS); let fl = 0, fb = null;
+  if (camPos[1] > -.05 && summerOn()){ const T0 = Date.now(), ks = Math.floor(T0 / FWS); let fl = 0, fb = null;
     for (let kk = ks - 1; kk <= ks; kk++) for (const b of fwPlan(kk)){ const u = (T0 - b.t) / 1000; if (u < 0) continue;
       if (u < 1.2){ const v = u / 1.2, ya = (vv) => 2 + (b.y - 2) * (1 - (1 - vv) * (1 - vv)), wob = Math.sin(u * 23 + b.rot) * .06;   /* going up: a bright head, embers trailing */
         streak(b.x + wob, ya(Math.max(0, v - .07)), b.z, b.x + wob, ya(v), b.z, .13, FW_ROCKET, 1.1);
@@ -25462,9 +25474,9 @@ function drawSummer(p, now){
        walk over them to pick them up. Each page drops its own nuts; a shake
        is told to the others, who see the leaves come down
    ========================================================================== */
-const AUT = { mesh:null, acorn:0, chest:0, shown:"", told:false, toldNut:false, jy:0, shook:new Float32Array(TREES.length), gustAt:0 };
-try { const d = JSON.parse(localStorage.getItem("lam-pool-nuts") || "null"); if (d){ AUT.acorn = Math.max(0, d.a | 0); AUT.chest = Math.max(0, d.c | 0); } } catch (_){}
-const saveNuts = () => { try { localStorage.setItem("lam-pool-nuts", JSON.stringify({ a:AUT.acorn, c:AUT.chest })); } catch (_){} };
+const AUT = { mesh:null, acorn:0, chest:0, roast:0, shown:"", told:false, toldNut:false, jy:0, shook:new Float32Array(TREES.length), gustAt:0 };
+try { const d = JSON.parse(localStorage.getItem("lam-pool-nuts") || "null"); if (d){ AUT.acorn = Math.max(0, d.a | 0); AUT.chest = Math.max(0, d.c | 0); AUT.roast = Math.max(0, d.r | 0); } } catch (_){}
+const saveNuts = () => { try { localStorage.setItem("lam-pool-nuts", JSON.stringify({ a:AUT.acorn, c:AUT.chest, r:AUT.roast })); } catch (_){} };
 /* five piles, each out from a tree towards the courtyard, clear of the planter */
 const PILES = [0, 2, 4, 5, 7].map(i => { const [tx, tz] = TREES[i], a = Math.atan2(-tx, -tz) + (i % 2 ? .5 : -.5); return { x:tx + Math.sin(a) * 2, z:tz + Math.cos(a) * 2, sq:0, t:0, rot:i * 1.3, near:false }; });
 const NUTS = Array.from({ length:14 }, () => ({ on:false, k:0, x:0, y:0, z:0, vx:0, vy:0, vz:0, rest:false, t0:0, home:0, r:0, spin:0 }));
@@ -25552,8 +25564,8 @@ function stepAutumn(dt, now){
   for (const q of NUTS){ if (!q.on) continue;
     if (q.home){ const t = (now - q.home) / 380, hy = me.y + 1.3 * (me.sc || 1);
       q.x += (me.x - q.x) * Math.min(1, dt * 10); q.y += (hy - q.y) * Math.min(1, dt * 10); q.z += (me.z - q.z) * Math.min(1, dt * 10); q.r += dt * 9;
-      if (t > 1){ q.on = false; if (q.k) AUT.chest++; else AUT.acorn++; saveNuts(); AUD.pick(q.k); AUT.shown = "";
-        if (q.k && AUT.chest === 1) hint(T({ en:"🌰 A chestnut — out of its prickly case", ko:"🌰 밤송이에서 밤을 꺼냈어요 — 따끔!" }), true); }
+      if (t > 1){ q.on = false; if (q.k === 2){ AUT.roast++; popEmote(me, "yum"); hint(T({ en:"😋 A hot roasted chestnut!", ko:"😋 따끈따끈한 군밤 완성!" }), true); } else if (q.k) AUT.chest++; else AUT.acorn++; saveNuts(); AUD.pick(q.k ? 1 : 0); AUT.shown = "";
+        if (q.k === 1 && AUT.chest === 1) hint(T({ en:"🌰 A chestnut — out of its prickly case", ko:"🌰 밤송이에서 밤을 꺼냈어요 — 따끔!" }), true); }
       continue; }
     if (now - q.t0 > 90000){ q.on = false; continue; }
     if (!q.rest){ q.vy -= 9.8 * dt; q.x += q.vx * dt; q.y += q.vy * dt; q.z += q.vz * dt; q.r += q.spin * dt;
@@ -25566,9 +25578,9 @@ function stepAutumn(dt, now){
       else if (q.y < 2.2 && Math.abs(q.vx) + Math.abs(q.vz) > 0) { q.vx *= Math.pow(.7, dt); q.vz *= Math.pow(.7, dt); } }
     if (on && q.rest && now - q.restAt > 600 && Math.hypot(me.x - q.x, me.z - q.z) < .55 && Math.abs(me.y) < .4){ q.home = now; } }   /* lying still a moment: then yours to pick up
   /* the count, top right */
-  const el = $("nutc"), show = on && (AUT.acorn + AUT.chest > 0);
+  const el = $("nutc"), show = on && (AUT.acorn + AUT.chest + AUT.roast > 0);
   el.classList.toggle("on", show);
-  if (show){ const s = `🌰 ${T({ en:"Acorns", ko:"도토리" })} ${AUT.acorn} · ${T({ en:"Chestnuts", ko:"밤" })} ${AUT.chest}`; if (AUT.shown !== s){ AUT.shown = s; el.textContent = s; } }
+  if (show){ const s = `🌰 ${T({ en:"Acorns", ko:"도토리" })} ${AUT.acorn} · ${T({ en:"Chestnuts", ko:"밤" })} ${AUT.chest}${AUT.roast ? ` · ${T({ en:"Roasted", ko:"군밤" })} ${AUT.roast}` : ""}`; if (AUT.shown !== s){ AUT.shown = s; el.textContent = s; } }
 }
 /* by a tree in autumn: a button to shake it */
 function updateTreeUI(){
@@ -25587,7 +25599,7 @@ function drawAutumn(p, now){
   for (const pl of PILES){ const sq = pl.sq, wob = sq > .8 ? Math.sin(now / 40) * .04 : 0, sy = (1 - .72 * sq) * grow, sx = (1 + .25 * sq + wob) * grow;   /* flattened when jumped in, gathering again */
     if (grow > .02) put(M.pile, setM(pl.x, 0, pl.z, sx, Math.max(.05, sy), sx, pl.rot)); }
   if (!nuts || PASS === "sh") return;
-  for (const q of NUTS){ if (!q.on) continue; const s = 2.2, m = q.k ? (q.rest || q.home ? M.nut : M.burr) : M.acorn;
+  for (const q of NUTS){ if (!q.on) continue; const s = 2.2, m = q.k === 2 ? FIRE.mesh.roast : q.k ? (q.rest || q.home ? M.nut : M.burr) : M.acorn;
     if (q.k && !q.rest && !q.home) put(m, setM(q.x, q.y + .1, q.z, s, s, s, q.r));
     else put(m, mm4(Tm(q.x, q.y + (q.rest ? .04 : -.02), q.z), mm4(RY(q.r), mm4(RZ(q.rest ? 1.45 : q.r), [s, 0, 0, 0, 0, s, 0, 0, 0, 0, s, 0, 0, 0, 0, 1])))); }
 }
@@ -25694,6 +25706,127 @@ function drawRain(p, now){
 }
 
 /* ==========================================================================
+   9m. AUTUMN NIGHTS — a bonfire burns on the deck all autumn: embers drift
+       up, it crackles, and at night it throws warm light round it; bring
+       chestnuts and roast them (pop! — a hot roasted chestnut). On autumn
+       nights the moon is full and gold. A wish coin thrown by its light
+       draws a beam of moonlight down onto it. And once each autumn night a
+       moon rabbit comes down on a moonbeam and hops round the edge of the
+       pool on the water, leaving rings of light; meet it and the moon's
+       blessing glitters round you a while. When the rabbit comes, and where
+       it goes, is read off the clock: everyone sees the same rabbit
+   ========================================================================== */
+FIRE = { x:-4.5, z:PZ + 3.15, mesh:null, roast:[], crk:0, told:false };
+MOON = { k:0 };
+const RAB = { mesh:null, on:false, x:0, y:0, z:0, yaw:0, k:0, beam:0, met:-1, told:-1, toldN:-1, ni:-1, P:null, D:null, L:0, ring:0 };
+const MOONW = [];                                                                                   /* moonbeams on wishes */
+const MD = norm([.22, .36, -1]);                                                                    /* where the moon is */
+function fireMeshes(){ const one = (fn) => { const A = maker(); fn(A); return upload(A.v); };
+  return {
+    pit:one(A => { A.ell([0, .02, 0], .34, .03, .34, [.24, .21, .2], 0, 14);                                         /* stones, ash, three logs */
+      for (let i = 0; i < 10; i++){ const a = i / 10 * 6.283, g = .5 + (i % 3) * .06; A.ell([Math.cos(a) * .42, .06, Math.sin(a) * .42], .1, .08, .09, [g, g * .98, g * .95], 0, 8); }
+      for (let i = 0; i < 3; i++){ const a = i * 2.094, c = Math.cos(a), s = Math.sin(a); A.tube([-c * .3, .07, -s * .3], [c * .3, .15, s * .3], .048, .042, [.44, .28, .16], 0, 7); A.ell([c * .3, .15, s * .3], .042, .042, .042, [.6, .45, .3], 0, 6); } }),
+    flame:[[1, .4, .1], [1, .7, .22], [1, .95, .7]].map(c => one(A => A.lathe([[0, 0], [.1, .06], [.09, .2], [.05, .36], [.015, .5], [0, .54]], c, 13, 8))),   /* a tongue of flame */
+    halo:one(A => A.ell([0, 0, 0], 1, 1, 1, [1, .55, .22], 13, 12)),
+    roast:one(A => { A.ell([0, .03, 0], .036, .032, .028, [.3, .14, .06], 8, 10); A.ell([0, .055, 0], .022, .01, .018, [.98, .84, .46], 5, 8); }),   /* split open, gold inside */
+    rabbit:one(A => { const W = [.96, .97, 1], P = [1, .72, .8];                                                    /* the moon rabbit, glowing white */
+      A.ell([0, .1, 0], .1, .09, .13, W, 13, 12); A.ell([0, .19, .11], .075, .07, .07, W, 13, 12); A.ell([0, .12, -.13], .035, .035, .035, W, 13, 8);
+      for (const s of [-1, 1]){ A.ell([s * .032, .3, .085], .022, .085, .016, W, 13, 8); A.ell([s * .032, .3, .097], .011, .06, .006, P, 13, 6);
+        A.ell([s * .04, .205, .165], .011, .013, .008, [.35, .25, .4], 9, 6); A.ell([s * .06, .03, .07], .025, .02, .04, W, 13, 6); }
+      A.ell([0, .18, .18], .01, .008, .006, P, 9, 5); }),
+    beam:one(A => A.tube([0, 0, 0], [0, 1, 0], 1, 1, [.72, .84, 1], 13, 14)),
+    glow:one(A => A.ell([0, 0, 0], 1, 1, 1, [.7, .82, 1], 13, 12)),
+  };
+}
+/* the rabbit's path for night ni: nine points near the pool's edge, hopped through in forty seconds */
+function rabPath(ni){ if (RAB.ni === ni) return; const r = mb32(ni * 977 + 3), P = []; let side = Math.floor(r() * 4);
+  for (let i = 0; i < 9; i++){ if (i && r() < .35) side = (side + 1) % 4; const u = (r() - .5) * 2, e = .55 + r() * .55;
+    P.push(side < 2 ? [u * (PX - 1.2), (side ? 1 : -1) * (PZ - e)] : [(side === 2 ? 1 : -1) * (PX - e), u * (PZ - 1.2)]); }
+  const D = [0]; for (let i = 1; i < P.length; i++) D.push(D[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
+  RAB.ni = ni; RAB.P = P; RAB.D = D; RAB.L = D[D.length - 1]; }
+function rabAt(s){ const P = RAB.P, D = RAB.D; let i = 1; while (i < D.length - 1 && D[i] < s) i++;
+  const v = clamp((s - D[i - 1]) / Math.max(.001, D[i] - D[i - 1]), 0, 1); return [lerp(P[i - 1][0], P[i][0], v), lerp(P[i - 1][1], P[i][1], v), Math.atan2(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1])]; }
+function star(x, y, z, s){ Object.assign(slot(DKS.P), { on:true, t0:performance.now(), kind:0, x, y, z, vx:0, vz:0, vy:.5 + Math.random() * .5, life:.8 + Math.random() * .5, s:s || .7, r:Math.random() * 6 }); }
+/* a wish coin by the full moon: a beam of moonlight comes down on it */
+function moonWish(x, z, mine){ if (MOON.k < .5 || NIGHT.k < .5) return; MOONW.push({ x, z, t0:performance.now() }); if (MOONW.length > 4) MOONW.shift();
+  AUD.magic(hear(x, z)); for (let i = 0; i < 10; i++) star(x + (Math.random() - .5) * .5, .1 + Math.random() * .4, z + (Math.random() - .5) * .5, .8);
+  if (mine) hint(T({ en:"🌕 The moon's light came down on your wish", ko:"🌕 달빛이 소원 위에 내려앉았어요" })); }
+function nearFire(){ return fireOn() && inWorld && !making && Math.abs(me.y) < .3 && !me.sit && Math.hypot(me.x - FIRE.x, me.z - FIRE.z) < 1.7; }
+function roastNut(){
+  if (!nearFire()) return; const now = performance.now();
+  if (!AUT.chest){ hint(T({ en:"Bring chestnuts — shake a tree for them", ko:"밤이 없어요 — 나무를 흔들어 밤을 주워 와요" }), true); return; }
+  if (FIRE.roast.filter(q => q.mine).length >= 3){ hint(T({ en:"Three at a time", ko:"한 번에 세 개까지 구울 수 있어요" }), true); return; }
+  AUT.chest--; saveNuts(); AUT.shown = ""; goal = null; me.r = Math.atan2(FIRE.x - me.x, FIRE.z - me.z); me.thr = now;
+  const a = Math.random() * 6.283; FIRE.roast.push({ t0:now, x:FIRE.x + Math.cos(a) * .16, z:FIRE.z + Math.sin(a) * .16, mine:true, crk:0 }); sendFx("r#:1");
+  AUD.pick(1); if (!FIRE.told){ FIRE.told = true; hint(T({ en:"🔥 Roasting… wait for the pop!", ko:"🔥 밤을 구워요… 탁! 하고 튀면 완성" }), true); }
+}
+function stepFire(dt, now){
+  const on = fireOn(), T0 = Date.now();
+  /* the full moon, autumn nights */
+  MOON.k = SEASON.cur === "autumn" ? (SEASON.ib === 2 ? SEASON.mix : 1) : 0;
+  for (let i = MOONW.length - 1; i >= 0; i--) if (now - MOONW[i].t0 > 3200) MOONW.splice(i, 1);
+  /* the moon rabbit: once a night, 45 s in, for 50 s */
+  const ni = Math.floor(T0 / DAYLEN), night = ni % 2 === 1, u = (T0 - ni * DAYLEN - 45000) / 1000;
+  RAB.on = false;
+  if (on && night && MOON.k > .5){
+    if (RAB.toldN !== ni && T0 - ni * DAYLEN > 9000 && inWorld && !making){ RAB.toldN = ni; hint(T({ en:"🌕 A full moon tonight — throw a wish coin into its light", ko:"🌕 오늘 밤은 보름달 — 달빛에 소원 동전을 던져 봐요" })); }
+    if (u > 0 && u < 50){ rabPath(ni); RAB.on = true;
+      if (RAB.told !== ni && inWorld && !making){ RAB.told = ni; AUD.magic(1); hint(T({ en:"🐇 A moon rabbit came down on a moonbeam — it's hopping round the pool's edge!", ko:"🐇 달토끼가 달빛을 타고 내려왔어요 — 수영장 가장자리를 뛰어다녀요!" })); }
+      let x, z, yaw, y = 0, k = 1; const P = RAB.P;
+      if (u < 4){ x = P[0][0]; z = P[0][1]; yaw = RAB.yaw; const e = 1 - u / 4; y = e * e * 6; k = Math.min(1, u / 1.5); RAB.beam = Math.min(1, u / .8) * (u < 3.4 ? 1 : (4 - u) / .6 * .6 + .4); }
+      else if (u < 44){ const s = (u - 4) / 40 * RAB.L, a = rabAt(s); x = a[0]; z = a[1]; yaw = a[2]; const hp = ((u - 4) % .55) / .55; y = Math.sin(hp * Math.PI) * .24; RAB.beam = Math.max(0, .4 - (u - 4) * .3);
+        const hop = Math.floor((u - 4) / .55); if (hop !== RAB.ring){ RAB.ring = hop; if (camPos[1] > -.05){ Object.assign(slot(RINGS), { on:true, t0:now, x, z, y:.014, s:.02, dur:1400, grow:.55 }); star(x, .1, z, .8); } } }   /* rings of light where it lands */
+      else { const a = RAB.P[RAB.P.length - 1]; x = a[0]; z = a[1]; yaw = RAB.yaw; const e = (u - 44) / 6; y = e * e * 7; k = 1 - Math.max(0, (u - 48) / 2); RAB.beam = Math.min(1, (u - 44) / .6) * (1 - Math.max(0, (u - 48.5) / 1.5)); }
+      RAB.x = x; RAB.z = z; RAB.y = y; RAB.yaw = yaw; RAB.k = k;
+      if (RAB.met !== ni && inWorld && !making && u > 3 && u < 46 && Math.hypot(me.x - x, me.z - z) < 1.6 && Math.abs(me.y) < .4){ RAB.met = ni; me.moonlit = now; popEmote(me, "rabbit"); AUD.magic(1); sendFx("m#:1");
+        hint(T({ en:"🐇 You met the moon rabbit — the moon's blessing glitters round you", ko:"🐇 달토끼를 만났어요 — 달님의 축복이 반짝반짝 감싸요" })); } } }
+  /* the moon's blessing: a glitter round whoever met the rabbit, for half a minute */
+  for (const a of AVATARS()) if (a.moonlit && now - a.moonlit < 30000 && now > (a.mlt || 0) && camPos[1] > -.05){ a.mlt = now + 220; const g = Math.random() * 6.283, sc = a.sc || 1; star(a.x + Math.cos(g) * .35 * sc, a.y + (.2 + Math.random() * 1.3) * sc, a.z + Math.sin(g) * .35 * sc, .55); }
+  if (!on){ FIRE.roast.length = 0; return; }
+  /* the fire: embers drifting up, a crackle when you are near */
+  const camNear = Math.hypot(FIRE.x - camPos[0], FIRE.z - camPos[2]) < 30;
+  if (camNear){ FIRE.eAcc = (FIRE.eAcc || 0) + dt * 14;
+    while (FIRE.eAcc > 1){ FIRE.eAcc--; const p = slot(SPK), a = Math.random() * 6.283, r = Math.random() * .2;
+      p.on = true; p.t0 = now; p.x = FIRE.x + Math.cos(a) * r; p.y = .3 + Math.random() * .2; p.z = FIRE.z + Math.sin(a) * r; p.vx = (Math.random() - .5) * .3; p.vy = .7 + Math.random() * .9; p.vz = (Math.random() - .5) * .3; p.life = .9 + Math.random() * .8; p.c = Math.random() < .25 ? 1 : 0; } }
+  for (const p of SPK) if (p.on){ if ((now - p.t0) / 1000 > p.life){ p.on = false; continue; } p.vy -= .25 * dt; p.x += (p.vx + Math.sin(now / 300 + p.t0) * .15) * dt; p.y += p.vy * dt; p.z += p.vz * dt; }
+  const h = clamp(1 - Math.hypot(me.x - FIRE.x, me.z - FIRE.z) / 9, 0, 1) * (camPos[1] < -.05 ? .3 : 1);
+  if (h > .05 && now > FIRE.crk && inWorld){ FIRE.crk = now + 220 + Math.random() * 380; AUD.crackle(h * .7); }
+  /* chestnuts in the fire: a jiggle, a crackle, then pop — and (yours) a roasted one comes to you */
+  for (let i = FIRE.roast.length - 1; i >= 0; i--){ const q = FIRE.roast[i], v = now - q.t0;
+    if (v > 3600){ FIRE.roast.splice(i, 1); AUD.nutpop(hear(q.x, q.z)); for (let k = 0; k < 6; k++) star(q.x, .3, q.z, .6);
+      if (q.mine){ const n = slot(NUTS); Object.assign(n, { on:true, k:2, x:q.x, y:.35, z:q.z, vx:0, vy:0, vz:0, rest:true, restAt:0, t0:now, home:now, r:0, spin:0 }); } } }
+  if (!FIRE.told2 && inWorld && Math.hypot(me.x - FIRE.x, me.z - FIRE.z) < 3.2){ FIRE.told2 = true; hint(T({ en:"🔥 A bonfire — bring chestnuts and roast them (E)", ko:"🔥 모닥불이에요 — 밤을 가져와 구워 먹어요 (E)" })); }
+}
+function fireLight(now){ if (!fireOn()) return; const f = .78 + .14 * Math.sin(now / 90) + .08 * Math.sin(now / 37 + 1.3);   /* the fire's warm light, flickering (night) */
+  FW.fl = NIGHT.k * f; FW.k = .16; FW.flP[0] = FIRE.x; FW.flP[1] = .55; FW.flP[2] = FIRE.z; FW.flC[0] = 1.25; FW.flC[1] = .62; FW.flC[2] = .28; }
+function updateFireUI(){
+  let b = $("fireb");
+  if (!b){ b = document.createElement("button"); b.id = "fireb"; b.type = "button"; b.innerHTML = '<span class="vi">🔥</span><span></span><kbd>E</kbd>'; $("tags").appendChild(b); b.onclick = () => { AUD.unlock(); roastNut(); }; }
+  const q = nearFire() && camPos[1] > -.05 ? project([FIRE.x, 1.05, FIRE.z]) : null; b.classList.toggle("on", !!q);
+  if (q){ const lab = AUT.chest ? T({ en:`Roast a chestnut (${AUT.chest})`, ko:`밤 굽기 (${AUT.chest})` }) : T({ en:"Warm here — bring chestnuts", ko:"따뜻해요 — 밤을 가져와요" }); if (b.children[1].textContent !== lab) b.children[1].textContent = lab;
+    b.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`; }
+}
+function drawMoon(p, now){
+  const fire = fireOn() && PASS !== "rf", rab = RAB.on && RAB.k > .01, beams = MOONW.length > 0; if (!fire && !rab && !beams) return;
+  if (!FIRE.mesh) FIRE.mesh = fireMeshes(); const M = FIRE.mesh, u = p.u, put = (m, X) => { gl.uniformMatrix4fv(u.uM, false, X); bindMesh(m); gl.drawArrays(gl.TRIANGLES, 0, m.n); }, lit = PASS === "main" || PASS === "mirror";
+  if (fire){ put(M.pit, setM(FIRE.x, 0, FIRE.z, 1, 1, 1, .3));
+    if (PASS !== "sh") for (const q of FIRE.roast){ const v = now - q.t0, j = Math.sin(v / 40) * .01 * Math.min(1, v / 1500); put(AUT.mesh ? AUT.mesh.nut : M.roast, setM(q.x + j, .14, q.z, 2.2, 2.2, 2.2, v / 900)); }
+    if (lit){ const t = now / 1000;
+      for (let i = 0; i < 9; i++){ const L = i < 5 ? 0 : i < 8 ? 1 : 2, a = i * 2.4 + t * .4, r = L === 0 ? .1 : L === 1 ? .05 : 0, s = L === 0 ? .95 + (i % 2) * .25 : L === 1 ? .7 : .5;   /* tongues licking up, each to its own beat */
+        const fl = 1 + .22 * Math.sin(t * (8 + i * 1.7) + i * 2.1) + .12 * Math.sin(t * 21 + i), w = s * (.9 - .1 * Math.sin(t * 13 + i));
+        put(M.flame[L], setM(FIRE.x + Math.cos(a) * r, .07, FIRE.z + Math.sin(a) * r, w, s * fl, w, a)); } } }
+  if (rab && lit){ put(M.rabbit, setM(RAB.x, RAB.y + .004, RAB.z, 1.6 * RAB.k, 1.6 * RAB.k, 1.6 * RAB.k, RAB.yaw)); }
+  if (!lit || PASS === "sh") return;
+  /* the see-through parts, added on: the fire's glow, the rabbit's halo, the moonbeams */
+  gl.enable(gl.BLEND); gl.depthMask(false); if (PASS === "mirror") gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE); else gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ZERO, gl.ONE);
+  const beam = (x, z, k, w) => { if (k < .01) return; gl.uniform1f(u.uA, .2 * k); const L = 40, d = MD, c = [x, 0, z];   /* a column of light, from the moon down */
+    put(M.beam, itAx(c, d, w, L)); gl.uniform1f(u.uA, .12 * k); put(M.beam, itAx(c, d, w * 2.2, L)); };
+  if (rab) beam(RAB.x, RAB.z, RAB.beam, .3);
+  for (const w of MOONW){ const v = (now - w.t0) / 3200, k = Math.min(1, v * 6) * (1 - sstep(.55, 1, v)); beam(w.x, w.z, k, .22); }
+  gl.uniform1f(u.uA, 1); gl.depthMask(true); gl.disable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+}
+
+/* ==========================================================================
    10. INPUT
    ========================================================================== */
 const ptrs = new Map(); let pinch0 = 0, d0 = 0;
@@ -25731,7 +25864,7 @@ window.addEventListener("keydown", e => {
   if (e.code === "KeyG" && !e.repeat && inWorld && !making){ if (SN.held) dropSnow(); else if (BALL.holder === me) dropBall(me, true); else grabBall(true); }
   if (e.code === "KeyE" && inWorld && !making && !e.repeat){ const vi = me.sit ? -1 : nearVend(2.2);
     if (vi >= 0){ if ($("pop-vend").classList.contains("on")) closePops(); else openVend(vi); }
-    else if (me.sit) standUp(); else if (autumnOn() && nearTree(1.8) >= 0) shakeTree(); else { const st = Math.abs(me.y) < .3 && seatNear(me.x, me.z, 2.4); if (st) goSit(st); } }
+    else if (me.sit) standUp(); else if (nearFire()) roastNut(); else if (autumnOn() && nearTree(1.8) >= 0) shakeTree(); else { const st = Math.abs(me.y) < .3 && seatNear(me.x, me.z, 2.4); if (st) goSit(st); } }
   if (e.code === "Enter" && inWorld && !making){ e.preventDefault(); openSay(); }
   if (/^Arrow/.test(e.code)) e.preventDefault();
 });
@@ -25818,7 +25951,7 @@ function useProg(p, VP, clip, below, t){
   if (u.uT) gl.uniform1f(u.uT, t); if (u.uClip) gl.uniform1f(u.uClip, clip); if (u.uBelow) gl.uniform1f(u.uBelow, below); if (u.uA) gl.uniform1f(u.uA, 1);
   if (u.uSV) gl.uniformMatrix4fv(u.uSV, false, SV); if (u.uShTex) gl.uniform1f(u.uShTex, 1 / SS); if (u.uAvY) gl.uniform1f(u.uAvY, -99); if (u.uAvP) gl.uniform3f(u.uAvP, 0, -99, 0); if (u.uTint) gl.uniform3f(u.uTint, 1, 1, 1);
   if (u.uNight) gl.uniform1f(u.uNight, NIGHT.k); if (u.uSea) gl.uniform3f(u.uSea, SEASON.ia, SEASON.ib, SEASON.mix); if (u.uSnow) gl.uniform1f(u.uSnow, SEASON.snow); if (NIGHT.k > 0 && u["uLP[0]"]){ gl.uniform4fv(u["uLP[0]"], NIGHT.LP); gl.uniform3fv(u["uLC[0]"], NIGHT.LC); }
-  if (u.uRain) gl.uniform1f(u.uRain, RAIN.k); if (u.uBow) gl.uniform1f(u.uBow, RAIN.bow);
+  if (u.uRain) gl.uniform1f(u.uRain, RAIN.k); if (u.uBow) gl.uniform1f(u.uBow, RAIN.bow); if (u.uMoon) gl.uniform1f(u.uMoon, MOON.k); if (u.uFwK) gl.uniform1f(u.uFwK, FW.k || 0);
   if (u.uFwP){ gl.uniform4f(u.uFwP, FW.flP[0], FW.flP[1], FW.flP[2], FW.fl); gl.uniform3fv(u.uFwC, FW.flC); }
   if (u.uSh){ gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, shTex); gl.uniform1i(u.uSh, 0); }
 }
@@ -25834,7 +25967,7 @@ function drawPeople(p, now){
       gl.uniform3f(p.u.uTint, (hot ? 1 + .22 * e : cold ? 1 - .16 * e : 1) * (1 + .1 * tir), (hot ? 1 - .27 * e : cold ? 1 - .05 * e : 1) * (1 - .1 * tir), (hot ? 1 - .31 * e : cold ? 1 + .24 * e : 1) * (1 - .12 * tir)); }
     for (const [M, part] of mats){ gl.uniformMatrix4fv(p.u.uM, false, M); bindMesh(part); gl.drawArrays(gl.TRIANGLES, 0, part.n); } }
   if (p.u.uAvY) gl.uniform1f(p.u.uAvY, -99); if (p.u.uTint) gl.uniform3f(p.u.uTint, 1, 1, 1);
-  drawBalloons(p); drawDrinks(p, now); drawSeason(p); drawSpring(p, now); drawSnow(p); drawSummer(p, now); drawAutumn(p, now); drawRain(p, now);
+  drawBalloons(p); drawDrinks(p, now); drawSeason(p); drawSpring(p, now); drawSnow(p); drawSummer(p, now); drawAutumn(p, now); drawRain(p, now); drawMoon(p, now);
 }
 function drawSky(VP, clip, t){ gl.depthMask(false); useProg(P.sky, VP, clip, 0, t); gl.uniformMatrix4fv(P.sky.u.uM, false, Tm(camPos[0], camPos[1], camPos[2])); bindMesh(SKY); gl.drawArrays(gl.TRIANGLES, 0, SKY.n); gl.depthMask(true); }
 function drawScene(VP, clip, below, t, now){ useProg(P.main, VP, clip, below, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.main, now); }
@@ -25864,7 +25997,7 @@ function render(t, now){
   PASS = "main"; drawSky(VP, 0, t); drawScene(VP, 0, below, t, now); PASS = "";
   gl.useProgram(P.water.p); const u = P.water.u;
   gl.uniformMatrix4fv(u.uVP, false, VP); gl.uniformMatrix4fv(u.uM, false, I4); gl.uniform3fv(u.uCam, camPos); gl.uniform3fv(u.uSun, SUN); gl.uniform1f(u.uT, t); gl.uniform1f(u.uBelow, below);
-  gl.uniform2f(u.uRes, W, H); gl.uniform1f(u.uHasRefl, below ? 0 : 1); gl.uniform1f(u.uNight, NIGHT.k); gl.uniform1f(u.uIce, SEASON.ice); if (u.uRain) gl.uniform1f(u.uRain, RAIN.k); if (u.uBow) gl.uniform1f(u.uBow, RAIN.bow);
+  gl.uniform2f(u.uRes, W, H); gl.uniform1f(u.uHasRefl, below ? 0 : 1); gl.uniform1f(u.uNight, NIGHT.k); gl.uniform1f(u.uIce, SEASON.ice); if (u.uRain) gl.uniform1f(u.uRain, RAIN.k); if (u.uBow) gl.uniform1f(u.uBow, RAIN.bow); if (u.uMoon) gl.uniform1f(u.uMoon, MOON.k);
   gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, rf.tex); gl.uniform1i(u.uRef, 1);
   gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, rl.tex); gl.uniform1i(u.uRefl, 2);
   bindMesh(WATER); gl.drawArrays(gl.TRIANGLES, 0, WATER.n);
@@ -25881,9 +26014,9 @@ let lastT = performance.now(), pruneAt = 0, zoneHint = { below:false, up:false }
 function frame(now){
   tuneQuality(now - lastT);
   const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; const t = now / 1000;
-  stepNight(); moveMe(dt); stepPeers(dt); stepSeason(dt, now); stepStill(dt); stepSpring(dt, now); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); stepSnow(dt, now); placeCamera(dt); stepSummer(dt, now); stepAutumn(dt, now); stepFeel(dt, now); stepRain(dt, now);
+  stepNight(); moveMe(dt); stepPeers(dt); stepSeason(dt, now); stepStill(dt); stepSpring(dt, now); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); stepSnow(dt, now); placeCamera(dt); stepSummer(dt, now); stepAutumn(dt, now); stepFeel(dt, now); stepRain(dt, now); stepFire(dt, now);
   if (me.emote && now - me.et0 > 4200) me.emote = "";
-  render(t, now); updateTags(now); updateSeats(); updateBallUI(); updateVend(now); updateSnowUI(); updateTreeUI(); maybeSend();
+  render(t, now); updateTags(now); updateSeats(); updateBallUI(); updateVend(now); updateSnowUI(); updateTreeUI(); updateFireUI(); maybeSend();
   { const el = $("goal"), p = goal && inWorld && !making ? project([goal.x, goal.y + .02, goal.z]) : null;           /* where you are walking to */
     if (p){ const k = clamp(9 / p[2], .45, 1.6); el.style.transform = `translate(${p[0]}px, ${p[1]}px) translate(-50%, -50%) scale(${k})`; el.classList.add("on"); } else el.classList.remove("on"); }
   const z = zoneOf(me.x, me.y, me.z);
@@ -25930,6 +26063,7 @@ function about(){
    { en:"Seasons: tap the sun or moon at the top to pick spring, summer, autumn or winter — it changes for everyone on the server. Spring brings cherry petals, summer cicadas (and fireflies at night), autumn falling leaves; walk up to a tree and it lets go of a handful. In winter it snows, footprints stay in it, and the pool freezes: walk onto the ice and ski", ko:"계절: 위쪽 해·달 표시를 누르면 봄·여름·가을·겨울을 고를 수 있어요 — 바꾸면 서버의 모두에게 함께 바뀌어요. 봄엔 벚꽃잎, 여름엔 매미 소리(밤엔 반딧불), 가을엔 낙엽이 날리고, 나무에 다가가면 우수수 떨어져요. 겨울엔 눈이 내려 발자국이 남고, 수영장이 얼어 얼음 위에서 스키를 탈 수 있어요" },
    { en:"Spring rain: now and then a shower passes over — the sky greys and rings spread across the pool; pick an umbrella or a raincoat from a vending machine (free in spring) or get soaked; afterwards, by day, a rainbow stands over the far wall and in the water. Everyone shares the same shower", ko:"봄비: 가끔 소나기가 지나가요 — 하늘이 흐려지고 수영장에 빗방울 동그라미가 퍼져요. 봄엔 자판기에서 우산이나 우비를 무료로 고를 수 있어요 — 없으면 비를 맞아요. 비가 그치면 낮에는 건너편 하늘과 물 위에 무지개가 떠요. 모두에게 같은 비가 내려요" },
    { en:"Spring: walk through fallen petals and they come to you — thirty make a crown of blossom that everyone sees; by day butterflies drift about and settle on the head of anyone who keeps still", ko:"봄: 바닥에 떨어진 꽃잎 위를 걸으면 꽃잎이 모여요 — 30장을 모으면 벚꽃 화관이 생기고 다른 사람에게도 보여요. 낮에는 나비가 날아다니다 가만히 있는 사람 머리에 앉아요" },
+   { en:"Autumn nights: a bonfire burns on the deck — bring chestnuts and roast them (E) until they pop. The moon is full and gold; a wish coin thrown by its light draws a moonbeam down onto it. And once a night a moon rabbit comes down on a moonbeam and hops round the pool's edge — meet it for the moon's blessing. Everyone sees the same rabbit", ko:"가을 밤: 데크에 모닥불이 타요 — 밤을 가져와 구우면(E) 탁! 하고 군밤이 돼요. 밤하늘엔 커다란 금빛 보름달이 뜨고, 달빛에 소원 동전을 던지면 달빛 기둥이 내려와요. 그리고 밤마다 한 번, 달토끼가 달빛을 타고 내려와 수영장 가장자리를 뛰어다녀요 — 만나면 달님의 축복이 반짝여요. 모두에게 같은 달토끼가 보여요" },
    { en:"The seasons on you: in summer running wears you out — you sweat and pant and can only walk until you rest (quicker in a tree's shade, at once with water or a slush); in winter your breath shows as you talk", ko:"계절이 몸으로: 여름에 계속 뛰면 더워서 땀을 흘리고 헥헥거리며 걷기만 할 수 있어요 — 쉬면 회복(나무 그늘이면 더 빨리, 생수·슬러시는 바로). 겨울엔 말할 때 입김이 나와요" },
    { en:"Autumn: fallen leaves crunch underfoot and fly up as you walk, gusts of wind sweep them across the deck; jump (Space) into a pile of leaves and it bursts all over — anyone's jump does it. Walk up to a tree and shake it (E, or the button): leaves pour down and acorns and chestnuts drop; walk over them to pick them up", ko:"가을: 바닥의 낙엽을 밟으면 바스락 소리와 함께 흩날리고, 가끔 바람이 불어 낙엽을 쓸고 가요. 낙엽 더미에 점프(Space)하면 와사삭 흩날려요 — 다른 사람이 뛰어들어도 함께 보여요. 나무 앞에서 흔들면(E 또는 버튼) 낙엽이 쏟아지고 도토리와 밤이 떨어져요 — 위로 걸어가면 주워요" },
    { en:"Summer: the vending machines give out a sparkler and a bug net, free. The sparkler sparks for forty seconds and harder beside a friend's; swing the net (F) at eight kinds of insect — on the trees, in the air, on the benches, by the planters, on the water — each is counted, then let go; catch every kind for a 🐛 Bug King badge before your name. At night, now and then, fireworks open over the far wall, the same for everyone", ko:"여름: 자판기에서 스파클라와 잠자리채를 무료로 받아요. 스파클라는 40초 동안 반짝이고, 친구 스파클라 곁에서는 더 화려해져요. 잠자리채를 휘둘러(F) 나무·공중·벤치·화단·물 위의 곤충 8종을 잡으면 세고 놓아줘요 — 모두 모으면 이름 앞에 🐛 벌레왕 배지가 붙어요. 밤이면 가끔 건너편 하늘에 불꽃놀이가 터져요 — 모두에게 똑같이 보여요" },
@@ -25966,7 +26100,7 @@ if (!initGL()){
   netInit();
 }
 ["pointerdown", "keydown", "touchstart"].forEach(ev => window.addEventListener(ev, () => AUD.unlock(), { capture:true, passive:true }));
-window.__pool = { RAIN, rainWindow, CROWN, BFLY, POSES, SUM, BUG, ITEMS, BUGK, FW, AUT, PILES, NUTS, fw(ty, age){ const k = Math.floor(Date.now() / FWS); fwPlan(k).push({ t:Date.now() - 1200 - (age || 0) * 1000, x:(Math.random() - .5) * 16, z:-CZW - 14, y:17, R:5.5, c:0, c2:2, ty:ty || 0, rot:0, l:1, s:0 }); }, SNB, SNM, makeSnowman, night(k){ NIGHT.force = k; }, season(s){ setSeason(s, Date.now(), null); }, SEASON, faceOf, AUD, buyDrink, openVend, endDrink, setCalm, DRINKS, VENDS, handAt, pose, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
+window.__pool = { FIRE:() => FIRE, MOON, RAB, MOONW, moonWish, RAIN, rainWindow, CROWN, BFLY, POSES, SUM, BUG, ITEMS, BUGK, FW, AUT, PILES, NUTS, fw(ty, age){ const k = Math.floor(Date.now() / FWS); fwPlan(k).push({ t:Date.now() - 1200 - (age || 0) * 1000, x:(Math.random() - .5) * 16, z:-CZW - 14, y:17, R:5.5, c:0, c2:2, ty:ty || 0, rot:0, l:1, s:0 }); }, SNB, SNM, makeSnowman, night(k){ NIGHT.force = k; }, season(s){ setSeason(s, Date.now(), null); }, SEASON, faceOf, AUD, buyDrink, openVend, endDrink, setCalm, DRINKS, VENDS, handAt, pose, walk(ix, iz, secs){ joy.on = true; joy.x = ix; joy.y = -iz; for (let i = 0; i < secs * 60; i++) moveMe(1 / 60); joy.on = false; joy.x = joy.y = 0; }, me, PEERS, NET, NPCS, enter, onPeerList, myState, emote, say, view, cam:() => ({ camPos, camTgt }), floorAt, zoneOf, look(k){ me.look = lookFrom(k); applyLook(); } };
 <!--SCRIPT_END-->
 </body>
 </html>
