@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261114105109";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261115125358";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -22689,7 +22689,7 @@ function buildAvatar(L){
   if (S === 4){                                                                                                 /* long, parted in the middle */
     const G = shell(table(BOB), .05, .435);
     fringe([[-.05, -.3, .13, .1, .45], [-.32, -.58, .1, .1, .45], [-.6, -.84, .06, .09, .45], [.05, .3, .13, .1, .45], [.32, .58, .1, .1, .45], [.6, .84, .06, .09, .45]]);
-    const C2 = 48, a0 = 1.2, a1 = Math.PI * 2 - 1.2, ys = [HEAD - .16, HEAD - .3, .9, .82, .74, .68, .67], rs = [.445, .45, .415, .39, .38, .365, .335], G2 = [];
+    const C2 = 48, a0 = 1.2, a1 = Math.PI * 2 - 1.2, ys = L.tuck ? [HEAD - .16, 1.01, .99, .975] : [HEAD - .16, HEAD - .3, .9, .82, .74, .68, .67], rs = L.tuck ? [.445, .44, .435, .42] : [.445, .45, .415, .39, .38, .365, .335], G2 = [];   /* tucked into a raincoat: cut off under the hood */
     ys.forEach((y, i) => { const row = []; for (let j = 0; j <= C2; j++){ const a = lerp(a0, a1, j / C2), back = Math.max(0, -Math.cos(a));
       const q = at(a, y + (i === ys.length - 1 ? .03 : 0), rs[i]); row.push([q[0], q[1], q[2] - back * .04 * (i > 1 ? 1 : 0)]); } G2.push(row); });
     B.grid(G2, hc, HAIR, [0, .95, -.05]);
@@ -22736,7 +22736,7 @@ function buildAvatar(L){
     const zb = faceZ(0, ey + .02) + .038; for (let k = 0; k < 4; k++){ const u0 = k / 4, u1 = (k + 1) / 4, f = (u) => [lerp(-.07, .07, u), ey + .025 + Math.sin(Math.PI * u) * .016, zb];
       B.tube(f(u0), f(u1), .009, .009, fr, GLOSS, 6); } }
   if (L.ac === 3) B.torus([0, .56, 0], .29, .085, white, M, 30, 14, i => (Math.floor(i / 5) % 2) ? white : [.98, .52, .6]);
-  if (L.ac === 4){ const n0 = B.v.length;
+  if (L.ac === 4 && !L.tuck){ const n0 = B.v.length;
     B.lathe([[.45, HEAD + .12], [.452, HEAD + .22], [.4, HEAD + .36], [.26, HEAD + .45], [0, HEAD + .475]], tc, M, 40); shiftZ(n0, -.05);
     B.ell([0, HEAD + .145, .36], .26, .022, .2, SHADE(tc, .86), M, 22); B.ell([0, HEAD + .475, -.05], .035, .022, .035, SHADE(tc, .8), M, 10); }
   if (L.ac === 5){ const fur = [.98, .97, .95], pink = [.98, .72, .78];                                           /* bunny ears: no band, two soft ears coming up out of the hair */
@@ -22766,9 +22766,9 @@ function buildAvatar(L){
            e:[E0, E1, E2, E3, E4, E5, E6, E7].map(x => upload(x.v)), m:[M0, M1, M2, M3, M4, M5].map(x => upload(x.v)) };
 }
 const MESHES = new Map();
-function meshFor(L){ const k = lookKey(L); let m = MESHES.get(k); if (!m){ m = buildAvatar(L); MESHES.set(k, m); } return m; }
+function meshFor(L){ const k = lookKey(L) + (L.tuck ? ".t" : ""); let m = MESHES.get(k); if (!m){ m = buildAvatar(L); MESHES.set(k, m); } return m; }
 function pruneMeshes(){
-  const used = new Set(AVATARS().map(a => lookKey(a.look)));
+  const used = new Set(AVATARS().map(a => lookKey(a.look))); for (const a of AVATARS()) if (a.tuckM && a.tuckK === lookKey(a.look) && tucked(a) === a.tuckM) used.add(a.tuckK + ".t"); else a.tuckM = null;   /* a tucked-in raincoat look counts while it is worn */
   for (const [k, m] of MESHES) if (!used.has(k)){ ["b", "ll", "lr", "al", "ar"].forEach(p => gl.deleteBuffer(m[p].buf)); m.e.concat(m.m).forEach(x => gl.deleteBuffer(x.buf)); MESHES.delete(k); }
 }
 
@@ -23184,7 +23184,7 @@ function pose(a, now){
       if (u >= 0 && u < 1){ const e = Math.min(1, u / .3), s = Math.max(0, (u - .3) / .7), w = 1 - (1 - s) * (1 - s); q.a1x = lerp(lerp(-.75, -2.7, e), -.25, w); q.a1z = -.25 - Math.sin(u * Math.PI) * .45; q.bow += Math.sin(u * Math.PI) * .1; }
       else { q.a1x = -.75; q.a1z = -.22; } } }
   if (a.item === "lan" && BALL.holder !== a && !(a === me && SN.held)){ q.a1x = -.7 + Math.sin(now / 500) * .05; q.a1z = -.25; }   /* a sky lantern, held out */
-  if (a.item === "umb" && BALL.holder !== a && !(a === me && SN.held)){ if (umbUp(a)){ q.a1x = -.95; q.a1z = -.12; } else { q.a1x = -.25; q.a1z = -.2; } }   /* the umbrella: up in the rain, carried furled otherwise */
+  if (a.item === "umb" && BALL.holder !== a && !(a === me && SN.held)){ if (umbUp(a)){ q.a1x = -.08; q.a1z = -1.42; } else { q.a1x = -.25; q.a1z = -.2; } }   /* the umbrella: held out to the side in the rain (shaft clear of the head), carried furled otherwise */
   if (a.dk) dkPose(a, q, now);                                                              /* a drink: to the lips, then what it does */
   if (a === me && SN.held){ q.a1x = q.a2x = -1.25; q.a1z = -.2; q.a2z = .2; q.bow += .22; }                  /* both hands on the snowball */
   if ((a === me ? a.skate : onIce(a)) && !a.emote){ const g = Math.sin(a.ph);                 /* skiing: leaning in, arms out, long slow strides */
@@ -23218,8 +23218,10 @@ function handAt(a, s, now, dz){
   const M = mm4(up, mm4(Tm(.165 * s, .79, 0), mm4(RZ(s < 0 ? q.a1z : q.a2z), mm4(RX(s < 0 ? q.a1x : q.a2x), Tm(-.165 * s, -.79, 0))))), p = [.219 * s, .5, .004 + (dz || 0)];
   return [M[0] * p[0] + M[4] * p[1] + M[8] * p[2] + M[12], M[1] * p[0] + M[5] * p[1] + M[9] * p[2] + M[13], M[2] * p[0] + M[6] * p[1] + M[10] * p[2] + M[14]];
 }
+/* long hair goes inside a raincoat, and a cap comes off: the same look, with those tucked away under the hood */
+const tucked = (a) => a.item === "coat" && SEASON.cur === "spring" && a.look && (a.look.hs === 4 || a.look.ac === 4) ? (a.tuckM && a.tuckK === lookKey(a.look) ? a.tuckM : (a.tuckK = lookKey(a.look), a.tuckM = meshFor(Object.assign({}, a.look, { tuck:1 })))) : a.mesh;
 function partMats(a, now){
-  const q = pose(a, now), m = a.mesh;
+  const q = pose(a, now), m = tucked(a);
   const base = mm4(Tm(a.x, a.y + q.lift, a.z), RYS(a.r + q.spin, a.sc || 1));             /* the milk: bigger, from the feet up */
   const up = mm4(base, mm4(Tm(0, .42, 0), mm4(RX(q.bow), mm4(RZ(q.sway), Tm(0, -.42, 0)))));
   const leg = (s, ang) => mm4(base, mm4(Tm(.08 * s, .42, 0), mm4(RX(ang), Tm(-.08 * s, -.42, 0))));
@@ -25044,6 +25046,7 @@ function drawSpring(p, now){
   if (!BFM) BFM = springMeshes();
   const u = p.u, put = (m, M) => { gl.uniformMatrix4fv(u.uM, false, M); bindMesh(m); gl.drawArrays(gl.TRIANGLES, 0, m.n); };
   for (const a of crowns){ const ac = a.look && a.look.ac, hy = ac === 1 ? HEAD + .3 : ac === 4 ? HEAD + .25 : 0;   /* on the hair, or round the band of a hat or cap */
+    if (a.item === "coat" && SEASON.cur === "spring" && ac !== 1){ const tall = a.look && a.look.hs === 3 ? .17 : 0; put(BFM.crown, mm4(headM(a, now), mm4(Tm(0, 1.56 + tall, HOOD.c[2]), [1.3, 0, 0, 0, 0, 1.1, 0, 0, 0, 0, 1.3, 0, 0, 0, 0, 1]))); continue; }   /* or round the hood */
     put(BFM.crown, mm4(headM(a, now), hy ? mm4(Tm(0, hy, 0), [1.55, 0, 0, 0, 0, 1.2, 0, 0, 0, 0, 1.55, 0, 0, 0, 0, 1]) : mm4(Tm(0, HEAD + .31, -.02), mm4(RX(-.12), [1.42, 0, 0, 0, 0, 1.15, 0, 0, 0, 0, 1.42, 0, 0, 0, 0, 1])))); }
   if (PASS === "sh") return;
   for (const b of BFLY){ if (!b.live) continue;
@@ -25581,14 +25584,73 @@ const RV = new Float32Array(RD.length * 6 * ST);
 const UMB_C = [[.98, .55, .62], [.55, .78, .98], [1, .84, .38], [.6, .86, .62], [.8, .66, .98]];
 function rainWindow(t){ const k = Math.floor(t / RAINP), r = mb32(k * 131 + 7), has = r() < .6, st = k * RAINP + 10000 + r() * 30000, dur = 38000 + r() * 22000;   /* this slot's shower, if any */
   return has ? { st, en:st + dur } : null; }
+/* the raincoat: a hooded coat cut round the body like the clothes are (so arms and hands stay outside it), with sleeves that move
+   with the arms, and a hood that is one closed shell over head, hair and ears with a real opening for the face.
+   The umbrella: held out to the side, its shaft clear of the head, a big canopy square to the shaft over the head */
+const HOOD = { c:[0, 1.26, -.05], r:[.5, .45, .5], yb:.93, a:.75, b:.935, dl:.235 };
+const UMB_GRIP = [-.475, .7, .025], UMB_TOP = [-.475, 2.07, .025], UMB_R = 1, UMB_H = .34;
+function hoodShell(A, k, ki, kr){
+  const H = HOOD, NB = 56, NA = 18, cd = Math.cos(H.dl), sd = Math.sin(H.dl), out = [], inn = [], edge = [];
+  const at = (al, be, sc) => { const sa = Math.sin(al), u = [sa * Math.cos(be), sa * Math.sin(be) * cd - Math.cos(al) * sd, sa * Math.sin(be) * sd + Math.cos(al) * cd];
+    const t = 1 / Math.hypot(u[0] / H.r[0], u[1] / H.r[1], u[2] / H.r[2]) * sc, p = [H.c[0] + u[0] * t, H.c[1] + u[1] * t, H.c[2] + u[2] * t];
+    let n = norm([(p[0] - H.c[0]) / (H.r[0] * H.r[0]), (p[1] - H.c[1]) / (H.r[1] * H.r[1]), (p[2] - H.c[2]) / (H.r[2] * H.r[2])]);
+    if (p[1] < H.yb){ p[1] = H.yb; n = [0, -1, 0]; } return [p, n]; };
+  for (let j = 0; j <= NB; j++){ const be = j / NB * Math.PI * 2, a0 = H.a * H.b / Math.hypot(H.b * Math.cos(be), H.a * Math.sin(be)), co = [], ci = [];
+    for (let i = 0; i <= NA; i++){ const al = a0 + (Math.PI - a0) * i / NA; co.push(at(al, be, 1)); ci.push(at(al, be, .965)); }
+    out.push(co); inn.push(ci); edge.push(at(a0, be, 1.012)[0]); }
+  const P = (q, n, kk) => A.v.push(q[0], q[1], q[2], n[0], n[1], n[2], kk[0], kk[1], kk[2], 5);
+  for (let j = 0; j < NB; j++) for (let i = 0; i < NA; i++){
+    const a = out[j][i], b = out[j + 1][i], c = out[j + 1][i + 1], d = out[j][i + 1]; P(a[0], a[1], k); P(b[0], b[1], k); P(c[0], c[1], k); P(a[0], a[1], k); P(c[0], c[1], k); P(d[0], d[1], k);
+    const e = inn[j][i], f = inn[j + 1][i], g = inn[j + 1][i + 1], h = inn[j][i + 1], ng = (x) => [-x[0], -x[1], -x[2]];
+    P(e[0], ng(e[1]), ki); P(g[0], ng(g[1]), ki); P(f[0], ng(f[1]), ki); P(e[0], ng(e[1]), ki); P(h[0], ng(h[1]), ki); P(g[0], ng(g[1]), ki); }
+  for (let j = 0; j < NB; j++){ const a = edge[j], b = edge[j + 1]; if (a[1] <= H.yb + .004 || b[1] <= H.yb + .004) continue; A.tube(a, b, .021, .021, kr, 5, 8); A.ell(a, .021, .021, .021, kr, 5, 8); }
+  for (const s of [-1, 1]){ let best = null; for (const q of edge) if (q[0] * s > .12 && q[1] > H.yb + .03 && (!best || q[1] < best[1])) best = q;   /* the drawstrings, from the lowest corners of the face */
+    if (best){ const lo = [best[0] + .012 * s, best[1] - .13, best[2] + .02]; A.tube(best, lo, .007, .007, [.98, .97, .94], 5, 6); A.ell([lo[0], lo[1] - .012, lo[2]], .013, .02, .013, kr, 5, 8); } }
+}
 function umbMeshes(){ const one = (fn) => { const A = maker(); fn(A); return upload(A.v); };
-  const coatC = [1, .84, .28], hr = HR[0] + .075, hy = HR[1] + .075, cap = []; for (let i = 0; i <= 6; i++){ const y = .1 + (hy - .1) * i / 6; cap.push([hr * Math.sqrt(Math.max(0, 1 - (y / hy) ** 2)), HEAD + y]); }
-  return { coat:one(A => { A.lathe([[.34, .36], [.31, .48], [.26, .62], [.2, .74], [.13, .83], [0, .86]], coatC, 5, 14);      /* a yellow poncho, a hood over the hair, its back down to the neck */
-             A.lathe([[.345, .36], [.345, .385]], [.92, .74, .2], 5, 14); A.lathe(cap, coatC, 5, 18); A.ell([0, HEAD - .1, -.12], .43, .33, .36, coatC, 5, 16); A.ell([0, HEAD + .37, -.02], .02, .02, .02, [.92, .74, .2], 5, 6); }),
-           closed:UMB_C.map(c => one(A => { A.tube([0, 0, 0], [0, .78, 0], .008, .008, [.32, .3, .3], 0, 5); A.tube([0, .2, 0], [0, .74, 0], .045, .012, c, 5, 8); A.tube([0, 0, 0], [0, -.05, .035], .01, .01, [.5, .34, .22], 0, 5); })),   /* furled */
-           can:UMB_C.map(c => one(A => { A.lathe([[.44, -.15], [.38, -.07], [.24, .0], [0, .04]], c, 5, 8); A.lathe([[.445, -.15], [.445, -.135]], c.map(v => v * .82), 5, 8); A.ell([0, .05, 0], .018, .02, .018, [.3, .3, .32], 5, 6); })),   /* a scalloped canopy, a tip */
-           stick:one(A => { A.tube([0, 0, 0], [0, 1, 0], .008, .008, [.32, .3, .3], 0, 5); A.tube([0, 0, 0], [0, -.04, .03], .01, .01, [.5, .34, .22], 0, 5); }) }; }
+  const coatC = [1, .84, .28], trim = [.93, .72, .18], inner = [.8, .6, .16], wht = [.98, .97, .94];
+  const prof = [[.335, .3], [.346, .318], [.327, .36], [.296, .41], [.266, .46], [.244, .52], [.238, .58]].concat([.63, .68, .73, .77, .8].map(y => [rAt(y) + .03, y]), [[.15, .83], [.09, .855], [0, .866]]);
+  const zc = (y) => { let r = .2; for (let i = 0; i < prof.length - 1; i++) if (y >= prof[i][1] && y <= prof[i + 1][1]){ r = lerp(prof[i][0], prof[i + 1][0], (y - prof[i][1]) / (prof[i + 1][1] - prof[i][1])); break; } return r * BODY_Z; };
+  const sleeve = (s) => one(A => { const sh = [.165 * s, .79, 0], wr = [.213 * s, .598, 0];
+    A.ell(sh, .088, .088, .088, coatC, 5, 16); A.tube(sh, wr, .086, .075, coatC, 5, 16); A.torus(wr, .074, .015, trim, 5, 16, 6); });
+  return { coat:one(A => {
+             A.lathe(prof, coatC, 5, 44, BODY_Z); A.torus([0, .312, 0], .34, .014, trim, 5, 44, 6);
+             A.lathe([[.17, .79], [.215, .84], [.24, .885], [.27, .935]], coatC, 5, 36, .95);                                           /* a high collar up into the hood */
+             A.tube([0, .32, zc(.32) + .004], [0, .83, zc(.83) + .006], .012, .012, trim, 5, 6);                                       /* the front edge */
+             for (const y of [.74, .64, .54, .44]) A.ell([.004, y, zc(y) + .012], .022, .012, .01, wht, 5, 10);                       /* toggles */
+             for (const s of [-1, 1]){ const y = .42, x = .15 * s, z = Math.sqrt(Math.max(0, (zc(y) / BODY_Z) ** 2 - x * x)) * BODY_Z;
+               A.ell([x, y, z + .004], .062, .05, .012, trim, 5, 14); } }),                                                              /* pockets */
+           hood:one(A => hoodShell(A, coatC, inner, trim)),
+           sl:sleeve(-1), sr:sleeve(1),
+           closed:UMB_C.map(c => one(A => { A.tube([0, 0, 0], [0, .5, 0], .009, .009, [.32, .3, .3], 5, 6); A.tube([0, .12, 0], [0, .46, 0], .042, .013, c, 5, 8);   /* furled, a cane by the side */
+             A.ell([0, .5, 0], .012, .016, .012, [.3, .3, .32], 5, 6);
+             const J = [[0, 0, 0], [0, -.05, 0], [0, -.085, .02], [0, -.085, .05], [0, -.06, .065]]; for (let i = 0; i < 4; i++) A.tube(J[i], J[i + 1], .012, .012, [.5, .34, .22], 5, 6); })),
+           open:UMB_C.map(c => one(A => umbOpen(A, c))) }; }
+function umbOpen(A, c){
+  const g = UMB_GRIP, t = UMB_TOP, dir = norm([t[0] - g[0], t[1] - g[1], t[2] - g[2]]), ex = norm([dir[1], -dir[0], 0]), ez = [0, 0, 1];   /* the canopy's frame: square to the shaft */
+  const W = (x, y, z) => [t[0] + ex[0] * x + dir[0] * y, t[1] + ex[1] * x + dir[1] * y, t[2] + z], WN = (x, y, z) => norm([ex[0] * x + dir[0] * y, ex[1] * x + dir[1] * y, z]);
+  const lite = c.map(v => v + (1 - v) * .55), dark = (k) => k.map(v => v * .72), RIBS = 8, NS = 6, NR = 6, K = 1.7;
+  const P = (q, n, k) => A.v.push(q[0], q[1], q[2], n[0], n[1], n[2], k[0], k[1], k[2], 5);
+  const pt = (rib, u, v, off) => { const ph = (rib + u) / RIBS * Math.PI * 2, rr = UMB_R * (1 - .07 * Math.sin(Math.PI * u)) * v, y = -UMB_H * Math.pow(v * (1 - .07 * Math.sin(Math.PI * u)), K) + .02;
+    const sl = UMB_H * K * Math.pow(Math.max(v, .001), K - 1) / UMB_R, n = WN(Math.cos(ph) * sl, 1, Math.sin(ph) * sl);
+    return [W(Math.cos(ph) * rr, y - off, Math.sin(ph) * rr), off ? n.map(x => -x) : n]; };
+  for (let r = 0; r < RIBS; r++){ const k = r % 2 ? lite : c;
+    for (let i = 0; i < NS; i++) for (let j = 0; j < NR; j++){ const u0 = i / NS, u1 = (i + 1) / NS, v0 = j / NR, v1 = (j + 1) / NR;
+      for (const off of [0, .012]){ const kk = off ? dark(k) : k, a = pt(r, u0, v0, off), b = pt(r, u1, v0, off), cc = pt(r, u1, v1, off), d = pt(r, u0, v1, off);
+        if (off){ P(a[0], a[1], kk); P(cc[0], cc[1], kk); P(b[0], b[1], kk); P(a[0], a[1], kk); P(d[0], d[1], kk); P(cc[0], cc[1], kk); }
+        else { P(a[0], a[1], kk); P(b[0], b[1], kk); P(cc[0], cc[1], kk); P(a[0], a[1], kk); P(cc[0], cc[1], kk); P(d[0], d[1], kk); } } }
+    const tip = pt(r, 0, 1, .006)[0], mid = W(0, .005, 0); A.tube(mid, tip, .005, .005, [.35, .34, .36], 5, 4); A.ell(tip, .012, .012, .012, [.35, .34, .36], 5, 6); }   /* ribs and their tips */
+  A.tube(W(0, .01, 0), W(0, .1, 0), .013, .006, [.35, .34, .36], 5, 6);                                                     /* the ferrule on top */
+  A.tube(g, t, .011, .011, [.32, .3, .3], 5, 6);                                                                           /* the shaft */
+  const J = [[0, 0], [0, -.07], [.02, -.11], [.05, -.115], [.068, -.09]].map(([x, y]) => [g[0] + ex[0] * x + dir[0] * y, g[1] + ex[1] * x + dir[1] * y, g[2]]);   /* a wooden crook */
+  for (let i = 0; i < 4; i++) A.tube(J[i], J[i + 1], .015, .015, [.5, .34, .22], 5, 6);
+}
 const umbOf = (a) => { let h = 0; const s = String(a.id || "me"); for (let i = 0; i < s.length; i++) h = h * 31 + s.charCodeAt(i) | 0; return Math.abs(h) % UMB_C.length; };
+/* the coat's pieces move as the body and the two arms do; a big bun or curls get a roomier hood */
+const HOOD_FIT = { 3:[1, 1.22, 1.04], 5:[1.09, 1.04, 1.08] };
+function coatMats(a, now){ const q = pose(a, now), base = mm4(Tm(a.x, a.y + q.lift, a.z), RYS(a.r + q.spin, a.sc || 1)), up = mm4(base, mm4(Tm(0, .42, 0), mm4(RX(q.bow), mm4(RZ(q.sway), Tm(0, -.42, 0)))));
+  const arm = (s, ax, az) => mm4(up, mm4(Tm(.165 * s, .79, 0), mm4(RZ(az), mm4(RX(ax), Tm(-.165 * s, -.79, 0))))), f = HOOD_FIT[a.look && a.look.hs];
+  return { up, hood:f ? mm4(up, mm4(Tm(0, HOOD.yb, HOOD.c[2]), mm4([f[0], 0, 0, 0, 0, f[1], 0, 0, 0, 0, f[2], 0, 0, 0, 0, 1], Tm(0, -HOOD.yb, -HOOD.c[2])))) : up, al:arm(-1, q.a1x, q.a1z), ar:arm(1, q.a2x, q.a2z) }; }
 const umbUp = (a) => a.item === "umb" && RAIN.k > .25 && SEASON.cur === "spring" && a.y > -.5;
 const dryOf = (a) => a.item === "umb" || a.item === "coat" || a.y < -.5 || TREES.some(([tx, tz]) => Math.hypot(tx - a.x, tz - a.z) < 1.5);   /* under cover */
 const RAIN_W = { told:false };
@@ -25603,8 +25665,8 @@ function stepRain(dt, now){
   /* umbrellas: where each one's hand is, once a frame */
   if (SEASON.cur !== "spring" && me.item && ITEMS[me.item].sea === "spring") putAway(inWorld ? { en:"Spring's over — put away", ko:"봄이 끝나서 넣어 뒀어요" } : null);
   for (const a of AVATARS()){ const near = a.mesh && !a.npc && Math.hypot(a.x - camPos[0], a.z - camPos[2]) < 30 && SEASON.cur === "spring" && BALL.holder !== a && !(a === me && SN.held);
-    a.umF = near && a.item === "umb" ? (() => { const f = itemFrame(a, now), sc = a.sc || 1, fx = Math.sin(a.r), fz = Math.cos(a.r); return { g:f.g, d:f.d, open:umbUp(a), top:[a.x + fx * .06 * sc, a.y + 1.86 * sc, a.z + fz * .06 * sc], sc, c:umbOf(a) }; })() : null;
-    a.coatM = a.mesh && a.item === "coat" && SEASON.cur === "spring" && Math.hypot(a.x - camPos[0], a.z - camPos[2]) < 30 ? headM(a, now) : null;
+    a.umF = near && a.item === "umb" ? (() => { const open = umbUp(a); if (open) return { open, up:headM(a, now), c:umbOf(a) }; const f = itemFrame(a, now); return { g:f.g, d:f.d, open, sc:f.sc, c:umbOf(a) }; })() : null;
+    a.coatM = a.mesh && a.item === "coat" && SEASON.cur === "spring" && Math.hypot(a.x - camPos[0], a.z - camPos[2]) < 30 ? coatMats(a, now) : null;
     if (RAIN.k > .3 && a.mesh && !a.npc && camPos[1] > -.05 && !dryOf(a) && Math.hypot(a.x - camPos[0], a.z - camPos[2]) < 22 && now > (a.wet || 0)){ a.wet = now + 300; const sc = a.sc || 1;   /* caught in the rain: water running off */
       Object.assign(slot(DROPS), { on:true, t0:now, x:a.x + (Math.random() - .5) * .5 * sc, y:a.y + 1.45 * sc, z:a.z + (Math.random() - .5) * .5 * sc, vx:(Math.random() - .5) * .4, vy:.2, vz:(Math.random() - .5) * .4, life:.35 });
       if (a === me && !RAIN_W.told){ RAIN_W.told = true; hint(T({ en:"☔ You're getting soaked — the vending machines have umbrellas and raincoats (or stand under a tree)", ko:"☔ 비를 맞고 있어요 — 자판기에서 우산·우비를 고르거나 나무 밑으로 가요" })); } } }
@@ -25629,10 +25691,9 @@ function drawRain(p, now){
   const u = p.u, put = (m, M) => { gl.uniformMatrix4fv(u.uM, false, M); bindMesh(m); gl.drawArrays(gl.TRIANGLES, 0, m.n); };
   if (ups){ if (!RAIN.umb) RAIN.umb = umbMeshes(); const U = RAIN.umb;
     for (const a of AVATARS()){ const f = a.umF; if (!f || (a === me && tooClose())) continue; if (a.dk && (PASS === "main" || PASS === "nrm" || PASS === "rf") && dkOn(a, "ghost", now)) continue;
-      if (!f.open){ put(U.closed[f.c], itAx(f.g, f.d, f.sc, f.sc)); continue; }
-      const dx = f.top[0] - f.g[0], dy = f.top[1] - f.g[1], dz = f.top[2] - f.g[2], L = Math.hypot(dx, dy, dz) || 1;
-      put(U.stick, itAx(f.g, [dx / L, dy / L, dz / L], f.sc, L)); put(U.can[f.c], setM(f.top[0], f.top[1], f.top[2], f.sc, f.sc, f.sc, a.r)); }
-    for (const a of AVATARS()){ if (!a.coatM || (a === me && tooClose())) continue; if (a.dk && (PASS === "main" || PASS === "nrm" || PASS === "rf") && dkOn(a, "ghost", now)) continue; put(U.coat, a.coatM); } }
+      put(f.open ? U.open[f.c] : U.closed[f.c], f.open ? f.up : itAx(f.g, f.d, f.sc, f.sc)); }
+    for (const a of AVATARS()){ const C = a.coatM; if (!C || (a === me && tooClose())) continue; if (a.dk && (PASS === "main" || PASS === "nrm" || PASS === "rf") && dkOn(a, "ghost", now)) continue;
+      put(U.coat, C.up); put(U.hood, C.hood); put(U.sl, C.al); put(U.sr, C.ar); } }
   if (RAIN.n && PASS === "main" && RAIN.M){ gl.uniformMatrix4fv(u.uM, false, I4); bindMesh(RAIN.M); gl.drawArrays(gl.TRIANGLES, 0, RAIN.n); }
 }
 
