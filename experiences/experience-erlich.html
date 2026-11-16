@@ -1065,7 +1065,7 @@ function buildAvatar(L){
   if (S === 4){                                                                                                 /* long, parted in the middle */
     const G = shell(table(BOB), .05, .435);
     fringe([[-.05, -.3, .13, .1, .45], [-.32, -.58, .1, .1, .45], [-.6, -.84, .06, .09, .45], [.05, .3, .13, .1, .45], [.32, .58, .1, .1, .45], [.6, .84, .06, .09, .45]]);
-    const C2 = 48, a0 = 1.2, a1 = Math.PI * 2 - 1.2, ys = L.tuck ? [HEAD - .16, 1.01, .99, .975] : [HEAD - .16, HEAD - .3, .9, .82, .74, .68, .67], rs = L.tuck ? [.445, .44, .435, .42] : [.445, .45, .415, .39, .38, .365, .335], G2 = [];   /* tucked into a raincoat: cut off under the hood */
+    const C2 = 48, a0 = 1.2, a1 = Math.PI * 2 - 1.2, ys = L.tuck === 1 ? [HEAD - .16, 1.01, .99, .975] : [HEAD - .16, HEAD - .3, .9, .82, .74, .68, .67], rs = L.tuck === 1 ? [.445, .44, .435, .42] : [.445, .45, .415, .39, .38, .365, .335], G2 = [];   /* tucked into a raincoat: cut off under the hood */
     ys.forEach((y, i) => { const row = []; for (let j = 0; j <= C2; j++){ const a = lerp(a0, a1, j / C2), back = Math.max(0, -Math.cos(a));
       const q = at(a, y + (i === ys.length - 1 ? .03 : 0), rs[i]); row.push([q[0], q[1], q[2] - back * .04 * (i > 1 ? 1 : 0)]); } G2.push(row); });
     B.grid(G2, hc, HAIR, [0, .95, -.05]);
@@ -1096,7 +1096,7 @@ function buildAvatar(L){
       B.strand([b, add(b, add(mul(d, len * .5), mul(n, .012))), tipP], [.085, .06, .007], [.065, .046, .007], [Math.cos(a), 0, -Math.sin(a)], hc, HAIR, 10); }); }
   /* ---- the extra ---- */
   const shiftZ = (from, dz) => { for (let i = from; i < B.v.length; i += ST) B.v[i + 2] += dz; };
-  if (L.ac === 1){ const straw = [.93, .8, .52], n0 = B.v.length;
+  if (L.ac === 1 && L.tuck !== 2){ const straw = [.93, .8, .52], n0 = B.v.length;
     B.lathe([[0, HEAD + .29], [.68, HEAD + .25], [.72, HEAD + .232], [.68, HEAD + .22], [0, HEAD + .26]], straw, M, 44);
     B.lathe([[.445, HEAD + .25], [.45, HEAD + .34], [.41, HEAD + .46], [.28, HEAD + .52], [0, HEAD + .53]], straw, M, 36);
     B.lathe([[.452, HEAD + .262], [.455, HEAD + .31]], tc, M, 36); shiftZ(n0, -.05); }
@@ -1115,7 +1115,7 @@ function buildAvatar(L){
   if (L.ac === 4 && !L.tuck){ const n0 = B.v.length;
     B.lathe([[.45, HEAD + .12], [.452, HEAD + .22], [.4, HEAD + .36], [.26, HEAD + .45], [0, HEAD + .475]], tc, M, 40); shiftZ(n0, -.05);
     B.ell([0, HEAD + .145, .36], .26, .022, .2, SHADE(tc, .86), M, 22); B.ell([0, HEAD + .475, -.05], .035, .022, .035, SHADE(tc, .8), M, 10); }
-  if (L.ac === 5){ const fur = [.98, .97, .95], pink = [.98, .72, .78];                                           /* bunny ears: no band, two soft ears coming up out of the hair */
+  if (L.ac === 5 && L.tuck !== 2){ const fur = [.98, .97, .95], pink = [.98, .72, .78];                                           /* bunny ears: no band, two soft ears coming up out of the hair */
     for (const s of [-1, 1]){ const b = PT(s * (Math.PI / 2 + .12), .46, .012), tip = [b[0] + s * .095, b[1] + .33, b[2] - .03];
       B.strand([b, [b[0] + s * .012, b[1] + .08, b[2]], [b[0] + s * .04, b[1] + .17, b[2] - .008], [b[0] + s * .072, b[1] + .26, b[2] - .02], tip],
                [.05, .06, .066, .054, .014], [.034, .034, .032, .028, .012], [1, 0, 0], fur, M, 14);
@@ -1142,9 +1142,9 @@ function buildAvatar(L){
            e:[E0, E1, E2, E3, E4, E5, E6, E7].map(x => upload(x.v)), m:[M0, M1, M2, M3, M4, M5].map(x => upload(x.v)) };
 }
 const MESHES = new Map();
-function meshFor(L){ const k = lookKey(L) + (L.tuck ? ".t" : ""); let m = MESHES.get(k); if (!m){ m = buildAvatar(L); MESHES.set(k, m); } return m; }
+function meshFor(L){ const k = lookKey(L) + (L.tuck ? ".t" + L.tuck : ""); let m = MESHES.get(k); if (!m){ m = buildAvatar(L); MESHES.set(k, m); } return m; }
 function pruneMeshes(){
-  const used = new Set(AVATARS().map(a => lookKey(a.look))); for (const a of AVATARS()) if (a.tuckM && a.tuckK === lookKey(a.look) && tucked(a) === a.tuckM) used.add(a.tuckK + ".t"); else a.tuckM = null;   /* a tucked-in raincoat look counts while it is worn */
+  const used = new Set(AVATARS().map(a => lookKey(a.look))); for (const a of AVATARS()) if (a.tuckM && tucked(a) === a.tuckM) used.add(a.tuckK); else a.tuckM = null;   /* a tucked-in look (raincoat, winter hat) counts while it is worn */
   for (const [k, m] of MESHES) if (!used.has(k)){ ["b", "ll", "lr", "al", "ar"].forEach(p => gl.deleteBuffer(m[p].buf)); m.e.concat(m.m).forEach(x => gl.deleteBuffer(x.buf)); MESHES.delete(k); }
 }
 
@@ -1561,6 +1561,8 @@ function pose(a, now){
       else { q.a1x = -.75; q.a1z = -.22; } } }
   if (a.item === "lan" && BALL.holder !== a && !(a === me && SN.held)){ q.a1x = -.7 + Math.sin(now / 500) * .05; q.a1z = -.25; }   /* a sky lantern, held out */
   if (a.item === "umb" && BALL.holder !== a && !(a === me && SN.held)){ if (umbUp(a)){ q.a1x = -.08; q.a1z = -1.42; } else { q.a1x = -.25; q.a1z = -.2; } }   /* the umbrella: held out to the side in the rain (shaft clear of the head), carried furled otherwise */
+  if (a.item === "fish" && SEASON.cur === "winter" && BALL.holder !== a && !(a === me && SN.held)){ const v = ((now + (a.x * 977 | 0)) % 5200) / 5200, e = v > .8 ? Math.sin((v - .8) / .2 * Math.PI) : 0;   /* a fish-shaped bun: held up, and a bite now and then */
+    q.a1x = lerp(-.9, -1.75, e); q.a1z = lerp(-.28, -.05, e); }
   if (a.dk) dkPose(a, q, now);                                                              /* a drink: to the lips, then what it does */
   if (a === me ? SN.held : a.snHold && SEASON.snow > .5){ q.a1x = q.a2x = -1.25; q.a1z = -.2; q.a2z = .2; q.bow += .22; }                  /* both hands on the snowball */
   if ((a === me ? a.skate : onIce(a)) && !a.emote){ const g = Math.sin(a.ph);                 /* skiing: leaning in, arms out, long slow strides */
@@ -1595,7 +1597,9 @@ function handAt(a, s, now, dz){
   return [M[0] * p[0] + M[4] * p[1] + M[8] * p[2] + M[12], M[1] * p[0] + M[5] * p[1] + M[9] * p[2] + M[13], M[2] * p[0] + M[6] * p[1] + M[10] * p[2] + M[14]];
 }
 /* long hair goes inside a raincoat, and a cap comes off: the same look, with those tucked away under the hood */
-const tucked = (a) => a.item === "coat" && SEASON.cur === "spring" && a.look && (a.look.hs === 4 || a.look.ac === 4) ? (a.tuckM && a.tuckK === lookKey(a.look) ? a.tuckM : (a.tuckK = lookKey(a.look), a.tuckM = meshFor(Object.assign({}, a.look, { tuck:1 })))) : a.mesh;
+/* and under a winter hat or earmuffs, the sun hat, cap or bunny ears come off */
+const tuckOf = (a) => !a.look ? 0 : a.item === "coat" && SEASON.cur === "spring" && (a.look.hs === 4 || a.look.ac === 4) ? 1 : (a.item === "hat" || a.item === "muffs") && SEASON.cur === "winter" && (a.look.ac === 1 || a.look.ac === 4 || a.look.ac === 5) ? 2 : 0;
+const tucked = (a) => { const t = tuckOf(a); if (!t) return a.mesh; const k = lookKey(a.look) + ".t" + t; if (a.tuckM && a.tuckK === k) return a.tuckM; a.tuckK = k; return a.tuckM = meshFor(Object.assign({}, a.look, { tuck:t })); };
 function partMats(a, now){
   const q = pose(a, now), m = tucked(a);
   const base = mm4(Tm(a.x, a.y + q.lift, a.z), RYS(a.r + q.spin, a.sc || 1));             /* the milk: bigger, from the feet up */
@@ -1927,7 +1931,7 @@ function cleanState(st){
   const e = typeof st.e === "string" && (EMOTES[st.e] || POSE_RE.test(st.e)) ? st.e : "";
   return { x:num(st.x, -CXW, CXW, 0), y:num(st.y, FLOOR - .1, 1.5, 0), z:num(st.z, -CZW, CZW, 0), r:num(st.r, -7, 7, 0), w:st.w ? 1 : 0, e, et:num(st.et, 0, 1e15, 0),
     m:cleanText(st.m, 40), mt:num(st.mt, 0, 1e15, 0), n:cleanText(st.n, 12) || "…", look:lookFrom(st.k), f:typeof st.f === "string" ? st.f.slice(0, 48) : "", b:typeof st.b === "string" ? st.b.slice(0, 60) : "",
-    d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "", q:typeof st.q === "string" && /^[psawn][0-9a-z]{1,11}$/.test(st.q) ? st.q : "", h:typeof st.h === "string" && /^c?[snurlSNURLK]?$/.test(st.h) ? st.h : "",
+    d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "", q:typeof st.q === "string" && /^[psawn][0-9a-z]{1,11}$/.test(st.q) ? st.q : "", h:typeof st.h === "string" && /^c?[snurlmtegbSNURLMTEGBK]?$/.test(st.h) ? st.h : "",
     g:typeof st.g === "string" && /^\d{1,3}(:-?\d*\.?\d+){3}:[01]$/.test(st.g) ? st.g : "" };
 }
 function onPeerList(list){
@@ -1951,7 +1955,7 @@ function onPeerList(list){
       if (st.mt !== a.lastM){ a.lastM = st.mt; if (st.m){ a.msg = st.m; a.msgUntil = now + 6500; logLine(st.n, st.m); AUD.chat(); } }
     }
     pushSample(a, st, now); a.name = st.n; a.sit = st.e === "sit" || st.e === "bench" || /^[bs]:/.test(st.e); a.bench = st.e === "bench" || st.e.startsWith("b:");
-    { const hh = st.h.replace("c", ""), it = IT_OF[hh.toLowerCase()] || ""; a.king = /[SNURLK]/.test(hh); if (it !== (a.item || "")){ a.item = it; a.itT0 = now; if (it === "sp" && inWorld) AUD.ignite(hear(a.x, a.z) * .6); } }   /* what they hold: a sparkler, a net, an umbrella, a raincoat, a lantern */
+    { const hh = st.h.replace("c", ""), it = IT_OF[hh.toLowerCase()] || ""; a.king = /[SNURLMTEGBK]/.test(hh); if (it !== (a.item || "")){ a.item = it; a.itT0 = now; if (it === "sp" && inWorld) AUD.ignite(hear(a.x, a.z) * .6); } }   /* what they hold: a sparkler, a net, an umbrella, a raincoat, a lantern */
     { const pz = st.e.includes(":") ? st.e.slice(2) : ""; if (pz !== (a.pose || "")){ a.pose = pz; a.pt0 = now; } }          /* the pose they hold, if any */
     if (lookKey(st.look) !== lookKey(a.look)){ a.look = st.look; a.mesh = meshFor(st.look); }
   }
@@ -2358,6 +2362,8 @@ const AUD = (() => {
     whistle(k){ if (!ok() || k <= 0) return; tone(ctx.currentTime, 900, 1.05, .004 * k, 2600); },                     /* fireworks: up it goes, then a soft boom and a crackle */
     boom(k, crk){ if (!ok() || k <= 0) return; const tt = ctx.currentTime; tone(tt, 110, .5, .026 * k, 46); burst(tt, .38, 420, .7, .02 * k);
       if (crk) for (let i = 0; i < 8; i++) burst(tt + .35 + Math.random() * 1.1, .025, 4200 + Math.random() * 3000, 4, .0035 * k); },
+    bells(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; for (let i = 0; i < 9; i++){ const t = tt + i * .1 + Math.random() * .025, f = [2637, 3136, 3520, 2794][i % 4] * (1 + Math.random() * .012); tone(t, f, .08, .007 * h); tone(t + .01, f * 1.5, .05, .0035 * h); } },   /* sleigh bells: a short bright jingle */
+    gift(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; [1047, 1319, 1568, 2093, 2637].forEach((f, i) => tone(tt + i * .055, f, .18, .014 * h)); },
     snowman(h){ if (!ok() || h <= 0) return; const tt = ctx.currentTime; [1568, 2093, 2637, 3136, 4186].forEach((f, i) => tone(tt + i * .07, f, .22, .016 * h)); },
     hic(h){ if (!ok() || h <= 0) return; tone(ctx.currentTime, 820, .06, .03 * h, 1350, "triangle"); },
     stretch(){ if (!ok()) return; const tt = ctx.currentTime; tone(tt, 760, .12, .012, 1150, "triangle"); },
@@ -2512,6 +2518,7 @@ function onFx(a, f){
   if (f[0] === "m"){ a.moonlit = performance.now(); popEmote(a, "rabbit"); return; }
   if (f[0] === "L" && n.length >= 2){ if (SEASON.cur === "autumn"){ lanternUp(clamp(n[0], -CXW, CXW), a.y + 1.5, clamp(n[1], -CZW, CZW)); popEmote(a, "lantern"); AUD.magic(hear(a.x, a.z) * .5); } return; }
   if (f[0] === "t"){ const i = n[0] | 0; if (i >= 0 && i < TREES.length && autumnOn()) treeShake(i, a); return; }
+  if (f[0] === "x"){ const i = n[0] | 0; if (i >= 0 && i < TREES.length && xmasOn()) giftBurst(i, false); return; }
   if (f[0] === "n"){ a.swing = performance.now(); const h = hear(a.x, a.z); AUD.swish(h * .6); if (n[0] >= 0 && n[0] < BUG_IDS.length){ popEmote(a, "catch"); AUD.caught(h * .6); } return; }
   if (f[0] !== "b" || n.length < 5) return;
   a.thr = performance.now(); launch(a, clamp(n[0], -CXW, CXW), a.y + 1.2, clamp(n[1], -CZW, CZW), clamp(n[2], -CXW, CXW), clamp(n[3], -CZW, CZW), Math.abs(n[4] | 0) % BAL_COL.length);
@@ -2924,13 +2931,14 @@ function renderVend(){
     b.querySelector(".can span").textContent = D.ico; b.querySelector(".dt b").textContent = T(D.name); b.querySelector(".dt small").textContent = T(D.fx);
     b.querySelector("em").textContent = cur ? T({ en:"On now", ko:"효과 중" }) : D.dur ? T({ en:`${D.dur}s`, ko:`${D.dur}초` }) : T({ en:"At once", ko:"바로" });
     b.onclick = () => buyDrink(k); L.appendChild(b); }
-  const sk = Object.keys(ITEMS).filter(k => ITEMS[k].sea === SEASON.cur);
+  const sk = Object.keys(ITEMS).filter(k => ITEMS[k].sea === SEASON.cur && (!ITEMS[k].gift || XM.owned.has(k)));
+  if (SEASON.cur === "winter"){ const h = document.createElement("p"); h.className = "vsum"; h.textContent = T(sk.length ? { en:"🎁 Your presents · swap any time", ko:"🎁 내 선물 · 언제든 바꿔 착용" } : { en:"🎁 Open a present under a tree — what's inside shows up here", ko:"🎁 나무 아래 선물을 열면 받은 소품이 여기에 생겨요" }); L.appendChild(h); }
   if (sk.length){ const h = document.createElement("p"); h.className = "vsum"; h.textContent = T(SEASON.cur === "summer" ? { en:"🍉 Summer only · free", ko:"🍉 여름 한정 · 무료" } : SEASON.cur === "autumn" ? { en:"🍁 Autumn only · trade", ko:"🍁 가을 한정 · 교환" } : { en:"🌸 Spring only · free", ko:"🌸 봄 한정 · 무료" }); L.appendChild(h);   /* this season's free things */
     for (const k of sk){ const I = ITEMS[k], b = document.createElement("button"), cur = me.item === k;
       b.type = "button"; b.className = "dk item" + (cur ? " cur" : ""); b.style.setProperty("--c1", rgb(I.can)); b.style.setProperty("--c2", rgb(I.band));
       b.innerHTML = '<i class="can"><span></span></i><span class="dt"><b></b><small></small></span><em></em>';
       b.querySelector(".can span").textContent = I.ico; b.querySelector(".dt b").textContent = T(I.name); b.querySelector(".dt small").textContent = T(I.fx);
-      b.querySelector("em").textContent = cur ? T({ en:"Holding", ko:"들고 있음" }) : I.trade ? T(AUT.roast >= I.trade.roast && AUT.acorn >= I.trade.acorn ? { en:"Trade", ko:"교환" } : { en:"Not yet", ko:"부족" }) : T({ en:"Get", ko:"받기" });
+      b.querySelector("em").textContent = cur ? T(I.gift ? { en:"Wearing", ko:"착용 중" } : { en:"Holding", ko:"들고 있음" }) : I.gift ? T({ en:"Wear", ko:"착용" }) : I.trade ? T(AUT.roast >= I.trade.roast && AUT.acorn >= I.trade.acorn ? { en:"Trade", ko:"교환" } : { en:"Not yet", ko:"부족" }) : T({ en:"Get", ko:"받기" });
       if (I.trade) b.querySelector(".dt small").textContent = `${T(I.fx)} · ${T({ en:`you have ${AUT.roast} roasted, ${AUT.acorn} acorns`, ko:`보유: 군밤 ${AUT.roast} · 도토리 ${AUT.acorn}` })}`;
       b.onclick = () => getItem(k); L.appendChild(b); } }
   $("vend-n").textContent = T(v.kinds.includes("glass") ? { en:"The glass soda wears off once you step off the water — no sudden dip.", ko:"유리 소다는 물 밖으로 나와야 효과가 끝나요 — 갑자기 빠지지 않아요." }
@@ -3446,6 +3454,7 @@ function drawSpring(p, now){
   if (!BFM) BFM = springMeshes();
   const u = p.u, put = (m, M) => { gl.uniformMatrix4fv(u.uM, false, M); bindMesh(m); gl.drawArrays(gl.TRIANGLES, 0, m.n); };
   for (const a of crowns){ const ac = a.look && a.look.ac, hy = ac === 1 ? HEAD + .3 : ac === 4 ? HEAD + .25 : 0;   /* on the hair, or round the band of a hat or cap */
+    if (a.item === "hat" && SEASON.cur === "winter"){ put(BFM.crown, mm4(headM(a, now), mm4(Tm(0, 1.43, -.05), [1.6, 0, 0, 0, 0, 1.1, 0, 0, 0, 0, 1.6, 0, 0, 0, 0, 1]))); continue; }   /* round the hat's cuff */
     if (a.item === "coat" && SEASON.cur === "spring" && ac !== 1){ const tall = a.look && a.look.hs === 3 ? .17 : 0; put(BFM.crown, mm4(headM(a, now), mm4(Tm(0, 1.56 + tall, HOOD.c[2]), [1.3, 0, 0, 0, 0, 1.1, 0, 0, 0, 0, 1.3, 0, 0, 0, 0, 1]))); continue; }   /* or round the hood */
     put(BFM.crown, mm4(headM(a, now), hy ? mm4(Tm(0, hy, 0), [1.55, 0, 0, 0, 0, 1.2, 0, 0, 0, 0, 1.55, 0, 0, 0, 0, 1]) : mm4(Tm(0, HEAD + .31, -.02), mm4(RX(-.12), [1.42, 0, 0, 0, 0, 1.15, 0, 0, 0, 0, 1.42, 0, 0, 0, 0, 1])))); }
   if (PASS === "sh") return;
@@ -3476,7 +3485,14 @@ Object.assign(ITEMS, {
   coat:{ c:"r", sea:"spring", ico:"🧥", dur:0, can:[1, .84, .28], band:[1, .93, .6], name:{ en:"Raincoat", ko:"우비" }, fx:{ en:"A yellow raincoat with a hood — rain or shine", ko:"모자 달린 노란 우비 — 비가 와도 끄떡없어요" } },
 });
 ITEMS.lan = { c:"l", sea:"autumn", trade:{ roast:5, acorn:5 }, ico:"🏮", dur:0, can:[1, .55, .25], band:[1, .82, .45], name:{ en:"Sky lantern", ko:"풍등" }, fx:{ en:"Trade 5 roasted chestnuts and 5 acorns — make a wish and let it float up to the moon", ko:"군밤 5개 + 도토리 5개와 교환 — 소원을 빌며 달까지 날려 보내요" } };
-const IT_OF = { s:"sp", n:"net", u:"umb", r:"coat", l:"lan" };
+Object.assign(ITEMS, {                                                                                      /* winter: from the presents under the trees */
+  scarf:{ c:"m", sea:"winter", gift:true, ico:"🧣", dur:0, can:[.86, .2, .22], band:[.98, .95, .9], name:{ en:"Scarf", ko:"목도리" }, fx:{ en:"A warm knitted scarf with a white stripe", ko:"하얀 줄무늬 털실 목도리" } },
+  hat:{ c:"t", sea:"winter", gift:true, ico:"🧶", dur:0, can:[.28, .5, .86], band:[.95, .93, .88], name:{ en:"Bobble hat", ko:"털모자" }, fx:{ en:"A knitted hat with a bobble on top", ko:"방울 달린 털모자" } },
+  muffs:{ c:"e", sea:"winter", gift:true, ico:"🎧", dur:0, can:[.92, .5, .62], band:[.99, .9, .93], name:{ en:"Earmuffs", ko:"귀마개" }, fx:{ en:"Fluffy and pink, warm on the ears", ko:"폭신폭신 분홍 귀마개" } },
+  mitts:{ c:"g", sea:"winter", gift:true, ico:"🧤", dur:0, can:[.2, .6, .4], band:[.97, .95, .9], name:{ en:"Mittens", ko:"벙어리장갑" }, fx:{ en:"Green mittens with white cuffs", ko:"하얀 단이 달린 초록 벙어리장갑" } },
+  fish:{ c:"b", sea:"winter", gift:true, ico:"🐟", dur:0, can:[.86, .58, .26], band:[.98, .86, .6], name:{ en:"Fish-shaped bun", ko:"붕어빵" }, fx:{ en:"Warm, with sweet red bean — a bite now and then", ko:"따끈한 팥 붕어빵 — 가끔 한 입씩 먹어요" } },
+});
+const IT_OF = { s:"sp", n:"net", u:"umb", r:"coat", l:"lan", m:"scarf", t:"hat", e:"muffs", g:"mitts", b:"fish" };
 /* the eight, and where each is found */
 const BUGK = {
   cicada:{ ico:"🦗", n:{ en:"Cicada", ko:"매미" }, w:{ en:"Day · tree trunks", ko:"낮 · 나무줄기" } },
@@ -3542,7 +3558,7 @@ function summerMeshes(){ const one = (fn) => { const A = maker(); fn(A); return 
 }
 /* what a hand holds: where the grip is, and which way the thing points (left hand; the right stays free for drinks and balloons) */
 function itemFrame(a, now){ const q = pose(a, now), sc = a.sc || 1, base = mm4(Tm(a.x, a.y + q.lift, a.z), RYS(a.r + q.spin, sc)), up = mm4(base, mm4(Tm(0, .42, 0), mm4(RX(q.bow), mm4(RZ(q.sway), Tm(0, -.42, 0)))));
-  const M = mm4(up, mm4(Tm(-.165, .79, 0), mm4(RZ(q.a1z), mm4(RX(q.a1x), Tm(.165, -.79, 0))))), p = [-.219, .5, .004], L = a.item === "net" ? [0, .1, 1] : a.item === "umb" ? [0, -1, .35] : [0, -.4, 1];
+  const M = mm4(up, mm4(Tm(-.165, .79, 0), mm4(RZ(q.a1z), mm4(RX(q.a1x), Tm(.165, -.79, 0))))), p = [-.219, .5, .004], L = a.item === "net" ? [0, .1, 1] : a.item === "umb" ? [0, -1, .35] : a.item === "fish" ? [0, .45, 1] : [0, -.4, 1];
   return { g:[M[0] * p[0] + M[4] * p[1] + M[8] * p[2] + M[12], M[1] * p[0] + M[5] * p[1] + M[9] * p[2] + M[13], M[2] * p[0] + M[6] * p[1] + M[10] * p[2] + M[14]],
            d:norm([M[0] * L[0] + M[4] * L[1] + M[8] * L[2], M[1] * L[0] + M[5] * L[1] + M[9] * L[2], M[2] * L[0] + M[6] * L[1] + M[10] * L[2]]), sc }; }
 function itAx(c, d, kx, ky){ let x0 = d[2], x2 = -d[0], l = Math.hypot(x0, x2); if (l < 1e-4){ x0 = 1; x2 = 0; l = 1; } x0 /= l; x2 /= l;
@@ -3554,7 +3570,8 @@ const burnOf = (a, now) => a === me ? clamp((now - SUM.t0) / (ITEMS.sp.dur * 100
 function hOf(){ const it = me.item ? ITEMS[me.item].c : ""; return (CROWN.on ? "c" : "") + (SUM.king ? (it ? it.toUpperCase() : "K") : it); }
 function getItem(k){
   const I = ITEMS[k]; if (!I || !inWorld || making) return;
-  if (I.sea !== SEASON.cur){ hint(T(I.sea === "summer" ? { en:"Only in summer", ko:"여름에만 받을 수 있어요" } : { en:"Only in spring", ko:"봄에만 받을 수 있어요" })); return; }
+  if (I.sea !== SEASON.cur){ hint(T({ summer:{ en:"Only in summer", ko:"여름에만 받을 수 있어요" }, spring:{ en:"Only in spring", ko:"봄에만 받을 수 있어요" }, autumn:{ en:"Only in autumn", ko:"가을에만 받을 수 있어요" }, winter:{ en:"Only in winter", ko:"겨울에만 착용할 수 있어요" } }[I.sea])); return; }
+  if (I.gift && !XM.owned.has(k)){ hint(T({ en:"Open a present under a tree first", ko:"먼저 나무 아래 선물을 열어 봐요" })); return; }
   if (DKS.open < 0 || nearVend(2.9) !== DKS.open){ closePops(); hint(T({ en:"Walk up to the machine first", ko:"자판기 앞으로 가서 골라요" })); return; }
   if ((k === "net" || k === "lan") && me.item === k){ hint(T({ en:"You're already holding one", ko:"이미 들고 있어요" }), true); return; }
   if (I.trade){ const t = I.trade; if (AUT.roast < t.roast || AUT.acorn < t.acorn){ hint(T({ en:`Not enough yet — roasted chestnuts ${AUT.roast}/${t.roast} · acorns ${AUT.acorn}/${t.acorn}`, ko:`아직 부족해요 — 군밤 ${AUT.roast}/${t.roast} · 도토리 ${AUT.acorn}/${t.acorn}` }), true); return; }
@@ -3566,6 +3583,7 @@ function getItem(k){
   else if (k === "lan") hint(T({ en:"🏮 A sky lantern! Make a wish and let it go (F, or the button)", ko:"🏮 풍등을 받았어요! 소원을 빌며 날려 보내요 (F 또는 버튼)" }));
   else if (k === "umb") hint(T({ en:"☂️ It opens by itself when the rain comes", ko:"☂️ 비가 오면 저절로 펼쳐져요" }), true);
   else if (k === "coat") hint(T({ en:"🧥 A yellow raincoat — let it rain", ko:"🧥 노란 우비를 입었어요 — 비가 와도 괜찮아요" }), true);
+  else if (I.gift) hint(T({ en:`${I.ico} ${I.name.en} on`, ko:`${I.ico} ${I.name.ko}${josa(I.name.ko, "을", "를")} 착용했어요` }), true);
   else hint(T({ en:"🥅 F (or the button) to swing — tap the net's name to see which insects are where", ko:"🥅 F(또는 버튼)로 휘둘러요 — 잠자리채 이름을 누르면 곤충 도감이 열려요" }));
   itemUI();
 }
@@ -3593,7 +3611,7 @@ function itemUI(){
   if (!k) return;
   const I = ITEMS[k]; el.style.setProperty("--ic", rgb(I.band)); el.querySelector(".ic").textContent = I.ico; $("it-n").textContent = T(I.name) + (k === "net" ? " · " + T({ en:"Field guide ›", ko:"도감 ›" }) : "");
   $("it-sw").firstChild.textContent = T(k === "lan" ? { en:"Let it go", ko:"날리기" } : { en:"Swing", ko:"휘두르기" }); $("it-x").setAttribute("aria-label", T({ en:"Put away", ko:"넣기" })); $("it-x").title = T({ en:"Put away", ko:"넣기" });
-  $("it-s").textContent = k === "lan" ? T({ en:"Make a wish, then let it go", ko:"소원을 빌고 날려 보내요" }) : k === "umb" ? T(RAIN.k > .25 ? { en:"Open — keeping you dry", ko:"펼침 — 비를 막아 줘요" } : { en:"Opens when it rains", ko:"비가 오면 펼쳐져요" }) : k === "coat" ? T({ en:"Hood up, rain or shine", ko:"비가 와도 끄떡없어요" }) : k === "net" ? (SUM.n ? T({ en:`${SUM.n} caught · ${dexN()}/${BUG_IDS.length} kinds`, ko:`${SUM.n}마리 잡음 · 도감 ${dexN()}/${BUG_IDS.length}` }) : T({ en:"Tap the name above for where to look", ko:"위 이름을 누르면 어디서 찾는지 알려줘요" }))
+  $("it-s").textContent = ITEMS[k].gift ? T(ITEMS[k].fx) : k === "lan" ? T({ en:"Make a wish, then let it go", ko:"소원을 빌고 날려 보내요" }) : k === "umb" ? T(RAIN.k > .25 ? { en:"Open — keeping you dry", ko:"펼침 — 비를 막아 줘요" } : { en:"Opens when it rains", ko:"비가 오면 펼쳐져요" }) : k === "coat" ? T({ en:"Hood up, rain or shine", ko:"비가 와도 끄떡없어요" }) : k === "net" ? (SUM.n ? T({ en:`${SUM.n} caught · ${dexN()}/${BUG_IDS.length} kinds`, ko:`${SUM.n}마리 잡음 · 도감 ${dexN()}/${BUG_IDS.length}` }) : T({ en:"Tap the name above for where to look", ko:"위 이름을 누르면 어디서 찾는지 알려줘요" }))
     : `${T({ en:`${Math.max(0, SUM.secs)}s left`, ko:`${Math.max(0, SUM.secs)}초 남음` })}${SUM.near ? " · " + T({ en:"together ✨", ko:"함께 ✨" }) : ""}`;
   if ($("pop-dex").classList.contains("on")) renderDex();
 }
@@ -3625,7 +3643,7 @@ function bugSpot(b, k){
 const nearEdge = (x, z) => Math.min(PX - Math.abs(x), PZ - Math.abs(z));
 function stepSummer(dt, now){
   const sum = summerOn() && inWorld;
-  if (!summerOn()){ for (const a of AVATARS()) a.itF = null; if (me.item && ITEMS[me.item].sea === "summer") putAway(inWorld ? { en:"Summer's over — put away", ko:"여름이 끝나서 넣어 뒀어요" } : null); for (const b of BUG) b.on = false; if (autumnOn()){ buildFW(now); fireLight(now); } else { for (const p of SPK) p.on = false; fwN = 0; FW.fl = 0; } return; }
+  if (!summerOn()){ for (const a of AVATARS()) a.itF = null; if (me.item && ITEMS[me.item].sea === "summer") putAway(inWorld ? { en:"Summer's over — put away", ko:"여름이 끝나서 넣어 뒀어요" } : null); for (const b of BUG) b.on = false; if (autumnOn()){ buildFW(now); fireLight(now); } else if (xmasOn()){ for (const p of SPK) p.on = false; buildFW(now); FW.fl = 0; } else { for (const p of SPK) p.on = false; fwN = 0; FW.fl = 0; } return; }
   if (me.item === "sp" && now > SUM.end) putAway({ en:"The sparkler burnt out", ko:"스파클라가 다 탔어요" });
   /* the bugs round you: five kinds by day, three at night (the fireflies are the season's own); the water striders stay day and night */
   const day = NIGHT.k < .5, want = day ? { cicada:3, dfly:3, lady:2, hopper:2, strider:2 } : { beetle:1, stag:1, strider:2 }, have = {};
@@ -3775,6 +3793,7 @@ function buildFW(now){
       const L = b.ty === 2 ? 3.4 : b.ty === 3 ? 2.6 : b.ty === 4 ? 2.4 : 2.1, w0 = u - 1.2; if (w0 >= L) continue;
       fwBurst(b, w0, L); const f = Math.exp(-w0 * 4.5) * (1 - sstep(L * .5, L, w0)); if (f > fl){ fl = f; fb = b; } }
     if (fb){ const c = FW_COL[fb.c]; FW.fl = fl * NIGHT.k; FW.flP[0] = fb.x; FW.flP[1] = fb.y; FW.flP[2] = fb.z; FW.flC[0] = (c[0] + 1) * .5; FW.flC[1] = (c[1] + 1) * .5; FW.flC[2] = (c[2] + 1) * .5; } }
+  xmasGlows(now);
   if (fwN){ if (!FWM){ FWM = { buf:gl.createBuffer(), n:0 }; gl.bindBuffer(gl.ARRAY_BUFFER, FWM.buf); gl.bufferData(gl.ARRAY_BUFFER, FWV.byteLength, gl.DYNAMIC_DRAW); }
     gl.bindBuffer(gl.ARRAY_BUFFER, FWM.buf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, FWV.subarray(0, fwN * ST)); FWM.n = fwN; }
 }
@@ -3920,9 +3939,11 @@ function stepAutumn(dt, now){
 function updateTreeUI(){
   let b = $("treeb");
   if (!b){ b = document.createElement("button"); b.id = "treeb"; b.type = "button"; b.innerHTML = '<span class="vi">🌳</span><span></span><kbd>E</kbd>'; $("tags").appendChild(b); b.onclick = () => { AUD.unlock(); shakeTree(); }; }
-  const i = autumnOn() && camPos[1] > -.05 && nearVend(2.2) < 0 ? nearTree(1.8) : -1, q = i >= 0 ? project([TREES[i][0], 2.15, TREES[i][1]]) : null;
-  b.classList.toggle("on", !!q);
-  if (q){ const lab = T({ en:"Shake the tree", ko:"나무 흔들기" }); if (b.children[1].textContent !== lab) b.children[1].textContent = lab;
+  const gi = camPos[1] > -.05 && nearVend(2.2) < 0 ? giftHere() : -1, i = gi >= 0 ? gi : autumnOn() && camPos[1] > -.05 && nearVend(2.2) < 0 ? nearTree(1.8) : -1;   /* autumn: shake it; winter: a present */
+  const q = gi >= 0 ? project([GIFT_AT[gi].x, 1.05, GIFT_AT[gi].z]) : i >= 0 ? project([TREES[i][0], 2.15, TREES[i][1]]) : null;
+  b.classList.toggle("on", !!q); b.onclick = () => { AUD.unlock(); if (giftHere() >= 0) openGift(); else shakeTree(); };
+  if (q){ const vi = gi >= 0 ? "🎁" : "🌳"; if (b.children[0].textContent !== vi) b.children[0].textContent = vi;
+    const lab = T(gi >= 0 ? { en:"Open the present", ko:"선물 열기" } : { en:"Shake the tree", ko:"나무 흔들기" }); if (b.children[1].textContent !== lab) b.children[1].textContent = lab;
     b.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`; }
 }
 function drawAutumn(p, now){
@@ -4232,6 +4253,174 @@ function drawMoon(p, now){
 }
 
 /* ==========================================================================
+   9n. CHRISTMAS — in winter every tree wears a string of coloured bulbs
+       and a gold star (twinkling at night); under each lies a present: open
+       it for something warm to wear (a scarf, a bobble hat, earmuffs,
+       mittens) or a warm fish-shaped bun. What you got is kept, and the
+       machine lets you swap. Now and then Santa's sleigh crosses the sky,
+       Rudolph in front — placed by the clock, so everyone sees it at once
+   ========================================================================== */
+const xmasOn = () => SEASON.cur === "winter";
+const XM = { mesh:null, bulbs:[], stars:[], g:TREES.map(() => ({ ready:0, open:0, born:0 })), conf:[], owned:new Set(), told:false, santaSaid:0, tCol:[] };
+try { const o = JSON.parse(localStorage.getItem("lam-pool-gifts") || "[]"); if (Array.isArray(o)) o.forEach(k => typeof k === "string" && XM.owned.add(k)); } catch (_){}
+const saveGifts = () => { try { localStorage.setItem("lam-pool-gifts", JSON.stringify([...XM.owned])); } catch (_){} };
+const GIFT_ITEMS = ["scarf", "hat", "muffs", "mitts", "fish"], GIFT_MS = 90000;
+const GIFT_COL = [[[.86, .16, .18], [1, .82, .32]], [[.2, .58, .34], [.9, .2, .22]], [[.28, .5, .9], [.98, .96, .92]], [[.98, .78, .3], [.86, .18, .2]]];
+const BULB_COL = [[1, .22, .2], [1, .78, .18], [.3, 1, .42], [.3, .62, 1], [1, .4, .86]];
+/* each present sits on the planter's soil, on the courtyard side of the trunk */
+const GIFT_AT = TREES.map(([tx, tz], i) => { const l = Math.hypot(tx, tz) || 1, dx = -tx / l, dz = -tz / l; return { x:tx + dx * .3, z:tz + dz * .3, y:.52, yaw:Math.atan2(dx, dz) + .3, c:i % GIFT_COL.length }; });
+/* the outside of a tree's crown, along a direction at a height (its three round masses) */
+function crownR(tx, tz, a, y){ const E = [[tx, 2.7, tz, 1.05, .8, 1], [tx + .45, 3.15, tz + .2, .7, .6, .7], [tx - .4, 3.25, tz - .2, .65, .55, .65]], ca = Math.cos(a), sa = Math.sin(a);
+  for (let r = 1.7; r > 0; r -= .02){ const x = tx + ca * r, z = tz + sa * r; for (const e of E) if (((x - e[0]) / e[3]) ** 2 + ((y - e[1]) / e[4]) ** 2 + ((z - e[2]) / e[5]) ** 2 < 1) return r; } return 0; }
+function xmasMeshes(){ const one = (fn) => { const A = maker(); fn(A); return upload(A.v); }, R = [.84, .13, .14], G = [1, .76, .28], W = [.97, .96, .94], S = [.98, .78, .66], D = [.14, .12, .12], BR = [.58, .38, .22];
+  XM.bulbs = []; XM.stars = [];
+  const lights = one(A => { TREES.forEach(([tx, tz], ti) => {
+      const N = 26, pts = [];
+      for (let i = 0; i <= N * 3; i++){ const u = i / (N * 3), a = u * Math.PI * 2 * 3.2 + ti, y = 2.05 + u * 1.5, r = crownR(tx, tz, a, y); if (r <= 0){ pts.push(null); continue; }
+        pts.push([tx + Math.cos(a) * (r + .025), y, tz + Math.sin(a) * (r + .025)]); }
+      for (let i = 1; i < pts.length; i++) if (pts[i] && pts[i - 1]) A.tube(pts[i - 1], pts[i], .007, .007, [.12, .26, .16], 9, 3);   /* the wire, hugging the crown */
+      for (let i = 0; i < pts.length; i += 3){ const p = pts[i]; if (!p) continue; const c = BULB_COL[(i / 3 + ti) % BULB_COL.length];
+        A.ell([p[0], p[1] - .03, p[2]], .045, .055, .045, c, 13, 5); XM.bulbs.push({ x:p[0], y:p[1] - .03, z:p[2], c, i:XM.bulbs.length }); }
+      const sx = tx - .4, sy = 4.02, sz = tz - .2; XM.stars.push([sx, sy, sz]);                                  /* the star on top: two, crossed, so it is a star from anywhere */
+      for (const rot of [0, Math.PI / 2]){ const cr = Math.cos(rot), sr = Math.sin(rot), P = (x, y, z) => [sx + x * cr + z * sr, sy + y, sz - x * sr + z * cr];
+        for (let k = 0; k < 10; k++){ const a0 = k / 10 * Math.PI * 2, a1 = (k + 1) / 10 * Math.PI * 2, r0 = k % 2 ? .1 : .25, r1 = k % 2 ? .25 : .1;
+          for (const zz of [-.03, .03]){ const n = [sr * Math.sign(zz), 0, cr * Math.sign(zz)], c = P(0, 0, zz * 1.6), a = P(Math.sin(a0) * r0, Math.cos(a0) * r0, zz), b = P(Math.sin(a1) * r1, Math.cos(a1) * r1, zz);
+            for (const q of [c, a, b]) A.v.push(q[0], q[1], q[2], n[0], n[1], n[2], 1, .84, .3, 13); } } }
+      A.tube([sx, 3.72, sz], [sx, 3.86, sz], .012, .012, [.5, .42, .2], 0, 4); }); });
+  const box = (col) => one(A => { const [c, rb] = col; A.box(-.15, 0, -.15, .15, .26, .15, c, 0);
+    A.box(-.032, -.004, -.153, .032, .263, .153, rb, 0); A.box(-.153, -.004, -.032, .153, .263, .032, rb, 0); });
+  const lid = (col) => one(A => { const [c, rb] = col; A.box(-.163, 0, -.163, .163, .065, .163, c, 0); A.box(-.034, -.002, -.166, .034, .068, .166, rb, 0); A.box(-.166, -.002, -.034, .166, .068, .034, rb, 0);
+    for (const s of [-1, 1]){ A.ell([s * .055, .1, 0], .06, .04, .028, rb, 0, 8); A.ell([s * .03, .09, s * .02], .03, .03, .025, rb, 0, 6); } A.ell([0, .085, 0], .028, .025, .028, rb, 0, 6); });
+  const knit = [.86, .2, .22], knit2 = [.97, .95, .9];
+  return { lights,
+    box:GIFT_COL.map(box), lid:GIFT_COL.map(lid),
+    scarf:one(A => { A.torus([0, .855, 0], .205, .062, knit, 0, 20, 8); A.torus([0, .855, 0], .207, .03, knit2, 0, 20, 5);       /* round the neck, a white stripe */
+      A.tube([.1, .84, .17], [.13, .6, .21], .045, .04, knit, 0, 8); A.tube([.03, .83, .19], [.05, .64, .23], .042, .038, knit, 0, 8);   /* two ends hanging in front */
+      A.torus([.13, .66, .21], .04, .012, knit2, 0, 10, 4); A.torus([.05, .69, .23], .038, .012, knit2, 0, 10, 4);
+      for (const [x, y, z] of [[.13, .6, .21], [.05, .64, .23]]) for (let k = 0; k < 4; k++){ const a = k / 4 * 6.283; A.tube([x + Math.cos(a) * .025, y, z + Math.sin(a) * .025], [x + Math.cos(a) * .028, y - .05, z + Math.sin(a) * .028], .008, .006, knit, 0, 3); } }),
+    hat:one(A => { const hc = [.28, .5, .86], cuff = [.95, .93, .88], prof = [];                                                /* a bobble hat: a knitted dome, a turned-up cuff, a bobble */
+      for (let i = 0; i <= 12; i++){ const y = 1.4 + i / 12 * .3, r = .465 * Math.sqrt(Math.max(0, 1 - ((y - 1.36) / .34) ** 2)); prof.push([Math.max(r, .001), y]); }
+      A.lathe(prof, hc, 0, 28, 1); A.lathe([[.47, 1.315], [.488, 1.35], [.49, 1.39], [.475, 1.425]], cuff, 0, 28, 1);
+      for (let k = 0; k < 18; k++){ const a = k / 18 * 6.283; A.tube([Math.sin(a) * .487, 1.33, Math.cos(a) * .487], [Math.sin(a) * .487, 1.41, Math.cos(a) * .487], .009, .009, [.88, .86, .8], 0, 3); }   /* the ribbing */
+      A.ell([0, 1.73, 0], .085, .08, .085, cuff, 0, 10); for (let k = 0; k < 7; k++){ const a = k * 2.4, b = Math.acos(1 - 2 * (k + .5) / 7); A.ell([Math.sin(b) * Math.cos(a) * .07, 1.73 + Math.cos(b) * .07, Math.sin(b) * Math.sin(a) * .07], .035, .035, .035, cuff, 0, 5); } }),
+    muffs:one(A => { const band = [.92, .5, .62], fluff = [.99, .9, .93];                                                      /* earmuffs: a band over the top, two fluffy muffs */
+      let prev = null; for (let i = 0; i <= 16; i++){ const th = -1.38 + i / 16 * 2.76, p = [Math.sin(th) * .475, 1.2 + Math.cos(th) * .5, -.03]; if (prev) A.tube(prev, p, .022, .022, band, 0, 6); prev = p; }
+      for (const s of [-1, 1]){ A.ell([s * .465, 1.15, -.03], .075, .13, .12, fluff, 0, 12); A.ell([s * .535, 1.15, -.03], .02, .1, .09, band, 0, 10);
+        for (let k = 0; k < 8; k++){ const a = k / 8 * 6.283; A.ell([s * .47, 1.15 + Math.cos(a) * .11, -.03 + Math.sin(a) * .1], .05, .04, .04, fluff, 0, 5); } } }),
+    mitt:one(A => { const mc = [.2, .6, .4], cf = [.97, .95, .9];                                                               /* a mitten, in hand space (left hand; mirrored for the right) */
+      A.ell([-.219, .525, .004], .08, .088, .078, mc, 0, 12); A.ell([-.2, .55, .07], .03, .045, .03, mc, 0, 8); A.torus([-.217, .6, .004], .07, .018, cf, 0, 14, 5);
+      A.ell([-.296, .52, .004], .006, .03, .03, cf, 0, 5); }),
+    fish:one(A => { const gold = [.86, .58, .26], dark = [.66, .4, .17];                                                         /* a fish-shaped bun, held by the tail */
+      A.ell([0, .12, 0], .062, .1, .024, gold, 0, 14); A.ell([0, .22, 0], .05, .045, .022, gold, 0, 10);
+      for (const s of [-1, 1]){ A.ell([s * .028, .015, 0], .034, .03, .012, gold, 0, 8); A.ell([0, .2, s * .022], .011, .011, .004, D, 0, 6);
+        for (let k = 0; k < 4; k++) A.ell([(k % 2 - .5) * .05, .07 + k * .025, s * .021], .016, .01, .004, dark, 0, 6); }
+      A.ell([0, .26, 0], .02, .015, .016, dark, 0, 6); A.ell([.06, .13, 0], .02, .04, .01, dark, 0, 6); }),
+    sleigh:one(A => {                                                                                                           /* the sleigh, Santa, his sack: facing +z */
+      A.box(-.42, .3, -1, .42, .72, .55, R, 0); A.box(-.42, .3, -1.05, .42, 1.02, -.82, R, 0); A.ell([0, 1.02, -.94], .42, .1, .12, R, 0, 12); A.ell([0, .55, .62], .42, .28, .3, R, 0, 14);
+      for (const s of [-1, 1]){ A.tube([s * .43, .74, -.98], [s * .43, .74, .55], .032, .032, G, 0, 6); A.tube([s * .43, 1.02, -.98], [s * .43, .74, -.82], .03, .03, G, 0, 6);
+        A.tube([s * .32, .02, -1.15], [s * .32, .02, .85], .036, .036, G, 0, 6); A.tube([s * .32, .02, .85], [s * .32, .22, 1.12], .036, .036, G, 0, 6); A.tube([s * .32, .22, 1.12], [s * .32, .44, 1.04], .034, .03, G, 0, 6);
+        A.tube([s * .32, .02, -.7], [s * .3, .32, -.7], .028, .028, G, 0, 5); A.tube([s * .32, .02, .3], [s * .3, .32, .3], .028, .028, G, 0, 5);
+        A.tube([s * .3, .62, .9], [s * .17, .9, 1.62], .014, .014, [.5, .2, .14], 0, 4); }                                    /* the traces, to the first reindeer */
+      A.tube([-.43, .74, .55], [.43, .74, .55], .03, .03, G, 0, 6);
+      A.ell([0, .95, -.4], .36, .4, .34, R, 0, 14); A.torus([0, .86, -.4], .35, .04, D, 0, 18, 6); A.box(-.07, .81, -.08, .07, .91, -.03, G, 0);   /* Santa */
+      A.tube([0, 1.25, -.1], [0, .66, -.07], .045, .045, W, 0, 6); A.ell([0, 1.45, -.38], .2, .2, .2, S, 0, 14);
+      A.ell([0, 1.33, -.26], .19, .21, .14, W, 0, 12); for (const s of [-1, 1]){ A.ell([s * .065, 1.42, -.2], .075, .035, .04, W, 0, 8); A.ell([s * .07, 1.52, -.21], .022, .026, .015, D, 0, 6); }
+      A.ell([0, 1.46, -.18], .045, .04, .04, [.95, .55, .5], 0, 8);
+      A.tube([0, 1.6, -.4], [0, 1.86, -.66], .2, .05, R, 0, 12); A.torus([0, 1.6, -.4], .2, .055, W, 0, 16, 6); A.ell([0, 1.88, -.7], .075, .075, .075, W, 0, 8);
+      A.tube([-.3, 1.15, -.38], [-.25, .98, -.05], .08, .07, R, 0, 8); A.ell([-.24, .96, 0], .07, .07, .07, D, 0, 8);
+      A.tube([-.24, .98, .02], [-.06, 1.42, 1.86], .008, .008, D, 0, 3); A.tube([-.24, .98, .02], [-.04, 1.55, 3.1], .008, .008, D, 0, 3);   /* the reins */
+      A.ell([.22, 1.05, -.74], .26, .34, .22, BR, 0, 12); A.ell([.22, 1.38, -.74], .08, .05, .08, [.75, .2, .2], 0, 8);       /* his sack */
+      A.box(-.32, .72, .12, -.06, .95, .4, [.3, .7, .42], 0); A.box(-.22, .72, .12, -.16, .96, .4, [1, .85, .35], 0);         /* presents peeping out */
+      A.box(.04, .72, .18, .3, .9, .46, [.35, .55, .95], 0); A.box(.04, .72, .29, .3, .91, .35, W, 0); }),
+    arm:one(A => { A.tube([0, 0, 0], [0, .36, 0], .078, .066, R, 0, 8); A.torus([0, .33, 0], .07, .025, W, 0, 10, 4); A.ell([0, .42, 0], .07, .075, .06, D, 0, 8); }),   /* waving */
+    deer:[0, 1].map(rud => one(A => { const B2 = [.6, .4, .24], LT = [.9, .8, .66], AN = [.66, .52, .34];                       /* a reindeer, flying; Rudolph's nose is lit */
+      A.ell([0, 0, 0], .22, .25, .5, B2, 0, 14); A.ell([0, -.08, .05], .17, .15, .38, LT, 0, 10); A.tube([0, .1, .35], [0, .42, .58], .12, .09, B2, 0, 8);
+      A.ell([0, .5, .66], .13, .13, .2, B2, 0, 12); A.ell([0, .45, .82], .09, .08, .1, LT, 0, 10);
+      A.ell([0, .46, .92], .058, .058, .058, rud ? [1, .14, .1] : D, rud ? 13 : 0, 8);
+      for (const s of [-1, 1]){ A.ell([s * .08, .56, .76], .025, .03, .02, D, 0, 6); A.ell([s * .13, .62, .6], .06, .025, .04, B2, 0, 6);
+        A.tube([s * .06, .6, .6], [s * .16, .86, .55], .022, .015, AN, 0, 5); A.tube([s * .11, .73, .58], [s * .22, .8, .68], .015, .01, AN, 0, 4);
+        A.tube([s * .16, .86, .55], [s * .25, .95, .48], .015, .01, AN, 0, 4); A.tube([s * .14, .81, .56], [s * .1, .96, .62], .014, .009, AN, 0, 4);
+        A.tube([s * .1, -.12, .32], [s * .1, -.3, .68], .05, .035, B2, 0, 6); A.ell([s * .1, -.32, .72], .045, .04, .05, D, 0, 6);
+        A.tube([s * .1, -.12, -.32], [s * .1, -.28, -.72], .055, .035, B2, 0, 6); A.ell([s * .1, -.29, -.76], .045, .04, .05, D, 0, 6); }
+      A.ell([0, .12, -.5], .06, .06, .07, LT, 0, 6); A.torus([0, .24, .44], .12, .03, R, 0, 12, 4); A.ell([0, .14, .52], .042, .042, .042, G, 0, 6); })) };
+}
+/* Santa's flights: two and a half minutes at a time, the clock decides whether, when, which way and where */
+const SANTA_SLOT = 150000, SANTA_DUR = 24000, SANTA_S = 1.7;
+function santaPlan(k){ const r = mb32(k * 104729 + 7 + NET.srv * 31); if (r() > .6) return null;
+  const dir = r() < .5 ? 1 : -1, side = r() < .5 ? -1 : 1;
+  return { t0:k * SANTA_SLOT + 8000 + r() * (SANTA_SLOT - SANTA_DUR - 16000), dir, z:side * (CZW + 9 + r() * 8), y:6.4 + r() * 1.6 }; }
+function santaNow(t){ const k = Math.floor(t / SANTA_SLOT); for (const j of [k, k - 1]){ const P = santaPlan(j); if (P && t >= P.t0 && t < P.t0 + SANTA_DUR) return P; } return null; }
+const santaAt = (P, t) => { const u = (t - P.t0) / SANTA_DUR; return [P.dir * (-75 + 150 * u), P.y + 1.4 * Math.sin(Math.PI * u) + .25 * Math.sin(t / 420), P.z + 2 * Math.sin(Math.PI * u)]; };
+const xf = (M, p) => [M[0] * p[0] + M[4] * p[1] + M[8] * p[2] + M[12], M[1] * p[0] + M[5] * p[1] + M[9] * p[2] + M[13], M[2] * p[0] + M[6] * p[1] + M[10] * p[2] + M[14]];
+function santaMats(P, t){ const p = santaAt(P, t), q = santaAt(P, t + 200), yaw = Math.atan2(q[0] - p[0], q[2] - p[2]), pitch = -Math.atan2(q[1] - p[1], Math.hypot(q[0] - p[0], q[2] - p[2]));
+  const sideX = Math.sin(yaw) * Math.sign(P.z) > 0 ? 1 : -1;                                                         /* his waving arm on the courtyard's side */
+  const G = mm4(Tm(p[0], p[1], p[2]), mm4(RY(yaw), mm4(RX(pitch), [SANTA_S * sideX, 0, 0, 0, 0, SANTA_S, 0, 0, 0, 0, SANTA_S, 0, 0, 0, 0, 1])));
+  const bob = (ph) => Math.sin(t / 260 + ph) * .06, gal = (ph) => Math.sin(t / 260 + ph) * .12;
+  return { G, p, arm:mm4(G, mm4(Tm(.32, 1.18, -.4), mm4(RX(-.35), RZ(-.25 - .4 * Math.sin(t / 170))))),
+    d1:mm4(G, mm4(Tm(0, .95 + bob(0), 2), RX(gal(0)))), d2:mm4(G, mm4(Tm(0, 1.05 + bob(1.6), 3.25), RX(gal(1.6)))) }; }
+/* a present opened (here or by someone else): the lid flies, confetti, and a new one in a while */
+function giftBurst(i, mine){ const g = XM.g[i], b = GIFT_AT[i], now = performance.now(); g.open = now; g.ready = Math.max(g.ready, now + GIFT_MS);
+  for (let k = 0; k < 26; k++){ const a = Math.random() * 6.283, v = 1.2 + Math.random() * 1.8;
+    XM.conf.push({ x:b.x, y:b.y + .3, z:b.z, vx:Math.cos(a) * v * .6, vy:2 + Math.random() * 2.2, vz:Math.sin(a) * v * .6, c:BULB_COL[k % BULB_COL.length], t0:now }); }
+  if (XM.conf.length > 120) XM.conf.splice(0, XM.conf.length - 120);
+  AUD.gift(mine ? 1 : hear(b.x, b.z) * .7); }
+const giftHere = () => { const i = nearTree(1.8); return i >= 0 && xmasOn() && performance.now() >= XM.g[i].ready && !XM.g[i].open ? i : -1; };
+function openGift(){ const i = giftHere(); if (i < 0) return; const now = performance.now(), b = GIFT_AT[i];
+  goal = null; me.r = Math.atan2(b.x - me.x, b.z - me.z); giftBurst(i, true); sendFx(`x#:${i}`);
+  const fresh = GIFT_ITEMS.filter(k => !XM.owned.has(k) && k !== me.item), pool = fresh.length ? fresh : GIFT_ITEMS.filter(k => k !== me.item), k = pool[Math.floor(Math.random() * pool.length)];
+  const isNew = !XM.owned.has(k); XM.owned.add(k); saveGifts();
+  setTimeout(() => { if (!xmasOn()) return; me.item = k; me.itT0 = performance.now(); lastSig = ""; itemUI(); if (DKS.open >= 0) renderVend();
+    hint(T({ en:`🎁 ${ITEMS[k].ico} ${ITEMS[k].name.en}!${isNew ? " New for your collection" : ""} — swap any time at a vending machine`,
+             ko:`🎁 ${ITEMS[k].ico} ${ITEMS[k].name.ko}${josa(ITEMS[k].name.ko, "이", "가")} 나왔어요!${isNew ? " 새 소품이에요" : ""} — 자판기에서 언제든 바꿔 착용할 수 있어요` }), true); }, 650); }
+const josa = (w, a, b) => { const c = w.charCodeAt(w.length - 1); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 ? a : b; };
+function stepXmas(dt, now){
+  if (!xmasOn()){ if (me.item && ITEMS[me.item] && ITEMS[me.item].sea === "winter") putAway(inWorld ? { en:"Winter's over — put away", ko:"겨울이 끝나서 넣어 뒀어요" } : null);
+    if (XM.mesh){ const M = XM.mesh; [M.lights, M.scarf, M.hat, M.muffs, M.mitt, M.fish, M.sleigh, M.arm, ...M.box, ...M.lid, ...M.deer].forEach(m => gl.deleteBuffer(m.buf)); XM.mesh = null; }   /* winter's over: let it all go */
+    XM.conf.length = 0; for (const a of AVATARS()) a.xw = null; return; }
+  for (const g of XM.g) if (g.open && now - g.open > 1400) g.open = 0;
+  for (let i = XM.conf.length - 1; i >= 0; i--){ const c = XM.conf[i]; if (now - c.t0 > 1600){ XM.conf.splice(i, 1); continue; } c.vy -= 6 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.z += c.vz * dt; if (c.y < .02){ c.y = .02; c.vy *= -.3; c.vx *= .6; c.vz *= .6; } }
+  for (const a of AVATARS()){ const k = a.item; if (!k || !ITEMS[k] || ITEMS[k].sea !== "winter" || !a.mesh || Math.hypot(a.x - camPos[0], a.z - camPos[2]) > 30){ a.xw = null; continue; }
+    if (k === "fish"){ const f = itemFrame(a, now); a.xw = { k, g:f.g, d:f.d, sc:f.sc }; continue; }
+    const C = coatMats(a, now), fit = HAT_FIT[a.look && a.look.hs];
+    a.xw = { k, up:C.up, al:C.al, ar:C.ar, hat:fit ? mm4(C.up, mm4(Tm(0, 1.36, 0), mm4([fit[0], 0, 0, 0, 0, fit[1], 0, 0, 0, 0, fit[2], 0, 0, 0, 0, 1], Tm(0, -1.36, 0)))) : C.up }; }
+  if (inWorld && !XM.told && nearTree(2.4) >= 0 && camPos[1] > -.05){ XM.told = true; hint(T({ en:"🎁 There's a present under the tree — walk up and open it (E)", ko:"🎁 나무 아래에 선물이 있어요 — 다가가서 열어 봐요 (E)" })); }
+  const P = santaNow(Date.now());                                                                                     /* Santa: a jingle and a word as he comes over */
+  if (P && XM.santaSaid !== P.t0 && inWorld && camPos[1] > -.05){ XM.santaSaid = P.t0; AUD.bells(.9);
+    hint(T({ en:"🎅 Look up — Santa's sleigh is crossing the sky!", ko:"🎅 하늘을 봐요 — 산타 썰매가 지나가요!" }), true); }
+}
+const HAT_FIT = { 3:[1, 1.18, 1], 5:[1.1, 1.04, 1.09] };
+/* at night: every bulb twinkles, the stars shine, Rudolph's nose glows and the sleigh leaves sparkles; confetti day and night */
+function xmasGlows(now){ const t = now / 1000;
+  for (const c of XM.conf){ const f = 1 - (now - c.t0) / 1600; streak(c.x - c.vx * .03, c.y - c.vy * .03, c.z - c.vz * .03, c.x, c.y, c.z, .045, c.c, .7 + .5 * f); }
+  if (!xmasOn() || camPos[1] < -.05) return;
+  for (const b of XM.bulbs){ const k = .18 + .3 * Math.max(0, Math.sin(t * 2.6 - b.i * .55)); glow(b.x, b.y, b.z, .5, b.c, k); }
+  for (const s of XM.stars) glow(s[0], s[1], s[2], 1.6 + .2 * Math.sin(t * 3), [1, .84, .36], .42);
+  const P = santaNow(Date.now()); if (!P) return; const T0 = Date.now(), M = santaMats(P, T0);
+  const nose = xf(M.d2, [0, .46, .92]); glow(nose[0], nose[1], nose[2], 1.4 + .3 * Math.sin(t * 9), [1, .2, .14], .7);
+  for (let j = 1; j < 20; j++){ const q = santaAt(P, T0 - j * 120), tw = .5 + .5 * Math.sin(j * 7.3 + t * 11); glow(q[0], q[1] + .4, q[2], .7 - j * .02, j % 3 ? [1, .86, .5] : [1, 1, 1], (1 - j / 20) * .5 * tw); }
+}
+function drawXmas(p, now){
+  if (!xmasOn()) return; if (!XM.mesh) XM.mesh = xmasMeshes();
+  const M = XM.mesh, u = p.u, put = (m, X) => { gl.uniformMatrix4fv(u.uM, false, X); bindMesh(m); gl.drawArrays(gl.TRIANGLES, 0, m.n); };
+  if (PASS !== "sh") put(M.lights, I4);
+  GIFT_AT.forEach((b, i) => { const g = XM.g[i], c = b.c;                                                          /* the presents */
+    if (g.open){ const v = (now - g.open) / 1400; if (v < .55) put(M.box[c], setM(b.x, b.y, b.z, 1, 1, 1, b.yaw));
+      const ly = b.y + .26 + v * 1.6 - v * v * 1.1, ls = Math.max(.01, 1 - v); put(M.lid[c], setM(b.x, ly, b.z, ls, ls, ls, b.yaw + v * 9)); return; }
+    if (now < g.ready) return; const pop = Math.min(1, (now - g.ready) / 400), s = pop < 1 ? .2 + .8 * pop + Math.sin(pop * Math.PI) * .25 : 1;
+    put(M.box[c], setM(b.x, b.y, b.z, s, s, s, b.yaw)); put(M.lid[c], setM(b.x, b.y + .26 * s, b.z, s, s, s, b.yaw)); });
+  for (const a of AVATARS()){ const w = a.xw; if (!w || (a === me && tooClose()) || BALL.holder === a) continue;   /* what everyone has on */
+    if (a.dk && (PASS === "main" || PASS === "nrm" || PASS === "rf") && dkOn(a, "ghost", now)) continue;
+    if (w.k === "fish"){ if (!(a === me && SN.held)) put(M.fish, itAx(w.g, w.d, w.sc, w.sc)); }
+    else if (w.k === "scarf") put(M.scarf, w.up);
+    else if (w.k === "hat") put(M.hat, mm4(w.hat, Tm(0, 0, -.05)));
+    else if (w.k === "muffs") put(M.muffs, w.up);
+    else if (w.k === "mitts"){ put(M.mitt, w.al); put(M.mitt, mm4(w.ar, [-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])); } }
+  if (PASS === "sh" || PASS === "rf" || camPos[1] < -.05) return;
+  const P = santaNow(Date.now()); if (!P) return; const S = santaMats(P, Date.now());                                     /* Santa, over the far side */
+  put(M.sleigh, S.G); put(M.arm, S.arm); put(M.deer[0], S.d1); put(M.deer[1], S.d2);
+}
+
+/* ==========================================================================
    10. INPUT
    ========================================================================== */
 const ptrs = new Map(); let pinch0 = 0, d0 = 0;
@@ -4269,7 +4458,7 @@ window.addEventListener("keydown", e => {
   if (e.code === "KeyG" && !e.repeat && inWorld && !making){ if (SN.held) dropSnow(); else if (BALL.holder === me) dropBall(me, true); else grabBall(true); }
   if (e.code === "KeyE" && inWorld && !making && !e.repeat){ const vi = me.sit ? -1 : nearVend(2.2);
     if (vi >= 0){ if ($("pop-vend").classList.contains("on")) closePops(); else openVend(vi); }
-    else if (me.sit) standUp(); else if (nearFire()) roastNut(); else if (autumnOn() && nearTree(1.8) >= 0) shakeTree(); else { const st = Math.abs(me.y) < .3 && seatNear(me.x, me.z, 2.4); if (st) goSit(st); } }
+    else if (me.sit) standUp(); else if (nearFire()) roastNut(); else if (autumnOn() && nearTree(1.8) >= 0) shakeTree(); else if (giftHere() >= 0) openGift(); else { const st = Math.abs(me.y) < .3 && seatNear(me.x, me.z, 2.4); if (st) goSit(st); } }
   if (e.code === "Enter" && inWorld && !making){ e.preventDefault(); openSay(); }
   if (/^Arrow/.test(e.code)) e.preventDefault();
 });
@@ -4376,7 +4565,7 @@ function drawPeople(p, now){
       gl.uniform3f(p.u.uTint, (hot ? 1 + .22 * e : cold ? 1 - .16 * e : 1) * (1 + .1 * tir), (hot ? 1 - .27 * e : cold ? 1 - .05 * e : 1) * (1 - .1 * tir), (hot ? 1 - .31 * e : cold ? 1 + .24 * e : 1) * (1 - .12 * tir)); }
     for (const [M, part] of mats){ gl.uniformMatrix4fv(p.u.uM, false, M); bindMesh(part); gl.drawArrays(gl.TRIANGLES, 0, part.n); } }
   if (p.u.uAvY) gl.uniform1f(p.u.uAvY, -99); if (p.u.uTint) gl.uniform3f(p.u.uTint, 1, 1, 1);
-  drawBalloons(p); drawDrinks(p, now); drawSeason(p); drawSpring(p, now); drawSnow(p); drawSummer(p, now); drawAutumn(p, now); drawRain(p, now); drawMoon(p, now);
+  drawBalloons(p); drawDrinks(p, now); drawSeason(p); drawSpring(p, now); drawSnow(p); drawSummer(p, now); drawAutumn(p, now); drawRain(p, now); drawMoon(p, now); drawXmas(p, now);
 }
 function drawSky(VP, clip, t){ gl.depthMask(false); useProg(P.sky, VP, clip, 0, t); gl.uniformMatrix4fv(P.sky.u.uM, false, Tm(camPos[0], camPos[1], camPos[2])); bindMesh(SKY); gl.drawArrays(gl.TRIANGLES, 0, SKY.n); gl.depthMask(true); }
 function drawScene(VP, clip, below, t, now){ useProg(P.main, VP, clip, below, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.main, now); }
@@ -4423,7 +4612,7 @@ let lastT = performance.now(), pruneAt = 0, zoneHint = { below:false, up:false }
 function frame(now){
   tuneQuality(now - lastT);
   const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; const t = now / 1000;
-  stepNight(); moveMe(dt); stepPeers(dt); stepSeason(dt, now); stepStill(dt); stepSpring(dt, now); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); stepSnow(dt, now); placeCamera(dt); stepSummer(dt, now); stepAutumn(dt, now); stepFeel(dt, now); stepRain(dt, now); stepFire(dt, now);
+  stepNight(); moveMe(dt); stepPeers(dt); stepSeason(dt, now); stepStill(dt); stepSpring(dt, now); stepNpcs(dt); stepBalloons(dt, now); if (BM) stepCoins(now); stepBall(dt, now); stepDrinks(dt, now); stepSnow(dt, now); stepXmas(dt, now); placeCamera(dt); stepSummer(dt, now); stepAutumn(dt, now); stepFeel(dt, now); stepRain(dt, now); stepFire(dt, now);
   if (me.emote && now - me.et0 > 4200) me.emote = "";
   render(t, now); updateTags(now); updateSeats(); updateBallUI(); updateVend(now); updateSnowUI(); updateTreeUI(); updateFireUI(); maybeSend();
   { const el = $("goal"), p = goal && inWorld && !making ? project([goal.x, goal.y + .02, goal.z]) : null;           /* where you are walking to */
@@ -4476,7 +4665,7 @@ function about(){
    { en:"Summer: the vending machines give out a sparkler and a bug net, free. The sparkler sparks for forty seconds and harder beside a friend's; swing the net (F) at eight kinds of insect — on the trees, in the air, on the benches, by the planters, on the water — each is counted, then let go; catch every kind for a 🐛 Bug King badge before your name. At night, now and then, fireworks open over the far wall, the same for everyone", ko:"여름: 자판기에서 스파클라와 잠자리채를 무료로 받아요. 스파클라는 40초 동안 반짝이고, 친구 스파클라 곁에서는 더 화려해져요. 잠자리채를 휘둘러(F) 나무·공중·벤치·화단·물 위의 곤충 8종을 잡으면 세고 놓아줘요 — 모두 모으면 이름 앞에 🐛 벌레왕 배지가 붙어요. 밤이면 가끔 건너편 하늘에 불꽃놀이가 터져요 — 모두에게 똑같이 보여요" },
    { en:"Autumn: fallen leaves crunch underfoot and fly up as you walk, gusts of wind sweep them across the deck; jump (Space) into a pile of leaves and it bursts all over — anyone's jump does it. Walk up to a tree and shake it (E, or the button): leaves pour down and acorns and chestnuts drop; walk over them to pick them up", ko:"가을: 바닥의 낙엽을 밟으면 바스락 소리와 함께 흩날리고, 가끔 바람이 불어 낙엽을 쓸고 가요. 낙엽 더미에 점프(Space)하면 와사삭 흩날려요 — 다른 사람이 뛰어들어도 함께 보여요. 나무 앞에서 흔들면(E 또는 버튼) 낙엽이 쏟아지고 도토리와 밤이 떨어져요 — 위로 걸어가면 주워요" },
    { en:"Autumn nights: a bonfire burns on the deck — bring chestnuts and roast them (E) until they pop. Five roasted chestnuts and five acorns trade for a sky lantern at a vending machine: make a wish and let it float up (everyone sees it). The moon is full and gold; a wish coin thrown by its light draws a moonbeam down onto it. And once a night a moon rabbit comes down on a moonbeam and hops round the pool's edge — meet it for the moon's blessing. Everyone sees the same rabbit", ko:"가을 밤: 데크에 모닥불이 타요 — 밤을 가져와 구우면(E) 탁! 하고 군밤이 돼요. 군밤 5개와 도토리 5개를 모으면 자판기에서 풍등으로 바꿔, 소원을 빌며 하늘로 날려 보낼 수 있어요(모두에게 보여요). 밤하늘엔 커다란 금빛 보름달이 뜨고, 달빛에 소원 동전을 던지면 달빛 기둥이 내려와요. 그리고 밤마다 한 번, 달토끼가 달빛을 타고 내려와 수영장 가장자리를 뛰어다녀요 — 만나면 달님의 축복이 반짝여요. 모두에게 같은 달토끼가 보여요" },
-   { en:"Winter: it snows and footprints stay in it; the pool freezes — walk onto the ice and ski. Push a snowball and it grows as it rolls; once it's big you take hold of it — roll a small one onto a big one for a snowman. Everyone here sees the same snowballs and who is rolling them", ko:"겨울: 눈이 내려 발자국이 남고, 수영장이 얼어 얼음 위에서 스키를 타요. 눈덩이를 밀면 굴러가며 커지고, 커지면 손으로 잡고 굴려요 — 작은 눈덩이를 큰 눈덩이에 올리면 눈사람이 돼요. 눈덩이와 굴리는 모습은 모두에게 똑같이 보여요" },
+   { en:"Winter: it snows and footprints stay in it; the pool freezes — walk onto the ice and ski. Push a snowball and it grows as it rolls; once it's big you take hold of it — roll a small one onto a big one for a snowman. Everyone here sees the same snowballs and who is rolling them. The trees light up for Christmas: open the present under one for something warm to wear (scarf, bobble hat, earmuffs, mittens) or a fish-shaped bun — and look up now and then for Santa's sleigh", ko:"겨울: 눈이 내려 발자국이 남고, 수영장이 얼어 얼음 위에서 스키를 타요. 눈덩이를 밀면 굴러가며 커지고, 커지면 손으로 잡고 굴려요 — 작은 눈덩이를 큰 눈덩이에 올리면 눈사람이 돼요. 눈덩이와 굴리는 모습은 모두에게 똑같이 보여요. 나무에 크리스마스 조명이 켜지고, 나무 아래 선물을 열면 목도리·털모자·귀마개·벙어리장갑·붕어빵 중 하나가 나와요 — 가끔 하늘을 보면 산타 썰매가 지나가요" },
    { en:"The seasons on you: in summer running wears you out — you sweat and pant and can only walk until you rest (quicker in a tree's shade, at once with water or a slush); in winter your breath shows as you talk", ko:"계절이 몸으로: 여름에 계속 뛰면 더워서 땀을 흘리고 헥헥거리며 걷기만 할 수 있어요 — 쉬면 회복(나무 그늘이면 더 빨리, 생수·슬러시는 바로). 겨울엔 말할 때 입김이 나와요" }]
     .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); ol.appendChild(li); });
   const lab = { wave:{ en:"Wave", ko:"손 흔들기" }, bow:{ en:"Bow", ko:"인사" }, jump:{ en:"Jump", ko:"점프" }, dance:{ en:"Dance", ko:"춤" }, sit:{ en:"Sit", ko:"앉기" }, heart:{ en:"Heart", ko:"하트" } };
