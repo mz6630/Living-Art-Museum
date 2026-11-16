@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261115125358";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261116135810";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -23186,7 +23186,7 @@ function pose(a, now){
   if (a.item === "lan" && BALL.holder !== a && !(a === me && SN.held)){ q.a1x = -.7 + Math.sin(now / 500) * .05; q.a1z = -.25; }   /* a sky lantern, held out */
   if (a.item === "umb" && BALL.holder !== a && !(a === me && SN.held)){ if (umbUp(a)){ q.a1x = -.08; q.a1z = -1.42; } else { q.a1x = -.25; q.a1z = -.2; } }   /* the umbrella: held out to the side in the rain (shaft clear of the head), carried furled otherwise */
   if (a.dk) dkPose(a, q, now);                                                              /* a drink: to the lips, then what it does */
-  if (a === me && SN.held){ q.a1x = q.a2x = -1.25; q.a1z = -.2; q.a2z = .2; q.bow += .22; }                  /* both hands on the snowball */
+  if (a === me ? SN.held : a.snHold && SEASON.snow > .5){ q.a1x = q.a2x = -1.25; q.a1z = -.2; q.a2z = .2; q.bow += .22; }                  /* both hands on the snowball */
   if ((a === me ? a.skate : onIce(a)) && !a.emote){ const g = Math.sin(a.ph);                 /* skiing: leaning in, arms out, long slow strides */
     q.l1 = g * .22 * a.mv; q.l2 = -q.l1; q.bow += .16 * Math.min(1, a.mv + .3); q.a1z = -.8 - .1 * g; q.a2z = .8 - .1 * g; q.a1x = q.a2x = -.25; q.lift = q.lift * .3; }
   if (a.sit && a.bench){ q.l1 = q.l2 = -1.3; q.lift = .06; q.a1x = q.a2x = -.25; q.a1z = -.14; q.a2z = .14; }   /* on a bench */
@@ -23511,7 +23511,8 @@ function wrapDb(db, R){
 /* say so when nobody can hear us: almost always the Firebase rules not yet published */
 let errShown = false;
 function netOk(){ if (NET.err){ NET.err = ""; renderNet(); renderPill(); } }
-function netFail(e){ if (FX.sent && !FX.blocked){ FX.blocked = true; return; }   /* a server on older rules: throws stay on this screen, the rest goes on */
+function netFail(e){ if (FX.sentG && !FX.noG){ FX.noG = true; FX.sentG = false; return; }   /* rules from before shared snowballs: just leave the snowball out */
+  if (FX.sent && !FX.blocked){ FX.blocked = true; return; }   /* a server on older rules: throws stay on this screen, the rest goes on */
   const code = (e && (e.code || e.message)) || "error"; if (NET.err !== code){ NET.err = String(code); renderNet(); renderPill(); }
   if (!errShown && inWorld){ errShown = true; hint(T(NET_ERR), true); } }
 const NET_ERR = { en:"Your position is not reaching the server — publish firestore.rules in the Firebase console (the poolLive rule)", ko:"내 위치가 서버에 저장되지 않아요 — Firebase 콘솔에서 firestore.rules(poolLive 규칙)를 게시해 주세요" };
@@ -23550,7 +23551,8 @@ function cleanState(st){
   const e = typeof st.e === "string" && (EMOTES[st.e] || POSE_RE.test(st.e)) ? st.e : "";
   return { x:num(st.x, -CXW, CXW, 0), y:num(st.y, FLOOR - .1, 1.5, 0), z:num(st.z, -CZW, CZW, 0), r:num(st.r, -7, 7, 0), w:st.w ? 1 : 0, e, et:num(st.et, 0, 1e15, 0),
     m:cleanText(st.m, 40), mt:num(st.mt, 0, 1e15, 0), n:cleanText(st.n, 12) || "…", look:lookFrom(st.k), f:typeof st.f === "string" ? st.f.slice(0, 48) : "", b:typeof st.b === "string" ? st.b.slice(0, 60) : "",
-    d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "", q:typeof st.q === "string" && /^[psawn][0-9a-z]{1,11}$/.test(st.q) ? st.q : "", h:typeof st.h === "string" && /^c?[snurlSNURLK]?$/.test(st.h) ? st.h : "" };
+    d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "", q:typeof st.q === "string" && /^[psawn][0-9a-z]{1,11}$/.test(st.q) ? st.q : "", h:typeof st.h === "string" && /^c?[snurlSNURLK]?$/.test(st.h) ? st.h : "",
+    g:typeof st.g === "string" && /^\d{1,3}(:-?\d*\.?\d+){3}:[01]$/.test(st.g) ? st.g : "" };
 }
 function onPeerList(list){
   const seen = new Set(), now = performance.now();
@@ -23559,7 +23561,7 @@ function onPeerList(list){
     const id = p.id.slice(0, 64); seen.add(id);
     let a = PEERS.get(id);
     if (!a){ a = newAvatar(st.look); a.id = id; a.x = st.x; a.y = st.y; a.z = st.z; a.r = st.r; a.lastE = st.et; a.lastM = st.mt; a.lastF = st.f; a.lastB = st.b; a.name = st.n; PEERS.set(id, a); if (st.b) ballFrom(a, st.b, true);
-      a.lastD = st.d; if (st.d) drinkFrom(a, st.d, true); a.lastQ = st.q; seasonFrom(a, st.q); a.crown = st.h.includes("c");
+      a.lastD = st.d; if (st.d) drinkFrom(a, st.d, true); a.lastQ = st.q; seasonFrom(a, st.q); a.lastG = st.g; snowBallFrom(a, st.g); a.crown = st.h.includes("c");
       if (inWorld){ AUD.joined(); logLine(st.n, T({ en:"came in", ko:"님이 들어왔어요" }), true); } }
     else {
       if (st.et !== a.lastE){ a.lastE = st.et; if (st.e.includes(":")){ if (st.e.slice(2) !== a.pose) popEmote(a, "pose_" + st.e.slice(2)); }
@@ -23568,11 +23570,12 @@ function onPeerList(list){
       if (st.b !== a.lastB){ a.lastB = st.b; if (st.b) ballFrom(a, st.b, false); }
       if (st.d !== a.lastD){ a.lastD = st.d; drinkFrom(a, st.d, false); }
       if (st.q !== a.lastQ){ a.lastQ = st.q; seasonFrom(a, st.q); }
+      if (st.g !== a.lastG){ a.lastG = st.g; snowBallFrom(a, st.g); }
       a.crown = st.h.includes("c");
       if (st.mt !== a.lastM){ a.lastM = st.mt; if (st.m){ a.msg = st.m; a.msgUntil = now + 6500; logLine(st.n, st.m); AUD.chat(); } }
     }
     pushSample(a, st, now); a.name = st.n; a.sit = st.e === "sit" || st.e === "bench" || /^[bs]:/.test(st.e); a.bench = st.e === "bench" || st.e.startsWith("b:");
-    { const hh = st.h.replace("c", ""), it = IT_OF[hh.toLowerCase()] || ""; a.king = /[SNURLK]/.test(hh); if (it !== (a.item || "")){ a.item = it; a.itT0 = now; if (it === "sp" && inWorld) AUD.ignite(hear(a.x, a.z) * .6); } }   /* what they hold: a sparkler, a net
+    { const hh = st.h.replace("c", ""), it = IT_OF[hh.toLowerCase()] || ""; a.king = /[SNURLK]/.test(hh); if (it !== (a.item || "")){ a.item = it; a.itT0 = now; if (it === "sp" && inWorld) AUD.ignite(hear(a.x, a.z) * .6); } }   /* what they hold: a sparkler, a net, an umbrella, a raincoat, a lantern */
     { const pz = st.e.includes(":") ? st.e.slice(2) : ""; if (pz !== (a.pose || "")){ a.pose = pz; a.pt0 = now; } }          /* the pose they hold, if any */
     if (lookKey(st.look) !== lookKey(a.look)){ a.look = st.look; a.mesh = meshFor(st.look); }
   }
@@ -23581,13 +23584,13 @@ function onPeerList(list){
 }
 function myState(){
   return { s:NET.srv, x:+me.x.toFixed(2), y:+me.y.toFixed(2), z:+me.z.toFixed(2), r:+wrap(me.r).toFixed(2), w:me.moving ? 1 : 0, e:me.pose ? (me.sit ? (me.bench ? "b:" : "s:") : "p:") + me.pose : me.sit ? (me.bench ? "bench" : "sit") : (me.emote || ""),
-    et:me.et, m:me.msg || "", mt:me.mt, n:me.name, k:lookArr(me.look), t:Date.now(), ...(FX.f && !FX.blocked && performance.now() - FX.at < 4000 ? { f:FX.f } : {}), ...(BALL.mine && !FX.blocked ? { b:BALL.mine } : {}), ...(me.dk && !FX.blocked ? { d:DRINKS[me.dk.k].c + me.dk.seq } : {}), ...(SEASON.stamp && !FX.blocked ? { q:SEA_C[SEASON.cur] + SEASON.stamp.toString(36) } : {}), ...(hOf() && !FX.blocked ? { h:hOf() } : {}) };
+    et:me.et, m:me.msg || "", mt:me.mt, n:me.name, k:lookArr(me.look), t:Date.now(), ...(FX.f && !FX.blocked && performance.now() - FX.at < 4000 ? { f:FX.f } : {}), ...(BALL.mine && !FX.blocked ? { b:BALL.mine } : {}), ...(me.dk && !FX.blocked ? { d:DRINKS[me.dk.k].c + me.dk.seq } : {}), ...(SEASON.stamp && !FX.blocked ? { q:SEA_C[SEASON.cur] + SEASON.stamp.toString(36) } : {}), ...(hOf() && !FX.blocked ? { h:hOf() } : {}), ...(SN.mine && SNB.includes(SN.mine) && !FX.blocked && !FX.noG ? { g:`${SN.mine.id}:${f2(SN.mine.x)}:${f2(SN.mine.z)}:${f2(SN.mine.r)}:${SN.held === SN.mine ? 1 : 0}` } : {}) };
 }
 let lastSend = 0, lastSig = "";
 function maybeSend(){
   if (!inWorld || !NET.be || !NET.srv) return;
-  const now = performance.now(), s = myState(), sig = [s.x, s.y, s.z, s.r, s.w, s.e, s.et, s.mt, s.n, s.k.join(""), s.f || "", s.b || "", s.d || "", s.q || "", s.h || ""].join("|");
-  if ((sig !== lastSig && now - lastSend > NET.be.sendMs) || now - lastSend > NET.be.beatMs){ FX.sent = !!(s.f || s.b || s.d || s.q || s.h); NET.be.send(s); lastSend = now; lastSig = sig; }
+  const now = performance.now(), s = myState(), sig = [s.x, s.y, s.z, s.r, s.w, s.e, s.et, s.mt, s.n, s.k.join(""), s.f || "", s.b || "", s.d || "", s.q || "", s.h || "", s.g || ""].join("|");
+  if ((sig !== lastSig && now - lastSend > NET.be.sendMs) || now - lastSend > NET.be.beatMs){ FX.sent = !!(s.f || s.b || s.d || s.q || s.h); FX.sentG = !!s.g; NET.be.send(s); lastSend = now; lastSig = sig; }
 }
 async function enter(srv){
   if (srv !== NET.srv && NET.be && NET.counts[srv - 1] >= MAX){ hint(T({ en:"That server is full — try the other one", ko:"그 서버는 가득 찼어요 — 다른 서버로 들어가 보세요" }), true); return; }
@@ -24903,11 +24906,12 @@ const onIce = (a) => iceOn() && Math.abs(a.y) < .3 && inPool(a.x, a.z);
 /* ==========================================================================
    9h. SNOWBALLS — in winter a few lie about on the deck. Walk into one and it
        rolls, picking up snow and growing; push a small one into a bigger one
-       and it climbs on top: a snowman. Each page rolls its own snowballs; a
-       finished snowman is shown to everyone here. Three balls at most, six
+       and it climbs on top: a snowman. The balls lying about are the same for
+       everyone (placed by the clock); the one you roll is told to the others. Three balls at most, six
        snowmen; all of it melts when winter goes
    ========================================================================== */
-const SNB = [], SNM = [], SN = { mesh:null, told:false, next:0, px:0, pz:0, say:0 };
+const SNB = [], SNM = [], SN = { mesh:null, told:false, next:0, px:0, pz:0, say:0, mine:null, gone:new Set() };
+const SN_SLOT = 30000;                                                                            /* every half minute a new ball lies somewhere: the same place, the same moment, on every page */
 const snowBlock = (x, z, pad) => SNM.some(m => Math.hypot(x - m.x, z - m.z) < m.rb * .9 + pad);
 function snowMeshes(){ const one = (fn) => { const A = maker(); fn(A); return upload(A.v); };
   return {
@@ -24927,11 +24931,20 @@ function makeSnowman(big, small, by){ const now = performance.now();
   const m = { x:big.x, z:big.z, rb:big.r, rh:Math.min(small.r, big.r * .72), r:Math.atan2(me.x - big.x, me.z - big.z), t0:now };
   SNM.push(m); if (SNM.length > 6) SNM.shift(); SNB.splice(SNB.indexOf(big), 1); SNB.splice(SNB.indexOf(small), 1); SN.next = now + 4000;
   AUD.snowman(1); popEmote(me, "heart"); hint(T({ en:"⛄ A snowman!", ko:"⛄ 눈사람 완성!" }), true);
-  sendFx(`s#:${f2(m.x)}:${f2(m.z)}:${f2(m.rb)}:${f2(m.rh)}:${f2(m.r)}`);
+  SN.gone.add(big.id); SN.gone.add(small.id); if (SN.mine === big || SN.mine === small) SN.mine = null;
+  sendFx(`s#:${f2(m.x)}:${f2(m.z)}:${f2(m.rb)}:${f2(m.rh)}:${f2(m.r)}:${big.id}:${small.id}`);
 }
 function snowFrom(a, n){ if (n.length < 5 || SEASON.snow < .5) return;                                          /* someone else's snowman */
   SNM.push({ x:clamp(n[0], -CXW, CXW), z:clamp(n[1], -CZW, CZW), rb:clamp(n[2], .2, .7), rh:clamp(n[3], .12, .6), r:n[4], t0:performance.now() }); if (SNM.length > 6) SNM.shift();
+  for (const id of n.slice(5, 7)){ SN.gone.add(id); const i = SNB.findIndex(b => b.id === id); if (i >= 0){ if (SN.held === SNB[i]) SN.held = null; if (SN.mine === SNB[i]) SN.mine = null; SNB.splice(i, 1); } }   /* the two balls it was rolled from */
   AUD.snowman(hear(a.x, a.z) * .7); }
+/* someone else's snowball, where they have rolled it (and whether they are holding it) */
+function snowBallFrom(a, g){ a.snHold = false; if (!g || SEASON.snow < .5) return; const n = g.split(":").map(Number), id = n[0]; if (n.some(v => !isFinite(v)) || SN.gone.has(id)) return;
+  a.snHold = n[4] === 1; let b = SNB.find(o => o.id === id);
+  const x = clamp(n[1], -CXW, CXW), z = clamp(n[2], -CZW, CZW), r = clamp(n[3], .15, .55);
+  if (!b){ b = { id, x, z, r, vx:0, vz:0, R:[1, 0, 0, 0, 1, 0, 0, 0, 1], acc:0 }; SNB.push(b); }
+  if (SN.held === b) return;                                                                                       /* in our own hands: ours to roll */
+  b.touched = true; b.rx = x; b.rz = z; b.rr = r; b.remAt = performance.now(); if (SN.mine === b) SN.mine = null; }
 const SN_GRAB = .3;                                                                                                   /* from this size you hold it to roll it */
 function rollBall(b, mx, mz){ const dist = Math.hypot(mx, mz); if (dist < 1e-5) return;                            /* turned about the axis across its path, picking up snow (not on the ice) */
   const ang = dist / b.r, ax = mz / dist, az = -mx / dist, c = Math.cos(ang), s = Math.sin(ang), t = 1 - c;
@@ -24946,21 +24959,32 @@ function updateSnowUI(){                                                        
 function dropSnow(){ if (!SN.held) return; SN.held.vx = SN.held.vz = 0; SN.held = null; AUD.click(); }
 function stepSnow(dt, now){
   const mvx = (me.x - SN.px) / Math.max(dt, 1e-3), mvz = (me.z - SN.pz) / Math.max(dt, 1e-3); SN.px = me.x; SN.pz = me.z;
-  if (SEASON.snow < .5 || !inWorld){ if (SNB.length || SNM.length){ SNB.length = 0; SNM.length = 0; } return; }   /* winter's gone: it all melts */
-  if (SEASON.snow > .8 && SNB.length < 3 && now > SN.next){ SN.next = now + 2500;                                    /* a new one lies about somewhere */
-    for (let t = 0; t < 12; t++){ const x = (Math.random() - .5) * (CXW * 2 - 3), z = (Math.random() - .5) * (CZW * 2 - 3);
-      if (inPool(x, z) || Math.abs(x) < PX + 1 && Math.abs(z) < PZ + 1 || !snowOk(x, z, .3) || Math.hypot(x - me.x, z - me.z) < 2.5) continue;
-      SNB.push({ x, z, r:.2 + Math.random() * .06, vx:0, vz:0, R:[1, 0, 0, 0, 1, 0, 0, 0, 1], acc:0 }); break; } }
+  if (SEASON.snow < .5 || !inWorld){ if (SNB.length || SNM.length){ SNB.length = 0; SNM.length = 0; } SN.mine = SN.held = null; return; }   /* winter's gone: it all melts */
+  if (SEASON.snow > .8 && now > SN.next){ SN.next = now + 1000;                                                   /* the balls lying about: the last three half-minutes' worth, alike for everyone */
+    const k = Math.floor(Date.now() / SN_SLOT), want = [k, k - 1, k - 2].map(j => j % 1000);
+    for (let i = SNB.length - 1; i >= 0; i--){ const b = SNB[i]; if (!b.touched && !want.includes(b.id)) SNB.splice(i, 1); }   /* an untouched one melts away after a while */
+    for (const j of [k, k - 1, k - 2]){ const id = j % 1000; if (SN.gone.has(id) || SNB.some(b => b.id === id)) continue;
+      const rnd = mb32(j * 7919 + NET.srv * 131);
+      for (let t = 0; t < 12; t++){ const x = (rnd() - .5) * (CXW * 2 - 3), z = (rnd() - .5) * (CZW * 2 - 3), r = .2 + rnd() * .06;
+        if (inPool(x, z) || Math.abs(x) < PX + 1 && Math.abs(z) < PZ + 1 || !snowOk(x, z, .3)) continue;
+        SNB.push({ id, x, z, r, vx:0, vz:0, R:[1, 0, 0, 0, 1, 0, 0, 0, 1], acc:0 }); break; }
+      }
+    if (SN.gone.size > 60) SN.gone = new Set([...SN.gone].slice(-30));
+    while (SNB.length > 8) SNB.splice(SNB.findIndex(b => !b.touched) >= 0 ? SNB.findIndex(b => !b.touched) : 0, 1); }
   const near = Math.abs(me.y) < .4 && camPos[1] > -.05;
   if (SN.held && (!SNB.includes(SN.held) || !near)) SN.held = null;
   for (const b of SNB){
     const dx = b.x - me.x, dz = b.z - me.z, d = Math.hypot(dx, dz) || 1e-3, reach = b.r + .26;
+    if (SN.held !== b && b.remAt && now - b.remAt < 3000){                                                              /* rolled by someone else: follow what they tell us */
+      const k = 1 - Math.exp(-dt * 9), nx = lerp(b.x, b.rx, k), nz = lerp(b.z, b.rz, k); rollBall(b, nx - b.x, nz - b.z); b.x = nx; b.z = nz; b.r = lerp(b.r, b.rr, k); b.vx = b.vz = 0; continue; }
     if (SN.held === b){                                                                                                /* held: it rolls along in front of your hands */
       const fx = Math.sin(me.r), fz = Math.cos(me.r), hr = b.r + .32, tx = me.x + fx * hr, tz = me.z + fz * hr;
       if (snowOk(tx, tz, b.r)){ const mx = tx - b.x, mz = tz - b.z; b.vx = mx / Math.max(dt, 1e-3); b.vz = mz / Math.max(dt, 1e-3); rollBall(b, mx, mz); b.x = tx; b.z = tz; }
       else { b.vx = b.vz = 0; if (d > hr + .7) SN.held = null; }
       continue; }
     if (near && d < reach){ const nx = dx / d, nz = dz / d, into = mvx * nx + mvz * nz;
+      if (b.remAt && now - b.remAt < 1500) continue;                                                                 /* someone else is rolling it */
+      if (into > .2){ b.touched = true; SN.mine = b; }
       if (b.r >= SN_GRAB && into > .2 && !SN.held){ SN.held = b; AUD.grab(); hint(T({ en:"Got it — walk to roll it along · G (or the button) to let go", ko:"눈덩이를 잡았어요 — 걸으면 같이 굴러가요 · G(또는 버튼)로 놓기" }), true); continue; }   /* big enough: you take hold of it */
       if (into > .2){ b.vx = nx * into * 1.08 + mvx * .15; b.vz = nz * into * 1.08 + mvz * .15; }                    /* small: you walk into it and it rolls ahead */
       const tx = me.x + nx * reach, tz = me.z + nz * reach; if (snowOk(tx, tz, b.r)){ b.x = tx; b.z = tz; }
@@ -26076,7 +26100,7 @@ function about(){
    { en:"Summer: the vending machines give out a sparkler and a bug net, free. The sparkler sparks for forty seconds and harder beside a friend's; swing the net (F) at eight kinds of insect — on the trees, in the air, on the benches, by the planters, on the water — each is counted, then let go; catch every kind for a 🐛 Bug King badge before your name. At night, now and then, fireworks open over the far wall, the same for everyone", ko:"여름: 자판기에서 스파클라와 잠자리채를 무료로 받아요. 스파클라는 40초 동안 반짝이고, 친구 스파클라 곁에서는 더 화려해져요. 잠자리채를 휘둘러(F) 나무·공중·벤치·화단·물 위의 곤충 8종을 잡으면 세고 놓아줘요 — 모두 모으면 이름 앞에 🐛 벌레왕 배지가 붙어요. 밤이면 가끔 건너편 하늘에 불꽃놀이가 터져요 — 모두에게 똑같이 보여요" },
    { en:"Autumn: fallen leaves crunch underfoot and fly up as you walk, gusts of wind sweep them across the deck; jump (Space) into a pile of leaves and it bursts all over — anyone's jump does it. Walk up to a tree and shake it (E, or the button): leaves pour down and acorns and chestnuts drop; walk over them to pick them up", ko:"가을: 바닥의 낙엽을 밟으면 바스락 소리와 함께 흩날리고, 가끔 바람이 불어 낙엽을 쓸고 가요. 낙엽 더미에 점프(Space)하면 와사삭 흩날려요 — 다른 사람이 뛰어들어도 함께 보여요. 나무 앞에서 흔들면(E 또는 버튼) 낙엽이 쏟아지고 도토리와 밤이 떨어져요 — 위로 걸어가면 주워요" },
    { en:"Autumn nights: a bonfire burns on the deck — bring chestnuts and roast them (E) until they pop. Five roasted chestnuts and five acorns trade for a sky lantern at a vending machine: make a wish and let it float up (everyone sees it). The moon is full and gold; a wish coin thrown by its light draws a moonbeam down onto it. And once a night a moon rabbit comes down on a moonbeam and hops round the pool's edge — meet it for the moon's blessing. Everyone sees the same rabbit", ko:"가을 밤: 데크에 모닥불이 타요 — 밤을 가져와 구우면(E) 탁! 하고 군밤이 돼요. 군밤 5개와 도토리 5개를 모으면 자판기에서 풍등으로 바꿔, 소원을 빌며 하늘로 날려 보낼 수 있어요(모두에게 보여요). 밤하늘엔 커다란 금빛 보름달이 뜨고, 달빛에 소원 동전을 던지면 달빛 기둥이 내려와요. 그리고 밤마다 한 번, 달토끼가 달빛을 타고 내려와 수영장 가장자리를 뛰어다녀요 — 만나면 달님의 축복이 반짝여요. 모두에게 같은 달토끼가 보여요" },
-   { en:"Winter: it snows and footprints stay in it; the pool freezes — walk onto the ice and ski. Push a snowball and it grows as it rolls; once it's big you take hold of it — roll a small one onto a big one for a snowman", ko:"겨울: 눈이 내려 발자국이 남고, 수영장이 얼어 얼음 위에서 스키를 타요. 눈덩이를 밀면 굴러가며 커지고, 커지면 손으로 잡고 굴려요 — 작은 눈덩이를 큰 눈덩이에 올리면 눈사람이 돼요" },
+   { en:"Winter: it snows and footprints stay in it; the pool freezes — walk onto the ice and ski. Push a snowball and it grows as it rolls; once it's big you take hold of it — roll a small one onto a big one for a snowman. Everyone here sees the same snowballs and who is rolling them", ko:"겨울: 눈이 내려 발자국이 남고, 수영장이 얼어 얼음 위에서 스키를 타요. 눈덩이를 밀면 굴러가며 커지고, 커지면 손으로 잡고 굴려요 — 작은 눈덩이를 큰 눈덩이에 올리면 눈사람이 돼요. 눈덩이와 굴리는 모습은 모두에게 똑같이 보여요" },
    { en:"The seasons on you: in summer running wears you out — you sweat and pant and can only walk until you rest (quicker in a tree's shade, at once with water or a slush); in winter your breath shows as you talk", ko:"계절이 몸으로: 여름에 계속 뛰면 더워서 땀을 흘리고 헥헥거리며 걷기만 할 수 있어요 — 쉬면 회복(나무 그늘이면 더 빨리, 생수·슬러시는 바로). 겨울엔 말할 때 입김이 나와요" }]
     .forEach(s => { const li = document.createElement("li"); li.textContent = T(s); ol.appendChild(li); });
   const lab = { wave:{ en:"Wave", ko:"손 흔들기" }, bow:{ en:"Bow", ko:"인사" }, jump:{ en:"Jump", ko:"점프" }, dance:{ en:"Dance", ko:"춤" }, sit:{ en:"Sit", ko:"앉기" }, heart:{ en:"Heart", ko:"하트" } };
