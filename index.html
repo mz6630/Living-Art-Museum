@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261117013846";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261117053038";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -23226,6 +23226,7 @@ function handAt(a, s, now, dz){
 const tuckOf = (a) => !a.look ? 0 : a.item === "coat" && SEASON.cur === "spring" && (a.look.hs === 4 || a.look.ac === 4) ? 1 : (a.item === "hat" || a.item === "muffs") && SEASON.cur === "winter" && (a.look.ac === 1 || a.look.ac === 4 || a.look.ac === 5) ? 2 : 0;
 const tucked = (a) => { const t = tuckOf(a); if (!t) return a.mesh; const k = lookKey(a.look) + ".t" + t; if (a.tuckM && a.tuckK === k) return a.tuckM; a.tuckK = k; return a.tuckM = meshFor(Object.assign({}, a.look, { tuck:t })); };
 function partMats(a, now){
+  if (a._pmT === now && a._pm) return a._pm;                                                      /* the same pose for every pass of one frame: work it out once */
   const q = pose(a, now), m = tucked(a);
   const base = mm4(Tm(a.x, a.y + q.lift, a.z), RYS(a.r + q.spin, a.sc || 1));             /* the milk: bigger, from the feet up */
   const up = mm4(base, mm4(Tm(0, .42, 0), mm4(RX(q.bow), mm4(RZ(q.sway), Tm(0, -.42, 0)))));
@@ -23233,7 +23234,7 @@ function partMats(a, now){
   const arm = (s, ax, az) => mm4(up, mm4(Tm(.165 * s, .79, 0), mm4(RZ(az), mm4(RX(ax), Tm(-.165 * s, -.79, 0)))));
   const [eye, mouth] = faceOf(a, now);
   const out = [[up, m.b], [leg(-1, q.l1), m.ll], [leg(1, q.l2), m.lr], [arm(-1, q.a1x, q.a1z), m.al], [arm(1, q.a2x, q.a2z), m.ar], [up, m.e[eye]], [up, m.m[mouth]]];
-  out.lift = q.lift; return out;
+  out.lift = q.lift; a._pmT = now; a._pm = out; return out;
 }
 
 /* ==========================================================================
@@ -23362,9 +23363,9 @@ function updateSeats(){
     const q = project([st.x, .5, st.z]); if (!q) continue;
     if (dd < nd){ nd = dd; near = st; }
     let el = SEAT_EL[n]; if (!el){ el = SEAT_EL[n] = document.createElement("button"); el.type = "button"; el.className = "seat"; el.onclick = () => goSit(el._st); $("tags").appendChild(el); }
-    el._st = st; el.setAttribute("aria-label", T({ en:"Sit here", ko:"여기 앉기" })); el.style.display = "";
-    el.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -50%) scale(${clamp(6.5 / q[2], .55, 1.35).toFixed(3)})`; n++; }
-  for (let i = n; i < SEAT_EL.length; i++) SEAT_EL[i].style.display = "none";
+    el._st = st; { const al = T({ en:"Sit here", ko:"여기 앉기" }); if (el._al !== al){ el._al = al; el.setAttribute("aria-label", al); } } setDp(el, "");
+    setTf(el, `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -50%) scale(${clamp(6.5 / q[2], .55, 1.35).toFixed(3)})`); n++; }
+  for (let i = n; i < SEAT_EL.length; i++) setDp(SEAT_EL[i], "none");
   let b = $("sitb");
   if (!b){ b = document.createElement("button"); b.id = "sitb"; b.type = "button"; b.innerHTML = "<span></span><kbd>E</kbd>"; $("tags").appendChild(b);
     b.onclick = () => { if (me.sit) standUp(); else if (b._st) goSit(b._st); }; }
@@ -23372,7 +23373,7 @@ function updateSeats(){
   b.classList.toggle("on", !!q); b.classList.toggle("fix", sitting); if (!q) return;
   b._st = near; const lab = T(sitting ? { en:"Stand up", ko:"일어서기" } : { en:"Sit here", ko:"여기 앉기" });
   if (b.firstChild.textContent !== lab) b.firstChild.textContent = lab;
-  if (!sitting) b.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`;
+  if (!sitting) setTf(b, `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`);
 }
 /* the nearest free seat — nobody already sitting on it */
 function seatNear(x, z, rad, onlyBench){
@@ -23730,6 +23731,8 @@ function project(p){
   const x = M[0] * p[0] + M[4] * p[1] + M[8] * p[2] + M[12], y = M[1] * p[0] + M[5] * p[1] + M[9] * p[2] + M[13], w = M[3] * p[0] + M[7] * p[1] + M[11] * p[2] + M[15];
   if (w < .1) return null; return [(x / w * .5 + .5) * innerWidth, (1 - (y / w * .5 + .5)) * innerHeight, w];
 }
+/* write a style only when it changes (the tags and buttons move every frame; the browser needn't redo what is the same) */
+const setTf = (el, v) => { if (el._tf !== v){ el._tf = v; el.style.transform = v; } }, setDp = (el, v) => { if (el._dp !== v){ el._dp = v; el.style.display = v; } };
 /* can you see them from where the camera is? (through the water, a little faded) */
 function seen(a){
   const camBelow = camPos[1] < -.05, z = zoneOf(a.x, a.y, a.z);
@@ -23748,22 +23751,22 @@ function updateTags(now){
     if (a === me && (making || !inWorld || tooClose())) continue;
     const vis = seen(a), q = vis && project([a.x, a.y + (a.sit ? (a.bench ? 1.82 : 1.4) : 1.76) * (a.sc || 1) + (a.jy || 0), a.z]);
     const t = tagFor(a); keep.add(a.id);
-    if (!q || q[2] > 34){ t.el.style.display = "none"; continue; }
-    t.el.style.display = ""; t.el.classList.toggle("dim", vis === "dim"); t.el.classList.toggle("ghost", !!(a.dk && dkOn(a, "ghost", now))); t.el.classList.toggle("sour", !!(a.dk && dkOn(a, "lemon", now)));
+    if (!q || q[2] > 34){ setDp(t.el, "none"); continue; }
+    setDp(t.el, ""); t.el.classList.toggle("dim", vis === "dim"); t.el.classList.toggle("ghost", !!(a.dk && dkOn(a, "ghost", now))); t.el.classList.toggle("sour", !!(a.dk && dkOn(a, "lemon", now)));
     const s = clamp((fov < .8 ? 9 : 6) / q[2], .62, 1.08);
-    t.el.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%) scale(${s.toFixed(3)})`;
-    t.el.style.zIndex = String(1000 - Math.round(q[2] * 10));
+    setTf(t.el, `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%) scale(${s.toFixed(3)})`);
+    { const zi = 1000 - Math.round(q[2] * 10); if (t.zi !== zi){ t.zi = zi; t.el.style.zIndex = String(zi); } }
     if (t.nm.textContent !== a.name) t.nm.textContent = a.name;
     { const pc = a.pose && POSES[a.pose] ? POSES[a.pose].ico : ""; if (t.pz.textContent !== pc) t.pz.textContent = pc; }
     { const kg = a === me ? SUM.king : !!a.king, kl = kg ? "🐛 " + T({ en:"Bug King", ko:"벌레왕" }) : ""; if (t.king !== kl){ t.king = kl; t.kg.textContent = kl; } }   /* the Bug King badge */
     const showMsg = a.msg && now < a.msgUntil;
     if (showMsg && t.msg !== a.msg){ t.bb.textContent = a.msg; t.msg = a.msg; }
-    t.bb.classList.toggle("on", !!showMsg); t.bb.style.display = showMsg ? "" : "none";
+    t.bb.classList.toggle("on", !!showMsg); setDp(t.bb, showMsg ? "" : "none");
   }
-  for (const [id, t] of TAGS) if (!keep.has(id)) t.el.style.display = "none";
+  for (const [id, t] of TAGS) if (!keep.has(id)) setDp(t.el, "none");
   WLABELS.forEach((w, i) => { let el = WL_EL[i]; if (!el){ el = WL_EL[i] = document.createElement("div"); el.className = "wl"; el.textContent = T(w.t); $("tags").appendChild(el); }
-    const q = !making && camPos[1] > -.05 && !(w.near && Math.hypot(me.x - w.near[0], me.z - w.near[1]) < w.near[2]) && project(w.p); if (!q || q[2] > (w.far || 22)){ el.style.display = "none"; return; }
-    el.style.display = ""; el.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%) scale(${clamp(7 / q[2], .7, 1.05).toFixed(3)})`; });
+    const q = !making && camPos[1] > -.05 && !(w.near && Math.hypot(me.x - w.near[0], me.z - w.near[1]) < w.near[2]) && project(w.p); if (!q || q[2] > (w.far || 22)){ setDp(el, "none"); return; }
+    setDp(el, ""); setTf(el, `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%) scale(${clamp(7 / q[2], .7, 1.05).toFixed(3)})`); });
 }
 /* speech and moments */
 function emote(e){
@@ -24478,7 +24481,7 @@ function updateBallUI(){
   const near = on && !holding && (theirs ? dd < 1.3 && performance.now() > BALL.guard : !BALL.holder && dd < 1.6 && BALL.y < 2.1), q = holding ? [0, 0, 1] : near ? project([BALL.x, BALL.y + BR + .12, BALL.z]) : null;
   el.classList.toggle("on", !!(on && q)); el.classList.toggle("fix", holding); if (!q) return;
   const lab = T(holding ? { en:"Put it down", ko:"내려놓기" } : theirs ? { en:"Take it!", ko:"공 뺏기" } : { en:"Pick up", ko:"공 잡기" }); if (el.children[1].textContent !== lab) el.children[1].textContent = lab;
-  if (!holding) el.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`;
+  if (!holding) setTf(el, `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`);
 }
 function ballAt(cx, cy, run){                                                                  /* a tap on the ball: go and pick it up */
   if (BALL.holder === me || Math.abs(me.y) > .4) return false; const sp = project([BALL.x, BALL.y, BALL.z]); if (!sp || Math.hypot(sp[0] - cx, sp[1] - cy) > Math.max(26, 260 * BR / sp[2])) return false;
@@ -24770,7 +24773,7 @@ function updateVend(now){
   const i = camPos[1] > -.05 && !me.sit && !(me.dk && now < me.dk.on + 600) ? nearVend(2.2) : -1, q = i >= 0 ? project([VENDS[i].fx, VH + .14, VENDS[i].fz]) : null;   /* not while drinking */
   b.classList.toggle("on", !!q);
   if (q){ const lab = T({ en:"Get a drink", ko:"음료 고르기" }); if (b.children[1].textContent !== lab) b.children[1].textContent = lab;
-    b.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`; }
+    setTf(b, `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`); }
   if (DKS.open >= 0 && $("pop-vend").classList.contains("on") && nearVend(3.2) !== DKS.open) closePops();     /* walked away */
   if (!DKS.told && inWorld && !making){ if (!DKS.inAt) DKS.inAt = now;                                    /* once: where they are */
     else if (now - DKS.inAt > 16000){ DKS.told = true; let seen = false; try { seen = !!localStorage.getItem("lam-pool-vend"); localStorage.setItem("lam-pool-vend", "1"); } catch (_){}
@@ -24964,7 +24967,7 @@ function rollBall(b, mx, mz){ const dist = Math.hypot(mx, mz); if (dist < 1e-5) 
 function updateSnowUI(){                                                                                             /* holding one: a button over it to let go */
   let b = $("snowb"); if (!b){ b = document.createElement("button"); b.id = "snowb"; b.type = "button"; b.innerHTML = '<span class="vi">⛄</span><span></span><kbd>G</kbd>'; $("tags").appendChild(b); b.onclick = dropSnow; }
   const h = SN.held, q = h && camPos[1] > -.05 ? project([h.x, h.r * 2 + .25, h.z]) : null; b.classList.toggle("on", !!q);
-  if (q){ const lab = T({ en:"Let go", ko:"눈덩이 놓기" }); if (b.children[1].textContent !== lab) b.children[1].textContent = lab; b.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`; } }
+  if (q){ const lab = T({ en:"Let go", ko:"눈덩이 놓기" }); if (b.children[1].textContent !== lab) b.children[1].textContent = lab; setTf(b, `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`); } }
 function dropSnow(){ if (!SN.held) return; SN.held.vx = SN.held.vz = 0; SN.held = null; AUD.click(); }
 function stepSnow(dt, now){
   const mvx = (me.x - SN.px) / Math.max(dt, 1e-3), mvz = (me.z - SN.pz) / Math.max(dt, 1e-3); SN.px = me.x; SN.pz = me.z;
@@ -25563,13 +25566,13 @@ function stepAutumn(dt, now){
 /* by a tree in autumn: a button to shake it */
 function updateTreeUI(){
   let b = $("treeb");
-  if (!b){ b = document.createElement("button"); b.id = "treeb"; b.type = "button"; b.innerHTML = '<span class="vi">🌳</span><span></span><kbd>E</kbd>'; $("tags").appendChild(b); b.onclick = () => { AUD.unlock(); shakeTree(); }; }
+  if (!b){ b = document.createElement("button"); b.id = "treeb"; b.type = "button"; b.innerHTML = '<span class="vi">🌳</span><span></span><kbd>E</kbd>'; $("tags").appendChild(b); b.onclick = () => { AUD.unlock(); if (giftHere() >= 0) openGift(); else shakeTree(); }; }
   const gi = camPos[1] > -.05 && nearVend(2.2) < 0 ? giftHere() : -1, i = gi >= 0 ? gi : autumnOn() && camPos[1] > -.05 && nearVend(2.2) < 0 ? nearTree(1.8) : -1;   /* autumn: shake it; winter: a present */
   const q = gi >= 0 ? project([GIFT_AT[gi].x, 1.05, GIFT_AT[gi].z]) : i >= 0 ? project([TREES[i][0], 2.15, TREES[i][1]]) : null;
-  b.classList.toggle("on", !!q); b.onclick = () => { AUD.unlock(); if (giftHere() >= 0) openGift(); else shakeTree(); };
+  b.classList.toggle("on", !!q);
   if (q){ const vi = gi >= 0 ? "🎁" : "🌳"; if (b.children[0].textContent !== vi) b.children[0].textContent = vi;
     const lab = T(gi >= 0 ? { en:"Open the present", ko:"선물 열기" } : { en:"Shake the tree", ko:"나무 흔들기" }); if (b.children[1].textContent !== lab) b.children[1].textContent = lab;
-    b.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`; }
+    setTf(b, `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`); }
 }
 function drawAutumn(p, now){
   if (!autumnOn() || PASS === "rf") return; const nuts = NUTS.some(q => q.on);
@@ -25853,7 +25856,7 @@ function updateFireUI(){
   if (!b){ b = document.createElement("button"); b.id = "fireb"; b.type = "button"; b.innerHTML = '<span class="vi">🔥</span><span></span><kbd>E</kbd>'; $("tags").appendChild(b); b.onclick = () => { AUD.unlock(); roastNut(); }; }
   const q = nearFire() && camPos[1] > -.05 ? project([FIRE.x, 1.05, FIRE.z]) : null; b.classList.toggle("on", !!q);
   if (q){ const lab = AUT.chest ? T({ en:`Roast a chestnut (${AUT.chest})`, ko:`밤 굽기 (${AUT.chest})` }) : T({ en:"Warm here — bring chestnuts", ko:"따뜻해요 — 밤을 가져와요" }); if (b.children[1].textContent !== lab) b.children[1].textContent = lab;
-    b.style.transform = `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`; }
+    setTf(b, `translate3d(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px, 0) translate(-50%, -100%)`); }
 }
 function drawMoon(p, now){
   const fire = fireOn() && PASS !== "rf", rab = RAB.on && RAB.k > .01, beams = MOONW.length > 0, lans = LANS.length > 0 || AVATARS().some(a => a.lanF); if (!fire && !rab && !beams && !lans) return;
@@ -26021,7 +26024,8 @@ const HAT_FIT = { 3:[1, 1.18, 1], 5:[1.1, 1.04, 1.09] };
 function xmasGlows(now){ const t = now / 1000;
   for (const c of XM.conf){ const f = 1 - (now - c.t0) / 1600; streak(c.x - c.vx * .03, c.y - c.vy * .03, c.z - c.vz * .03, c.x, c.y, c.z, .045, c.c, .7 + .5 * f); }
   if (!xmasOn() || camPos[1] < -.05) return;
-  for (const b of XM.bulbs){ const k = .18 + .3 * Math.max(0, Math.sin(t * 2.6 - b.i * .55)); glow(b.x, b.y, b.z, .5, b.c, k); }
+  const V = VPm, inView = (x, y, z) => { if (!V) return true; const cw = V[3] * x + V[7] * y + V[11] * z + V[15]; if (cw < .1 || cw > 60) return false; const cx = V[0] * x + V[4] * y + V[8] * z + V[12], cy = V[1] * x + V[5] * y + V[9] * z + V[13]; return Math.abs(cx) < cw * 1.1 + .6 && Math.abs(cy) < cw * 1.1 + .6; };
+  for (const b of XM.bulbs){ if (!inView(b.x, b.y, b.z)) continue; const k = .18 + .3 * Math.max(0, Math.sin(t * 2.6 - b.i * .55)); glow(b.x, b.y, b.z, .5, b.c, k); }   /* only the bulbs in the picture */
   for (const s of XM.stars) glow(s[0], s[1], s[2], 1.6 + .2 * Math.sin(t * 3), [1, .84, .36], .42);
   const P = santaNow(Date.now()); if (!P) return; const T0 = Date.now(), M = santaMats(P, T0);
   const nose = xf(M.d2, [0, .46, .92]); glow(nose[0], nose[1], nose[2], 1.4 + .3 * Math.sin(t * 9), [1, .2, .14], .7);
@@ -26036,7 +26040,7 @@ function drawXmas(p, now){
       const ly = b.y + .26 + v * 1.6 - v * v * 1.1, ls = Math.max(.01, 1 - v); put(M.lid[c], setM(b.x, ly, b.z, ls, ls, ls, b.yaw + v * 9)); return; }
     if (now < g.ready) return; const pop = Math.min(1, (now - g.ready) / 400), s = pop < 1 ? .2 + .8 * pop + Math.sin(pop * Math.PI) * .25 : 1;
     put(M.box[c], setM(b.x, b.y, b.z, s, s, s, b.yaw)); put(M.lid[c], setM(b.x, b.y + .26 * s, b.z, s, s, s, b.yaw)); });
-  for (const a of AVATARS()){ const w = a.xw; if (!w || !seen(a) || (a === me && tooClose()) || BALL.holder === a) continue;   /* what everyone has on */
+  for (const a of AVATARS()){ const w = a.xw; if (!w || !drawable(a) || (a === me && tooClose()) || BALL.holder === a) continue;   /* what everyone has on */
     if (a.dk && (PASS === "main" || PASS === "nrm" || PASS === "rf") && dkOn(a, "ghost", now)) continue;
     if (w.k === "fish"){ if (!(a === me && SN.held)) put(M.fish, itAx(w.g, w.d, w.sc, w.sc)); }
     else if (w.k === "scarf") put(M.scarf, w.up);
@@ -26185,8 +26189,9 @@ function useProg(p, VP, clip, below, t){
 /* who needs drawing in this pass: nobody behind the camera; in the view through the water only the people on
    the other side of it; in the reflection only those near the pool; shadows only for those not far off */
 let CVP = null;
-function seen(a){
-  if (PASS === "sh") return Math.hypot(a.x - camPos[0], a.z - camPos[2]) < 45;
+function drawable(a){
+  if (PASS === "sh"){ const M = SV, x = a.x, y = a.y + .9, z = a.z;                              /* outside the shadow map's square they would not be in it anyway */
+    return Math.abs(M[0] * x + M[4] * y + M[8] * z + M[12]) < 1.15 && Math.abs(M[1] * x + M[5] * y + M[9] * z + M[13]) < 1.15; }
   if (PASS === "rf" && (camPos[1] >= 0 ? a.y > -.3 : a.y < -.3)) return false;
   if (PASS === "mirror" && (a.y < -.3 || Math.hypot(Math.max(0, Math.abs(a.x) - PX), Math.max(0, Math.abs(a.z) - PZ)) > 4)) return false;
   if (!CVP) return true;
@@ -26197,7 +26202,7 @@ const tooClose = () => !making && Math.hypot(camPos[0] - me.x, camPos[1] - me.y 
 function drawPeople(p, now){
   const hideMe = tooClose();
   for (const a of AVATARS()){
-    if (!a.mesh || !seen(a) || (a === me && hideMe) || (making && a.npc && Math.hypot(a.x - me.x, a.z - me.z) < 2.4 && Math.abs(a.y - me.y) < 1)) continue;
+    if (!a.mesh || !drawable(a) || (a === me && hideMe) || (making && a.npc && Math.hypot(a.x - me.x, a.z - me.z) < 2.4 && Math.abs(a.y - me.y) < 1)) continue;
     if (a.dk && (PASS === "main" || PASS === "nrm" || PASS === "rf") && dkOn(a, "ghost", now)) continue;   /* the clear soda: only the reflection and the shadow are left */
     if (p.u.uAvY) gl.uniform1f(p.u.uAvY, a.y);
     const mats = partMats(a, now); if (p.u.uAvP) gl.uniform3f(p.u.uAvP, a.x, a.y + mats.lift + ((a.sc || 1) - 1) * .82, a.z);
