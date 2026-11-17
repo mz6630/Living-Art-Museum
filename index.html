@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261116143723";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261117011338";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -22242,7 +22242,8 @@ function maker(){
       }
     },
     ell(c, rx, ry, rz, k, m, seg){
-      seg = seg || 14; const rows = Math.max(6, seg >> 1);
+      seg = seg || 14; const mr = Math.max(rx, ry, rz); if (mr < .2) seg = Math.min(seg, Math.max(10, Math.round(8 + 60 * mr)));   /* a small round thing needs fewer facets */
+      const rows = Math.max(6, seg >> 1);
       const P = (i, j) => { const th = i / rows * Math.PI, ph = j / seg * Math.PI * 2, n = [Math.sin(th) * Math.cos(ph), Math.cos(th), Math.sin(th) * Math.sin(ph)];
         return [[c[0] + n[0] * rx, c[1] + n[1] * ry, c[2] + n[2] * rz], norm([n[0] / rx, n[1] / ry, n[2] / rz])]; };
       for (let i = 0; i < rows; i++) for (let j = 0; j < seg; j++) quadV(P(i, j), P(i + 1, j), P(i + 1, j + 1), P(i, j + 1), k, m);
@@ -25896,15 +25897,18 @@ const GIFT_AT = TREES.map(([tx, tz], i) => { const l = Math.hypot(tx, tz) || 1, 
 /* the outside of a tree's crown, along a direction at a height (its three round masses) */
 function crownR(tx, tz, a, y){ const E = [[tx, 2.7, tz, 1.05, .8, 1], [tx + .45, 3.15, tz + .2, .7, .6, .7], [tx - .4, 3.25, tz - .2, .65, .55, .65]], ca = Math.cos(a), sa = Math.sin(a);
   for (let r = 1.7; r > 0; r -= .02){ const x = tx + ca * r, z = tz + sa * r; for (const e of E) if (((x - e[0]) / e[3]) ** 2 + ((y - e[1]) / e[4]) ** 2 + ((z - e[2]) / e[5]) ** 2 < 1) return r; } return 0; }
+/* a tiny bulb: a six-sided gem (36 vertices instead of a few hundred) */
+function gem(A, c, r, h, k){ for (let i = 0; i < 6; i++){ const a0 = i / 6 * 6.283, a1 = (i + 1) / 6 * 6.283, p0 = [c[0] + Math.cos(a0) * r, c[1], c[2] + Math.sin(a0) * r], p1 = [c[0] + Math.cos(a1) * r, c[1], c[2] + Math.sin(a1) * r];
+  for (const tip of [[c[0], c[1] + h, c[2]], [c[0], c[1] - h * .8, c[2]]]) for (const q of [tip, p0, p1]) A.v.push(q[0], q[1], q[2], 0, 1, 0, k[0], k[1], k[2], 13); } }
 function xmasMeshes(){ const one = (fn) => { const A = maker(); fn(A); return upload(A.v); }, R = [.84, .13, .14], G = [1, .76, .28], W = [.97, .96, .94], S = [.98, .78, .66], D = [.14, .12, .12], BR = [.58, .38, .22];
   XM.bulbs = []; XM.stars = [];
   const lights = one(A => { TREES.forEach(([tx, tz], ti) => {
       const N = 26, pts = [];
-      for (let i = 0; i <= N * 3; i++){ const u = i / (N * 3), a = u * Math.PI * 2 * 3.2 + ti, y = 2.05 + u * 1.5, r = crownR(tx, tz, a, y); if (r <= 0){ pts.push(null); continue; }
+      for (let i = 0; i <= N * 2; i++){ const u = i / (N * 2), a = u * Math.PI * 2 * 3.2 + ti, y = 2.05 + u * 1.5, r = crownR(tx, tz, a, y); if (r <= 0){ pts.push(null); continue; }
         pts.push([tx + Math.cos(a) * (r + .025), y, tz + Math.sin(a) * (r + .025)]); }
       for (let i = 1; i < pts.length; i++) if (pts[i] && pts[i - 1]) A.tube(pts[i - 1], pts[i], .007, .007, [.12, .26, .16], 9, 3);   /* the wire, hugging the crown */
-      for (let i = 0; i < pts.length; i += 3){ const p = pts[i]; if (!p) continue; const c = BULB_COL[(i / 3 + ti) % BULB_COL.length];
-        A.ell([p[0], p[1] - .03, p[2]], .045, .055, .045, c, 13, 5); XM.bulbs.push({ x:p[0], y:p[1] - .03, z:p[2], c, i:XM.bulbs.length }); }
+      for (let i = 0; i < pts.length; i += 2){ const p = pts[i]; if (!p) continue; const c = BULB_COL[(i / 2 + ti) % BULB_COL.length];
+        gem(A, [p[0], p[1] - .03, p[2]], .048, .06, c); XM.bulbs.push({ x:p[0], y:p[1] - .03, z:p[2], c, i:XM.bulbs.length }); }
       const sx = tx - .4, sy = 4.02, sz = tz - .2; XM.stars.push([sx, sy, sz]);                                  /* the star on top: two, crossed, so it is a star from anywhere */
       for (const rot of [0, Math.PI / 2]){ const cr = Math.cos(rot), sr = Math.sin(rot), P = (x, y, z) => [sx + x * cr + z * sr, sy + y, sz - x * sr + z * cr];
         for (let k = 0; k < 10; k++){ const a0 = k / 10 * Math.PI * 2, a1 = (k + 1) / 10 * Math.PI * 2, r0 = k % 2 ? .1 : .25, r1 = k % 2 ? .25 : .1;
@@ -26026,13 +26030,13 @@ function xmasGlows(now){ const t = now / 1000;
 function drawXmas(p, now){
   if (!xmasOn()) return; if (!XM.mesh) XM.mesh = xmasMeshes();
   const M = XM.mesh, u = p.u, put = (m, X) => { gl.uniformMatrix4fv(u.uM, false, X); bindMesh(m); gl.drawArrays(gl.TRIANGLES, 0, m.n); };
-  if (PASS !== "sh") put(M.lights, I4);
+  if (PASS === "main" || PASS === "mirror") put(M.lights, I4);                                    /* lit bulbs: no shadow, no ink line */
   GIFT_AT.forEach((b, i) => { const g = XM.g[i], c = b.c;                                                          /* the presents */
     if (g.open){ const v = (now - g.open) / 1400; if (v < .55) put(M.box[c], setM(b.x, b.y, b.z, 1, 1, 1, b.yaw));
       const ly = b.y + .26 + v * 1.6 - v * v * 1.1, ls = Math.max(.01, 1 - v); put(M.lid[c], setM(b.x, ly, b.z, ls, ls, ls, b.yaw + v * 9)); return; }
     if (now < g.ready) return; const pop = Math.min(1, (now - g.ready) / 400), s = pop < 1 ? .2 + .8 * pop + Math.sin(pop * Math.PI) * .25 : 1;
     put(M.box[c], setM(b.x, b.y, b.z, s, s, s, b.yaw)); put(M.lid[c], setM(b.x, b.y + .26 * s, b.z, s, s, s, b.yaw)); });
-  for (const a of AVATARS()){ const w = a.xw; if (!w || (a === me && tooClose()) || BALL.holder === a) continue;   /* what everyone has on */
+  for (const a of AVATARS()){ const w = a.xw; if (!w || !seen(a) || (a === me && tooClose()) || BALL.holder === a) continue;   /* what everyone has on */
     if (a.dk && (PASS === "main" || PASS === "nrm" || PASS === "rf") && dkOn(a, "ghost", now)) continue;
     if (w.k === "fish"){ if (!(a === me && SN.held)) put(M.fish, itAx(w.g, w.d, w.sc, w.sc)); }
     else if (w.k === "scarf") put(M.scarf, w.up);
@@ -26146,18 +26150,19 @@ $("about-x").onclick = () => document.body.classList.remove("about");
 let W = 0, H = 0, DPR = 1;
 /* the pool looks after its own frame rate: when frames run long it draws fewer pixels and a smaller
    reflection; when there is room again it steps back up. One step at a time, a few seconds apart. */
-const QL = [{ d:1, r:2 }, { d:.84, r:2 }, { d:.7, r:2.6 }, { d:.58, r:3.2 }];
-let ql = 0, qAcc = 0, qN = 0, qGood = 0;
+const QL = [{ d:1, r:2 }, { d:.86, r:2.2 }, { d:.74, r:2.6 }, { d:.62, r:3.2 }, { d:.52, r:3.6 }];
+let ql = 0, qAcc = 0, qN = 0, qGood = 0, qUpAt = -1e9, qHold = 0;
 function tuneQuality(ms){
   if (ms > 250 || !inWorld && !making) return;
   qAcc += ms; qN++; if (qAcc < 2000) return;
   const avg = qAcc / qN; qAcc = 0; qN = 0;
-  if (avg > 30 && ql < QL.length - 1){ ql++; qGood = 0; layout(); }
-  else if (avg < 17){ if (++qGood >= 4 && ql > 0){ ql--; qGood = 0; layout(); } }
+  const now = performance.now();
+  if (avg > 21 && ql < QL.length - 1){ if (now - qUpAt < 12000) qHold = now + 60000; ql++; qGood = 0; layout(); }   /* under ~48 frames a second: step down (and if we only just stepped up, stay put a minute) */
+  else if (avg < 17.5 && now > qHold){ if (++qGood >= 4 && ql > 0){ ql--; qGood = 0; qUpAt = now; layout(); } }
   else qGood = 0;
 }
 function layout(){
-  DPR = Math.max(.6, Math.min(window.devicePixelRatio || 1, PHONE() || TOUCH ? 1.35 : 1.75) * QL[ql].d);
+  DPR = Math.max(.6, Math.min(window.devicePixelRatio || 1, PHONE() || TOUCH ? 1.35 : 1.5) * QL[ql].d);   /* (laptop screens: 1.5 is crisp enough for ink lines, and a third fewer pixels than 1.75) */
   W = Math.round(innerWidth * DPR); H = Math.round(innerHeight * DPR);
   if (cv.width !== W || cv.height !== H){ cv.width = W; cv.height = H; }
   const rw = Math.max(64, Math.round(W / QL[ql].r)), rh = Math.max(64, Math.round(H / QL[ql].r));
@@ -26177,11 +26182,22 @@ function useProg(p, VP, clip, below, t){
   if (u.uFwP){ gl.uniform4f(u.uFwP, FW.flP[0], FW.flP[1], FW.flP[2], FW.fl); gl.uniform3fv(u.uFwC, FW.flC); }
   if (u.uSh){ gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, shTex); gl.uniform1i(u.uSh, 0); }
 }
+/* who needs drawing in this pass: nobody behind the camera; in the view through the water only the people on
+   the other side of it; in the reflection only those near the pool; shadows only for those not far off */
+let CVP = null;
+function seen(a){
+  if (PASS === "sh") return Math.hypot(a.x - camPos[0], a.z - camPos[2]) < 45;
+  if (PASS === "rf" && (camPos[1] >= 0 ? a.y > -.3 : a.y < -.3)) return false;
+  if (PASS === "mirror" && (a.y < -.3 || Math.hypot(Math.max(0, Math.abs(a.x) - PX), Math.max(0, Math.abs(a.z) - PZ)) > 4)) return false;
+  if (!CVP) return true;
+  const sc = a.sc || 1, r = 1.5 * sc, x = a.x, y = a.y + .9 * sc, z = a.z, M = CVP, m = r * 4;
+  const cx = M[0] * x + M[4] * y + M[8] * z + M[12], cy = M[1] * x + M[5] * y + M[9] * z + M[13], cw = M[3] * x + M[7] * y + M[11] * z + M[15];
+  return cw > -r && cx < cw + m && cx > -cw - m && cy < cw + m && cy > -cw - m; }
 const tooClose = () => !making && Math.hypot(camPos[0] - me.x, camPos[1] - me.y - 1, camPos[2] - me.z) < 1.15;   /* the camera is in your own head: look through it */
 function drawPeople(p, now){
   const hideMe = tooClose();
   for (const a of AVATARS()){
-    if (!a.mesh || (a === me && hideMe) || (making && a.npc && Math.hypot(a.x - me.x, a.z - me.z) < 2.4 && Math.abs(a.y - me.y) < 1)) continue;
+    if (!a.mesh || !seen(a) || (a === me && hideMe) || (making && a.npc && Math.hypot(a.x - me.x, a.z - me.z) < 2.4 && Math.abs(a.y - me.y) < 1)) continue;
     if (a.dk && (PASS === "main" || PASS === "nrm" || PASS === "rf") && dkOn(a, "ghost", now)) continue;   /* the clear soda: only the reflection and the shadow are left */
     if (p.u.uAvY) gl.uniform1f(p.u.uAvY, a.y);
     const mats = partMats(a, now); if (p.u.uAvP) gl.uniform3f(p.u.uAvP, a.x, a.y + mats.lift + ((a.sc || 1) - 1) * .82, a.z);
@@ -26189,6 +26205,7 @@ function drawPeople(p, now){
       gl.uniform3f(p.u.uTint, (hot ? 1 + .22 * e : cold ? 1 - .16 * e : 1) * (1 + .1 * tir), (hot ? 1 - .27 * e : cold ? 1 - .05 * e : 1) * (1 - .1 * tir), (hot ? 1 - .31 * e : cold ? 1 + .24 * e : 1) * (1 - .12 * tir)); }
     for (const [M, part] of mats){ gl.uniformMatrix4fv(p.u.uM, false, M); bindMesh(part); gl.drawArrays(gl.TRIANGLES, 0, part.n); } }
   if (p.u.uAvY) gl.uniform1f(p.u.uAvY, -99); if (p.u.uTint) gl.uniform3f(p.u.uTint, 1, 1, 1);
+  if (PASS === "rf" && camPos[1] >= 0) return;                                                   /* through the water from above: only what is below it */
   drawBalloons(p); drawDrinks(p, now); drawSeason(p); drawSpring(p, now); drawSnow(p); drawSummer(p, now); drawAutumn(p, now); drawRain(p, now); drawMoon(p, now); drawXmas(p, now);
 }
 function drawSky(VP, clip, t){ gl.depthMask(false); useProg(P.sky, VP, clip, 0, t); gl.uniformMatrix4fv(P.sky.u.uM, false, Tm(camPos[0], camPos[1], camPos[2])); bindMesh(SKY); gl.drawArrays(gl.TRIANGLES, 0, SKY.n); gl.depthMask(true); }
@@ -26202,14 +26219,14 @@ function render(t, now){
   /* the sun's view, for shadows */
   updateSV();
   gl.bindFramebuffer(gl.FRAMEBUFFER, shFB); gl.viewport(0, 0, SS, SS); gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  PASS = "sh"; useProg(P.sh, SV, 0, 0, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.sh, now);
+  CVP = null; PASS = "sh"; useProg(P.sh, SV, 0, 0, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.sh, now);
   /* what lies on the far side of the water */
   gl.bindFramebuffer(gl.FRAMEBUFFER, rf.fb); gl.viewport(0, 0, rf.w, rf.h); gl.clearColor(.55, .8, .84, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  PASS = "rf"; drawSky(VP, below ? 2 : 1, t); drawScene(VP, below ? 2 : 1, below, t, now);
+  CVP = VP; PASS = "rf"; drawSky(VP, below ? 2 : 1, t); drawScene(VP, below ? 2 : 1, below, t, now);
   /* what stands round it, mirrored in the surface (from above only) */
   if (!below){ gl.bindFramebuffer(gl.FRAMEBUFFER, rl.fb); gl.viewport(0, 0, rl.w, rl.h); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     useProg(P.main, mm4(VP, MIRROR), 2, 0, t); gl.uniform1f(P.main.u.uA, .5); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n);
-    gl.uniform1f(P.main.u.uA, 1); PASS = "mirror"; drawPeople(P.main, now); }
+    gl.uniform1f(P.main.u.uA, 1); PASS = "mirror"; CVP = mm4(VP, MIRROR); drawPeople(P.main, now); CVP = VP; }
   /* each pixel's normal and distance, for the ink lines */
   gl.bindFramebuffer(gl.FRAMEBUFFER, nt.fb); gl.viewport(0, 0, nt.w, nt.h); gl.clearColor(.5, .5, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   PASS = "nrm"; useProg(P.nrm, VP, 0, 0, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.nrm, now);
