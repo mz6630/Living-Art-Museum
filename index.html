@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261117011338";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261117013846";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -26210,6 +26210,12 @@ function drawPeople(p, now){
 }
 function drawSky(VP, clip, t){ gl.depthMask(false); useProg(P.sky, VP, clip, 0, t); gl.uniformMatrix4fv(P.sky.u.uM, false, Tm(camPos[0], camPos[1], camPos[2])); bindMesh(SKY); gl.drawArrays(gl.TRIANGLES, 0, SKY.n); gl.depthMask(true); }
 function drawScene(VP, clip, below, t, now){ useProg(P.main, VP, clip, below, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.main, now); }
+/* is any of the water in the picture? (its corners, against the edges of the view) */
+function waterSeen(VP){ let L = 0, R = 0, D = 0, U = 0, B = 0; const pts = 8;
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) for (const y of [.05, -.4]){ const x = sx * (PX + .3), z = sz * (PZ + .3);
+    const cx = VP[0] * x + VP[4] * y + VP[8] * z + VP[12], cy = VP[1] * x + VP[5] * y + VP[9] * z + VP[13], cw = VP[3] * x + VP[7] * y + VP[11] * z + VP[15];
+    if (cx < -cw) L++; if (cx > cw) R++; if (cy < -cw) D++; if (cy > cw) U++; if (cw < 0) B++; }
+  return !(L === pts || R === pts || D === pts || U === pts || B === pts); }
 let fov = .9;
 function render(t, now){
   const below = camPos[1] < 0 ? 1 : 0;
@@ -26220,13 +26226,16 @@ function render(t, now){
   updateSV();
   gl.bindFramebuffer(gl.FRAMEBUFFER, shFB); gl.viewport(0, 0, SS, SS); gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   CVP = null; PASS = "sh"; useProg(P.sh, SV, 0, 0, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.sh, now);
-  /* what lies on the far side of the water */
+  /* what lies on the far side of the water, and what is mirrored in it: only when the water is on screen */
+  const wet = waterSeen(VP);
+  if (wet){
   gl.bindFramebuffer(gl.FRAMEBUFFER, rf.fb); gl.viewport(0, 0, rf.w, rf.h); gl.clearColor(.55, .8, .84, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   CVP = VP; PASS = "rf"; drawSky(VP, below ? 2 : 1, t); drawScene(VP, below ? 2 : 1, below, t, now);
   /* what stands round it, mirrored in the surface (from above only) */
   if (!below){ gl.bindFramebuffer(gl.FRAMEBUFFER, rl.fb); gl.viewport(0, 0, rl.w, rl.h); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     useProg(P.main, mm4(VP, MIRROR), 2, 0, t); gl.uniform1f(P.main.u.uA, .5); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n);
     gl.uniform1f(P.main.u.uA, 1); PASS = "mirror"; CVP = mm4(VP, MIRROR); drawPeople(P.main, now); CVP = VP; }
+  }
   /* each pixel's normal and distance, for the ink lines */
   gl.bindFramebuffer(gl.FRAMEBUFFER, nt.fb); gl.viewport(0, 0, nt.w, nt.h); gl.clearColor(.5, .5, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   PASS = "nrm"; useProg(P.nrm, VP, 0, 0, t); bindMesh(WORLD); gl.drawArrays(gl.TRIANGLES, 0, WORLD.n); drawPeople(P.nrm, now);
