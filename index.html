@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261119072339";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261119074125";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -23662,7 +23662,7 @@ function cleanState(st){
   const num = (v, a, b, d) => (typeof v === "number" && isFinite(v)) ? clamp(v, a, b) : d;
   const e = typeof st.e === "string" && (EMOTES[st.e] || POSE_RE.test(st.e)) ? st.e : "";
   return { x:num(st.x, -CXW, CXW, 0), y:num(st.y, FLOOR - .1, 1.5, 0), z:num(st.z, -CZW, CZW, 0), r:num(st.r, -7, 7, 0), w:st.w ? 1 : 0, e, et:num(st.et, 0, 1e15, 0),
-    m:cleanText(st.m, 40), mt:num(st.mt, 0, 1e15, 0), n:cleanText(st.n, 12) || "…", look:lookFrom(st.k), f:typeof st.f === "string" ? st.f.slice(0, 48) : "", b:typeof st.b === "string" ? st.b.slice(0, 60) : "",
+    m:cleanText(st.m, 40), mt:num(st.mt, 0, 1e15, 0), n:cleanText(st.n, 12) || "…", look:lookFrom(st.k), gr:Array.isArray(st.k) && Number.isInteger(st.k[8]) ? clamp(st.k[8], 0, 15) : 0, f:typeof st.f === "string" ? st.f.slice(0, 48) : "", b:typeof st.b === "string" ? st.b.slice(0, 60) : "",
     d:typeof st.d === "string" && /^[ecwbmglkahi][0-9]$/.test(st.d) ? st.d : "", q:typeof st.q === "string" && /^[psawn][0-9a-z]{1,11}$/.test(st.q) ? st.q : "", h:typeof st.h === "string" && /^c?[snurlmtegbSNURLMTEGBK]?$/.test(st.h) ? st.h : "",
     g:typeof st.g === "string" && /^\d{1,3}(:-?\d*\.?\d+){3}:[01]$/.test(st.g) ? st.g : "" };
 }
@@ -23690,13 +23690,14 @@ function onPeerList(list){
     { const hh = st.h.replace("c", ""), it = IT_OF[hh.toLowerCase()] || ""; a.king = /[SNURLMTEGBK]/.test(hh); if (it !== (a.item || "")){ a.item = it; a.itT0 = now; if (it === "sp" && inWorld) AUD.ignite(hear(a.x, a.z) * .6); } }   /* what they hold: a sparkler, a net, an umbrella, a raincoat, a lantern */
     { const pz = st.e.includes(":") ? st.e.slice(2) : ""; if (pz !== (a.pose || "")){ a.pose = pz; a.pt0 = now; } }          /* the pose they hold, if any */
     if (lookKey(st.look) !== lookKey(a.look)){ a.look = st.look; a.mesh = meshFor(st.look); }
+    a.gear = st.gr;
   }
   for (const [id, a] of PEERS) if (!seen.has(id)){ if (BALL.holder === a) dropBall(a, false); PEERS.delete(id); dropTag(id); if (inWorld) logLine(a.name, T({ en:"left", ko:"님이 나갔어요" }), true); }
   renderPill();
 }
 function myState(){
   return { s:NET.srv, x:+me.x.toFixed(2), y:+me.y.toFixed(2), z:+me.z.toFixed(2), r:+wrap(me.r).toFixed(2), w:me.moving ? 1 : 0, e:me.pose ? (me.sit ? (me.bench ? "b:" : "s:") : "p:") + me.pose : me.sit ? (me.bench ? "bench" : "sit") : (me.emote || ""),
-    et:me.et, m:me.msg || "", mt:me.mt, n:me.name, k:lookArr(me.look), t:Date.now(), ...(FX.f && !FX.blocked && performance.now() - FX.at < 4000 ? { f:FX.f } : {}), ...(BALL.mine && !FX.blocked ? { b:BALL.mine } : {}), ...(me.dk && !FX.blocked ? { d:DRINKS[me.dk.k].c + me.dk.seq } : {}), ...(SEASON.stamp && !FX.blocked ? { q:SEA_C[SEASON.cur] + SEASON.stamp.toString(36) } : {}), ...(hOf() && !FX.blocked ? { h:hOf() } : {}), ...(SN.mine && SNB.includes(SN.mine) && !FX.blocked && !FX.noG ? { g:`${SN.mine.id}:${f2(SN.mine.x)}:${f2(SN.mine.z)}:${f2(SN.mine.r)}:${SN.held === SN.mine ? 1 : 0}` } : {}) };
+    et:me.et, m:me.msg || "", mt:me.mt, n:me.name, k:lookArr(me.look).concat([me.gear | 0]), t:Date.now(), ...(FX.f && !FX.blocked && performance.now() - FX.at < 4000 ? { f:FX.f } : {}), ...(BALL.mine && !FX.blocked ? { b:BALL.mine } : {}), ...(me.dk && !FX.blocked ? { d:DRINKS[me.dk.k].c + me.dk.seq } : {}), ...(SEASON.stamp && !FX.blocked ? { q:SEA_C[SEASON.cur] + SEASON.stamp.toString(36) } : {}), ...(hOf() && !FX.blocked ? { h:hOf() } : {}), ...(SN.mine && SNB.includes(SN.mine) && !FX.blocked && !FX.noG ? { g:`${SN.mine.id}:${f2(SN.mine.x)}:${f2(SN.mine.z)}:${f2(SN.mine.r)}:${SN.held === SN.mine ? 1 : 0}` } : {}) };
 }
 let lastSend = 0, lastSig = "";
 function maybeSend(){
@@ -25215,8 +25216,8 @@ const ITEMS = {
   net:{ c:"n", sea:"summer", ico:"🥅", dur:0, can:[.36, .64, .94], band:[.99, .78, .36], name:{ en:"Bug net", ko:"잠자리채" }, fx:{ en:"Swing it (F) — eight kinds of insect to find; catch them all for the Bug King badge", ko:"휘둘러서(F) 곤충 8종을 잡아요 — 모두 모으면 벌레왕 배지!" } },
 };
 Object.assign(ITEMS, {
-  umb:{ c:"u", sea:"spring", ico:"☂️", dur:0, can:[.98, .6, .68], band:[.55, .78, .98], name:{ en:"Umbrella", ko:"우산" }, fx:{ en:"Opens by itself when it rains", ko:"비가 오면 저절로 펼쳐져요" } },
-  coat:{ c:"r", sea:"spring", ico:"🧥", dur:0, can:[1, .84, .28], band:[1, .93, .6], name:{ en:"Raincoat", ko:"우비" }, fx:{ en:"A yellow raincoat with a hood — rain or shine", ko:"모자 달린 노란 우비 — 비가 와도 끄떡없어요" } },
+  umb:{ c:"u", sea:"spring", ico:"☂️", dur:0, can:[.98, .6, .68], band:[.55, .78, .98], name:{ en:"Umbrella", ko:"우산" }, fx:{ en:"Opens by itself when it rains · a random design", ko:"비가 오면 저절로 펼쳐져요 · 디자인은 랜덤" } },
+  coat:{ c:"r", sea:"spring", ico:"🧥", dur:0, can:[1, .84, .28], band:[1, .93, .6], name:{ en:"Raincoat", ko:"우비" }, fx:{ en:"A hooded raincoat — a random design each time", ko:"모자 달린 우비 — 받을 때마다 디자인이 랜덤이에요" } },
 });
 ITEMS.lan = { c:"l", sea:"autumn", trade:{ roast:5, acorn:5 }, ico:"🏮", dur:0, can:[1, .55, .25], band:[1, .82, .45], name:{ en:"Sky lantern", ko:"풍등" }, fx:{ en:"Trade 5 roasted chestnuts and 5 acorns — make a wish and let it float up to the moon", ko:"군밤 5개 + 도토리 5개와 교환 — 소원을 빌며 달까지 날려 보내요" } };
 Object.assign(ITEMS, {                                                                                      /* winter: from the presents under the trees */
@@ -25311,12 +25312,13 @@ function getItem(k){
   if (I.trade){ const t = I.trade; if (AUT.roast < t.roast || AUT.acorn < t.acorn){ hint(T({ en:`Not enough yet — roasted chestnuts ${AUT.roast}/${t.roast} · acorns ${AUT.acorn}/${t.acorn}`, ko:`아직 부족해요 — 군밤 ${AUT.roast}/${t.roast} · 도토리 ${AUT.acorn}/${t.acorn}` }), true); return; }
     AUT.roast -= t.roast; AUT.acorn -= t.acorn; saveNuts(); AUT.shown = ""; }
   closePops(); const now = performance.now();
+  if (k === "umb" || k === "coat"){ const n = (k === "umb" ? UMB_V : COAT_V).length, was = me.item === k ? me.gear : -1; let g; do g = Math.floor(Math.random() * n); while (g === was); me.gear = g; }   /* a design at random, never the same twice running */
   me.item = k; me.itT0 = now; SUM.t0 = now; SUM.end = I.dur ? now + I.dur * 1000 : Infinity; SUM.secs = -1; lastSig = "";
   AUD.vend("can");
   if (k === "sp"){ setTimeout(() => AUD.ignite(1), 380); hint(T({ en:"🎇 Lit! Bring it close to a friend's and both sparkle harder", ko:"🎇 불이 붙었어요! 친구 스파클라 가까이 가면 둘 다 더 화려해져요" }), true); }
   else if (k === "lan") hint(T({ en:"🏮 A sky lantern! Make a wish and let it go (F, or the button)", ko:"🏮 풍등을 받았어요! 소원을 빌며 날려 보내요 (F 또는 버튼)" }));
-  else if (k === "umb") hint(T({ en:"☂️ It opens by itself when the rain comes", ko:"☂️ 비가 오면 저절로 펼쳐져요" }), true);
-  else if (k === "coat") hint(T({ en:"🧥 A yellow raincoat — let it rain", ko:"🧥 노란 우비를 입었어요 — 비가 와도 괜찮아요" }), true);
+  else if (k === "umb"){ const g = gearName(k, me.gear); hint(T({ en:`☂️ A ${g.en.toLowerCase()}! It opens by itself when the rain comes`, ko:`☂️ ${g.ko}이 나왔어요! 비가 오면 저절로 펼쳐져요` }), true); }
+  else if (k === "coat"){ const g = gearName(k, me.gear); hint(T({ en:`🧥 A ${g.en.toLowerCase()}! Let it rain`, ko:`🧥 ${g.ko}가 나왔어요! 비가 와도 괜찮아요` }), true); }
   else if (I.gift) hint(T({ en:`${I.ico} ${I.name.en} on`, ko:`${I.ico} ${I.name.ko}${josa(I.name.ko, "을", "를")} 착용했어요` }), true);
   else hint(T({ en:"🥅 F (or the button) to swing — tap the net's name to see which insects are where", ko:"🥅 F(또는 버튼)로 휘둘러요 — 잠자리채 이름을 누르면 곤충 도감이 열려요" }));
   itemUI();
@@ -25343,7 +25345,7 @@ function itemUI(){
   const el = $("itemfx"), k = me.item, ab = $("actb"); el.classList.toggle("on", !!k); el.classList.toggle("net", k === "net" || k === "lan");
   ab.classList.toggle("on", k === "net" || k === "lan"); if (k === "net" || k === "lan"){ ab.querySelector(".ai").textContent = ITEMS[k].ico; const al = T(k === "lan" ? { en:"Let go", ko:"날리기" } : { en:"Swing", ko:"휘두르기" }); ab.querySelector(".al").textContent = al; ab.setAttribute("aria-label", al); }
   if (!k) return;
-  const I = ITEMS[k]; el.style.setProperty("--ic", rgb(I.band)); el.querySelector(".ic").textContent = I.ico; $("it-n").textContent = T(I.name) + (k === "net" ? " · " + T({ en:"Field guide ›", ko:"도감 ›" }) : "");
+  const I = ITEMS[k]; const gear = k === "umb" || k === "coat"; el.style.setProperty("--ic", rgb(gear ? mix3c(gearRGB(k, me.gear | 0), [1, 1, 1], .35) : I.band)); el.querySelector(".ic").textContent = I.ico; $("it-n").textContent = (gear ? T(gearName(k, me.gear | 0)) : T(I.name)) + (k === "net" ? " · " + T({ en:"Field guide ›", ko:"도감 ›" }) : "");
   $("it-sw").firstChild.textContent = T(k === "lan" ? { en:"Let it go", ko:"날리기" } : { en:"Swing", ko:"휘두르기" }); $("it-x").setAttribute("aria-label", T({ en:"Put away", ko:"넣기" })); $("it-x").title = T({ en:"Put away", ko:"넣기" });
   $("it-s").textContent = ITEMS[k].gift ? T(ITEMS[k].fx) : k === "lan" ? T({ en:"Make a wish, then let it go", ko:"소원을 빌고 날려 보내요" }) : k === "umb" ? T(RAIN.k > .25 ? { en:"Open — keeping you dry", ko:"펼침 — 비를 막아 줘요" } : { en:"Opens when it rains", ko:"비가 오면 펼쳐져요" }) : k === "coat" ? T({ en:"Hood up, rain or shine", ko:"비가 와도 끄떡없어요" }) : k === "net" ? (SUM.n ? T({ en:`${SUM.n} caught · ${dexN()}/${BUG_IDS.length} kinds`, ko:`${SUM.n}마리 잡음 · 도감 ${dexN()}/${BUG_IDS.length}` }) : T({ en:"Tap the name above for where to look", ko:"위 이름을 누르면 어디서 찾는지 알려줘요" }))
     : `${T({ en:`${Math.max(0, SUM.secs)}s left`, ko:`${Math.max(0, SUM.secs)}초 남음` })}${SUM.near ? " · " + T({ en:"together ✨", ko:"함께 ✨" }) : ""}`;
@@ -25736,7 +25738,6 @@ function stepFeel(dt, now){
 const RAINP = 150000, RAIN = { k:0, bow:0, was:false, bowWas:false, M:null, n:0, ringAt:0, umb:null, snd:0 };
 const RD = Array.from({ length:360 }, () => ({ x:0, y:-1, z:0, v:0 }));
 const RV = new Float32Array(RD.length * 6 * ST);
-const UMB_C = [[.98, .55, .62], [.55, .78, .98], [1, .84, .38], [.6, .86, .62], [.8, .66, .98]];
 function rainWindow(t){ const k = Math.floor(t / RAINP), r = mb32(k * 131 + 7), has = r() < .6, st = k * RAINP + 10000 + r() * 30000, dur = 38000 + r() * 22000;   /* this slot's shower, if any */
   return has ? { st, en:st + dur } : null; }
 /* the raincoat: a hooded coat cut round the body like the clothes are (so arms and hands stay outside it), with sleeves that move
@@ -25762,45 +25763,115 @@ function hoodShell(A, k, ki, kr){
   for (const s of [-1, 1]){ let best = null; for (const q of edge) if (q[0] * s > .12 && q[1] > H.yb + .03 && (!best || q[1] < best[1])) best = q;   /* the drawstrings, from the lowest corners of the face */
     if (best){ const lo = [best[0] + .012 * s, best[1] - .13, best[2] + .02]; A.tube(best, lo, .007, .007, [.98, .97, .94], 5, 6); A.ell([lo[0], lo[1] - .012, lo[2]], .013, .02, .013, kr, 5, 8); } }
 }
-function umbMeshes(){ const one = (fn) => { const A = maker(); fn(A); return upload(A.v); };
-  const coatC = [1, .84, .28], trim = [.93, .72, .18], inner = [.8, .6, .16], wht = [.98, .97, .94];
-  const prof = [[.335, .3], [.346, .318], [.327, .36], [.296, .41], [.266, .46], [.244, .52], [.238, .58]].concat([.63, .68, .73, .77, .8].map(y => [rAt(y) + .03, y]), [[.15, .83], [.09, .855], [0, .866]]);
-  const zc = (y) => { let r = .2; for (let i = 0; i < prof.length - 1; i++) if (y >= prof[i][1] && y <= prof[i + 1][1]){ r = lerp(prof[i][0], prof[i + 1][0], (y - prof[i][1]) / (prof[i + 1][1] - prof[i][1])); break; } return r * BODY_Z; };
-  const sleeve = (s) => one(A => { const sh = [.165 * s, .79, 0], wr = [.213 * s, .598, 0];
-    A.ell(sh, .088, .088, .088, coatC, 5, 16); A.tube(sh, wr, .086, .075, coatC, 5, 16); A.torus(wr, .074, .015, trim, 5, 16, 6); });
-  return { coat:one(A => {
-             A.lathe(prof, coatC, 5, 44, BODY_Z); A.torus([0, .312, 0], .34, .014, trim, 5, 44, 6);
-             A.lathe([[.17, .79], [.215, .84], [.24, .885], [.27, .935]], coatC, 5, 36, .95);                                           /* a high collar up into the hood */
-             A.tube([0, .32, zc(.32) + .004], [0, .83, zc(.83) + .006], .012, .012, trim, 5, 6);                                       /* the front edge */
-             for (const y of [.74, .64, .54, .44]) A.ell([.004, y, zc(y) + .012], .022, .012, .01, wht, 5, 10);                       /* toggles */
-             for (const s of [-1, 1]){ const y = .42, x = .15 * s, z = Math.sqrt(Math.max(0, (zc(y) / BODY_Z) ** 2 - x * x)) * BODY_Z;
-               A.ell([x, y, z + .004], .062, .05, .012, trim, 5, 14); } }),                                                              /* pockets */
-           hood:one(A => hoodShell(A, coatC, inner, trim)),
-           sl:sleeve(-1), sr:sleeve(1),
-           closed:UMB_C.map(c => one(A => { A.tube([0, 0, 0], [0, .5, 0], .009, .009, [.32, .3, .3], 5, 6); A.tube([0, .12, 0], [0, .46, 0], .042, .013, c, 5, 8);   /* furled, a cane by the side */
-             A.ell([0, .5, 0], .012, .016, .012, [.3, .3, .32], 5, 6);
-             const J = [[0, 0, 0], [0, -.05, 0], [0, -.085, .02], [0, -.085, .05], [0, -.06, .065]]; for (let i = 0; i < 4; i++) A.tube(J[i], J[i + 1], .012, .012, [.5, .34, .22], 5, 6); })),
-           open:UMB_C.map(c => one(A => umbOpen(A, c))) }; }
-function umbOpen(A, c){
+/* umbrellas and raincoats come in designs: a fresh one at random each time you take one from a machine (sent along as k[8]) */
+const UMB_V = [{ en:"Rainbow", ko:"무지개" }, { en:"Classic", ko:"기본" }, { en:"Clear", ko:"투명" }, { en:"Pastel pink", ko:"파스텔 핑크" },
+  { en:"Sky blue", ko:"하늘색" }, { en:"Gingham", ko:"체크무늬" }, { en:"Watermelon", ko:"수박" }, { en:"Starry night", ko:"별밤" }];
+const COAT_V = [
+  { n:{ en:"Yellow", ko:"노란" }, c:[1, .84, .28], t:[.93, .72, .18], i:[.8, .6, .16], tog:1 },
+  { n:{ en:"Duck", ko:"오리" }, c:[1, .89, .4], t:[1, .64, .24], i:[.84, .68, .22], tog:1, hood:"duck" },
+  { n:{ en:"Frog", ko:"개구리" }, c:[.5, .8, .4], t:[.34, .62, .3], i:[.3, .52, .24], tog:1, hood:"frog" },
+  { n:{ en:"Simple navy", ko:"깔끔한 네이비" }, c:[.26, .32, .45], t:[.2, .25, .36], i:[.18, .22, .3], zip:1 },
+  { n:{ en:"Teddy bear", ko:"곰돌이" }, c:[.68, .49, .34], t:[.55, .38, .26], i:[.48, .33, .22], tog:1, hood:"bear" },
+  { n:{ en:"Dino", ko:"공룡" }, c:[.42, .72, .64], t:[.31, .57, .5], i:[.28, .5, .44], zip:1, hood:"dino" },
+  { n:{ en:"Strawberry", ko:"딸기" }, c:[.92, .2, .27], t:[.78, .14, .2], i:[.66, .13, .18], hood:"berry" }];
+const gearName = (k, g) => k === "umb" ? { en:UMB_V[g % UMB_V.length].en + " umbrella", ko:UMB_V[g % UMB_V.length].ko + " 우산" }
+  : { en:COAT_V[g % COAT_V.length].n.en + " raincoat", ko:COAT_V[g % COAT_V.length].n.ko + " 우비" };
+const gearRGB = (k, g) => k === "umb" ? umbStyle(g % UMB_V.length).cell(0, 0, 2) : COAT_V[g % COAT_V.length].c;
+function umbStyle(v){
+  const lite = (c) => c.map(x => x + (1 - x) * .55), RB = [[.95, .32, .34], [1, .6, .26], [1, .86, .32], [.46, .8, .42], [.36, .66, .95], [.4, .44, .84], [.68, .46, .88], [.98, .56, .72]];
+  const grey = [.35, .34, .36], wood = [.5, .34, .22], S = { rib:grey, handle:wood, dots:[], clear:false };
+  const pk = [.98, .55, .62], sky = [.55, .78, .98], navy = [.2, .24, .36], red = [.86, .27, .32], wm = [.95, .36, .4], night = [.16, .2, .4];
+  if (v === 0){ S.cell = (r) => RB[r]; S.fold = RB; }
+  else if (v === 1){ S.cell = () => navy; S.fold = [navy]; S.handle = [.36, .22, .14]; }
+  else if (v === 2){ S.clear = true; S.cell = () => [.72, .84, .98]; S.fold = [[.86, .91, .97]]; S.rib = [.95, .96, .98]; S.handle = [.95, .95, .97]; }
+  else if (v === 3 || v === 4){ const c = v === 3 ? pk : sky; S.cell = (r) => r % 2 ? lite(c) : c; S.fold = [c]; }
+  else if (v === 5){ const w = [.98, .97, .95], mid = [.93, .62, .64]; S.cell = (r, i, j) => (i % 2 && j % 2) ? red : (i % 2 || j % 2) ? mid : w; S.fold = [red]; }
+  else if (v === 6){ S.cell = (r, i, j) => j === 5 ? [.2, .5, .26] : j === 4 ? [.82, .94, .72] : wm; S.fold = [[.2, .5, .26]];
+    for (let r = 0; r < 8; r++) S.dots.push([r, .3, .42, [.16, .1, .1]], [r, .72, .62, [.16, .1, .1]]); }
+  else { S.cell = () => night; S.fold = [night]; S.handle = [.3, .3, .34];
+    for (let r = 0; r < 8; r++) S.dots.push([r, .25 + .5 * ((r * 7) % 3) / 2, .35, [1, .88, .42]], [r, .6 - .3 * (r % 2), .66, [1, .88, .42]], [r, .15 + .7 * ((r * 5) % 4) / 3, .86, [.98, .96, .86]]); }
+  return S; }
+function umbMesh(v, open){ const U = RAIN.umb || (RAIN.umb = { u:{}, coat:[] }), key = v + (open ? "o" : "c"); let m = U.u[key];
+  if (!m){ const S = umbStyle(v), A = maker(), C = S.clear && open ? maker() : null; (open ? umbOpen : umbClosed)(A, S, C); m = U.u[key] = { m:upload(A.v), c:C ? upload(C.v) : null }; }
+  return m; }
+function umbClosed(A, S, C){                                                                                   /* furled, a cane by the side */
+  A.tube([0, 0, 0], [0, .5, 0], .009, .009, [.32, .3, .3], 5, 6); const F = S.fold, n = F.length;
+  for (let b = 0; b < n; b++){ const y0 = .12 + .34 * b / n, y1 = .12 + .34 * (b + 1) / n; A.tube([0, y0, 0], [0, y1, 0], lerp(.042, .013, b / n), lerp(.042, .013, (b + 1) / n), F[b], 5, 8); }
+  if (S.clear) A.torus([0, .27, 0], .032, .006, S.rib, 5, 12, 4);                                                   /* the clear one's strap */
+  A.ell([0, .5, 0], .012, .016, .012, [.3, .3, .32], 5, 6);
+  const J = [[0, 0, 0], [0, -.05, 0], [0, -.085, .02], [0, -.085, .05], [0, -.06, .065]]; for (let i = 0; i < 4; i++) A.tube(J[i], J[i + 1], .012, .012, S.handle, 5, 6); }
+function umbOpen(A, S, C){
   const g = UMB_GRIP, t = UMB_TOP, dir = norm([t[0] - g[0], t[1] - g[1], t[2] - g[2]]), ex = norm([dir[1], -dir[0], 0]), ez = [0, 0, 1];   /* the canopy's frame: square to the shaft */
   const W = (x, y, z) => [t[0] + ex[0] * x + dir[0] * y, t[1] + ex[1] * x + dir[1] * y, t[2] + z], WN = (x, y, z) => norm([ex[0] * x + dir[0] * y, ex[1] * x + dir[1] * y, z]);
-  const lite = c.map(v => v + (1 - v) * .55), dark = (k) => k.map(v => v * .72), RIBS = 8, NS = 6, NR = 6, K = 1.7;
-  const P = (q, n, k) => A.v.push(q[0], q[1], q[2], n[0], n[1], n[2], k[0], k[1], k[2], 5);
+  const dark = (k) => k.map(v => v * .72), RIBS = 8, NS = 6, NR = 6, K = 1.7;
+  const P = (Mk, q, n, k) => Mk.v.push(q[0], q[1], q[2], n[0], n[1], n[2], k[0], k[1], k[2], Mk === C ? 8 : 5);   /* vinyl shines */
   const pt = (rib, u, v, off) => { const ph = (rib + u) / RIBS * Math.PI * 2, rr = UMB_R * (1 - .07 * Math.sin(Math.PI * u)) * v, y = -UMB_H * Math.pow(v * (1 - .07 * Math.sin(Math.PI * u)), K) + .02;
     const sl = UMB_H * K * Math.pow(Math.max(v, .001), K - 1) / UMB_R, n = WN(Math.cos(ph) * sl, 1, Math.sin(ph) * sl);
     return [W(Math.cos(ph) * rr, y - off, Math.sin(ph) * rr), off ? n.map(x => -x) : n]; };
-  for (let r = 0; r < RIBS; r++){ const k = r % 2 ? lite : c;
-    for (let i = 0; i < NS; i++) for (let j = 0; j < NR; j++){ const u0 = i / NS, u1 = (i + 1) / NS, v0 = j / NR, v1 = (j + 1) / NR;
-      for (const off of [0, .012]){ const kk = off ? dark(k) : k, a = pt(r, u0, v0, off), b = pt(r, u1, v0, off), cc = pt(r, u1, v1, off), d = pt(r, u0, v1, off);
-        if (off){ P(a[0], a[1], kk); P(cc[0], cc[1], kk); P(b[0], b[1], kk); P(a[0], a[1], kk); P(d[0], d[1], kk); P(cc[0], cc[1], kk); }
-        else { P(a[0], a[1], kk); P(b[0], b[1], kk); P(cc[0], cc[1], kk); P(a[0], a[1], kk); P(cc[0], cc[1], kk); P(d[0], d[1], kk); } } }
-    const tip = pt(r, 0, 1, .006)[0], mid = W(0, .005, 0); A.tube(mid, tip, .005, .005, [.35, .34, .36], 5, 4); A.ell(tip, .012, .012, .012, [.35, .34, .36], 5, 6); }   /* ribs and their tips */
-  A.tube(W(0, .01, 0), W(0, .1, 0), .013, .006, [.35, .34, .36], 5, 6);                                                     /* the ferrule on top */
-  A.tube(g, t, .011, .011, [.32, .3, .3], 5, 6);                                                                           /* the shaft */
-  const J = [[0, 0], [0, -.07], [.02, -.11], [.05, -.115], [.068, -.09]].map(([x, y]) => [g[0] + ex[0] * x + dir[0] * y, g[1] + ex[1] * x + dir[1] * y, g[2]]);   /* a wooden crook */
-  for (let i = 0; i < 4; i++) A.tube(J[i], J[i + 1], .015, .015, [.5, .34, .22], 5, 6);
+  for (let r = 0; r < RIBS; r++){
+    for (let i = 0; i < NS; i++) for (let j = 0; j < NR; j++){ const u0 = i / NS, u1 = (i + 1) / NS, v0 = j / NR, v1 = (j + 1) / NR, k = S.cell(r, i, j);
+      for (const off of C ? [0] : [0, .012]){ const Mk = C || A, kk = off ? dark(k) : k, a = pt(r, u0, v0, off), b = pt(r, u1, v0, off), cc = pt(r, u1, v1, off), d = pt(r, u0, v1, off);
+        if (off){ P(Mk, a[0], a[1], kk); P(Mk, cc[0], cc[1], kk); P(Mk, b[0], b[1], kk); P(Mk, a[0], a[1], kk); P(Mk, d[0], d[1], kk); P(Mk, cc[0], cc[1], kk); }
+        else { P(Mk, a[0], a[1], kk); P(Mk, b[0], b[1], kk); P(Mk, cc[0], cc[1], kk); P(Mk, a[0], a[1], kk); P(Mk, cc[0], cc[1], kk); P(Mk, d[0], d[1], kk); } }
+      if (C){ const a = pt(r, u0, 1, 0)[0], b = pt(r, u1, 1, 0)[0]; A.tube(a, b, .007, .007, S.rib, 5, 5); } }               /* a clear one has a white edge */
+    const tip = pt(r, 0, 1, .006)[0], mid = W(0, .005, 0); A.tube(mid, tip, .005, .005, S.rib, 5, 4); A.ell(tip, .012, .012, .012, S.rib, 5, 6); }   /* ribs and their tips */
+  for (const [r, u, v, k] of S.dots){ const [q, n] = pt(r, u, v, 0); A.ell([q[0] + n[0] * .004, q[1] + n[1] * .004, q[2] + n[2] * .004], .015, .015, .015, k, 9, 6); }   /* seeds, stars */
+  A.tube(W(0, .01, 0), W(0, .1, 0), .013, .006, S.rib, 5, 6);                                                     /* the ferrule on top */
+  A.tube(g, t, .011, .011, C ? [.9, .91, .93] : [.32, .3, .3], 5, 6);                                             /* the shaft */
+  const J = [[0, 0], [0, -.07], [.02, -.11], [.05, -.115], [.068, -.09]].map(([x, y]) => [g[0] + ex[0] * x + dir[0] * y, g[1] + ex[1] * x + dir[1] * y, g[2]]);   /* a crook */
+  for (let i = 0; i < 4; i++) A.tube(J[i], J[i + 1], .015, .015, S.handle, 5, 6);
 }
-const umbOf = (a) => { let h = 0; const s = String(a.id || "me"); for (let i = 0; i < s.length; i++) h = h * 31 + s.charCodeAt(i) | 0; return Math.abs(h) % UMB_C.length; };
+/* a point on the outside of the hood, by angle round (0 = straight ahead) and up */
+const hoodAt = (az, el, o) => { const H = HOOD, u = [Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)], t = 1 / Math.hypot(u[0] / H.r[0], u[1] / H.r[1], u[2] / H.r[2]) + (o || 0);
+  return [H.c[0] + u[0] * t, H.c[1] + u[1] * t, H.c[2] + u[2] * t]; };
+function coatMesh(v){ const U = RAIN.umb || (RAIN.umb = { u:{}, coat:[] }); if (U.coat[v]) return U.coat[v];
+  const V = COAT_V[v] || COAT_V[0], coatC = V.c, trim = V.t, inner = V.i, wht = [.98, .97, .94], one = (fn) => { const A = maker(); fn(A); return upload(A.v); };
+  const prof = [[.335, .3], [.346, .318], [.327, .36], [.296, .41], [.266, .46], [.244, .52], [.238, .58]].concat([.63, .68, .73, .77, .8].map(y => [rAt(y) + .03, y]), [[.15, .83], [.09, .855], [0, .866]]);
+  const zc = (y) => { let r = .2; for (let i = 0; i < prof.length - 1; i++) if (y >= prof[i][1] && y <= prof[i + 1][1]){ r = lerp(prof[i][0], prof[i + 1][0], (y - prof[i][1]) / (prof[i + 1][1] - prof[i][1])); break; } return r * BODY_Z; };
+  const onBody = (a, y, o) => { const R = zc(y) / BODY_Z + (o || 0); return [Math.sin(a) * R, y, Math.cos(a) * R * BODY_Z]; };
+  const sleeve = (s) => one(A => { const sh = [.165 * s, .79, 0], wr = [.213 * s, .598, 0];
+    A.ell(sh, .088, .088, .088, coatC, 5, 16); A.tube(sh, wr, .086, .075, coatC, 5, 16); A.torus(wr, .074, .015, trim, 5, 16, 6); });
+  const coat = one(A => {
+    A.lathe(prof, coatC, 5, 44, BODY_Z); A.torus([0, .312, 0], .34, .014, trim, 5, 44, 6);
+    A.lathe([[.17, .79], [.215, .84], [.24, .885], [.27, .935]], coatC, 5, 36, .95);                                           /* a high collar up into the hood */
+    A.tube([0, .32, zc(.32) + .004], [0, .83, zc(.83) + .006], .012, .012, trim, 5, 6);                                       /* the front edge */
+    if (V.tog) for (const y of [.74, .64, .54, .44]) A.ell([.004, y, zc(y) + .012], .022, .012, .01, wht, 5, 10);             /* toggles */
+    if (V.zip){ A.tube([0, .33, zc(.33) + .014], [0, .82, zc(.82) + .016], .006, .006, [.78, .8, .84], 8, 5);                 /* a zip, and its pull */
+      A.ell([0, .79, zc(.79) + .024], .012, .022, .008, [.82, .84, .88], 8, 8); }
+    for (const s of [-1, 1]){ const y = .42, x = .15 * s, z = Math.sqrt(Math.max(0, (zc(y) / BODY_Z) ** 2 - x * x)) * BODY_Z;
+      A.ell([x, y, z + .004], .062, .05, .012, trim, 5, 14); }                                                                 /* pockets */
+    if (V.hood === "dino") for (const y of [.42, .54, .66, .77]){ const b = onBody(Math.PI, y, -.01), tip = onBody(Math.PI, y + .03, .085);   /* spikes down the back */
+      A.tube(b, tip, .04, .004, [1, .8, .3], 5, 8); }
+    if (V.hood === "berry") for (let r = 0; r < 8; r++) for (let k = 0; k < 11; k++){ const y = .35 + r * .062, a = (k + (r % 2) * .5) / 11 * Math.PI * 2;   /* seeds all over */
+      if (Math.abs(Math.sin(a)) < .1 && Math.cos(a) > 0) continue; const p = onBody(a, y, .004); seed(A, p, norm(sub(onBody(a, y, .05), p))); } });
+  const hood = one(A => { hoodShell(A, coatC, inner, trim);
+    if (V.hood === "duck"){ const bill = [1, .6, .22];                                                                         /* a bill out over the face, eyes, a tuft */
+      A.ell([0, 1.585, .38], .165, .03, .13, bill, 5, 18); A.ell([0, 1.56, .35], .14, .02, .1, SHADE(bill, .86), 5, 16);
+      for (const s of [-1, 1]){ A.ell([.13 * s, 1.635, .212], .03, .034, .024, [.12, .1, .1], 5, 10); A.ell([.138 * s, 1.648, .232], .009, .009, .006, wht, 9, 6); }
+      A.ell([0, 1.735, -.03], .03, .055, .03, coatC, 5, 10); A.ell([.03, 1.725, -.05], .024, .045, .024, coatC, 5, 10); }
+    if (V.hood === "frog") for (const s of [-1, 1]){ const x = .17 * s;                                                        /* big eyes up on top */
+      A.ell([x, 1.68, .05], .095, .09, .09, coatC, 5, 16); A.ell([x, 1.7, .11], .064, .064, .045, wht, 5, 14);
+      A.ell([x, 1.705, .148], .032, .034, .016, [.12, .1, .1], 5, 10); A.ell([x + .012 * s, 1.72, .16], .009, .009, .005, wht, 9, 6);
+      A.ell([.27 * s, 1.47, .3], .04, .022, .01, [.98, .62, .62], 9, 10); }                                                   /* and pink cheeks */
+    if (V.hood === "bear") for (const s of [-1, 1]){ A.ell([.3 * s, 1.64, -.02], .085, .085, .05, coatC, 5, 14); A.ell([.302 * s, 1.645, .025], .05, .05, .02, mix3c(coatC, [1, .86, .76], .5), 5, 12); }
+    if (V.hood === "dino") for (const [el, h] of [[.35, .07], [.62, .1], [.9, .12], [1.18, .11], [1.45, .09]]){ const az = Math.PI, b = hoodAt(az, el, -.02), n = norm(sub(hoodAt(az, el, .1), b));
+      A.tube(b, add(b, mul(n, h + .02)), .045, .004, [1, .8, .3], 5, 8); }
+    if (V.hood === "dino") for (const el of [1.55]){ const b = hoodAt(0, el, -.02), n = norm(sub(hoodAt(0, el, .1), b)); A.tube(b, add(b, mul(n, .1)), .045, .004, [1, .8, .3], 5, 8); }
+    if (V.hood === "berry"){ const lf = [.3, .66, .28], top = hoodAt(0, Math.PI / 2, -.02);                                     /* the green top: leaves lying over the crown, and a stalk */
+      for (let k = 0; k < 7; k++){ const a = k / 7 * Math.PI * 2 + .2, P = [];
+        for (const el of [1.57, 1.4, 1.22, 1.06]) P.push(hoodAt(-a + Math.PI / 2, el, .012));
+        P[0] = top; A.strand(P, [.02, .055, .045, .006], [.012, .012, .01, .006], [Math.sin(a), 0, Math.cos(a)].map((x, i) => i === 1 ? 0 : x), lf, 5, 8); }
+      A.ell(add(top, [0, .02, 0]), .06, .025, .06, lf, 5, 14);
+      A.strand([add(top, [0, .02, 0]), add(top, [.006, .07, 0]), add(top, [.03, .11, 0])], [.018, .015, .012], [.018, .015, .012], [1, 0, 0], SHADE(lf, .78), 5, 8);
+      const d0 = [0, -Math.sin(HOOD.dl), Math.cos(HOOD.dl)];                                                                  /* seeds round the hood, clear of the face */
+      for (let r = 0; r < 5; r++) for (let k = 0; k < 14; k++){ const el = -.05 + r * .24, az = (k + (r % 2) * .5) / 14 * Math.PI * 2, u = [Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)];
+        if (u[0] * d0[0] + u[1] * d0[1] + u[2] * d0[2] > .5) continue; const p = hoodAt(az, el, .004); seed(A, p, norm(sub(hoodAt(az, el, .1), p))); } } });
+  return U.coat[v] = { coat, hood, sl:sleeve(-1), sr:sleeve(1) }; }
+const mix3c = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+/* a strawberry seed: a little flat painted teardrop lying on the surface (two triangles, not a ball) */
+const seed = (A, p, n) => { let up = sub([0, 1, 0], mul(n, n[1])); up = Math.hypot(up[0], up[1], up[2]) < 1e-3 ? [0, 0, 1] : norm(up); const sd = cross(n, up), k = [1, .9, .5];
+  const a = add(p, mul(up, .019)), b = add(p, mul(sd, .009)), c = add(p, mul(up, -.011)), d = add(p, mul(sd, -.009)); A.quad(a, b, c, d, n, k, 9); };
+const gearOf = (a) => (a.gear | 0);
 /* the coat's pieces move as the body and the two arms do; a big bun or curls get a roomier hood */
 const HOOD_FIT = { 3:[1, 1.22, 1.04], 5:[1.09, 1.04, 1.08] };
 function coatMats(a, now){ const q = pose(a, now), base = mm4(Tm(a.x, a.y + q.lift, a.z), RYS(a.r + q.spin, a.sc || 1)), up = mm4(base, mm4(Tm(0, .42, 0), mm4(RX(q.bow), mm4(RZ(q.sway), Tm(0, -.42, 0)))));
@@ -25820,7 +25891,7 @@ function stepRain(dt, now){
   /* umbrellas: where each one's hand is, once a frame */
   if (SEASON.cur !== "spring" && me.item && ITEMS[me.item].sea === "spring") putAway(inWorld ? { en:"Spring's over — put away", ko:"봄이 끝나서 넣어 뒀어요" } : null);
   for (const a of AVATARS()){ const near = a.mesh && !a.npc && Math.hypot(a.x - camPos[0], a.z - camPos[2]) < 30 && SEASON.cur === "spring" && BALL.holder !== a && !(a === me && SN.held);
-    a.umF = near && a.item === "umb" ? (() => { const open = umbUp(a); if (open) return { open, up:headM(a, now), c:umbOf(a) }; const f = itemFrame(a, now); return { g:f.g, d:f.d, open, sc:f.sc, c:umbOf(a) }; })() : null;
+    a.umF = near && a.item === "umb" ? (() => { const open = umbUp(a); if (open) return { open, up:headM(a, now), c:gearOf(a) % UMB_V.length }; const f = itemFrame(a, now); return { g:f.g, d:f.d, open, sc:f.sc, c:gearOf(a) % UMB_V.length }; })() : null;
     a.coatM = a.mesh && a.item === "coat" && SEASON.cur === "spring" && Math.hypot(a.x - camPos[0], a.z - camPos[2]) < 30 ? coatMats(a, now) : null;
     if (RAIN.k > .3 && a.mesh && !a.npc && camPos[1] > -.05 && !dryOf(a) && Math.hypot(a.x - camPos[0], a.z - camPos[2]) < 22 && now > (a.wet || 0)){ a.wet = now + 300; const sc = a.sc || 1;   /* caught in the rain: water running off */
       Object.assign(slot(DROPS), { on:true, t0:now, x:a.x + (Math.random() - .5) * .5 * sc, y:a.y + 1.45 * sc, z:a.z + (Math.random() - .5) * .5 * sc, vx:(Math.random() - .5) * .4, vy:.2, vz:(Math.random() - .5) * .4, life:.35 });
@@ -25844,11 +25915,13 @@ function stepRain(dt, now){
 function drawRain(p, now){
   const ups = AVATARS().some(a => a.umF || a.coatM); if (!ups && !RAIN.n) return;
   const u = p.u, put = (m, M) => { gl.uniformMatrix4fv(u.uM, false, M); bindMesh(m); gl.drawArrays(gl.TRIANGLES, 0, m.n); };
-  if (ups){ if (!RAIN.umb) RAIN.umb = umbMeshes(); const U = RAIN.umb;
+  if (ups){ const clear = [];
     for (const a of AVATARS()){ const f = a.umF; if (!f || (a === me && tooClose())) continue; if (a.dk && (PASS === "main" || PASS === "nrm" || PASS === "rf") && dkOn(a, "ghost", now)) continue;
-      put(f.open ? U.open[f.c] : U.closed[f.c], f.open ? f.up : itAx(f.g, f.d, f.sc, f.sc)); }
+      const m = umbMesh(f.c, f.open), M = f.open ? f.up : itAx(f.g, f.d, f.sc, f.sc); put(m.m, M); if (m.c) clear.push(m.c, M); }
     for (const a of AVATARS()){ const C = a.coatM; if (!C || (a === me && tooClose())) continue; if (a.dk && (PASS === "main" || PASS === "nrm" || PASS === "rf") && dkOn(a, "ghost", now)) continue;
-      put(U.coat, C.up); put(U.hood, C.hood); put(U.sl, C.al); put(U.sr, C.ar); } }
+      const U = coatMesh(gearOf(a) % COAT_V.length); put(U.coat, C.up); put(U.hood, C.hood); put(U.sl, C.al); put(U.sr, C.ar); }
+    if (clear.length && PASS === "main" && u.uA){ gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false); gl.uniform1f(u.uA, .55);   /* clear vinyl: see-through */
+      for (let i = 0; i < clear.length; i += 2) put(clear[i], clear[i + 1]); gl.uniform1f(u.uA, 1); gl.depthMask(true); gl.disable(gl.BLEND); } }
   if (RAIN.n && PASS === "main" && RAIN.M){ gl.uniformMatrix4fv(u.uM, false, I4); bindMesh(RAIN.M); gl.drawArrays(gl.TRIANGLES, 0, RAIN.n); }
 }
 
