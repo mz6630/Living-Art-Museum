@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){var V="20261119054852";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
+<script>(function(){var V="20261119072339";if(!/^https?:$/.test(location.protocol)||/claude/i.test(location.hostname))return;fetch("experiences/version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){t=(t||"").trim();if(!t||t===V)return;var u=new URL(location.href);if(u.searchParams.get("v")===t)return;u.searchParams.set("v",t);location.replace(u.toString());}).catch(function(){});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Living Art Museum — Open the app</title>
@@ -22515,7 +22515,7 @@ const HAIRC = [[.17, .13, .12], [.38, .24, .16], [.74, .54, .32], [.94, .8, .45]
 const TOPC = [[.58, .75, .8], [.96, .8, .32], [.96, .57, .52], [.67, .84, .62], [.8, .68, .92], [.97, .96, .93], [.37, .43, .56], [1, .64, .42]];
 const BOTC = [[.25, .3, .37], [.92, .9, .86], [.52, .66, .78], [.86, .72, .56], [.43, .57, .45], [.2, .2, .23]];
 const LOOK_KEYS = ["sk", "hs", "hc", "st", "tc", "bc", "ac", "fa"];
-const LOOK_N = { sk:SKIN.length, hs:9, hc:HAIRC.length, st:6, tc:TOPC.length, bc:BOTC.length, ac:8, fa:7 };
+const LOOK_N = { sk:SKIN.length, hs:10, hc:HAIRC.length, st:7, tc:TOPC.length, bc:BOTC.length, ac:9, fa:7 };
 const lookArr = (L) => LOOK_KEYS.map(k => L[k]);
 const lookFrom = (a) => { const L = {}; LOOK_KEYS.forEach((k, i) => { const v = Array.isArray(a) ? a[i] : 0; L[k] = Number.isInteger(v) && v >= 0 && v < LOOK_N[k] ? v : 0; }); return L; };
 const lookKey = (L) => lookArr(L).join(".");
@@ -22541,7 +22541,7 @@ const SHOE = [[.28, .45, .84], [.86, .32, .3], [.32, .32, .36], [.96, .62, .22],
 function buildAvatar(L){
   const B = maker(), LL = maker(), LR = maker(), AL = maker(), AR = maker(), M = 5, GLOSS = 8, PAINT = 9, HAIR = 10;
   const sk = SKIN[L.sk], hc = HAIRC[L.hc], tc = TOPC[L.tc], bc = BOTC[L.bc], white = [.98, .97, .95], ink = [.2, .13, .12];
-  const swim = L.st === 3, dress = L.st === 1, hood = L.st === 2, tee = L.st === 0, aloha = L.st === 4, overall = L.st === 5;
+  const swim = L.st === 3, dress = L.st === 1, hood = L.st === 2, tee = L.st === 0, aloha = L.st === 4, overall = L.st === 5, knit = L.st === 6;
   const mix3 = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
   /* ---- painting on the face ---- */
   let F = B;                                                                                                  /* where the face paint goes */
@@ -22553,7 +22553,7 @@ function buildAvatar(L){
     paint(pts, o, k); };
   const stroke = (x0, y0, x1, y1, r0, r1, k) => F.tube(fP(x0, y0, .007), fP(x1, y1, .007), r0, r1, k, PAINT, 8);
   /* ---- legs, socks and shoes ---- */
-  for (const [A, s] of [[LL, -1], [LR, 1]]){ const x = .08 * s, lc = hood || overall ? bc : sk, lr = hood || overall ? .058 : .045;
+  for (const [A, s] of [[LL, -1], [LR, 1]]){ const x = .08 * s, lc = hood || overall || knit ? bc : sk, lr = hood || overall || knit ? .058 : .045;
     A.ell([x, .41, 0], lr + .006, .05, lr + .006, lc, M, 14);
     A.tube([x, .42, 0], [x, .08, 0], lr, lr * .92, lc, M, 14);
     if (hood) A.torus([x, .12, 0], .054, .014, SHADE(bc, .86), M, 16, 6);
@@ -22621,6 +22621,22 @@ function buildAvatar(L){
     B.grid(G, bc, M, [0, .65, -.1]);                                                                         /* the bib */
     B.ell([0, .65, zf(.65) + .012], .048, .034, .008, SHADE(bc, .84), M, 14);                                 /* its pocket */
     for (const d of [-1, 1]){ strap(.085 * d, .7, .01, bc, .022); B.ell([.085 * d, .705, Math.sqrt((rAt(.705) + .016) ** 2 - .0072) * BODY_Z], .014, .014, .008, [.96, .8, .36], M, 10); }
+  } else if (knit){                                                                                          /* a chunky knit: ribs all round, two cables down the front */
+    const rib = SHADE(tc, .86), RIBS = 22;
+    const ribLathe = (pts, k, seg, amp) => { const N = pts.map((p, i) => { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], dr = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dr, dy) || 1; return [dy / l, -dr / l]; });
+      const V = (i, j) => { const t = j / seg * Math.PI * 2, c = Math.cos(t), s = Math.sin(t), r = pts[i][0], y = pts[i][1], w = (j % 2 ? 1 : -1) * amp, nr = N[i][0];
+        return [[r * c, y, r * s * BODY_Z], norm([nr * (c - s * w), N[i][1], nr * (s + c * w) / BODY_Z])]; };                  /* the normals rock side to side: ribs, for no extra triangles */
+      for (let i = 0; i < pts.length - 1; i++) for (let j = 0; j < seg; j++){ const a = V(i, j), b = V(i + 1, j), c = V(i + 1, j + 1), d = V(i, j + 1); B.quad(a[0], b[0], c[0], d[0], [0, 0, 0], k, M);
+        for (const [q, n] of [[0, a[1]], [1, b[1]], [2, c[1]], [3, a[1]], [4, c[1]], [5, d[1]]]){ const o = B.v.length - (6 - q) * ST; B.v[o + 3] = n[0]; B.v[o + 4] = n[1]; B.v[o + 5] = n[2]; } } };
+    ribLathe(TORSO.filter(p => p[0] > 0).map(([r, y]) => [r + .016, y]), tc, RIBS * 2, .42);
+    B.lathe([[0, .47], [.216, .47]], tc, M, 44, BODY_Z); B.lathe([[.102, .845], [0, .858]], tc, M, 32, BODY_Z);
+    ribLathe([[.214, .455], [.236, .462], [.238, .5], [.226, .51]], rib, RIBS * 2, .7);                       /* the ribbed hem */
+    B.lathe([[0, .37], [.18, .37], [.205, .39], [.214, .45], [.21, .47]], bc, M, 40, BODY_Z);                /* trousers */
+    B.torus([0, .846, 0], .092, .022, rib, M, 28, 8, i => i % 2 ? rib : SHADE(tc, .78));                      /* a ribbed crew neck */
+    const cab = SHADE(tc, 1.08);
+    for (const cx of [-.07, .07]) for (const ph of [0, Math.PI]){ const P = [];
+      for (let y = .52; y <= .79; y += .03){ const x = cx + Math.sin(y * 34 + ph) * .016; P.push([x, y, Math.sqrt(Math.max(0, (rAt(y) + .016) ** 2 - x * x)) * BODY_Z + .004]); }
+      B.strand(P, P.map(() => .012), P.map(() => .007), [1, 0, 0], cab, M, 6); }
   } else {                                                                                                     /* the swimsuit */
     B.lathe(TORSO, sk, M, 44, BODY_Z);
     B.lathe([[0, .38], [.17, .38], [.2, .41], [.216, .46]].concat([.48, .5, .53, .58, .63, .68, .72].map(y => [rAt(y) + .007, y])), tc, M, 44, BODY_Z);
@@ -22689,7 +22705,7 @@ function buildAvatar(L){
     F = E7; oval(x, ey + .004, .075, .096, .004, lash, 0, .18, Math.PI - .18); oval(x, ey, .067, .085, .008, white);   /* a glance up, thinking */
     oval(x + .018, ey + .024, .045, .052, .012, iris); oval(x + .02, ey + .026, .024, .028, .015, pupil); oval(x + .03, ey + .042, .011, .012, .018, white);
     F = B;
-    if (!L.hs) oval(x, ey + .13, .046, .017, .006, SHADE(hc, .7), (L.fa === 6 ? .16 : -.1) * s);           /* the forehead shows: brows */
+    if (!L.hs || L.hs === 9) oval(x, ey + .13, .046, .017, .006, SHADE(hc, .7), (L.fa === 6 ? .16 : -.1) * s);           /* the forehead shows: brows */
     oval(.248 * s, HEAD - .128, .052, .03, .005, mix3(sk, [.98, .55, .55], .45)); }                         /* cheeks */
   /* and a mouth to go with each */
   F = M0;
@@ -22796,6 +22812,9 @@ function buildAvatar(L){
     [[.1, .5, .1], [-.32, .55, .09], [.5, .6, .085], [-.05, .2, .1], [.36, .25, .09], [-.42, .3, .09], [1.1, .7, .08], [-1.1, .7, .08], [1.9, .62, .08], [-1.9, .62, .08], [2.6, .45, .09], [-2.6, .45, .09], [Math.PI, .22, .1]].forEach(([a, th, len]) => {
       const b = PT(a, th, .03), n = norm(sub(PT(a, th, .1), b)), d = norm(add(mul(n, .8), [-Math.sin(a) * .5, .25, -Math.cos(a) * .9])), tipP = add(b, mul(d, len));
       B.strand([b, add(b, add(mul(d, len * .5), mul(n, .012))), tipP], [.085, .06, .007], [.065, .046, .007], [Math.cos(a), 0, -Math.sin(a)], hc, HAIR, 10); }); }
+  if (S === 9){                                                                                                 /* bald: just a soft shine on the crown */
+    const hp = (az, el, o) => { const d = [Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)]; return [d[0] * (HR[0] + o), HEAD + d[1] * (HR[1] + o), d[2] * (HR[2] + o)]; };
+    const P = [-.7, -.5, -.3, -.12].map(a => hp(a, 1.16, .002)); B.strand(P, [.004, .012, .013, .004], [.003, .003, .003, .003], [0, 0, 1], mix3(sk, white, .3), PAINT, 6); }
   /* ---- the extra ---- */
   const shiftZ = (from, dz) => { for (let i = from; i < B.v.length; i += ST) B.v[i + 2] += dz; };
   if (L.ac === 1 && L.tuck !== 2){ const straw = [.93, .8, .52], n0 = B.v.length;
@@ -22813,6 +22832,14 @@ function buildAvatar(L){
       B.tube([x + .078 * s, ey + .02, z - .005], [.405 * s, ey + .03, -.05], .009, .009, fr, M, 6); }
     const zb = faceZ(0, ey + .02) + .038; for (let k = 0; k < 4; k++){ const u0 = k / 4, u1 = (k + 1) / 4, f = (u) => [lerp(-.07, .07, u), ey + .025 + Math.sin(Math.PI * u) * .016, zb];
       B.tube(f(u0), f(u1), .009, .009, fr, GLOSS, 6); } }
+  if (L.ac === 8){ const fr = [.13, .1, .09];                                                                   /* plain square glasses: thin frames, clear, a bridge, arms to the ears */
+    for (const s of [-1, 1]){ const x = ex * s, z = faceZ(x, ey) + .03, hw = .074, hh = .054, cr = .018, P = [];
+      for (const [qx, qy, a0] of [[1, 1, 0], [-1, 1, Math.PI / 2], [-1, -1, Math.PI], [1, -1, Math.PI * 1.5]])
+        for (let i = 0; i <= 3; i++){ const t = a0 + i / 3 * Math.PI / 2, px = x + qx * (hw - cr) + Math.cos(t) * cr, py = ey + qy * (hh - cr) + Math.sin(t) * cr; P.push([px, py, Math.max(z, faceZ(px, py) + .012)]); }
+      for (let i = 0; i < P.length; i++) B.tube(P[i], P[(i + 1) % P.length], .0085, .0085, fr, GLOSS, 6);
+      B.tube([x + .042 * s, ey + .03, z + .01], [x + .018 * s, ey + .042, z + .01], .005, .004, [.86, .9, .95], PAINT, 6);   /* a faint glint on the glass */
+      B.tube([x + hw * s, ey + .03, z - .004], [.405 * s, ey + .03, -.05], .008, .008, fr, M, 6); }
+    const zb = faceZ(0, ey + .02) + .036; B.tube([-.076, ey + .02, zb], [0, ey + .028, zb + .003], .008, .008, fr, GLOSS, 6); B.tube([0, ey + .028, zb + .003], [.076, ey + .02, zb], .008, .008, fr, GLOSS, 6); }
   if (L.ac === 3) B.torus([0, .56, 0], .29, .085, white, M, 30, 14, i => (Math.floor(i / 5) % 2) ? white : [.98, .52, .6]);
   if (L.ac === 4 && !L.tuck){ const n0 = B.v.length;
     B.lathe([[.45, HEAD + .12], [.452, HEAD + .22], [.4, HEAD + .36], [.26, HEAD + .45], [0, HEAD + .475]], tc, M, 40); shiftZ(n0, -.05);
@@ -22836,6 +22863,8 @@ function buildAvatar(L){
   for (const [A, s] of [[AL, -1], [AR, 1]]){
     const sh = [.165 * s, .79, 0], el = [.19 * s, .7, 0], hd = [.215 * s, .56, 0];
     if (swim){ A.ell(sh, .05, .05, .05, sk, M, 14); A.tube(sh, hd, .04, .036, sk, M, 14); }
+    else if (knit){ A.ell(sh, .074, .072, .072, tc, M, 16); A.tube(sh, [.212 * s, .61, 0], .072, .06, tc, M, 16);
+      A.tube([.212 * s, .615, 0], [.214 * s, .585, 0], .056, .052, SHADE(tc, .86), M, 16); A.torus([.213 * s, .6, 0], .056, .01, SHADE(tc, .78), M, 16, 5, i => i % 2 ? SHADE(tc, .86) : SHADE(tc, .76)); }
     else if (hood){ A.ell(sh, .066, .066, .066, tc, M, 16); A.tube(sh, [.21 * s, .6, 0], .064, .054, tc, M, 16); A.torus([.21 * s, .605, 0], .052, .014, SHADE(tc, .88), M, 16, 6); }
     else { A.ell(sh, .07, .068, .068, tc, M, 16); A.tube(sh, el, .07, .064, tc, M, 16); A.torus([el[0], el[1] + .006, 0], .062, .012, dress ? white : SHADE(tc, .9), M, 16, 6);
       A.tube(el, hd, .038, .036, sk, M, 14); }
@@ -23706,12 +23735,12 @@ const HINTS = {
 const LOOK_UI = [
   { k:"fa", lab:{ en:"Face", ko:"표정" }, names:[{ en:"Round eyes", ko:"동글 눈" }, { en:"Calm", ko:"평온" }, { en:"Sparkly", ko:"초롱 눈" }, { en:"Dots", ko:"점 눈" }, { en:"Cat-eye", ko:"새침 눈" }, { en:"Dazed", ko:"멍한 눈" }, { en:"Gentle", ko:"순한 눈" }] },
   { k:"sk", lab:{ en:"Skin", ko:"피부" }, cols:SKIN },
-  { k:"hs", lab:{ en:"Hair", ko:"머리 모양" }, names:[{ en:"Swept up", ko:"업스타일" }, { en:"Short", ko:"짧은 머리" }, { en:"Bob", ko:"단발" }, { en:"Bun", ko:"똥머리" }, { en:"Long", ko:"긴 머리" }, { en:"Curly", ko:"곱슬" }, { en:"Plaits", ko:"땋은 양갈래" }, { en:"Bunches", ko:"양갈래" }, { en:"Spiky", ko:"삐죽 머리" }] },
+  { k:"hs", lab:{ en:"Hair", ko:"머리 모양" }, names:[{ en:"Swept up", ko:"업스타일" }, { en:"Short", ko:"짧은 머리" }, { en:"Bob", ko:"단발" }, { en:"Bun", ko:"똥머리" }, { en:"Long", ko:"긴 머리" }, { en:"Curly", ko:"곱슬" }, { en:"Plaits", ko:"땋은 양갈래" }, { en:"Bunches", ko:"양갈래" }, { en:"Spiky", ko:"삐죽 머리" }, { en:"Bald", ko:"대머리" }] },
   { k:"hc", lab:{ en:"Hair colour", ko:"머리 색" }, cols:HAIRC },
-  { k:"st", lab:{ en:"Outfit", ko:"옷" }, names:[{ en:"T-shirt", ko:"티셔츠" }, { en:"Dress", ko:"원피스" }, { en:"Hoodie", ko:"후드" }, { en:"Swimsuit", ko:"수영복" }, { en:"Aloha shirt", ko:"하와이안 셔츠" }, { en:"Dungarees", ko:"멜빵바지" }] },
+  { k:"st", lab:{ en:"Outfit", ko:"옷" }, names:[{ en:"T-shirt", ko:"티셔츠" }, { en:"Dress", ko:"원피스" }, { en:"Hoodie", ko:"후드" }, { en:"Swimsuit", ko:"수영복" }, { en:"Aloha shirt", ko:"하와이안 셔츠" }, { en:"Dungarees", ko:"멜빵바지" }, { en:"Knit sweater", ko:"니트" }] },
   { k:"tc", lab:{ en:"Top", ko:"상의 색" }, cols:TOPC },
   { k:"bc", lab:{ en:"Bottom", ko:"하의 색" }, cols:BOTC },
-  { k:"ac", lab:{ en:"Extra", ko:"소품" }, names:[{ en:"None", ko:"없음" }, { en:"Sun hat", ko:"밀짚모자" }, { en:"Sunglasses", ko:"선글라스" }, { en:"Swim ring", ko:"튜브" }, { en:"Cap", ko:"캡모자" }, { en:"Bunny ears", ko:"토끼 귀" }, { en:"Flower pin", ko:"꽃핀" }, { en:"Ribbon", ko:"리본" }] },
+  { k:"ac", lab:{ en:"Extra", ko:"소품" }, names:[{ en:"None", ko:"없음" }, { en:"Sun hat", ko:"밀짚모자" }, { en:"Sunglasses", ko:"선글라스" }, { en:"Swim ring", ko:"튜브" }, { en:"Cap", ko:"캡모자" }, { en:"Bunny ears", ko:"토끼 귀" }, { en:"Flower pin", ko:"꽃핀" }, { en:"Ribbon", ko:"리본" }, { en:"Square glasses", ko:"각진 안경" }] },
 ];
 const css = (c) => `rgb(${c.map(v => Math.round(v * 255)).join(",")})`;
 let chosen = 1;
